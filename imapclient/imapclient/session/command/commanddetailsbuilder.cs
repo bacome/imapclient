@@ -873,7 +873,13 @@ namespace work.bacome.imapclient
                 }
 
                 public bool AppendDataBinary => UTF8 || Binary;
-                public bool CatPartBinary => UTF8 || Binary; // TODO: check that binary works here: the RFCs imply not
+
+                // note that rfc 4469 has not been updated to allow binary literals in the text-literal
+                //  in particular, on Dovecot use of binary literals in a catenate text-literal causes issues in some areas
+                //   (notably the ;boundary="" parameter of the content-type gets mangled when it is on a separate line)
+                //   (but it seems to work ok otherwise)
+                //
+                public bool CatPartBinary => UTF8; 
             }
         }
     }

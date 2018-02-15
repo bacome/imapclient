@@ -51,15 +51,17 @@ namespace testharness2
     public class cAppendDataSourceFile : cAppendDataSource
     {
         public readonly string Path;
+        public readonly bool Base64Encode;
         public readonly bool AsStream;
 
-        public cAppendDataSourceFile(string pPath, bool pAsStream)
+        public cAppendDataSourceFile(string pPath, bool pBase64Encode, bool pAsStream)
         {
             Path = pPath ?? throw new ArgumentNullException(nameof(pPath));
+            Base64Encode = pBase64Encode;
             AsStream = pAsStream;
         }
 
-        public override string ToString() => $"{Path},{AsStream}";
+        public override string ToString() => $"{Path},{Base64Encode},{AsStream}";
     }
 
     public class cAppendDataSourceStream : cAppendDataSource
@@ -67,14 +69,16 @@ namespace testharness2
         // NOTE: the stream needs to be disposed: but only after it has been 'read'
         public readonly cMessageDataStream Stream;
         public readonly uint Length;
+        public readonly bool Base64Encode;
 
-        public cAppendDataSourceStream(cMessageDataStream pStream, uint pLength)
+        public cAppendDataSourceStream(cMessageDataStream pStream, uint pLength, bool pBase64Encode)
         {
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             Length = pLength;
+            Base64Encode = pBase64Encode;
         }
 
-        public override string ToString() => $"{Stream.ToString()},{Length}";
+        public override string ToString() => $"{Stream.ToString()},{Length},{Base64Encode}";
     }
 
     public class cAppendDataSourceAttachment : cAppendDataSource

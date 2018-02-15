@@ -836,20 +836,7 @@ namespace work.bacome.imapclient
         public readonly bool Base64Encode;
         public readonly cBatchSizerConfiguration ReadConfiguration; // optional
 
-        public cFileAppendDataPart(string pPath, cBatchSizerConfiguration pReadConfiguration = null)
-        {
-            if (string.IsNullOrWhiteSpace(pPath)) throw new ArgumentOutOfRangeException(nameof(pPath));
-
-            var lFileInfo = new FileInfo(pPath);
-            if (!lFileInfo.Exists || (lFileInfo.Attributes & FileAttributes.Directory) != 0 || lFileInfo.Length > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pPath));
-
-            Path = lFileInfo.FullName;
-            Length = (uint)lFileInfo.Length;
-            Base64Encode = false;
-            ReadConfiguration = pReadConfiguration;
-        }
-
-        public cFileAppendDataPart(string pPath, bool pBase64Encode, cBatchSizerConfiguration pReadConfiguration = null)
+        public cFileAppendDataPart(string pPath, bool pBase64Encode = false, cBatchSizerConfiguration pReadConfiguration = null)
         {
             if (string.IsNullOrWhiteSpace(pPath)) throw new ArgumentOutOfRangeException(nameof(pPath));
 
@@ -881,29 +868,7 @@ namespace work.bacome.imapclient
         public readonly bool Base64Encode;
         public readonly cBatchSizerConfiguration ReadConfiguration; // optional
 
-        public cStreamAppendDataPart(Stream pStream, cBatchSizerConfiguration pReadConfiguration = null)
-        {
-            Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
-            if (!pStream.CanRead || !pStream.CanSeek) throw new ArgumentOutOfRangeException(nameof(pStream));
-
-            long lLength = pStream.Length - pStream.Position;
-            if (lLength < 0 || lLength > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pStream));
-            Length = (uint)lLength;
-
-            Base64Encode = false;
-            ReadConfiguration = pReadConfiguration;
-        }
-
-        public cStreamAppendDataPart(Stream pStream, uint pLength, cBatchSizerConfiguration pReadConfiguration = null)
-        {
-            Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
-            if (!pStream.CanRead) throw new ArgumentOutOfRangeException(nameof(pStream));
-            Length = pLength;
-            Base64Encode = false;
-            ReadConfiguration = pReadConfiguration;
-        }
-
-        public cStreamAppendDataPart(Stream pStream, bool pBase64Encode, cBatchSizerConfiguration pReadConfiguration = null)
+        public cStreamAppendDataPart(Stream pStream, bool pBase64Encode = false, cBatchSizerConfiguration pReadConfiguration = null)
         {
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!pStream.CanRead || !pStream.CanSeek) throw new ArgumentOutOfRangeException(nameof(pStream));
@@ -918,7 +883,7 @@ namespace work.bacome.imapclient
             ReadConfiguration = pReadConfiguration;
         }
 
-        public cStreamAppendDataPart(Stream pStream, uint pLength, bool pBase64Encode, cBatchSizerConfiguration pReadConfiguration = null)
+        public cStreamAppendDataPart(Stream pStream, uint pLength, bool pBase64Encode = false, cBatchSizerConfiguration pReadConfiguration = null)
         {
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!pStream.CanRead) throw new ArgumentOutOfRangeException(nameof(pStream));

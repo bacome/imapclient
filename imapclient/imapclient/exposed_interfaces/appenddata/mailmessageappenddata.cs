@@ -14,7 +14,7 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    public sealed class cMailMessageAppendData : cMultiPartAppendDataBase, IDisposable
+    public sealed class cMailMessageAppendData : cMultiPartAppendDataBase
     {
         private static readonly cBatchSizerConfiguration kMemoryStreamReadConfiguration = new cBatchSizerConfiguration(10000, 10000, 1, 10000); // 10k chunks
 
@@ -44,11 +44,14 @@ namespace work.bacome.imapclient
 
         public override ReadOnlyCollection<cAppendDataPart> Parts => mParts;
 
-        public void Dispose()
+        protected override void Dispose(bool pDisposing)
         {
-            // it should be noted that if the files are still in use by the library this will cause a problem
-            //  (this could happen if the append is cancelled)
-            mTempFileCollection.Delete();
+            if (pDisposing)
+            {
+                // it should be noted that if the files are still in use by the library this will cause a problem
+                //  (this could happen if the append is cancelled)
+                if (mTempFileCollection != null) mTempFileCollection.Delete();
+            }
         }
 
         public override string ToString()
@@ -85,6 +88,8 @@ namespace work.bacome.imapclient
         {
             // while it is possible to specify an encoding when creating an address, it is not possible to find out what the specified encoding was (MailAddress has no 'Encoding' property)
             //  otherwise I'd check the address encodings also
+
+            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
 
             Encoding lEncoding = pMessage.HeadersEncoding ?? pMessage.SubjectEncoding ?? pEncoding;
 
@@ -260,9 +265,8 @@ namespace work.bacome.imapclient
                 else
                 {
                     int lQuotedPrintableLength;
-                    cQuotedPrintableEncoder lEncoder = new cQuotedPrintableEncoder();
-                    if (pConfiguration.Async) lQuotedPrintableLength = await lEncoder.EncodeAsync(lInput, lOutput, pConfiguration.Timeout, pConfiguration.CancellationToken, pConfiguration.Increment).ConfigureAwait(false);
-                    else lQuotedPrintableLength = lEncoder.Encode(lInput, lOutput, pConfiguration.Timeout, pConfiguration.Increment);
+                    if (pConfiguration.Async) lQuotedPrintableLength = await cQuotedPrintableEncoder.EncodeAsync(lInput, lOutput, pConfiguration.Timeout, pConfiguration.CancellationToken, pConfiguration.Increment).ConfigureAwait(false);
+                    else lQuotedPrintableLength = cQuotedPrintableEncoder.Encode(lInput, lOutput, pConfiguration.Timeout, pConfiguration.Increment);
 
                     if (pMessage.BodyTransferEncoding == TransferEncoding.QuotedPrintable) lBase64 = false;
                     else

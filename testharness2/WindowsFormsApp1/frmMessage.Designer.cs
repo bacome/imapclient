@@ -57,10 +57,17 @@
             this.cmdCopyPartForAppend = new System.Windows.Forms.Button();
             this.rtxSummary = new System.Windows.Forms.RichTextBox();
             this.tpgRaw = new System.Windows.Forms.TabPage();
+            this.gbxCopyAsStreamForAppendRaw = new System.Windows.Forms.GroupBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.txtLengthRaw = new System.Windows.Forms.TextBox();
             this.cmdCopyPartAsStreamForAppendRaw = new System.Windows.Forms.Button();
             this.cmdDownloadRaw = new System.Windows.Forms.Button();
             this.rtxRaw = new System.Windows.Forms.RichTextBox();
             this.tpgDecoded = new System.Windows.Forms.TabPage();
+            this.gbxCopyAsStreamForAppendDecoded = new System.Windows.Forms.GroupBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.txtLengthDecoded = new System.Windows.Forms.TextBox();
+            this.cmdCopyAsStreamForAppendDecoded = new System.Windows.Forms.Button();
             this.pbx = new System.Windows.Forms.PictureBox();
             this.cmdDownloadDecoded = new System.Windows.Forms.Button();
             this.rtxDecoded = new System.Windows.Forms.RichTextBox();
@@ -84,13 +91,6 @@
             this.cmdCopyTo = new System.Windows.Forms.Button();
             this.cmdCopyForAppend = new System.Windows.Forms.Button();
             this.cmdCopyAsStreamForAppend = new System.Windows.Forms.Button();
-            this.gbxCopyAsStreamForAppendRaw = new System.Windows.Forms.GroupBox();
-            this.label6 = new System.Windows.Forms.Label();
-            this.txtLengthRaw = new System.Windows.Forms.TextBox();
-            this.gbxCopyAsStreamForAppendDecoded = new System.Windows.Forms.GroupBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.txtLengthDecoded = new System.Windows.Forms.TextBox();
-            this.cmdCopyAsStreamForAppendDecoded = new System.Windows.Forms.Button();
             this.tab.SuspendLayout();
             this.tpgEnvelope.SuspendLayout();
             this.tpgText.SuspendLayout();
@@ -106,7 +106,9 @@
             this.tabBodyStructure.SuspendLayout();
             this.tpgSummary.SuspendLayout();
             this.tpgRaw.SuspendLayout();
+            this.gbxCopyAsStreamForAppendRaw.SuspendLayout();
             this.tpgDecoded.SuspendLayout();
+            this.gbxCopyAsStreamForAppendDecoded.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbx)).BeginInit();
             this.tpgMessageStream.SuspendLayout();
             this.pnlMessageStream.SuspendLayout();
@@ -114,8 +116,6 @@
             this.gbxDecoding.SuspendLayout();
             this.tpgOther.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.erp)).BeginInit();
-            this.gbxCopyAsStreamForAppendRaw.SuspendLayout();
-            this.gbxCopyAsStreamForAppendDecoded.SuspendLayout();
             this.SuspendLayout();
             // 
             // cmdPrevious
@@ -458,6 +458,35 @@
             this.tpgRaw.Text = "Raw";
             this.tpgRaw.UseVisualStyleBackColor = true;
             // 
+            // gbxCopyAsStreamForAppendRaw
+            // 
+            this.gbxCopyAsStreamForAppendRaw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.gbxCopyAsStreamForAppendRaw.Controls.Add(this.label6);
+            this.gbxCopyAsStreamForAppendRaw.Controls.Add(this.txtLengthRaw);
+            this.gbxCopyAsStreamForAppendRaw.Controls.Add(this.cmdCopyPartAsStreamForAppendRaw);
+            this.gbxCopyAsStreamForAppendRaw.Location = new System.Drawing.Point(3, 422);
+            this.gbxCopyAsStreamForAppendRaw.Name = "gbxCopyAsStreamForAppendRaw";
+            this.gbxCopyAsStreamForAppendRaw.Size = new System.Drawing.Size(283, 49);
+            this.gbxCopyAsStreamForAppendRaw.TabIndex = 3;
+            this.gbxCopyAsStreamForAppendRaw.TabStop = false;
+            this.gbxCopyAsStreamForAppendRaw.Text = "Copy as Stream for Append";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(13, 24);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(40, 13);
+            this.label6.TabIndex = 2;
+            this.label6.Text = "Length";
+            // 
+            // txtLengthRaw
+            // 
+            this.txtLengthRaw.Location = new System.Drawing.Point(71, 21);
+            this.txtLengthRaw.Name = "txtLengthRaw";
+            this.txtLengthRaw.Size = new System.Drawing.Size(99, 20);
+            this.txtLengthRaw.TabIndex = 3;
+            // 
             // cmdCopyPartAsStreamForAppendRaw
             // 
             this.cmdCopyPartAsStreamForAppendRaw.Location = new System.Drawing.Point(176, 18);
@@ -503,6 +532,45 @@
             this.tpgDecoded.TabIndex = 2;
             this.tpgDecoded.Text = "Decoded";
             this.tpgDecoded.UseVisualStyleBackColor = true;
+            // 
+            // gbxCopyAsStreamForAppendDecoded
+            // 
+            this.gbxCopyAsStreamForAppendDecoded.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.gbxCopyAsStreamForAppendDecoded.Controls.Add(this.label2);
+            this.gbxCopyAsStreamForAppendDecoded.Controls.Add(this.txtLengthDecoded);
+            this.gbxCopyAsStreamForAppendDecoded.Controls.Add(this.cmdCopyAsStreamForAppendDecoded);
+            this.gbxCopyAsStreamForAppendDecoded.Location = new System.Drawing.Point(3, 422);
+            this.gbxCopyAsStreamForAppendDecoded.Name = "gbxCopyAsStreamForAppendDecoded";
+            this.gbxCopyAsStreamForAppendDecoded.Size = new System.Drawing.Size(283, 49);
+            this.gbxCopyAsStreamForAppendDecoded.TabIndex = 5;
+            this.gbxCopyAsStreamForAppendDecoded.TabStop = false;
+            this.gbxCopyAsStreamForAppendDecoded.Text = "Copy as Stream for Append";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(13, 24);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(40, 13);
+            this.label2.TabIndex = 2;
+            this.label2.Text = "Length";
+            // 
+            // txtLengthDecoded
+            // 
+            this.txtLengthDecoded.Location = new System.Drawing.Point(71, 21);
+            this.txtLengthDecoded.Name = "txtLengthDecoded";
+            this.txtLengthDecoded.Size = new System.Drawing.Size(99, 20);
+            this.txtLengthDecoded.TabIndex = 3;
+            // 
+            // cmdCopyAsStreamForAppendDecoded
+            // 
+            this.cmdCopyAsStreamForAppendDecoded.Location = new System.Drawing.Point(176, 18);
+            this.cmdCopyAsStreamForAppendDecoded.Name = "cmdCopyAsStreamForAppendDecoded";
+            this.cmdCopyAsStreamForAppendDecoded.Size = new System.Drawing.Size(100, 25);
+            this.cmdCopyAsStreamForAppendDecoded.TabIndex = 1;
+            this.cmdCopyAsStreamForAppendDecoded.Text = "Copy";
+            this.cmdCopyAsStreamForAppendDecoded.UseVisualStyleBackColor = true;
+            this.cmdCopyAsStreamForAppendDecoded.Click += new System.EventHandler(this.cmdCopyAsStreamForAppendDecoded_Click);
             // 
             // pbx
             // 
@@ -744,72 +812,6 @@
             this.cmdCopyAsStreamForAppend.UseVisualStyleBackColor = true;
             this.cmdCopyAsStreamForAppend.Click += new System.EventHandler(this.cmdCopyAsStreamForAppend_Click);
             // 
-            // gbxCopyAsStreamForAppendRaw
-            // 
-            this.gbxCopyAsStreamForAppendRaw.Controls.Add(this.label6);
-            this.gbxCopyAsStreamForAppendRaw.Controls.Add(this.txtLengthRaw);
-            this.gbxCopyAsStreamForAppendRaw.Controls.Add(this.cmdCopyPartAsStreamForAppendRaw);
-            this.gbxCopyAsStreamForAppendRaw.Location = new System.Drawing.Point(3, 422);
-            this.gbxCopyAsStreamForAppendRaw.Name = "gbxCopyAsStreamForAppendRaw";
-            this.gbxCopyAsStreamForAppendRaw.Size = new System.Drawing.Size(283, 49);
-            this.gbxCopyAsStreamForAppendRaw.TabIndex = 3;
-            this.gbxCopyAsStreamForAppendRaw.TabStop = false;
-            this.gbxCopyAsStreamForAppendRaw.Text = "Copy as Stream for Append";
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(13, 24);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(40, 13);
-            this.label6.TabIndex = 2;
-            this.label6.Text = "Length";
-            // 
-            // txtLengthRaw
-            // 
-            this.txtLengthRaw.Location = new System.Drawing.Point(71, 21);
-            this.txtLengthRaw.Name = "txtLengthRaw";
-            this.txtLengthRaw.Size = new System.Drawing.Size(99, 20);
-            this.txtLengthRaw.TabIndex = 3;
-            // 
-            // gbxCopyAsStreamForAppendDecoded
-            // 
-            this.gbxCopyAsStreamForAppendDecoded.Controls.Add(this.label2);
-            this.gbxCopyAsStreamForAppendDecoded.Controls.Add(this.txtLengthDecoded);
-            this.gbxCopyAsStreamForAppendDecoded.Controls.Add(this.cmdCopyAsStreamForAppendDecoded);
-            this.gbxCopyAsStreamForAppendDecoded.Location = new System.Drawing.Point(3, 422);
-            this.gbxCopyAsStreamForAppendDecoded.Name = "gbxCopyAsStreamForAppendDecoded";
-            this.gbxCopyAsStreamForAppendDecoded.Size = new System.Drawing.Size(283, 49);
-            this.gbxCopyAsStreamForAppendDecoded.TabIndex = 5;
-            this.gbxCopyAsStreamForAppendDecoded.TabStop = false;
-            this.gbxCopyAsStreamForAppendDecoded.Text = "Copy as Stream for Append";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(13, 24);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(40, 13);
-            this.label2.TabIndex = 2;
-            this.label2.Text = "Length";
-            // 
-            // txtLengthDecoded
-            // 
-            this.txtLengthDecoded.Location = new System.Drawing.Point(71, 21);
-            this.txtLengthDecoded.Name = "txtLengthDecoded";
-            this.txtLengthDecoded.Size = new System.Drawing.Size(99, 20);
-            this.txtLengthDecoded.TabIndex = 3;
-            // 
-            // cmdCopyAsStreamForAppendDecoded
-            // 
-            this.cmdCopyAsStreamForAppendDecoded.Location = new System.Drawing.Point(176, 18);
-            this.cmdCopyAsStreamForAppendDecoded.Name = "cmdCopyAsStreamForAppendDecoded";
-            this.cmdCopyAsStreamForAppendDecoded.Size = new System.Drawing.Size(100, 25);
-            this.cmdCopyAsStreamForAppendDecoded.TabIndex = 1;
-            this.cmdCopyAsStreamForAppendDecoded.Text = "Copy";
-            this.cmdCopyAsStreamForAppendDecoded.UseVisualStyleBackColor = true;
-            this.cmdCopyAsStreamForAppendDecoded.Click += new System.EventHandler(this.cmdCopyAsStreamForAppendDecoded_Click);
-            // 
             // frmMessage
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -845,7 +847,11 @@
             this.tabBodyStructure.ResumeLayout(false);
             this.tpgSummary.ResumeLayout(false);
             this.tpgRaw.ResumeLayout(false);
+            this.gbxCopyAsStreamForAppendRaw.ResumeLayout(false);
+            this.gbxCopyAsStreamForAppendRaw.PerformLayout();
             this.tpgDecoded.ResumeLayout(false);
+            this.gbxCopyAsStreamForAppendDecoded.ResumeLayout(false);
+            this.gbxCopyAsStreamForAppendDecoded.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbx)).EndInit();
             this.tpgMessageStream.ResumeLayout(false);
             this.pnlMessageStream.ResumeLayout(false);
@@ -856,10 +862,6 @@
             this.gbxDecoding.PerformLayout();
             this.tpgOther.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.erp)).EndInit();
-            this.gbxCopyAsStreamForAppendRaw.ResumeLayout(false);
-            this.gbxCopyAsStreamForAppendRaw.PerformLayout();
-            this.gbxCopyAsStreamForAppendDecoded.ResumeLayout(false);
-            this.gbxCopyAsStreamForAppendDecoded.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 

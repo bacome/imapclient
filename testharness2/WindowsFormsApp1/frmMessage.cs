@@ -24,7 +24,7 @@ namespace testharness2
         private readonly int mMaxTextBytes;
         private int mCopyAttachmentForAppend;
         private int mCopyAttachmentAsStreamForAppendRaw;
-        private int mCopyAttachmentAsStreamForAppendDecoded;
+        private int mCopyAttachmentAsBase64StreamForAppend;
         private cMessage mMessage;
         private bool mSubscribed = false;
         private bool mEnvelopeDisplayed = false;
@@ -99,7 +99,7 @@ namespace testharness2
             dgv.Columns.Add(LColumn(nameof(cGridRowData.FileName)));
             mCopyAttachmentForAppend = dgv.Columns.Add(LButtonColumn("Copy for Append"));
             mCopyAttachmentAsStreamForAppendRaw = dgv.Columns.Add(LButtonColumn("Stream Append Raw"));
-            mCopyAttachmentAsStreamForAppendDecoded = dgv.Columns.Add(LButtonColumn("Stream Append Decoded"));
+            mCopyAttachmentAsBase64StreamForAppend = dgv.Columns.Add(LButtonColumn("Base 64 Stream Append"));
 
             DataGridViewColumn LColumn(string pName)
             {
@@ -849,11 +849,11 @@ namespace testharness2
             if (e.ColumnIndex == mCopyAttachmentAsStreamForAppendRaw)
             {
                 Clipboard.Clear();
-                cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(lData.Attachment, false), lData.Attachment.PartSizeInBytes);
+                cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(lData.Attachment, false), lData.Attachment.PartSizeInBytes, false);
                 return;
             }
 
-            if (e.ColumnIndex == mCopyAttachmentAsStreamForAppendDecoded)
+            if (e.ColumnIndex == mCopyAttachmentAsBase64StreamForAppend)
             {
                 Clipboard.Clear();
 
@@ -865,7 +865,7 @@ namespace testharness2
                     return;
                 }
 
-                cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(lData.Attachment), lLength.Value);
+                cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(lData.Attachment), lLength.Value, true);
 
                 return;
             }
@@ -1203,7 +1203,7 @@ namespace testharness2
         private void cmdCopyAsStreamForAppend_Click(object sender, EventArgs e)
         {
             Clipboard.Clear();
-            cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(mMessage), mMessage.Size);
+            cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(mMessage), mMessage.Size, false);
         }
 
         private void cmdCopyPartAsStreamForAppendRaw_Click(object sender, EventArgs e)
@@ -1246,7 +1246,7 @@ namespace testharness2
                 }
             }
 
-            cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(mMessage, lSection, eDecodingRequired.none), lSize);
+            cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(mMessage, lSection, eDecodingRequired.none), lSize, false);
         }
 
         private void cmdCopyAsStreamForAppendDecoded_Click(object sender, EventArgs e)
@@ -1259,6 +1259,7 @@ namespace testharness2
             cSection lSection;
             eDecodingRequired lDecoding;
             uint lSize;
+            bool lBase64Encode;
 
             if (lTag.Section == null)
             {
@@ -1268,17 +1269,20 @@ namespace testharness2
                 {
                     lDecoding = lSinglePart.DecodingRequired;
                     lSize = lSinglePart.SizeInBytes;
+                    lBase64Encode = lDecoding != eDecodingRequired.none;
                 }
                 else
                 {
                     lDecoding = eDecodingRequired.none;
                     lSize = 0;
+                    lBase64Encode = false;
                 }
             }
             else
             {
                 lSection = lTag.Section;
                 lDecoding = eDecodingRequired.none;
+                lBase64Encode = false;
 
                 if (lTag.Section == cSection.All) lSize = mMessage.Size;
                 else lSize = 0;
@@ -1300,8 +1304,8 @@ namespace testharness2
                     return;
                 }
             }
-
-            cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(mMessage, lSection, lDecoding), lSize);
+            
+            cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(mMessage, lSection, lDecoding), lSize, lBase64Encode);
         }
     }
 }

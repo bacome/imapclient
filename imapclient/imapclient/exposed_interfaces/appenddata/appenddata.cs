@@ -8,7 +8,7 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    public abstract class cAppendData
+    public abstract class cAppendData : IDisposable
     {
         public readonly cStorableFlags Flags;
         public readonly DateTime? Received;
@@ -18,6 +18,21 @@ namespace work.bacome.imapclient
             Flags = pFlags;
             Received = pReceived;
         }
+
+        // this is here because of the mailmessageappenddata and even then only if the mailmessage contains streams that need to be quoted printable encoded
+        //  (as this has to happen into a temp file because I need to know the length of the data before I send it)
+        //  (the dispose deletes the temp files)
+        //  (but it should be noted that the delete could crash the client if it still needs access to it)
+        //
+        /**<summary></summary>*/
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /**<summary></summary>*/
+        protected virtual void Dispose(bool pDisposing) { }
 
         public static implicit operator cAppendData(cMessage pMessage) => new cMessageAppendData(pMessage);
         public static implicit operator cAppendData(string pString) => new cLiteralAppendData(pString);

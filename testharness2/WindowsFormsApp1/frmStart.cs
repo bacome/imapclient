@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using work.bacome.imapclient;
 using work.bacome.imapclient.support;
 
 namespace testharness2
@@ -45,14 +46,14 @@ namespace testharness2
 
             try
             {
-                gbxTests.Enabled = false;
+                tab.Enabled = false;
                 cTests.Tests(false, lContext);
                 MessageBox.Show(this, "all tests passed");
             }
             catch (Exception ex) { MessageBox.Show(this, ex.ToString()); }
             finally
             {
-                gbxTests.Enabled = true;
+                tab.Enabled = true;
             }
         }
 
@@ -62,14 +63,14 @@ namespace testharness2
 
             try
             {
-                gbxTests.Enabled = false;
+                tab.Enabled = false;
                 cTests.Tests(true, lContext);
                 MessageBox.Show(this, "quick tests passed");
             }
             catch (Exception ex) { MessageBox.Show(this, ex.ToString()); }
             finally
             {
-                gbxTests.Enabled = true;
+                tab.Enabled = true;
             }
         }
 
@@ -79,7 +80,7 @@ namespace testharness2
 
             try
             {
-                gbxTests.Enabled = false;
+                tab.Enabled = false;
                 cTests.CurrentTest(lContext);
                 MessageBox.Show(this, "current test passed");
 
@@ -87,8 +88,15 @@ namespace testharness2
             catch (Exception ex) { MessageBox.Show(this, ex.ToString()); }
             finally
             {
-                gbxTests.Enabled = true;
+                tab.Enabled = true;
             }
+        }
+
+        private void cmdQPE_Click(object sender, EventArgs e)
+        {
+            var lForm = new frmQPEncoder();
+            Program.Centre(lForm, this);
+            lForm.Show();
         }
     }
 }

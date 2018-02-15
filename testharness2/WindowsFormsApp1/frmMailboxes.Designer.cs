@@ -32,6 +32,7 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.cmdSubscriptions = new System.Windows.Forms.Button();
             this.gbxMailbox = new System.Windows.Forms.GroupBox();
+            this.cmdAppendTests = new System.Windows.Forms.Button();
             this.cmdRefresh = new System.Windows.Forms.Button();
             this.cmdUID = new System.Windows.Forms.Button();
             this.chkOpenOnSelect = new System.Windows.Forms.CheckBox();
@@ -49,7 +50,6 @@
             this.chkCreate = new System.Windows.Forms.CheckBox();
             this.txtCreate = new System.Windows.Forms.TextBox();
             this.rtx = new System.Windows.Forms.RichTextBox();
-            this.cmdAppendTests = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -127,6 +127,16 @@
             this.gbxMailbox.TabStop = false;
             this.gbxMailbox.Text = "Mailbox";
             // 
+            // cmdAppendTests
+            // 
+            this.cmdAppendTests.Location = new System.Drawing.Point(236, 82);
+            this.cmdAppendTests.Name = "cmdAppendTests";
+            this.cmdAppendTests.Size = new System.Drawing.Size(100, 25);
+            this.cmdAppendTests.TabIndex = 8;
+            this.cmdAppendTests.Text = "Append Tests ...";
+            this.cmdAppendTests.UseVisualStyleBackColor = true;
+            this.cmdAppendTests.Click += new System.EventHandler(this.cmdAppendTests_Click);
+            // 
             // cmdRefresh
             // 
             this.cmdRefresh.Location = new System.Drawing.Point(236, 51);
@@ -171,7 +181,7 @@
             // 
             // gbxRename
             // 
-            this.gbxRename.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            this.gbxRename.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.gbxRename.Controls.Add(this.cmdRenameTo);
             this.gbxRename.Controls.Add(this.cmdRename);
@@ -306,16 +316,6 @@
             this.rtx.Size = new System.Drawing.Size(353, 236);
             this.rtx.TabIndex = 0;
             this.rtx.Text = "";
-            // 
-            // cmdAppendTests
-            // 
-            this.cmdAppendTests.Location = new System.Drawing.Point(236, 82);
-            this.cmdAppendTests.Name = "cmdAppendTests";
-            this.cmdAppendTests.Size = new System.Drawing.Size(100, 25);
-            this.cmdAppendTests.TabIndex = 8;
-            this.cmdAppendTests.Text = "Append Tests ...";
-            this.cmdAppendTests.UseVisualStyleBackColor = true;
-            this.cmdAppendTests.Click += new System.EventHandler(this.cmdAppendTests_Click);
             // 
             // frmMailboxes
             // 

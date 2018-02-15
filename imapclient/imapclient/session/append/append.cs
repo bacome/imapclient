@@ -289,7 +289,7 @@ namespace work.bacome.imapclient
                                                     if (lStreamPart.Base64Encode) lStream = new cBase64Encoder(lStreamPart.Stream, lConfiguration);
                                                     else lStream = lStreamPart.Stream;
 
-                                                    lParts.Add(new cCatenateStreamAppendDataPart(lStreamPart.Stream, lStreamPart.Length, lConfiguration));
+                                                    lParts.Add(new cCatenateStreamAppendDataPart(lStream, lStreamPart.Length, lConfiguration));
                                                     break;
                                                 }
 

@@ -61,6 +61,7 @@
             // 
             // cmdMultiPart
             // 
+            this.cmdMultiPart.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.cmdMultiPart.Location = new System.Drawing.Point(3, 346);
             this.cmdMultiPart.Name = "cmdMultiPart";
             this.cmdMultiPart.Size = new System.Drawing.Size(100, 25);

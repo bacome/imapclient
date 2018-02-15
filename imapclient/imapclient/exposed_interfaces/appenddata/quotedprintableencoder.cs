@@ -12,46 +12,31 @@ namespace work.bacome.imapclient
     public enum eQuotedPrintableSourceType { Binary, CRLFTerminatedLines, LFTerminatedLines }
     public enum eQuotedPrintableQuotingRule { Minimal, EBCDIC }
 
-    public class cQuotedPrintableEncoder
+    public static class cQuotedPrintableEncoder
     {
         private static readonly eQuotedPrintableSourceType kDefaultQuotedPrintableSourceType = Environment.NewLine == "\n" ? eQuotedPrintableSourceType.LFTerminatedLines : eQuotedPrintableSourceType.CRLFTerminatedLines;
 
-        private readonly cBatchSizerConfiguration mReadConfiguration;
-        private readonly cBatchSizerConfiguration mWriteConfiguration;
-
-        public cQuotedPrintableEncoder()
+        public static int Encode(Stream pSource, Stream pTarget = null, int pTimeout = Timeout.Infinite, Action<int> pIncrement = null, cBatchSizerConfiguration pReadConfiguration = null, cBatchSizerConfiguration pWriteConfiguration = null)
         {
-            mReadConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
-            mWriteConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
+            return ZEncodeAsync(pSource, kDefaultQuotedPrintableSourceType, eQuotedPrintableQuotingRule.EBCDIC, pTarget, new cConfiguration(false, pTimeout, CancellationToken.None, pIncrement, pReadConfiguration, pWriteConfiguration)).Result;
         }
 
-        public cQuotedPrintableEncoder(cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration)
+        public static Task<int> EncodeAsync(Stream pSource, Stream pTarget, int pTimeout, CancellationToken pCancellationToken, Action<int> pIncrement = null, cBatchSizerConfiguration pReadConfiguration = null, cBatchSizerConfiguration pWriteConfiguration = null)
         {
-            mReadConfiguration = pReadConfiguration;
-            mWriteConfiguration = pWriteConfiguration;
+            return ZEncodeAsync(pSource, kDefaultQuotedPrintableSourceType, eQuotedPrintableQuotingRule.EBCDIC, pTarget, new cConfiguration(true, pTimeout, pCancellationToken, pIncrement, pReadConfiguration, pWriteConfiguration));
         }
 
-        public int Encode(Stream pSource, Stream pTarget = null, int pTimeout = Timeout.Infinite, Action<int> pIncrement = null)
+        public static int Encode(Stream pSource, eQuotedPrintableSourceType pSourceType, eQuotedPrintableQuotingRule pQuotingRule, Stream pTarget = null, int pTimeout = Timeout.Infinite, Action<int> pIncrement = null, cBatchSizerConfiguration pReadConfiguration = null, cBatchSizerConfiguration pWriteConfiguration = null)
         {
-            return ZEncodeAsync(pSource, kDefaultQuotedPrintableSourceType, eQuotedPrintableQuotingRule.EBCDIC, pTarget, new cConfiguration(false, pTimeout, CancellationToken.None, pIncrement, mReadConfiguration, mWriteConfiguration)).Result;
+            return ZEncodeAsync(pSource, pSourceType, pQuotingRule, pTarget, new cConfiguration(false, pTimeout, CancellationToken.None, pIncrement, pReadConfiguration, pWriteConfiguration)).Result;
         }
 
-        public Task<int> EncodeAsync(Stream pSource, Stream pTarget, int pTimeout, CancellationToken pCancellationToken, Action<int> pIncrement = null)
+        public static Task<int> EncodeAsync(Stream pSource, eQuotedPrintableSourceType pSourceType, eQuotedPrintableQuotingRule pQuotingRule, Stream pTarget, int pTimeout, CancellationToken pCancellationToken, Action<int> pIncrement = null, cBatchSizerConfiguration pReadConfiguration = null, cBatchSizerConfiguration pWriteConfiguration = null)
         {
-            return ZEncodeAsync(pSource, kDefaultQuotedPrintableSourceType, eQuotedPrintableQuotingRule.EBCDIC, pTarget, new cConfiguration(true, pTimeout, pCancellationToken, pIncrement, mReadConfiguration, mWriteConfiguration));
+            return ZEncodeAsync(pSource, pSourceType, pQuotingRule, pTarget, new cConfiguration(true, pTimeout, pCancellationToken, pIncrement, pReadConfiguration, pWriteConfiguration));
         }
 
-        public int Encode(Stream pSource, eQuotedPrintableSourceType pSourceType, eQuotedPrintableQuotingRule pQuotingRule, Stream pTarget = null, int pTimeout = Timeout.Infinite, Action<int> pIncrement = null)
-        {
-            return ZEncodeAsync(pSource, pSourceType, pQuotingRule, pTarget, new cConfiguration(false, pTimeout, CancellationToken.None, pIncrement, mReadConfiguration, mWriteConfiguration)).Result;
-        }
-
-        public Task<int> EncodeAsync(Stream pSource, eQuotedPrintableSourceType pSourceType, eQuotedPrintableQuotingRule pQuotingRule, Stream pTarget, int pTimeout, CancellationToken pCancellationToken, Action<int> pIncrement = null)
-        {
-            return ZEncodeAsync(pSource, pSourceType, pQuotingRule, pTarget, new cConfiguration(true, pTimeout, pCancellationToken, pIncrement, mReadConfiguration, mWriteConfiguration));
-        }
-
-        private async Task<int> ZEncodeAsync(Stream pSource, eQuotedPrintableSourceType pSourceType, eQuotedPrintableQuotingRule pQuotingRule, Stream pTarget, cConfiguration pConfiguration)
+        private static async Task<int> ZEncodeAsync(Stream pSource, eQuotedPrintableSourceType pSourceType, eQuotedPrintableQuotingRule pQuotingRule, Stream pTarget, cConfiguration pConfiguration)
         {
             if (pSource == null) throw new ArgumentNullException(nameof(pSource));
             if (!pSource.CanRead) throw new ArgumentOutOfRangeException(nameof(pSource));
@@ -137,11 +122,14 @@ namespace work.bacome.imapclient
 
         private class cConfiguration
         {
+            public static readonly cBatchSizerConfiguration kDefaultConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
+
             public readonly bool Async;
             private readonly int mTimeout;
             private readonly Stopwatch mStopwatch;
             public readonly CancellationToken CancellationToken;
-            public readonly Action<int> Increment;
+            private readonly Action<int> mIncrement;
+            private readonly SynchronizationContext mSC;
             public readonly cBatchSizer ReadSizer;
             public readonly cBatchSizer WriteSizer;
 
@@ -153,9 +141,10 @@ namespace work.bacome.imapclient
                 if (pTimeout == -1) mStopwatch = null;
                 else mStopwatch = Stopwatch.StartNew();
                 CancellationToken = pCancellationToken;
-                Increment = pIncrement;
-                ReadSizer = new cBatchSizer(pReadConfiguration);
-                WriteSizer = new cBatchSizer(pWriteConfiguration);
+                mIncrement = pIncrement;
+                mSC = SynchronizationContext.Current;
+                ReadSizer = new cBatchSizer(pReadConfiguration ?? kDefaultConfiguration);
+                WriteSizer = new cBatchSizer(pWriteConfiguration ?? kDefaultConfiguration);
             }
 
             public int Timeout
@@ -167,6 +156,13 @@ namespace work.bacome.imapclient
                     if (mTimeout > lElapsed) return (int)(mTimeout - lElapsed);
                     return 0;
                 }
+            }
+
+            public void Increment(int pInputByteCount)
+            {
+                if (mIncrement == null) return;
+                if (mSC == null || ReferenceEquals(SynchronizationContext.Current, mSC)) mIncrement.Invoke(pInputByteCount);
+                mSC.Post((p) => { mIncrement.Invoke(pInputByteCount); }, null);
             }
 
             public override string ToString()
@@ -316,8 +312,8 @@ namespace work.bacome.imapclient
                 //  in that case I have to avoid leaving the output finishing with a soft line break
                 //   consider the input line          "12345678901234567890123456789012345678901234567890123456789012345678901234 "
                 //     which might go to              "12345678901234567890123456789012345678901234567890123456789012345678901234=20" , but this is too long [over the 76 char line length limit]
-                //     BUT in soft line break form is "12345678901234567890123456789012345678901234567890123456789012345678901234 ="  , which is noramlly fine, but as the last line in a quoted-printable encoding it is not fine;
-                //      it is explicitly disallowed in rfc 2045 page 21 section (3)
+                //     BUT in soft line break form is "12345678901234567890123456789012345678901234567890123456789012345678901234 ="  , which is normally fine, but,
+                //      as the last line in a quoted-printable encoding it is not fine - it is explicitly disallowed in rfc 2045 page 21 section (3)
 
                 if (mPendingBytes.Count + mPendingWSP.Count + 1 > 76 || pInHardLineBreak)
                 {
@@ -395,7 +391,7 @@ namespace work.bacome.imapclient
                 mBytesWritten += mBytesInWriteBuffer;
 
                 // feedback
-                mConfiguration.Increment?.Invoke(mWriteBufferInputByteCount);
+                mConfiguration.Increment(mWriteBufferInputByteCount);
             }
         }
 
@@ -528,11 +524,9 @@ namespace work.bacome.imapclient
                     false,
                     eQuotedPrintableQuotingRule.EBCDIC, pParentContext);
 
-            cQuotedPrintableEncoder lEncoder = new cQuotedPrintableEncoder();
-
             using (var lInput = new MemoryStream(Encoding.UTF8.GetBytes("All doggies go to heaven (or so I've been told).\r\nThey run and play along the streets of Gold.\r\nWhy is heaven such a doggie-delight?\r\nWhy, because there's not a single cat in sight!")))
             {
-                int lLength = lEncoder.Encode(lInput);
+                int lLength = cQuotedPrintableEncoder.Encode(lInput);
                 if (lLength != lExpectedLength) throw new cTestsException($"dev/null: {lLength} vs {lExpectedLength}");
             }
         }
@@ -643,15 +637,13 @@ namespace work.bacome.imapclient
                 }
             }
 
-            cQuotedPrintableEncoder lEncoder = new cQuotedPrintableEncoder();
-
             using (var lClient = new cIMAPClient())
             using (var lInput = new MemoryStream(Encoding.UTF8.GetBytes(lBuilder.ToString())))
             using (var lEncoded = new MemoryStream())
             {
                 var lIncrement = new cTestActionInt();
 
-                lBytesWritten = lEncoder.Encode(lInput, pSourceType, pQuotingRule, lEncoded, -1, lIncrement.ActionInt);
+                lBytesWritten = cQuotedPrintableEncoder.Encode(lInput, pSourceType, pQuotingRule, lEncoded, -1, lIncrement.ActionInt);
 
                 string lEncodedString = new string(Encoding.UTF8.GetChars(lEncoded.GetBuffer(), 0, (int)lEncoded.Length));
                 if (lBytesWritten > 0 && lEncodedString[lEncodedString.Length - 1] == '=') throw new cTestsException($"TestQuotedPrintable.{pTestName}.e.1");
@@ -666,13 +658,13 @@ namespace work.bacome.imapclient
                 lEncoded.Position = 0;
 
                 var lMC = new cMethodControl(-1, CancellationToken.None);
-                var lWriteSizer = new cBatchSizer(new cBatchSizerConfiguration(1, 10, 1000, 1));
+                var lWriteSizer = new cBatchSizer(new cBatchSizerConfiguration(1000, 100000, 10000, 1000));
 
                 using (var lDecoded = new MemoryStream())
                 {
                     cDecoder lDecoder = new cQuotedPrintableDecoder(lMC, lDecoded, lWriteSizer);
 
-                    var lReadBuffer = new byte[10];
+                    var lReadBuffer = new byte[10000];
 
                     while (true)
                     {

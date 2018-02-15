@@ -210,7 +210,7 @@ namespace testharness2
             {
                 var lOpenFileDialog = new OpenFileDialog();
                 if (lOpenFileDialog.ShowDialog() != DialogResult.OK) return;
-                lData.Data = new cAppendDataSourceFile(lOpenFileDialog.FileName, e.ColumnIndex == mDataFileAsStream);
+                lData.Data = new cAppendDataSourceFile(lOpenFileDialog.FileName, false, e.ColumnIndex == mDataFileAsStream);
                 dgv.Rows[e.RowIndex].Cells[mChanged].Value = mChangeNumber++;
             }
         }
@@ -424,16 +424,17 @@ namespace testharness2
                                         {
                                             FileStream lStream = new FileStream(lFile.Path, FileMode.Open, FileAccess.Read);
                                             lFileStreams.Add(lStream);
-                                            lParts.Add(lStream);
+                                            if (lFile.Base64Encode) lParts.Add(new cStreamAppendDataPart(lStream, true));
+                                            else lParts.Add(lStream);
                                         }
-                                        else lParts.Add(new cFileAppendDataPart(lFile.Path));
+                                        else lParts.Add(new cFileAppendDataPart(lFile.Path, lFile.Base64Encode));
 
                                         break;
 
                                     case cAppendDataSourceStream lStream:
 
                                         lMessageDataStreams.Add(lStream.Stream);
-                                        lParts.Add(new cStreamAppendDataPart(lStream.Stream, lStream.Length));
+                                        lParts.Add(new cStreamAppendDataPart(lStream.Stream, lStream.Length, lStream.Base64Encode));
                                         break;
 
                                     default:

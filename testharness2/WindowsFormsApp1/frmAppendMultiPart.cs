@@ -16,7 +16,9 @@ namespace testharness2
 
         private int mDataPaste;
         private int mDataFile;
+        private int mDataFileBase64;
         private int mDataFileAsStream;
+        private int mDataFileAsStreamBase64;
         private int mChanged;
 
         private int mChangeNumber = 1;
@@ -41,7 +43,9 @@ namespace testharness2
             dgv.AutoGenerateColumns = false;
             mDataPaste = dgv.Columns.Add(LButtonColumn("Paste Data"));
             mDataFile = dgv.Columns.Add(LButtonColumn("File Data"));
+            mDataFileBase64 = dgv.Columns.Add(LButtonColumn("File as b64"));
             mDataFileAsStream = dgv.Columns.Add(LButtonColumn("File as stream"));
+            mDataFileAsStreamBase64 = dgv.Columns.Add(LButtonColumn("File as b64 stream"));
             dgv.Columns.Add(LDisplayColumn(nameof(cGridRowData.Data)));
             mChanged = dgv.Columns.Add(LInvisibleColumn(nameof(cGridRowData.Changed))); // so rows don't get lost because the grid doesn't know they've been edited
 
@@ -140,11 +144,11 @@ namespace testharness2
                 return;
             }
 
-            if (e.ColumnIndex == mDataFile || e.ColumnIndex == mDataFileAsStream)
+            if (e.ColumnIndex == mDataFile || e.ColumnIndex == mDataFileBase64 || e.ColumnIndex == mDataFileAsStream || e.ColumnIndex == mDataFileAsStreamBase64)
             {
                 var lOpenFileDialog = new OpenFileDialog();
                 if (lOpenFileDialog.ShowDialog() != DialogResult.OK) return;
-                lData.Data = new cAppendDataSourceFile(lOpenFileDialog.FileName, e.ColumnIndex == mDataFileAsStream);
+                lData.Data = new cAppendDataSourceFile(lOpenFileDialog.FileName, e.ColumnIndex == mDataFileBase64 || e.ColumnIndex == mDataFileAsStreamBase64, e.ColumnIndex == mDataFileAsStream || e.ColumnIndex == mDataFileAsStreamBase64);
                 dgv.Rows[e.RowIndex].Cells[mChanged].Value = mChangeNumber++;
             }
         }

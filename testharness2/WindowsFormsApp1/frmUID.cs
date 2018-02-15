@@ -394,7 +394,7 @@ namespace testharness2
                 return;
             }
 
-            cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(mClient.SelectedMailbox, lUID, lSection, lDecoding), uint.Parse(txtLength.Text));
+            cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(mClient.SelectedMailbox, lUID, lSection, lDecoding), uint.Parse(txtLength.Text), lDecoding != eDecodingRequired.none);
         }
 
         private async void cmdSaveAs_Click(object sender, EventArgs e)
