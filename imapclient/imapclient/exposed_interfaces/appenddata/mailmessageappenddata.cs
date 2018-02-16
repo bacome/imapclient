@@ -126,7 +126,7 @@ namespace work.bacome.imapclient
                     if (mStopwatch == null) return System.Threading.Timeout.Infinite;
                     long lElapsed = mStopwatch.ElapsedMilliseconds;
                     if (mTimeout > lElapsed) return (int)(mTimeout - lElapsed);
-                    return 0;
+                    throw new TimeoutException();
                 }
             }
 

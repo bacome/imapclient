@@ -178,6 +178,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="smtpclient.cs" />
     <Compile Include="tests.cs" />
     <EmbeddedResource Include="frmAppend.resx">
       <DependentUpon>frmAppend.cs</DependentUpon>

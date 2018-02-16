@@ -117,10 +117,9 @@ namespace testharness2
             ZValBatchSizerConfiguration(gbxWrite, txtWMin, txtWMax, txtWInitial, e);
         }
 
-        private async void cmdEncode_Click(object sender, EventArgs e)
+        private async void cmdAsyncEncode_Click(object sender, EventArgs e)
         {
             if (!ValidateChildren(ValidationConstraints.Enabled)) return;
-
 
             var lOpenFileDialog = new OpenFileDialog();
             if (lOpenFileDialog.ShowDialog() != DialogResult.OK) return;
@@ -146,7 +145,7 @@ namespace testharness2
             {
                 int lTimeout = int.Parse(txtTimeout.Text);
 
-                cBatchSizerConfiguration lReadConfiguration= new cBatchSizerConfiguration(int.Parse(txtRMin.Text), int.Parse(txtRMax.Text), int.Parse(txtRMaxTime.Text), int.Parse(txtRInitial.Text));
+                cBatchSizerConfiguration lReadConfiguration = new cBatchSizerConfiguration(int.Parse(txtRMin.Text), int.Parse(txtRMax.Text), int.Parse(txtRMaxTime.Text), int.Parse(txtRInitial.Text));
                 cBatchSizerConfiguration lWriteConfiguration = new cBatchSizerConfiguration(int.Parse(txtWMin.Text), int.Parse(txtWMax.Text), int.Parse(txtWMaxTime.Text), int.Parse(txtWInitial.Text));
 
                 using (var lSource = new FileStream(lOpenFileDialog.FileName, FileMode.Open, FileAccess.Read))
@@ -168,6 +167,58 @@ namespace testharness2
             finally
             {
                 if (lProgress != null) lProgress.Complete();
+            }
+        }
+
+        private void cmdEncode_Click(object sender, EventArgs e)
+        {
+            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
+
+            var lOpenFileDialog = new OpenFileDialog();
+            if (lOpenFileDialog.ShowDialog() != DialogResult.OK) return;
+
+            var lSaveFileDialog = new SaveFileDialog();
+            lSaveFileDialog.FileName = lOpenFileDialog.FileName + ".qpe";
+            if (lSaveFileDialog.ShowDialog() != DialogResult.OK) return;
+
+            eQuotedPrintableSourceType lSourceType;
+
+            if (rdoBinary.Checked) lSourceType = eQuotedPrintableSourceType.Binary;
+            else if (rdoLF.Checked) lSourceType = eQuotedPrintableSourceType.LFTerminatedLines;
+            else lSourceType = eQuotedPrintableSourceType.CRLFTerminatedLines;
+
+            eQuotedPrintableQuotingRule lQuotingRule;
+
+            if (rdoEBCDIC.Checked) lQuotingRule = eQuotedPrintableQuotingRule.EBCDIC;
+            else lQuotingRule = eQuotedPrintableQuotingRule.Minimal;
+
+            try
+            {
+                int lTimeout = int.Parse(txtTimeout.Text);
+
+                cBatchSizerConfiguration lReadConfiguration = new cBatchSizerConfiguration(int.Parse(txtRMin.Text), int.Parse(txtRMax.Text), int.Parse(txtRMaxTime.Text), int.Parse(txtRInitial.Text));
+                cBatchSizerConfiguration lWriteConfiguration = new cBatchSizerConfiguration(int.Parse(txtWMin.Text), int.Parse(txtWMax.Text), int.Parse(txtWMaxTime.Text), int.Parse(txtWInitial.Text));
+
+                using (var lSource = new FileStream(lOpenFileDialog.FileName, FileMode.Open, FileAccess.Read))
+                {
+                    prg.Value = 0;
+                    prg.Maximum = (int)lSource.Length;
+                    prg.Visible = true;
+
+                    using (FileStream lTarget = new FileStream(lSaveFileDialog.FileName, FileMode.Create))
+                    {
+                        cQuotedPrintableEncoder.Encode(lSource, lSourceType, lQuotingRule, lTarget, lTimeout, prg.Increment, lReadConfiguration, lWriteConfiguration);
+                    }
+                }
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"problem when encoding'\n{ex}");
+            }
+            finally
+            {
+                prg.Visible = false;
             }
         }
 

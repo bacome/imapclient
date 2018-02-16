@@ -48,16 +48,18 @@
             this.txtRMax = new System.Windows.Forms.TextBox();
             this.txtRMin = new System.Windows.Forms.TextBox();
             this.gbxSourceType = new System.Windows.Forms.GroupBox();
-            this.rdoBinary = new System.Windows.Forms.RadioButton();
-            this.rdoCRLF = new System.Windows.Forms.RadioButton();
             this.rdoLF = new System.Windows.Forms.RadioButton();
+            this.rdoCRLF = new System.Windows.Forms.RadioButton();
+            this.rdoBinary = new System.Windows.Forms.RadioButton();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.rdoMinimal = new System.Windows.Forms.RadioButton();
             this.rdoEBCDIC = new System.Windows.Forms.RadioButton();
+            this.rdoMinimal = new System.Windows.Forms.RadioButton();
             this.txtTimeout = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.cmdEncode = new System.Windows.Forms.Button();
+            this.cmdAsyncEncode = new System.Windows.Forms.Button();
             this.erp = new System.Windows.Forms.ErrorProvider(this.components);
+            this.button1 = new System.Windows.Forms.Button();
+            this.prg = new System.Windows.Forms.ProgressBar();
             this.gbxWrite.SuspendLayout();
             this.gbxRead.SuspendLayout();
             this.gbxSourceType.SuspendLayout();
@@ -267,15 +269,15 @@
             this.gbxSourceType.TabStop = false;
             this.gbxSourceType.Text = "Source Type";
             // 
-            // rdoBinary
+            // rdoLF
             // 
-            this.rdoBinary.AutoSize = true;
-            this.rdoBinary.Location = new System.Drawing.Point(15, 19);
-            this.rdoBinary.Name = "rdoBinary";
-            this.rdoBinary.Size = new System.Drawing.Size(54, 17);
-            this.rdoBinary.TabIndex = 0;
-            this.rdoBinary.Text = "Binary";
-            this.rdoBinary.UseVisualStyleBackColor = true;
+            this.rdoLF.AutoSize = true;
+            this.rdoLF.Location = new System.Drawing.Point(223, 19);
+            this.rdoLF.Name = "rdoLF";
+            this.rdoLF.Size = new System.Drawing.Size(121, 17);
+            this.rdoLF.TabIndex = 2;
+            this.rdoLF.Text = "LF Terminated Lines";
+            this.rdoLF.UseVisualStyleBackColor = true;
             // 
             // rdoCRLF
             // 
@@ -289,15 +291,15 @@
             this.rdoCRLF.Text = "CRLF Terminated Lines";
             this.rdoCRLF.UseVisualStyleBackColor = true;
             // 
-            // rdoLF
+            // rdoBinary
             // 
-            this.rdoLF.AutoSize = true;
-            this.rdoLF.Location = new System.Drawing.Point(223, 19);
-            this.rdoLF.Name = "rdoLF";
-            this.rdoLF.Size = new System.Drawing.Size(121, 17);
-            this.rdoLF.TabIndex = 2;
-            this.rdoLF.Text = "LF Terminated Lines";
-            this.rdoLF.UseVisualStyleBackColor = true;
+            this.rdoBinary.AutoSize = true;
+            this.rdoBinary.Location = new System.Drawing.Point(15, 19);
+            this.rdoBinary.Name = "rdoBinary";
+            this.rdoBinary.Size = new System.Drawing.Size(54, 17);
+            this.rdoBinary.TabIndex = 0;
+            this.rdoBinary.Text = "Binary";
+            this.rdoBinary.UseVisualStyleBackColor = true;
             // 
             // groupBox1
             // 
@@ -310,17 +312,6 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Quoting Rule";
             // 
-            // rdoMinimal
-            // 
-            this.rdoMinimal.AutoSize = true;
-            this.rdoMinimal.Checked = true;
-            this.rdoMinimal.Location = new System.Drawing.Point(15, 19);
-            this.rdoMinimal.Name = "rdoMinimal";
-            this.rdoMinimal.Size = new System.Drawing.Size(60, 17);
-            this.rdoMinimal.TabIndex = 0;
-            this.rdoMinimal.Text = "Minimal";
-            this.rdoMinimal.UseVisualStyleBackColor = true;
-            // 
             // rdoEBCDIC
             // 
             this.rdoEBCDIC.AutoSize = true;
@@ -330,6 +321,18 @@
             this.rdoEBCDIC.TabIndex = 1;
             this.rdoEBCDIC.Text = "EBCDIC safer";
             this.rdoEBCDIC.UseVisualStyleBackColor = true;
+            // 
+            // rdoMinimal
+            // 
+            this.rdoMinimal.AutoSize = true;
+            this.rdoMinimal.Checked = true;
+            this.rdoMinimal.Location = new System.Drawing.Point(15, 19);
+            this.rdoMinimal.Name = "rdoMinimal";
+            this.rdoMinimal.Size = new System.Drawing.Size(60, 17);
+            this.rdoMinimal.TabIndex = 0;
+            this.rdoMinimal.TabStop = true;
+            this.rdoMinimal.Text = "Minimal";
+            this.rdoMinimal.UseVisualStyleBackColor = true;
             // 
             // txtTimeout
             // 
@@ -350,19 +353,38 @@
             this.label1.TabIndex = 2;
             this.label1.Text = "Timeout";
             // 
-            // cmdEncode
+            // cmdAsyncEncode
             // 
-            this.cmdEncode.Location = new System.Drawing.Point(12, 275);
-            this.cmdEncode.Name = "cmdEncode";
-            this.cmdEncode.Size = new System.Drawing.Size(100, 25);
-            this.cmdEncode.TabIndex = 6;
-            this.cmdEncode.Text = "Encode";
-            this.cmdEncode.UseVisualStyleBackColor = true;
-            this.cmdEncode.Click += new System.EventHandler(this.cmdEncode_Click);
+            this.cmdAsyncEncode.Location = new System.Drawing.Point(12, 275);
+            this.cmdAsyncEncode.Name = "cmdAsyncEncode";
+            this.cmdAsyncEncode.Size = new System.Drawing.Size(100, 25);
+            this.cmdAsyncEncode.TabIndex = 6;
+            this.cmdAsyncEncode.Text = "Async Encode";
+            this.cmdAsyncEncode.UseVisualStyleBackColor = true;
+            this.cmdAsyncEncode.Click += new System.EventHandler(this.cmdAsyncEncode_Click);
             // 
             // erp
             // 
             this.erp.ContainerControl = this;
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(139, 275);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(100, 25);
+            this.button1.TabIndex = 7;
+            this.button1.Text = "Encode";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.cmdEncode_Click);
+            // 
+            // prg
+            // 
+            this.prg.Location = new System.Drawing.Point(258, 275);
+            this.prg.Name = "prg";
+            this.prg.Size = new System.Drawing.Size(226, 25);
+            this.prg.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+            this.prg.TabIndex = 8;
+            this.prg.Visible = false;
             // 
             // frmQPEncoder
             // 
@@ -370,7 +392,9 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
             this.ClientSize = new System.Drawing.Size(509, 312);
-            this.Controls.Add(this.cmdEncode);
+            this.Controls.Add(this.prg);
+            this.Controls.Add(this.button1);
+            this.Controls.Add(this.cmdAsyncEncode);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.txtTimeout);
             this.Controls.Add(this.groupBox1);
@@ -423,7 +447,9 @@
         private System.Windows.Forms.RadioButton rdoMinimal;
         private System.Windows.Forms.TextBox txtTimeout;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Button cmdEncode;
+        private System.Windows.Forms.Button cmdAsyncEncode;
         private System.Windows.Forms.ErrorProvider erp;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.ProgressBar prg;
     }
 }

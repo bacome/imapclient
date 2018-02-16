@@ -45,10 +45,10 @@
     <Compile Include="client\append.cs" />
     <Compile Include="client\decodedsizeinbytes.cs" />
     <Compile Include="exposed_interfaces\appenddata\headerfieldmimeparameter.cs" />
-    <Compile Include="client\quotedprintable.cs" />
     <Compile Include="exposed_interfaces\appenddata\headerfieldvalueparts.cs" />
     <Compile Include="exposed_interfaces\appenddata\mailmessageappenddata.cs" />
     <Compile Include="exposed_interfaces\appenddata\appenddata.cs" />
+    <Compile Include="exposed_interfaces\appenddata\messageidgenerator.cs" />
     <Compile Include="exposed_interfaces\appenddata\quotedprintableencoder.cs" />
     <Compile Include="exposed_interfaces\configuration\appendconfiguration.cs" />
     <Compile Include="exposed_interfaces\feedback\appendfeedback.cs" />

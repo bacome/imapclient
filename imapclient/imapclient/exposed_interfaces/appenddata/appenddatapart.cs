@@ -24,9 +24,8 @@ namespace work.bacome.imapclient
     {
         public readonly cIMAPClient Client;
         public readonly iMessageHandle MessageHandle;
-        public readonly bool AllowCatenate;
 
-        public cMessageAppendDataPart(cMessage pMessage, bool pAllowCatenate = true)
+        public cMessageAppendDataPart(cMessage pMessage)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
 
@@ -36,12 +35,11 @@ namespace work.bacome.imapclient
 
             Client = pMessage.Client;
             MessageHandle = pMessage.MessageHandle;
-            AllowCatenate = pAllowCatenate;
         }
 
         internal override bool HasContent => true;
 
-        public override string ToString() => $"{nameof(cMessageAppendDataPart)}({MessageHandle},{AllowCatenate})";
+        public override string ToString() => $"{nameof(cMessageAppendDataPart)}({MessageHandle})";
     }
 
     public class cMessagePartAppendDataPart : cAppendDataPart
@@ -49,9 +47,8 @@ namespace work.bacome.imapclient
         public readonly cIMAPClient Client;
         public readonly iMessageHandle MessageHandle;
         public readonly cSinglePartBody Part;
-        public readonly bool AllowCatenate;
 
-        public cMessagePartAppendDataPart(cMessage pMessage, cSinglePartBody pPart, bool pAllowCatenate = true)
+        public cMessagePartAppendDataPart(cMessage pMessage, cSinglePartBody pPart)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
 
@@ -66,23 +63,20 @@ namespace work.bacome.imapclient
 
             // check that the part is part of the message
             if (!pMessage.Contains(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
-
-            AllowCatenate = pAllowCatenate;
         }
 
-        public cMessagePartAppendDataPart(cAttachment pAttachment, bool pAllowCatenate = true)
+        public cMessagePartAppendDataPart(cAttachment pAttachment)
         {
             if (pAttachment == null) throw new ArgumentNullException(nameof(pAttachment));
 
             Client = pAttachment.Client;
             MessageHandle = pAttachment.MessageHandle;
             Part = pAttachment.Part;
-            AllowCatenate = pAllowCatenate;
         }
 
         internal override bool HasContent => Part.SizeInBytes != 0;
 
-        public override string ToString() => $"{nameof(cMessagePartAppendDataPart)}({MessageHandle},{Part},{AllowCatenate})";
+        public override string ToString() => $"{nameof(cMessagePartAppendDataPart)}({MessageHandle},{Part})";
     }
 
     public class cUIDSectionAppendDataPart : cAppendDataPart
@@ -92,9 +86,8 @@ namespace work.bacome.imapclient
         public readonly cUID UID;
         public readonly cSection Section;
         public readonly uint Length;
-        public readonly bool AllowCatenate;
 
-        public cUIDSectionAppendDataPart(cMailbox pMailbox, cUID pUID, cSection pSection, uint pLength, bool pAllowCatenate = true)
+        public cUIDSectionAppendDataPart(cMailbox pMailbox, cUID pUID, cSection pSection, uint pLength)
         {
             if (pMailbox == null) throw new ArgumentNullException(nameof(pMailbox));
 
@@ -109,13 +102,11 @@ namespace work.bacome.imapclient
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
 
             Length = pLength;
-
-            AllowCatenate = pAllowCatenate;
         }
 
         internal override bool HasContent => Length != 0;
 
-        public override string ToString() => $"{nameof(cUIDSectionAppendDataPart)}({MailboxHandle},{UID},{Section},{Length},{AllowCatenate})";
+        public override string ToString() => $"{nameof(cUIDSectionAppendDataPart)}({MailboxHandle},{UID},{Section},{Length})";
     }
 
     public abstract class cLiteralAppendDataPartBase : cAppendDataPart

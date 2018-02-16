@@ -45,9 +45,8 @@ namespace work.bacome.imapclient
     {
         public readonly cIMAPClient Client;
         public readonly iMessageHandle MessageHandle;
-        public readonly bool AllowCatenate;
 
-        public cMessageAppendData(cMessage pMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, bool pAllowCatenate = true) : base(pFlags, pReceived)
+        public cMessageAppendData(cMessage pMessage, cStorableFlags pFlags = null, DateTime? pReceived = null) : base(pFlags, pReceived)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
 
@@ -57,10 +56,9 @@ namespace work.bacome.imapclient
 
             Client = pMessage.Client;
             MessageHandle = pMessage.MessageHandle;
-            AllowCatenate = pAllowCatenate;
         }
 
-        public override string ToString() => $"{nameof(cMessageAppendData)}({Flags},{Received},{MessageHandle},{AllowCatenate})";
+        public override string ToString() => $"{nameof(cMessageAppendData)}({Flags},{Received},{MessageHandle})";
     }
 
     public class cMessagePartAppendData : cAppendData
@@ -68,9 +66,8 @@ namespace work.bacome.imapclient
         public readonly cIMAPClient Client;
         public readonly iMessageHandle MessageHandle;
         public readonly cMessageBodyPart Part;
-        public readonly bool AllowCatenate;
 
-        public cMessagePartAppendData(cMessage pMessage, cMessageBodyPart pPart, cStorableFlags pFlags = null, DateTime? pReceived = null, bool pAllowCatenate = true) : base(pFlags, pReceived)
+        public cMessagePartAppendData(cMessage pMessage, cMessageBodyPart pPart, cStorableFlags pFlags = null, DateTime? pReceived = null) : base(pFlags, pReceived)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
 
@@ -85,11 +82,9 @@ namespace work.bacome.imapclient
 
             // check that the part is part of the message
             if (!pMessage.Contains(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
-
-            AllowCatenate = pAllowCatenate;
         }
 
-        public override string ToString() => $"{nameof(cMessagePartAppendData)}({Flags},{Received},{MessageHandle},{Part},{AllowCatenate})";
+        public override string ToString() => $"{nameof(cMessagePartAppendData)}({Flags},{Received},{MessageHandle},{Part})";
     }
 
     public class cLiteralAppendData : cAppendData

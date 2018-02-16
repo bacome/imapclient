@@ -109,7 +109,7 @@ namespace work.bacome.imapclient
                         case cMessageAppendData lWholeMessage:
 
                             {
-                                bool lCatenate = _Capabilities.Catenate && lWholeMessage.AllowCatenate && lWholeMessage.Client.ConnectedAccountId == _ConnectedAccountId;
+                                bool lCatenate = _Capabilities.Catenate && lWholeMessage.Client.ConnectedAccountId == _ConnectedAccountId;
 
                                 fMessageCacheAttributes lAttributes = 0;
                                 if (lWholeMessage.Flags == null) lAttributes |= fMessageCacheAttributes.flags;
@@ -154,7 +154,7 @@ namespace work.bacome.imapclient
                         case cMessagePartAppendData lMessagePart:
 
                             {
-                                bool lCatenate = _Capabilities.Catenate && lMessagePart.AllowCatenate && lMessagePart.Client.ConnectedAccountId == _ConnectedAccountId;
+                                bool lCatenate = _Capabilities.Catenate && lMessagePart.Client.ConnectedAccountId == _ConnectedAccountId;
 
                                 fMessageCacheAttributes lAttributes = 0;
                                 if (lMessagePart.Received == null) lAttributes |= fMessageCacheAttributes.received;
@@ -219,7 +219,7 @@ namespace work.bacome.imapclient
                                             case cMessageAppendDataPart lWholeMessage:
 
                                                 {
-                                                    bool lCatenate = lWholeMessage.AllowCatenate && lWholeMessage.Client.ConnectedAccountId == _ConnectedAccountId;
+                                                    bool lCatenate = lWholeMessage.Client.ConnectedAccountId == _ConnectedAccountId;
 
                                                     fMessageCacheAttributes lAttributes = 0;
                                                     if (lCatenate) lAttributes |= fMessageCacheAttributes.uid;
@@ -253,7 +253,7 @@ namespace work.bacome.imapclient
                                             case cMessagePartAppendDataPart lMessagePart:
 
                                                 {
-                                                    bool lCatenate = lMessagePart.AllowCatenate && lMessagePart.Client.ConnectedAccountId == _ConnectedAccountId;
+                                                    bool lCatenate = lMessagePart.Client.ConnectedAccountId == _ConnectedAccountId;
 
                                                     if (lCatenate && !await lMessagePart.Client.FetchAsync(lMessagePart.MessageHandle, fMessageCacheAttributes.uid))
                                                     {
@@ -270,7 +270,7 @@ namespace work.bacome.imapclient
                                             case cUIDSectionAppendDataPart lSection:
 
                                                 {
-                                                    if (lSection.AllowCatenate && lSection.Client.ConnectedAccountId == _ConnectedAccountId && cCatenateURLAppendDataPart.TryConstruct(lSection.MailboxHandle, lSection.UID, lSection.Section, mCommandPartFactory, out var lURLPart)) lParts.Add(lURLPart);
+                                                    if (lSection.Client.ConnectedAccountId == _ConnectedAccountId && cCatenateURLAppendDataPart.TryConstruct(lSection.MailboxHandle, lSection.UID, lSection.Section, mCommandPartFactory, out var lURLPart)) lParts.Add(lURLPart);
                                                     else lParts.Add(new cCatenateMessageAppendDataPart(lSection.Client, lSection.MailboxHandle, lSection.UID, lSection.Section, lSection.Length));
                                                     break;
                                                 }

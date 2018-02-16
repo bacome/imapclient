@@ -27,6 +27,7 @@ namespace work.bacome.imapclient
         protected async Task YWriteAsync(IList<byte> pBytes, int pOffset, cTrace.cContext pContext)
         {
             if (mStream.CanTimeout) mStream.WriteTimeout = mMC.Timeout;
+            else _ = mMC.Timeout; // check for timeout
 
             while (pOffset < pBytes.Count)
             {

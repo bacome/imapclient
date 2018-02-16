@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ namespace work.bacome.imapclient
 
         public static int Encode(Stream pSource, Stream pTarget = null, int pTimeout = Timeout.Infinite, Action<int> pIncrement = null, cBatchSizerConfiguration pReadConfiguration = null, cBatchSizerConfiguration pWriteConfiguration = null)
         {
-            return ZEncodeAsync(pSource, kDefaultQuotedPrintableSourceType, eQuotedPrintableQuotingRule.EBCDIC, pTarget, new cConfiguration(false, pTimeout, CancellationToken.None, pIncrement, pReadConfiguration, pWriteConfiguration)).Result;
+            return ZAwait(ZEncodeAsync(pSource, kDefaultQuotedPrintableSourceType, eQuotedPrintableQuotingRule.EBCDIC, pTarget, new cConfiguration(false, pTimeout, CancellationToken.None, pIncrement, pReadConfiguration, pWriteConfiguration)));
         }
 
         public static Task<int> EncodeAsync(Stream pSource, Stream pTarget, int pTimeout, CancellationToken pCancellationToken, Action<int> pIncrement = null, cBatchSizerConfiguration pReadConfiguration = null, cBatchSizerConfiguration pWriteConfiguration = null)
@@ -28,12 +29,19 @@ namespace work.bacome.imapclient
 
         public static int Encode(Stream pSource, eQuotedPrintableSourceType pSourceType, eQuotedPrintableQuotingRule pQuotingRule, Stream pTarget = null, int pTimeout = Timeout.Infinite, Action<int> pIncrement = null, cBatchSizerConfiguration pReadConfiguration = null, cBatchSizerConfiguration pWriteConfiguration = null)
         {
-            return ZEncodeAsync(pSource, pSourceType, pQuotingRule, pTarget, new cConfiguration(false, pTimeout, CancellationToken.None, pIncrement, pReadConfiguration, pWriteConfiguration)).Result;
+            return ZAwait(ZEncodeAsync(pSource, pSourceType, pQuotingRule, pTarget, new cConfiguration(false, pTimeout, CancellationToken.None, pIncrement, pReadConfiguration, pWriteConfiguration)));
         }
 
         public static Task<int> EncodeAsync(Stream pSource, eQuotedPrintableSourceType pSourceType, eQuotedPrintableQuotingRule pQuotingRule, Stream pTarget, int pTimeout, CancellationToken pCancellationToken, Action<int> pIncrement = null, cBatchSizerConfiguration pReadConfiguration = null, cBatchSizerConfiguration pWriteConfiguration = null)
         {
             return ZEncodeAsync(pSource, pSourceType, pQuotingRule, pTarget, new cConfiguration(true, pTimeout, pCancellationToken, pIncrement, pReadConfiguration, pWriteConfiguration));
+        }
+
+        private static int ZAwait(Task<int> pTask)
+        {
+            Task.WaitAny(pTask);
+            if (pTask.IsFaulted) ExceptionDispatchInfo.Capture(cTools.Flatten(pTask.Exception)).Throw();
+            return pTask.Result;
         }
 
         private static async Task<int> ZEncodeAsync(Stream pSource, eQuotedPrintableSourceType pSourceType, eQuotedPrintableQuotingRule pQuotingRule, Stream pTarget, cConfiguration pConfiguration)
@@ -59,6 +67,7 @@ namespace work.bacome.imapclient
                 lStopwatch.Restart();
 
                 if (pSource.CanTimeout) pSource.ReadTimeout = pConfiguration.Timeout;
+                else _ = pConfiguration.Timeout; // check for timeout
 
                 int lBytesReadIntoBuffer;
                 if (pConfiguration.Async) lBytesReadIntoBuffer = await pSource.ReadAsync(lReadBuffer, 0, lReadBuffer.Length, pConfiguration.CancellationToken).ConfigureAwait(false);
@@ -154,7 +163,7 @@ namespace work.bacome.imapclient
                     if (mStopwatch == null) return System.Threading.Timeout.Infinite;
                     long lElapsed = mStopwatch.ElapsedMilliseconds;
                     if (mTimeout > lElapsed) return (int)(mTimeout - lElapsed);
-                    return 0;
+                    throw new TimeoutException();
                 }
             }
 
@@ -379,6 +388,7 @@ namespace work.bacome.imapclient
                 mStopwatch.Restart();
 
                 if (mTarget.CanTimeout) mTarget.WriteTimeout = mConfiguration.Timeout;
+                else _ = mConfiguration.Timeout; // check for timeout
 
                 if (mConfiguration.Async) await mTarget.WriteAsync(mWriteBuffer, 0, mBytesInWriteBuffer, mConfiguration.CancellationToken).ConfigureAwait(false);
                 else mTarget.Write(mWriteBuffer, 0, mBytesInWriteBuffer);

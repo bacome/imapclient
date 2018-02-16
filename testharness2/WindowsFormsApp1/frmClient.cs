@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Net.Mail;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,14 +15,27 @@ namespace testharness2
 {
     public partial class frmClient : Form
     {
+        private readonly cIMAPClient mFirst;
         private readonly cIMAPClient mClient;
         private readonly Dictionary<string, Form> mNamedChildren = new Dictionary<string, Form>();
         private readonly List<Form> mUnnamedChildren = new List<Form>();
         private CancellationTokenSource mCTS = null;
 
+        private cSMTPClient mSMTPClient = null;
+        private cMailbox mAppendSentItems = null;
+
         public frmClient(string pInstanceName)
         {
+            mFirst = null;
             mClient = new cIMAPClient(pInstanceName);
+            mClient.DefaultMessageCacheItems = fMessageCacheAttributes.envelope | fMessageCacheAttributes.flags | fMessageCacheAttributes.received | fMessageCacheAttributes.uid;
+            InitializeComponent();
+        }
+
+        public frmClient(cIMAPClient pFirst)
+        {
+            mFirst = pFirst ?? throw new ArgumentNullException(nameof(pFirst));
+            mClient = new cIMAPClient(pFirst.InstanceName + "_second");
             mClient.DefaultMessageCacheItems = fMessageCacheAttributes.envelope | fMessageCacheAttributes.flags | fMessageCacheAttributes.received | fMessageCacheAttributes.uid;
             InitializeComponent();
         }
@@ -38,7 +52,9 @@ namespace testharness2
             if (mClient.IsUnconnected)
             {
                 gbxConnect.Enabled = true;
+
                 ZSetControlStateCredentials();
+
                 cmdCancel.Text = "Cancel";
                 cmdCancel.Enabled = false;
                 cmdPoll.Enabled = false;
@@ -64,6 +80,31 @@ namespace testharness2
                 cmdPoll.Enabled = mClient.IsConnected;
                 cmdDisconnect.Enabled = mClient.IsConnected;
             }
+
+            cmdSecond.Enabled = mFirst == null && mClient.IsConnected && rdoCredBasic.Checked;
+            cmdAppendSentItems.Enabled = mClient.IsConnected;
+
+            var lSelectedMailbox = mClient.SelectedMailbox;
+
+            if (mClient.IsUnconnected || lSelectedMailbox == null || mSMTPClient != null)
+            {
+                cmdAppendInboxTests.Enabled = false;
+                cmdAppendInboxCurrentTest.Enabled = false;
+                cmdAppendSelectedMailboxTests.Enabled = false;
+                cmdAppendSelectedMailboxCurrentTest.Enabled = false;
+            }
+            else
+            {
+                bool lAppendInboxTests = lSelectedMailbox.IsInbox && mAppendSentItems != null;
+
+                cmdAppendInboxTests.Enabled = lAppendInboxTests;
+                cmdAppendInboxCurrentTest.Enabled = lAppendInboxTests;
+
+                cmdAppendSelectedMailboxTests.Enabled = true;
+                cmdAppendSelectedMailboxCurrentTest.Enabled = true;
+            }
+
+            cmdAppendInboxSMTPCancel.Enabled = mSMTPClient != null;
 
             if (mClient.Namespaces == null)
             {
@@ -100,6 +141,17 @@ namespace testharness2
             chkTryIfNotAdvertised.Enabled = rdoCredBasic.Checked || rdoCredBasic.Checked;
         }
 
+        private void ZSetControlStateServerCredentials()
+        {
+            bool lEnabled;
+
+            if (mFirst == null) lEnabled = !mNamedChildren.ContainsKey(nameof(frmClient));
+            else lEnabled = false;
+
+            gbxServer.Enabled = lEnabled;
+            gbxCredentials.Enabled = lEnabled;
+        }
+
         private void ZSetControlStateIdle()
         {
             txtIdleStartDelay.Enabled = chkIdleAuto.Checked;
@@ -119,18 +171,26 @@ namespace testharness2
 
             try
             {
-                mClient.SetServer(txtHost.Text.Trim(), int.Parse(txtPort.Text), chkSSL.Checked);
+                if (mFirst == null)
+                {
+                    mClient.SetServer(txtHost.Text.Trim(), int.Parse(txtPort.Text), chkSSL.Checked);
 
-                if (rdoCredNone.Checked) mClient.SetNoCredentials();
+                    if (rdoCredNone.Checked) mClient.SetNoCredentials();
+                    else
+                    {
+                        eTLSRequirement lTLSRequirement;
+                        if (rdoTLSIndifferent.Checked) lTLSRequirement = eTLSRequirement.indifferent;
+                        else if (rdoTLSRequired.Checked) lTLSRequirement = eTLSRequirement.required;
+                        else lTLSRequirement = eTLSRequirement.disallowed;
+
+                        if (rdoCredAnon.Checked) mClient.SetAnonymousCredentials(txtTrace.Text.Trim(), lTLSRequirement, chkTryIfNotAdvertised.Checked);
+                        else mClient.SetPlainCredentials(txtUserId.Text.Trim(), txtPassword.Text.Trim(), lTLSRequirement, chkTryIfNotAdvertised.Checked);
+                    }
+                }
                 else
                 {
-                    eTLSRequirement lTLSRequirement;
-                    if (rdoTLSIndifferent.Checked) lTLSRequirement = eTLSRequirement.indifferent;
-                    else if (rdoTLSRequired.Checked) lTLSRequirement = eTLSRequirement.required;
-                    else lTLSRequirement = eTLSRequirement.disallowed;
-
-                    if (rdoCredAnon.Checked) mClient.SetAnonymousCredentials(txtTrace.Text.Trim(), lTLSRequirement, chkTryIfNotAdvertised.Checked);
-                    else mClient.SetPlainCredentials(txtUserId.Text.Trim(), txtPassword.Text.Trim(), lTLSRequirement, chkTryIfNotAdvertised.Checked);
+                    mClient.Server = mFirst.Server;
+                    mClient.Credentials = mFirst.Credentials;
                 }
 
                 fMailboxCacheDataItems lMailboxCacheData = 0;
@@ -205,7 +265,7 @@ namespace testharness2
             ZSetControlStateCredentials();
         }
 
-        private void ZValTextBoxNotBlank(object sender, CancelEventArgs e) 
+        private void ZValTextBoxNotBlank(object sender, CancelEventArgs e)
         {
             if (!(sender is TextBox lSender)) return;
 
@@ -268,6 +328,21 @@ namespace testharness2
             {
                 e.Cancel = true;
                 erp.SetError(lSender, "number of bytes should be 1 .. " + int.MaxValue);
+            }
+        }
+
+        private void ZValTextBoxIsEmailAddress(object sender, CancelEventArgs e)
+        {
+            if (!(sender is TextBox lSender)) return;
+
+            try
+            {
+                MailAddress lAddress = new MailAddress(lSender.Text);
+            }
+            catch
+            {
+                e.Cancel = true;
+                erp.SetError(lSender, "doesn't appear to be an email address");
             }
         }
 
@@ -336,8 +411,13 @@ namespace testharness2
         private void frmClient_Load(object sender, EventArgs e)
         {
             Text = "imapclient testharness - client - " + mClient.InstanceName;
+
+            gbxAppendInboxTests.Enabled = mFirst != null;
+
             ZSetControlState();
-            ZSetControlStateIdle();           
+            ZSetControlStateServerCredentials();
+            ZSetControlStateIdle();
+
             mClient.PropertyChanged += mClient_PropertyChanged;
 
             var lMailboxCacheData = mClient.MailboxCacheDataItems;
@@ -418,7 +498,7 @@ namespace testharness2
                 lForm.FormClosed -= ZUnnamedChildClosed;
             }
 
-            foreach (var lForm in lForms) 
+            foreach (var lForm in lForms)
             {
                 try { lForm.Close(); }
                 catch { }
@@ -522,6 +602,8 @@ namespace testharness2
             txtResponseText.Enabled = lResponseText;
             gbxResponseTextType.Enabled = lResponseText;
             gbxResponseTextCode.Enabled = lResponseText;
+
+            ZSetControlStateServerCredentials();
         }
 
         private void ZUnnamedChildAdd(Form pForm, Form pCentreOnThis)
@@ -537,6 +619,14 @@ namespace testharness2
             if (!(sender is Form lForm)) return;
             lForm.FormClosed -= ZUnnamedChildClosed;
             mUnnamedChildren.Remove(lForm);
+        }
+
+
+
+        private void cmdSecond_Click(object sender, EventArgs e)
+        {
+            if (mNamedChildren.TryGetValue(nameof(frmClient), out var lForm)) Program.Focus(lForm);
+            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmClient(mClient));
         }
 
         private void cmdNetworkActivity_Click(object sender, EventArgs e)
@@ -881,5 +971,146 @@ namespace testharness2
             mClient.DefaultAppendFlags = null;
             ZDefaultFlagsDescriptionSet();
         }
+
+        private void cmdAppendSentItems_Click(object sender, EventArgs e)
+        {
+            using (frmMailboxDialog lMailboxDialog = new frmMailboxDialog(mClient, false))
+            {
+                if (lMailboxDialog.ShowDialog(this) != DialogResult.OK) return;
+                if (lMailboxDialog.Mailbox.IsInbox) return;
+                mAppendSentItems = lMailboxDialog.Mailbox;
+            }
+
+            lblAppendSentItems.Text = mAppendSentItems.Path;
+            ZSetControlState();
+        }
+
+        private async void cmdAppendInboxTests_Click(object sender, EventArgs e)
+        {
+            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
+
+            if (mSMTPClient != null) return;
+
+            if (!rdoCredBasic.Checked) return;
+
+            var lSelectedMailbox = mClient.SelectedMailbox;
+            if (lSelectedMailbox == null || !lSelectedMailbox.IsInbox) return;
+
+            if (MessageBox.Show(this, $"warning: this will send messages using the basic credentials that you used to connect to the imap server and expect to see the messages appear in the current inbox", "send messages?", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) != DialogResult.OK) return;
+
+            string lTest = "initialise";
+
+            try
+            {
+                using (var lSMTPClient = new cSMTPClient(txtAppendTestHost.Text.Trim(), int.Parse(txtAppendTestPort.Text), chkAppendTestSSL.Checked, txtUserId.Text.Trim(), txtPassword.Text.Trim()))
+                {
+                    mSMTPClient = lSMTPClient;
+                    ZSetControlState();
+
+                    lTest = "1";
+                    await ZAppendInboxSimpleTestAsync("imaptest1@dovecot.bacome.work", "a simple test message", "i want something here that shows it has been encoded so an '=' should do the trick.");
+
+                    //;?;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"an error occurred in '{lTest}': {ex}");
+            }
+            finally
+            {
+                mSMTPClient = null;
+                ZSetControlState();
+            }
+        }
+
+        private void cmdAppendInboxCurrentTest_Click(object sender, EventArgs e)
+        {
+            // ;?;
+        }
+
+        private void cmdAppendInboxSMTPCancel_Click(object sender, EventArgs e)
+        {
+            if (mSMTPClient != null) mSMTPClient.SendAsyncCancel();
+        }
+
+        private async Task ZAppendInboxSimpleTestAsync(string pFrom, string pSubject, string pBody)
+        {
+            string lMessageId = cMessageIdGenerator.MsgId();
+            cUID lUID;
+
+            using (var lMailMessage = new MailMessage(pFrom, txtAppendTestSendTo.Text, pSubject, pBody))
+            {
+                lMailMessage.Headers.Add("message-id", lMessageId);
+                await mSMTPClient.SendAsync(lMailMessage);
+                lUID = await mAppendSentItems.AppendAsync(lMailMessage);
+            }
+
+
+            // find the message in the inbox
+
+
+
+            
+            // then compare the two
+        }
+
+
+
+
+
+
+
+
+
+        private async void cmdAppendSelectedMailboxTests_Click(object sender, EventArgs e)
+        {
+            var lSelectedMailbox = mClient.SelectedMailbox;
+            if (lSelectedMailbox == null) return;
+
+            if (MessageBox.Show(this, "warning: this will add messages to " + lSelectedMailbox.Path, "add messages?", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) != DialogResult.OK) return;
+
+            string lTest = "(none)";
+
+            try
+            {
+                lTest = "1";
+                //await ZAppendSelectedMailboxTest1Async(lSelectedMailbox);
+            }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"an error occurred in test {lTest}: {ex}");
+            }
+        }
+
+        private void cmdAppendSelectedMailboxCurrentTest_Click(object sender, EventArgs e)
+        {
+            // ;?;
+        }
+
+        /*
+        private async Task ZAppendSelectedMailboxTestSimpleAsync(bool pSend, cMailbox pMailbox, string pFrom, string pTo, string pSubject, string pBody)
+        {
+            using (var lMailMessage = new MailMessage(v))
+            {
+                if ()
+
+
+
+
+                var lUID = await pMailbox.AppendAsync(lMailMessage).ConfigureAwait(false);
+
+                var lMessages = await pMailbox.MessagesAsync(cFilter.UID == lUID).ConfigureAwait(false);
+
+                if (lMessages.Count != 1) throw new cTestsException($"{nameof(ZAppendSelectedMailboxTest1Async)}.messagecount");
+
+                var lMessage = lMessages[0];
+
+                if (lMessage.From.Count != 1 || lMessage.From[0].DisplayName != "<imaptest1@dovecot.bacome.work>") throw new cTestsException($"{nameof(ZAppendSelectedMailboxTest1Async)}.from");
+                if (lMessage.To.Count != 1 || lMessage.To[0].DisplayName != "<imaptest2@dovecot.bacome.work>") throw new cTestsException($"{nameof(ZAppendSelectedMailboxTest1Async)}.to");
+                if (lMessage.Subject != "a simple test message") throw new cTestsException($"{nameof(ZAppendSelectedMailboxTest1Async)}.subject");
+                ;?;
+            }
+        } */
     }
 }
