@@ -62,6 +62,12 @@
     <Compile Include="frmAppendMultiPart.Designer.cs">
       <DependentUpon>frmAppendMultiPart.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmAppendTests.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmAppendTests.Designer.cs">
+      <DependentUpon>frmAppendTests.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmClient.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -185,6 +191,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmAppendMultiPart.resx">
       <DependentUpon>frmAppendMultiPart.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmAppendTests.resx">
+      <DependentUpon>frmAppendTests.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmClient.resx">
       <DependentUpon>frmClient.cs</DependentUpon>

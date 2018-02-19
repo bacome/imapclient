@@ -243,6 +243,10 @@
             this.txtResponseText = new System.Windows.Forms.TextBox();
             this.cmdResponseText = new System.Windows.Forms.Button();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.cmdAppendTests = new System.Windows.Forms.Button();
+            this.cmdAppendTestsSecond = new System.Windows.Forms.Button();
+            this.label44 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.cmdDefaultFlagsClear = new System.Windows.Forms.Button();
             this.cmdDefaultFlags = new System.Windows.Forms.Button();
@@ -271,22 +275,6 @@
             this.txtASMaxTime = new System.Windows.Forms.TextBox();
             this.txtASMax = new System.Windows.Forms.TextBox();
             this.txtASMin = new System.Windows.Forms.TextBox();
-            this.tabPage5 = new System.Windows.Forms.TabPage();
-            this.cmdAppendTestsSecond = new System.Windows.Forms.Button();
-            this.pnlAppendTestsSecond = new System.Windows.Forms.Panel();
-            this.cmdAppendTestsCancel = new System.Windows.Forms.Button();
-            this.label43 = new System.Windows.Forms.Label();
-            this.txtAppendTestsSendTo = new System.Windows.Forms.TextBox();
-            this.cmdAppendCurrentTest = new System.Windows.Forms.Button();
-            this.cmdAppendTests = new System.Windows.Forms.Button();
-            this.gbxSMTPDetails = new System.Windows.Forms.GroupBox();
-            this.label41 = new System.Windows.Forms.Label();
-            this.txtAppendTestsHost = new System.Windows.Forms.TextBox();
-            this.chkAppendTestsSSL = new System.Windows.Forms.CheckBox();
-            this.label42 = new System.Windows.Forms.Label();
-            this.txtAppendTestsPort = new System.Windows.Forms.TextBox();
-            this.label44 = new System.Windows.Forms.Label();
-            this.rtxAppendTests = new System.Windows.Forms.RichTextBox();
             this.cmdPoll = new System.Windows.Forms.Button();
             this.gbxServer.SuspendLayout();
             this.gbxCredentials.SuspendLayout();
@@ -323,13 +311,11 @@
             this.gbxResponseTextCode.SuspendLayout();
             this.gbxResponseTextType.SuspendLayout();
             this.tabPage4.SuspendLayout();
+            this.groupBox4.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.gbxAppendBatch.SuspendLayout();
             this.gbxAppendStreamRead.SuspendLayout();
-            this.tabPage5.SuspendLayout();
-            this.pnlAppendTestsSecond.SuspendLayout();
-            this.gbxSMTPDetails.SuspendLayout();
             this.SuspendLayout();
             // 
             // gbxServer
@@ -556,7 +542,6 @@
             this.txtUserId.Name = "txtUserId";
             this.txtUserId.Size = new System.Drawing.Size(150, 20);
             this.txtUserId.TabIndex = 6;
-            this.txtUserId.Text = "imaptest1";
             this.txtUserId.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxNotBlank);
             this.txtUserId.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
@@ -1736,11 +1721,10 @@
             this.tabClient.Controls.Add(this.tbpWindows);
             this.tabClient.Controls.Add(this.tpgResponseText);
             this.tabClient.Controls.Add(this.tabPage4);
-            this.tabClient.Controls.Add(this.tabPage5);
             this.tabClient.Location = new System.Drawing.Point(383, 10);
             this.tabClient.Name = "tabClient";
             this.tabClient.SelectedIndex = 0;
-            this.tabClient.Size = new System.Drawing.Size(481, 480);
+            this.tabClient.Size = new System.Drawing.Size(524, 480);
             this.tabClient.TabIndex = 1;
             // 
             // tbpSettings
@@ -1754,7 +1738,7 @@
             this.tbpSettings.Location = new System.Drawing.Point(4, 22);
             this.tbpSettings.Name = "tbpSettings";
             this.tbpSettings.Padding = new System.Windows.Forms.Padding(3);
-            this.tbpSettings.Size = new System.Drawing.Size(473, 454);
+            this.tbpSettings.Size = new System.Drawing.Size(516, 454);
             this.tbpSettings.TabIndex = 0;
             this.tbpSettings.Text = "Settings";
             this.tbpSettings.UseVisualStyleBackColor = true;
@@ -1808,7 +1792,7 @@
             this.tbpDefaults.Location = new System.Drawing.Point(4, 22);
             this.tbpDefaults.Name = "tbpDefaults";
             this.tbpDefaults.Padding = new System.Windows.Forms.Padding(3);
-            this.tbpDefaults.Size = new System.Drawing.Size(473, 454);
+            this.tbpDefaults.Size = new System.Drawing.Size(516, 454);
             this.tbpDefaults.TabIndex = 3;
             this.tbpDefaults.Text = "Defaults";
             this.tbpDefaults.UseVisualStyleBackColor = true;
@@ -1822,7 +1806,7 @@
             this.tabControl1.Location = new System.Drawing.Point(6, 88);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(461, 311);
+            this.tabControl1.Size = new System.Drawing.Size(504, 311);
             this.tabControl1.TabIndex = 2;
             // 
             // tabPage1
@@ -1840,7 +1824,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(453, 285);
+            this.tabPage1.Size = new System.Drawing.Size(496, 285);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Message Cache Items by Attribute & Header";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -1872,7 +1856,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtAHHeaderFieldNames.Location = new System.Drawing.Point(8, 191);
             this.txtAHHeaderFieldNames.Name = "txtAHHeaderFieldNames";
-            this.txtAHHeaderFieldNames.Size = new System.Drawing.Size(423, 20);
+            this.txtAHHeaderFieldNames.Size = new System.Drawing.Size(466, 20);
             this.txtAHHeaderFieldNames.TabIndex = 8;
             this.txtAHHeaderFieldNames.Validating += new System.ComponentModel.CancelEventHandler(this.ZValHeaderFieldNames);
             this.txtAHHeaderFieldNames.Validated += new System.EventHandler(this.ZValControlValidated);
@@ -1971,7 +1955,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(453, 285);
+            this.tabPage2.Size = new System.Drawing.Size(496, 285);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Message Cache Items by Property";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -2182,7 +2166,7 @@
             this.gbxDefaultSort.Controls.Add(this.lblSort);
             this.gbxDefaultSort.Location = new System.Drawing.Point(6, 6);
             this.gbxDefaultSort.Name = "gbxDefaultSort";
-            this.gbxDefaultSort.Size = new System.Drawing.Size(517, 76);
+            this.gbxDefaultSort.Size = new System.Drawing.Size(560, 76);
             this.gbxDefaultSort.TabIndex = 0;
             this.gbxDefaultSort.TabStop = false;
             this.gbxDefaultSort.Text = "Sort";
@@ -2217,7 +2201,7 @@
             this.tbpWindows.Location = new System.Drawing.Point(4, 22);
             this.tbpWindows.Name = "tbpWindows";
             this.tbpWindows.Padding = new System.Windows.Forms.Padding(3);
-            this.tbpWindows.Size = new System.Drawing.Size(473, 454);
+            this.tbpWindows.Size = new System.Drawing.Size(516, 454);
             this.tbpWindows.TabIndex = 1;
             this.tbpWindows.Text = "Windows";
             this.tbpWindows.UseVisualStyleBackColor = true;
@@ -2348,7 +2332,7 @@
             this.tpgResponseText.Location = new System.Drawing.Point(4, 22);
             this.tpgResponseText.Name = "tpgResponseText";
             this.tpgResponseText.Padding = new System.Windows.Forms.Padding(3);
-            this.tpgResponseText.Size = new System.Drawing.Size(473, 454);
+            this.tpgResponseText.Size = new System.Drawing.Size(516, 454);
             this.tpgResponseText.TabIndex = 2;
             this.tpgResponseText.Text = "Response Text Window";
             this.tpgResponseText.UseVisualStyleBackColor = true;
@@ -2678,6 +2662,7 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.groupBox4);
             this.tabPage4.Controls.Add(this.groupBox3);
             this.tabPage4.Controls.Add(this.cmdAppend);
             this.tabPage4.Controls.Add(this.groupBox2);
@@ -2686,10 +2671,54 @@
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(473, 454);
+            this.tabPage4.Size = new System.Drawing.Size(516, 454);
             this.tabPage4.TabIndex = 4;
             this.tabPage4.Text = "Append";
             this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // groupBox4
+            // 
+            this.groupBox4.Controls.Add(this.cmdAppendTests);
+            this.groupBox4.Controls.Add(this.cmdAppendTestsSecond);
+            this.groupBox4.Controls.Add(this.label44);
+            this.groupBox4.Location = new System.Drawing.Point(6, 321);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(484, 92);
+            this.groupBox4.TabIndex = 5;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "Tests";
+            // 
+            // cmdAppendTests
+            // 
+            this.cmdAppendTests.Location = new System.Drawing.Point(121, 52);
+            this.cmdAppendTests.Name = "cmdAppendTests";
+            this.cmdAppendTests.Size = new System.Drawing.Size(100, 25);
+            this.cmdAppendTests.TabIndex = 4;
+            this.cmdAppendTests.Text = "Tests ...";
+            this.cmdAppendTests.UseVisualStyleBackColor = true;
+            this.cmdAppendTests.Click += new System.EventHandler(this.cmdAppendTests_Click);
+            // 
+            // cmdAppendTestsSecond
+            // 
+            this.cmdAppendTestsSecond.Location = new System.Drawing.Point(15, 52);
+            this.cmdAppendTestsSecond.Name = "cmdAppendTestsSecond";
+            this.cmdAppendTestsSecond.Size = new System.Drawing.Size(100, 25);
+            this.cmdAppendTestsSecond.TabIndex = 3;
+            this.cmdAppendTestsSecond.Text = "Second Instance";
+            this.cmdAppendTestsSecond.UseVisualStyleBackColor = true;
+            this.cmdAppendTestsSecond.Click += new System.EventHandler(this.cmdAppendTestsSecond_Click);
+            // 
+            // label44
+            // 
+            this.label44.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label44.Location = new System.Drawing.Point(12, 16);
+            this.label44.Name = "label44";
+            this.label44.Size = new System.Drawing.Size(466, 45);
+            this.label44.TabIndex = 2;
+            this.label44.Text = "To run the tests a first instance should have \'sent items\' selected for update (a" +
+    "ny mailbox other than inbox is ok) and a second instance should have inbox selec" +
+    "ted";
             // 
             // groupBox3
             // 
@@ -2734,7 +2763,7 @@
             // 
             // cmdAppend
             // 
-            this.cmdAppend.Location = new System.Drawing.Point(21, 342);
+            this.cmdAppend.Location = new System.Drawing.Point(276, 281);
             this.cmdAppend.Name = "cmdAppend";
             this.cmdAppend.Size = new System.Drawing.Size(100, 25);
             this.cmdAppend.TabIndex = 4;
@@ -2985,177 +3014,6 @@
             this.txtASMin.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
             this.txtASMin.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
-            // tabPage5
-            // 
-            this.tabPage5.Controls.Add(this.cmdAppendTestsSecond);
-            this.tabPage5.Controls.Add(this.pnlAppendTestsSecond);
-            this.tabPage5.Controls.Add(this.label44);
-            this.tabPage5.Controls.Add(this.rtxAppendTests);
-            this.tabPage5.Location = new System.Drawing.Point(4, 22);
-            this.tabPage5.Name = "tabPage5";
-            this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage5.Size = new System.Drawing.Size(473, 454);
-            this.tabPage5.TabIndex = 5;
-            this.tabPage5.Text = "Append Tests";
-            this.tabPage5.UseVisualStyleBackColor = true;
-            // 
-            // cmdAppendTestsSecond
-            // 
-            this.cmdAppendTestsSecond.Location = new System.Drawing.Point(3, 51);
-            this.cmdAppendTestsSecond.Name = "cmdAppendTestsSecond";
-            this.cmdAppendTestsSecond.Size = new System.Drawing.Size(100, 25);
-            this.cmdAppendTestsSecond.TabIndex = 1;
-            this.cmdAppendTestsSecond.Text = "Second Instance";
-            this.cmdAppendTestsSecond.UseVisualStyleBackColor = true;
-            this.cmdAppendTestsSecond.Click += new System.EventHandler(this.cmdAppendTestsSecond_Click);
-            // 
-            // pnlAppendTestsSecond
-            // 
-            this.pnlAppendTestsSecond.Controls.Add(this.cmdAppendTestsCancel);
-            this.pnlAppendTestsSecond.Controls.Add(this.label43);
-            this.pnlAppendTestsSecond.Controls.Add(this.txtAppendTestsSendTo);
-            this.pnlAppendTestsSecond.Controls.Add(this.cmdAppendCurrentTest);
-            this.pnlAppendTestsSecond.Controls.Add(this.cmdAppendTests);
-            this.pnlAppendTestsSecond.Controls.Add(this.gbxSMTPDetails);
-            this.pnlAppendTestsSecond.Location = new System.Drawing.Point(3, 86);
-            this.pnlAppendTestsSecond.Name = "pnlAppendTestsSecond";
-            this.pnlAppendTestsSecond.Size = new System.Drawing.Size(427, 110);
-            this.pnlAppendTestsSecond.TabIndex = 10;
-            // 
-            // cmdAppendTestsCancel
-            // 
-            this.cmdAppendTestsCancel.Enabled = false;
-            this.cmdAppendTestsCancel.Location = new System.Drawing.Point(326, 84);
-            this.cmdAppendTestsCancel.Name = "cmdAppendTestsCancel";
-            this.cmdAppendTestsCancel.Size = new System.Drawing.Size(100, 25);
-            this.cmdAppendTestsCancel.TabIndex = 5;
-            this.cmdAppendTestsCancel.Text = "Tests Cancel";
-            this.cmdAppendTestsCancel.UseVisualStyleBackColor = true;
-            this.cmdAppendTestsCancel.Click += new System.EventHandler(this.cmdAppendTestsCancel_Click);
-            // 
-            // label43
-            // 
-            this.label43.AutoSize = true;
-            this.label43.Location = new System.Drawing.Point(-3, 64);
-            this.label43.Name = "label43";
-            this.label43.Size = new System.Drawing.Size(48, 13);
-            this.label43.TabIndex = 1;
-            this.label43.Text = "Send To";
-            // 
-            // txtAppendTestsSendTo
-            // 
-            this.txtAppendTestsSendTo.Location = new System.Drawing.Point(114, 58);
-            this.txtAppendTestsSendTo.Name = "txtAppendTestsSendTo";
-            this.txtAppendTestsSendTo.Size = new System.Drawing.Size(312, 20);
-            this.txtAppendTestsSendTo.TabIndex = 2;
-            this.txtAppendTestsSendTo.Text = "imaptest1@dovecot.bacome.work";
-            this.txtAppendTestsSendTo.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsEmailAddress);
-            this.txtAppendTestsSendTo.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // cmdAppendCurrentTest
-            // 
-            this.cmdAppendCurrentTest.Location = new System.Drawing.Point(220, 84);
-            this.cmdAppendCurrentTest.Name = "cmdAppendCurrentTest";
-            this.cmdAppendCurrentTest.Size = new System.Drawing.Size(100, 25);
-            this.cmdAppendCurrentTest.TabIndex = 4;
-            this.cmdAppendCurrentTest.Text = "Current Test";
-            this.cmdAppendCurrentTest.UseVisualStyleBackColor = true;
-            // 
-            // cmdAppendTests
-            // 
-            this.cmdAppendTests.Location = new System.Drawing.Point(114, 84);
-            this.cmdAppendTests.Name = "cmdAppendTests";
-            this.cmdAppendTests.Size = new System.Drawing.Size(100, 25);
-            this.cmdAppendTests.TabIndex = 3;
-            this.cmdAppendTests.Text = "All Tests";
-            this.cmdAppendTests.UseVisualStyleBackColor = true;
-            this.cmdAppendTests.Click += new System.EventHandler(this.cmdAppendTests_Click);
-            // 
-            // gbxSMTPDetails
-            // 
-            this.gbxSMTPDetails.Controls.Add(this.label41);
-            this.gbxSMTPDetails.Controls.Add(this.txtAppendTestsHost);
-            this.gbxSMTPDetails.Controls.Add(this.chkAppendTestsSSL);
-            this.gbxSMTPDetails.Controls.Add(this.label42);
-            this.gbxSMTPDetails.Controls.Add(this.txtAppendTestsPort);
-            this.gbxSMTPDetails.Location = new System.Drawing.Point(0, 0);
-            this.gbxSMTPDetails.Name = "gbxSMTPDetails";
-            this.gbxSMTPDetails.Size = new System.Drawing.Size(426, 52);
-            this.gbxSMTPDetails.TabIndex = 0;
-            this.gbxSMTPDetails.TabStop = false;
-            this.gbxSMTPDetails.Text = "SMTP Details";
-            // 
-            // label41
-            // 
-            this.label41.AutoSize = true;
-            this.label41.Location = new System.Drawing.Point(12, 22);
-            this.label41.Name = "label41";
-            this.label41.Size = new System.Drawing.Size(29, 13);
-            this.label41.TabIndex = 0;
-            this.label41.Text = "Host";
-            // 
-            // txtAppendTestsHost
-            // 
-            this.txtAppendTestsHost.Location = new System.Drawing.Point(47, 19);
-            this.txtAppendTestsHost.Name = "txtAppendTestsHost";
-            this.txtAppendTestsHost.Size = new System.Drawing.Size(150, 20);
-            this.txtAppendTestsHost.TabIndex = 1;
-            this.txtAppendTestsHost.Text = "192.168.56.101";
-            this.txtAppendTestsHost.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxNotBlank);
-            this.txtAppendTestsHost.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // chkAppendTestsSSL
-            // 
-            this.chkAppendTestsSSL.AutoSize = true;
-            this.chkAppendTestsSSL.Location = new System.Drawing.Point(303, 21);
-            this.chkAppendTestsSSL.Name = "chkAppendTestsSSL";
-            this.chkAppendTestsSSL.Size = new System.Drawing.Size(46, 17);
-            this.chkAppendTestsSSL.TabIndex = 4;
-            this.chkAppendTestsSSL.Text = "SSL";
-            this.chkAppendTestsSSL.UseVisualStyleBackColor = true;
-            // 
-            // label42
-            // 
-            this.label42.AutoSize = true;
-            this.label42.Location = new System.Drawing.Point(217, 22);
-            this.label42.Name = "label42";
-            this.label42.Size = new System.Drawing.Size(26, 13);
-            this.label42.TabIndex = 2;
-            this.label42.Text = "Port";
-            // 
-            // txtAppendTestsPort
-            // 
-            this.txtAppendTestsPort.Location = new System.Drawing.Point(249, 19);
-            this.txtAppendTestsPort.Name = "txtAppendTestsPort";
-            this.txtAppendTestsPort.Size = new System.Drawing.Size(32, 20);
-            this.txtAppendTestsPort.TabIndex = 3;
-            this.txtAppendTestsPort.Text = "25";
-            this.txtAppendTestsPort.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsPortNumber);
-            this.txtAppendTestsPort.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // label44
-            // 
-            this.label44.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.label44.Location = new System.Drawing.Point(0, 3);
-            this.label44.Name = "label44";
-            this.label44.Size = new System.Drawing.Size(461, 45);
-            this.label44.TabIndex = 0;
-            this.label44.Text = "To run the tests a first instance should have \'sent items\' selected for update (a" +
-    "ny mailbox other than inbox is ok) and a second instance should have inbox selec" +
-    "ted";
-            // 
-            // rtxAppendTests
-            // 
-            this.rtxAppendTests.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.rtxAppendTests.Location = new System.Drawing.Point(3, 202);
-            this.rtxAppendTests.Name = "rtxAppendTests";
-            this.rtxAppendTests.Size = new System.Drawing.Size(464, 246);
-            this.rtxAppendTests.TabIndex = 2;
-            this.rtxAppendTests.Text = "";
-            // 
             // cmdPoll
             // 
             this.cmdPoll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
@@ -3172,7 +3030,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
-            this.ClientSize = new System.Drawing.Size(867, 546);
+            this.ClientSize = new System.Drawing.Size(910, 546);
             this.Controls.Add(this.tabClient);
             this.Controls.Add(this.gbxConnect);
             this.Controls.Add(this.cmdPoll);
@@ -3241,6 +3099,7 @@
             this.gbxResponseTextType.ResumeLayout(false);
             this.gbxResponseTextType.PerformLayout();
             this.tabPage4.ResumeLayout(false);
+            this.groupBox4.ResumeLayout(false);
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
             this.groupBox2.ResumeLayout(false);
@@ -3249,11 +3108,6 @@
             this.gbxAppendBatch.PerformLayout();
             this.gbxAppendStreamRead.ResumeLayout(false);
             this.gbxAppendStreamRead.PerformLayout();
-            this.tabPage5.ResumeLayout(false);
-            this.pnlAppendTestsSecond.ResumeLayout(false);
-            this.pnlAppendTestsSecond.PerformLayout();
-            this.gbxSMTPDetails.ResumeLayout(false);
-            this.gbxSMTPDetails.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -3504,21 +3358,9 @@
         private System.Windows.Forms.Button cmdDefaultFlagsClear;
         private System.Windows.Forms.CheckBox chkIgnoreCatenate;
         private System.Windows.Forms.CheckBox chkIgnoreMultiAppend;
-        private System.Windows.Forms.TabPage tabPage5;
-        private System.Windows.Forms.GroupBox gbxSMTPDetails;
-        private System.Windows.Forms.Label label41;
-        private System.Windows.Forms.TextBox txtAppendTestsHost;
-        private System.Windows.Forms.CheckBox chkAppendTestsSSL;
-        private System.Windows.Forms.Label label42;
-        private System.Windows.Forms.TextBox txtAppendTestsPort;
+        private System.Windows.Forms.GroupBox groupBox4;
         private System.Windows.Forms.Button cmdAppendTests;
-        private System.Windows.Forms.Button cmdAppendCurrentTest;
-        private System.Windows.Forms.Label label43;
-        private System.Windows.Forms.TextBox txtAppendTestsSendTo;
-        private System.Windows.Forms.Button cmdAppendTestsCancel;
         private System.Windows.Forms.Button cmdAppendTestsSecond;
         private System.Windows.Forms.Label label44;
-        private System.Windows.Forms.Panel pnlAppendTestsSecond;
-        private System.Windows.Forms.RichTextBox rtxAppendTests;
     }
 }

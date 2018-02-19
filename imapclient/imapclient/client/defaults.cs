@@ -4,9 +4,9 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        private cMessageCacheItems mDefaultMessageCacheItems = cMessageCacheItems.Empty;
+        private cMessageCacheItems mDefaultMessageCacheItems = null;
         private cSort mDefaultSort = cSort.None;
-        private cStorableFlags mDefaultAppendFlags = cStorableFlags.Draft;
+        private cStorableFlags mDefaultAppendFlags = cStorableFlags.Empty;
 
         /// <summary>
         /// Gets and sets the items that are cached by default when message lists are generated.
@@ -35,7 +35,6 @@ namespace work.bacome.imapclient
         /// Gets and sets the default flags used when appending messages. May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
-        /// The default value is <see cref="cStorableFlags.Draft"/>.
         /// When the source of the appended data is <see cref="cMessageAppendData"/> the default flags come from the message being copied.
         /// </remarks>
         public cStorableFlags DefaultAppendFlags

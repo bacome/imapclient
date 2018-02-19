@@ -45,6 +45,7 @@ namespace testharness2
         public void SetMaximum(long pMaximum)
         {
             mMaximum = pMaximum;
+            mValue = 0;
 
             if (mMaximum <= 0) prg.Style = ProgressBarStyle.Marquee;
             else
