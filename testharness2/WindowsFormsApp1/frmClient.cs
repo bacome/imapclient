@@ -15,26 +15,39 @@ namespace testharness2
 {
     public partial class frmClient : Form
     {
+        private enum eAppendTestOrder { sendthenappend, appendthensend }
+
         private readonly cIMAPClient mFirst;
+        private readonly string mUserId;
+        private readonly string mPassword;
         private readonly cIMAPClient mClient;
         private readonly Dictionary<string, Form> mNamedChildren = new Dictionary<string, Form>();
         private readonly List<Form> mUnnamedChildren = new List<Form>();
         private CancellationTokenSource mCTS = null;
 
-        private cSMTPClient mSMTPClient = null;
-        private cMailbox mAppendSentItems = null;
+        private cMailbox mAppendTestsSentItems;
+        private cMailbox mAppendTestsInbox;
+
+        private bool mAppendTesting = false;
+        private cSMTPClient mAppendTestsSMTPClient = null;
+        private CancellationTokenSource mAppendTestsCancellationTokenSource = null;
+        private cMessageDeliveryMonitor mAppendTestsMessageDeliveryMonitor;
 
         public frmClient(string pInstanceName)
         {
             mFirst = null;
+            mUserId = null;
+            mPassword = null;
             mClient = new cIMAPClient(pInstanceName);
             mClient.DefaultMessageCacheItems = fMessageCacheAttributes.envelope | fMessageCacheAttributes.flags | fMessageCacheAttributes.received | fMessageCacheAttributes.uid;
             InitializeComponent();
         }
 
-        public frmClient(cIMAPClient pFirst)
+        public frmClient(cIMAPClient pFirst, string pUserId, string pPassword)
         {
             mFirst = pFirst ?? throw new ArgumentNullException(nameof(pFirst));
+            mUserId = pUserId ?? throw new ArgumentNullException(nameof(pUserId));
+            mPassword = pPassword ?? throw new ArgumentNullException(nameof(pPassword));
             mClient = new cIMAPClient(pFirst.InstanceName + "_second");
             mClient.DefaultMessageCacheItems = fMessageCacheAttributes.envelope | fMessageCacheAttributes.flags | fMessageCacheAttributes.received | fMessageCacheAttributes.uid;
             InitializeComponent();
@@ -81,30 +94,20 @@ namespace testharness2
                 cmdDisconnect.Enabled = mClient.IsConnected;
             }
 
-            cmdSecond.Enabled = mFirst == null && mClient.IsConnected && rdoCredBasic.Checked;
-            cmdAppendSentItems.Enabled = mClient.IsConnected;
+            cmdAppendTestsSecond.Enabled = mFirst == null && mClient.IsConnected && rdoCredBasic.Checked;
 
-            var lSelectedMailbox = mClient.SelectedMailbox;
-
-            if (mClient.IsUnconnected || lSelectedMailbox == null || mSMTPClient != null)
+            if (mClient.IsUnconnected || mClient.SelectedMailbox == null || !mClient.SelectedMailbox.IsInbox || mAppendTesting)
             {
-                cmdAppendInboxTests.Enabled = false;
-                cmdAppendInboxCurrentTest.Enabled = false;
-                cmdAppendSelectedMailboxTests.Enabled = false;
-                cmdAppendSelectedMailboxCurrentTest.Enabled = false;
+                cmdAppendTests.Enabled = false;
+                cmdAppendCurrentTest.Enabled = false;
             }
             else
             {
-                bool lAppendInboxTests = lSelectedMailbox.IsInbox && mAppendSentItems != null;
-
-                cmdAppendInboxTests.Enabled = lAppendInboxTests;
-                cmdAppendInboxCurrentTest.Enabled = lAppendInboxTests;
-
-                cmdAppendSelectedMailboxTests.Enabled = true;
-                cmdAppendSelectedMailboxCurrentTest.Enabled = true;
+                cmdAppendTests.Enabled = true;
+                cmdAppendCurrentTest.Enabled = true;
             }
 
-            cmdAppendInboxSMTPCancel.Enabled = mSMTPClient != null;
+            cmdAppendTestsCancel.Enabled = mAppendTesting;
 
             if (mClient.Namespaces == null)
             {
@@ -412,13 +415,15 @@ namespace testharness2
         {
             Text = "imapclient testharness - client - " + mClient.InstanceName;
 
-            gbxAppendInboxTests.Enabled = mFirst != null;
+            pnlAppendTestsSecond.Enabled = mFirst != null;
 
             ZSetControlState();
             ZSetControlStateServerCredentials();
             ZSetControlStateIdle();
 
             mClient.PropertyChanged += mClient_PropertyChanged;
+
+            if (mUserId != null) txtUserId.Text = mUserId; // just for visual feedback
 
             var lMailboxCacheData = mClient.MailboxCacheDataItems;
             chkCacheSubscribed.Checked = (lMailboxCacheData & fMailboxCacheDataItems.subscribed) != 0;
@@ -478,6 +483,9 @@ namespace testharness2
 
         private void frmClient_FormClosing(object sender, FormClosingEventArgs e)
         {
+            if (mAppendTestsSMTPClient != null) mAppendTestsSMTPClient.SendAsyncCancel();
+            if (mAppendTestsCancellationTokenSource != null) mAppendTestsCancellationTokenSource.Cancel();
+
             // to allow closing with validation errors
             e.Cancel = false;
         }
@@ -621,12 +629,10 @@ namespace testharness2
             mUnnamedChildren.Remove(lForm);
         }
 
-
-
-        private void cmdSecond_Click(object sender, EventArgs e)
+        private void cmdAppendTestsSecond_Click(object sender, EventArgs e)
         {
             if (mNamedChildren.TryGetValue(nameof(frmClient), out var lForm)) Program.Focus(lForm);
-            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmClient(mClient));
+            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmClient(mClient, txtUserId.Text.Trim(), txtPassword.Text.Trim()));
         }
 
         private void cmdNetworkActivity_Click(object sender, EventArgs e)
@@ -972,120 +978,164 @@ namespace testharness2
             ZDefaultFlagsDescriptionSet();
         }
 
-        private void cmdAppendSentItems_Click(object sender, EventArgs e)
+        private bool ZAppendTestsInit()
         {
-            using (frmMailboxDialog lMailboxDialog = new frmMailboxDialog(mClient, false))
+            if (mFirst == null) return false;
+            if (mAppendTesting) return false;
+            if (!ValidateChildren(ValidationConstraints.Enabled)) return false;
+
+            mAppendTestsInbox = mClient.SelectedMailbox;
+
+            if (!mClient.IsConnected || mAppendTestsInbox == null || !mAppendTestsInbox.IsInbox) return false;
+
+            mAppendTestsSentItems = mFirst.SelectedMailbox;
+
+            if (!mFirst.IsConnected || mAppendTestsSentItems == null || mAppendTestsSentItems.IsInbox || !mAppendTestsSentItems.IsSelectedForUpdate)
             {
-                if (lMailboxDialog.ShowDialog(this) != DialogResult.OK) return;
-                if (lMailboxDialog.Mailbox.IsInbox) return;
-                mAppendSentItems = lMailboxDialog.Mailbox;
+                MessageBox.Show(this, "the first instance is not connected and selected correctly");
+                return false;
             }
 
-            lblAppendSentItems.Text = mAppendSentItems.Path;
-            ZSetControlState();
+            if (MessageBox.Show(this, $"warning: this will send messages via SMTP expecting to see the messages appear in the current inbox and will append messages to the mailbox selected in the first instance", "send and append messages?", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) != DialogResult.OK) return false;
+
+            rtxAppendTests.Clear();
+
+            return true;
         }
 
-        private async void cmdAppendInboxTests_Click(object sender, EventArgs e)
+        private void ZAppendTestPrg(string pPrg)
         {
-            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
+            rtxAppendTests.AppendText(pPrg + "\n");
+            rtxAppendTests.ScrollToCaret();
+        }
 
-            if (mSMTPClient != null) return;
+        private async void cmdAppendTests_Click(object sender, EventArgs e)
+        {
+            if (!ZAppendTestsInit()) return;
 
-            if (!rdoCredBasic.Checked) return;
-
-            var lSelectedMailbox = mClient.SelectedMailbox;
-            if (lSelectedMailbox == null || !lSelectedMailbox.IsInbox) return;
-
-            if (MessageBox.Show(this, $"warning: this will send messages using the basic credentials that you used to connect to the imap server and expect to see the messages appear in the current inbox", "send messages?", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) != DialogResult.OK) return;
-
-            string lTest = "initialise";
+            ZAppendTestPrg("init");
 
             try
             {
-                using (var lSMTPClient = new cSMTPClient(txtAppendTestHost.Text.Trim(), int.Parse(txtAppendTestPort.Text), chkAppendTestSSL.Checked, txtUserId.Text.Trim(), txtPassword.Text.Trim()))
+                using (var lSMTPClient = new cSMTPClient(txtAppendTestsHost.Text.Trim(), int.Parse(txtAppendTestsPort.Text), chkAppendTestsSSL.Checked, mUserId, mPassword))
+                using (var lCancellationTokenSource = new CancellationTokenSource())
+                using (var lMessageDeliveryMonitor = new cMessageDeliveryMonitor(mAppendTestsInbox, lCancellationTokenSource.Token))
                 {
-                    mSMTPClient = lSMTPClient;
+                    mAppendTesting = true;
+                    mAppendTestsSMTPClient = lSMTPClient;
+                    mAppendTestsCancellationTokenSource = lCancellationTokenSource;
+                    mAppendTestsMessageDeliveryMonitor = lMessageDeliveryMonitor;
                     ZSetControlState();
 
-                    lTest = "1";
-                    await ZAppendInboxSimpleTestAsync("imaptest1@dovecot.bacome.work", "a simple test message", "i want something here that shows it has been encoded so an '=' should do the trick.");
+                    ZAppendTestPrg(" 1");
+                    await ZAppendSimpleTestAsync("imaptest1@dovecot.bacome.work", "a simple test message", "i want something here that shows it has been encoded so an '=' should do the trick.");
 
                     //;?;
+
+
+
+
+
+                    ZAppendTestPrg("tidy up");
                 }
             }
             catch (Exception ex)
             {
-                if (!IsDisposed) MessageBox.Show(this, $"an error occurred in '{lTest}': {ex}");
+                if (!IsDisposed)
+                {
+                    ZAppendTestPrg(ex.ToString());
+                    MessageBox.Show(this, "an error occurred:\n" + ex.ToString());
+                }
             }
             finally
             {
-                mSMTPClient = null;
+                mAppendTestsCancellationTokenSource = null;
+                mAppendTestsSMTPClient = null;
+                mAppendTesting = false;
                 ZSetControlState();
             }
+
+            ZAppendTestPrg("end");
         }
 
-        private void cmdAppendInboxCurrentTest_Click(object sender, EventArgs e)
+        private void cmdAppendTestsCancel_Click(object sender, EventArgs e)
         {
-            // ;?;
+            if (mAppendTestsSMTPClient != null) mAppendTestsSMTPClient.SendAsyncCancel();
+            if (mAppendTestsCancellationTokenSource != null) mAppendTestsCancellationTokenSource.Cancel();
         }
 
-        private void cmdAppendInboxSMTPCancel_Click(object sender, EventArgs e)
+        private async Task ZAppendSimpleTestAsync(string pFrom, string pSubject, string pBody)
         {
-            if (mSMTPClient != null) mSMTPClient.SendAsyncCancel();
+            ZAppendTestPrg("  append then send");
+            await ZAppendSimpleTestAsync(eAppendTestOrder.appendthensend, pFrom, pSubject, pBody);
+            ZAppendTestPrg("  send then append");
+            await ZAppendSimpleTestAsync(eAppendTestOrder.sendthenappend, pFrom, pSubject, pBody);
         }
 
-        private async Task ZAppendInboxSimpleTestAsync(string pFrom, string pSubject, string pBody)
+        private async Task ZAppendSimpleTestAsync(eAppendTestOrder pOrder, string pFrom, string pSubject, string pBody)
         {
             string lMessageId = cMessageIdGenerator.MsgId();
             cUID lUID;
 
-            using (var lMailMessage = new MailMessage(pFrom, txtAppendTestSendTo.Text, pSubject, pBody))
+            using (var lMailMessage = new MailMessage(pFrom, txtAppendTestsSendTo.Text, pSubject, pBody))
             {
-                lMailMessage.Headers.Add("message-id", lMessageId);
-                await mSMTPClient.SendAsync(lMailMessage);
-                lUID = await mAppendSentItems.AppendAsync(lMailMessage);
+                lMailMessage.Headers.Add(kHeaderFieldName.MessageId, lMessageId);
+
+                if (pOrder == eAppendTestOrder.sendthenappend)
+                {
+                    ZAppendTestPrg("   smtp send");
+                    await mAppendTestsSMTPClient.SendAsync(lMailMessage);
+                    // show that message contruction can be async ... (could be useful if the message had large parts needing conversion to quoted-printable)
+                    ZAppendTestPrg("   append");
+                    lUID = await mAppendTestsSentItems.AppendAsync(await cMailMessageAppendData.ConstructAsync(lMailMessage, cStorableFlags.Seen, null, null, -1, mAppendTestsCancellationTokenSource.Token));
+                }
+                else
+                {
+                    ZAppendTestPrg("   append");
+                    lUID = mAppendTestsSentItems.Append(lMailMessage); // presumably (if the user hasn't changed the defaults) with the \draft flag on
+                    ZAppendTestPrg("   smtp send");
+                    await mAppendTestsSMTPClient.SendAsync(lMailMessage);
+                }
             }
 
+            List<cMessage> lMessages;
 
-            // find the message in the inbox
+            // find the message that was appended
+            //
+            ZAppendTestPrg("   search for appended message");
+            if (lUID == null) lMessages = await mAppendTestsSentItems.MessagesAsync(cFilter.HeaderFieldContains(kHeaderFieldName.MessageId, lMessageId));
+            else lMessages = await mAppendTestsSentItems.MessagesAsync(cFilter.UID == lUID);
+            if (lMessages.Count != 1) throw new cTestsException("couldn't find appended message");
+            var lAppendedMessage = lMessages[0];
 
+            // find the message that was sent
 
+            ZAppendTestPrg("   search for sent message");
 
-            
+            while (true)
+            {
+                // note if the instance isn't idling a manual poll might be required
+                await mAppendTestsMessageDeliveryMonitor.GetAwaitMessageDeliveryTask();
+                mAppendTestsMessageDeliveryMonitor.Reset();
+                lMessages = mAppendTestsInbox.Messages(cFilter.HeaderFieldContains(kHeaderFieldName.MessageId, lMessageId));
+                if (lMessages.Count != 0) break;
+            }
+
+            if (lMessages.Count != 1) throw new cTestsException("couldn't find sent message");
+
+            var lSentMessage = lMessages[0];
+
+            // if we appended before sending, now mark the message as not draft and as seen
+            //
+            if (pOrder == eAppendTestOrder.appendthensend)
+            {
+                ZAppendTestPrg("   update appended message");
+                lAppendedMessage.Draft = false;
+                lAppendedMessage.Seen = true;
+            }
+
             // then compare the two
-        }
-
-
-
-
-
-
-
-
-
-        private async void cmdAppendSelectedMailboxTests_Click(object sender, EventArgs e)
-        {
-            var lSelectedMailbox = mClient.SelectedMailbox;
-            if (lSelectedMailbox == null) return;
-
-            if (MessageBox.Show(this, "warning: this will add messages to " + lSelectedMailbox.Path, "add messages?", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) != DialogResult.OK) return;
-
-            string lTest = "(none)";
-
-            try
-            {
-                lTest = "1";
-                //await ZAppendSelectedMailboxTest1Async(lSelectedMailbox);
-            }
-            catch (Exception ex)
-            {
-                if (!IsDisposed) MessageBox.Show(this, $"an error occurred in test {lTest}: {ex}");
-            }
-        }
-
-        private void cmdAppendSelectedMailboxCurrentTest_Click(object sender, EventArgs e)
-        {
-            // ;?;
+            //;?;
         }
 
         /*

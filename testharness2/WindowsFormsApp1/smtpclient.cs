@@ -30,9 +30,9 @@ namespace testharness2
         public Task SendAsync(MailMessage pMailMessage)
         {
             if (mDisposed) throw new ObjectDisposedException(nameof(cSMTPClient));
-            var lCTS = new TaskCompletionSource<bool>();
-            mClient.SendAsync(pMailMessage, lCTS);
-            return lCTS.Task;
+            var lTCS = new TaskCompletionSource<bool>();
+            mClient.SendAsync(pMailMessage, lTCS);
+            return lTCS.Task;
         }
 
         public void SendAsyncCancel()
@@ -43,23 +43,23 @@ namespace testharness2
 
         private void ZSendCompleted(object sender, AsyncCompletedEventArgs e)
         {
-            var lCTS = e.UserState as TaskCompletionSource<bool>;
+            var lTCS = e.UserState as TaskCompletionSource<bool>;
 
-            if (lCTS == null) return;
+            if (lTCS == null) return;
 
             if (e.Cancelled)
             {
-                lCTS.SetCanceled();
+                lTCS.SetCanceled();
                 return;
             }
 
             if (e.Error == null)
             {
-                lCTS.SetResult(true);
+                lTCS.SetResult(true);
                 return;
             }
 
-            lCTS.SetException(e.Error);
+            lTCS.SetException(e.Error);
         }
 
         public void Dispose()
