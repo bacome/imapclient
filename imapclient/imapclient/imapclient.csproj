@@ -43,14 +43,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="client\append.cs" />
+    <Compile Include="client\convertmailmessage.cs" />
     <Compile Include="client\decodedsizeinbytes.cs" />
+    <Compile Include="client\quotedprintableencode.cs" />
     <Compile Include="exposed_interfaces\appenddata\headerfieldmimeparameter.cs" />
     <Compile Include="exposed_interfaces\appenddata\headerfieldvalueparts.cs" />
-    <Compile Include="exposed_interfaces\appenddata\mailmessageappenddata.cs" />
+    <Compile Include="exposed_interfaces\appenddata\multipartappenddatafactory.cs" />
     <Compile Include="exposed_interfaces\appenddata\appenddata.cs" />
     <Compile Include="exposed_interfaces\appenddata\messageidgenerator.cs" />
     <Compile Include="exposed_interfaces\appenddata\quotedprintableencoder.cs" />
     <Compile Include="exposed_interfaces\configuration\appendconfiguration.cs" />
+    <Compile Include="exposed_interfaces\configuration\convertmailmessageconfiguration.cs" />
+    <Compile Include="exposed_interfaces\configuration\quotedprintableencodeconfiguration.cs" />
     <Compile Include="exposed_interfaces\feedback\appendfeedback.cs" />
     <Compile Include="exposed_interfaces\appenddata\appenddatapart.cs" />
     <Compile Include="exposed_interfaces\mailbox\checkformessagesflag.cs" />

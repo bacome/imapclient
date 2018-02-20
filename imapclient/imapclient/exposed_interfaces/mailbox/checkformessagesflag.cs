@@ -2,13 +2,15 @@
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
     public sealed class cCheckForMessagesFlag : IDisposable
     {
         private bool mDisposed = false;
-        private readonly cMailbox mMailbox;
+        private readonly cIMAPClient mClient;
+        private readonly iMailboxHandle mMailboxHandle;
         private readonly CancellationTokenSource mCancellationTokenSource = new CancellationTokenSource();
         private readonly CancellationTokenSource mLinkedCancellationTokenSource;
         private readonly CancellationToken mLinkedCancellationToken;
@@ -17,45 +19,17 @@ namespace work.bacome.imapclient
 
         public cCheckForMessagesFlag(cMailbox pMailbox, CancellationToken pCancellationToken)
         {
-            mMailbox = pMailbox ?? throw new ArgumentNullException(nameof(pMailbox));
+            if (pMailbox == null) throw new ArgumentNullException(nameof(pMailbox));
+
+            mClient = pMailbox.Client;
+            mMailboxHandle = pMailbox.MailboxHandle;
+
             mLinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(pCancellationToken, mCancellationTokenSource.Token);
             mLinkedCancellationToken = mLinkedCancellationTokenSource.Token;
-            mMailbox.PropertyChanged += ZPropertyChanged;
-            mMailbox.MessageDelivery += ZMessageDelivery;
-        }
 
-        private void ZPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (mDisposed) return;
-
-            if (mSemaphoreSlim.CurrentCount != 0) return;
-
-            if (e.PropertyName == nameof(cMailbox.HighestModSeq))
-            {
-                // indicates that a message in the mailbox has changed: NOTE: this only works if the mailbox supports mod-sequence (RFC 4551)
-                mSemaphoreSlim.Release(); 
-                return;
-            }
-
-            if (e.PropertyName == nameof(cMailbox.IsSelected) && mMailbox.IsSelected)
-            {
-                // indicates that the mailbox has become selected: NOTE: this is only effective if the session is the same (so re-connecting stops this from working)
-                //  also note that a quick select then unselect may not result in a release due to the way events are delivered
-                mSemaphoreSlim.Release(); 
-                return;
-            }
-        }
-
-        private void ZMessageDelivery(object pSender, cMessageDeliveryEventArgs e)
-        {
-            if (mDisposed) return;
-            if (mSemaphoreSlim.CurrentCount == 0) mSemaphoreSlim.Release();
-        }
-
-        private Task ZTask()
-        {
-            if (mTask == null) mTask = mSemaphoreSlim.WaitAsync(mLinkedCancellationToken);
-            return mTask;
+            mClient.MailboxPropertyChanged += ZMailboxPropertyChanged;
+            mClient.MessagePropertyChanged += ZMessagePropertyChanged;
+            mClient.MailboxMessageDelivery += ZMailboxMessageDelivery;
         }
 
         public Task GetTask()
@@ -72,14 +46,36 @@ namespace work.bacome.imapclient
             mTask = null;
         }
 
+        private void ZMailboxPropertyChanged(object pSender, cMailboxPropertyChangedEventArgs pArgs)
+        {
+            if (pArgs.PropertyName == nameof(cMailbox.IsSelected)) ZSetFlag();
+        }
+
+        private void ZMessagePropertyChanged(object pSender, cMessagePropertyChangedEventArgs pArgs) => ZSetFlag();
+
+        private void ZMailboxMessageDelivery(object pSender, cMailboxMessageDeliveryEventArgs pArgs) => ZSetFlag();
+
+        private void ZSetFlag()
+        {
+            if (mDisposed || mSemaphoreSlim.CurrentCount != 0) return;
+            if (ReferenceEquals(mClient.SelectedMailboxDetails?.MailboxHandle, mMailboxHandle)) mSemaphoreSlim.Release();
+        }
+
+        private Task ZTask()
+        {
+            if (mTask == null) mTask = mSemaphoreSlim.WaitAsync(mLinkedCancellationToken);
+            return mTask;
+        }
+
         public void Dispose()
         {
             if (mDisposed) return;
 
             mCancellationTokenSource.Cancel();
 
-            mMailbox.PropertyChanged -= ZPropertyChanged;
-            mMailbox.MessageDelivery -= ZMessageDelivery;
+            mClient.MailboxPropertyChanged -= ZMailboxPropertyChanged;
+            mClient.MessagePropertyChanged -= ZMessagePropertyChanged;
+            mClient.MailboxMessageDelivery -= ZMailboxMessageDelivery;
 
             if (mTask != null)
             {

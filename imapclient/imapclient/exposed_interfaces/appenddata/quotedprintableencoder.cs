@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading;
@@ -10,29 +7,26 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    public enum eQuotedPrintableSourceType { Binary, CRLFTerminatedLines, LFTerminatedLines }
-    public enum eQuotedPrintableQuotingRule { Minimal, EBCDIC }
-
+    /*
     public static class cQuotedPrintableEncoder
     {
-        private static readonly eQuotedPrintableSourceType kDefaultQuotedPrintableSourceType = Environment.NewLine == "\n" ? eQuotedPrintableSourceType.LFTerminatedLines : eQuotedPrintableSourceType.CRLFTerminatedLines;
 
-        public static int Encode(Stream pSource, Stream pTarget = null, int pTimeout = Timeout.Infinite, Action<int> pIncrement = null, cBatchSizerConfiguration pReadConfiguration = null, cBatchSizerConfiguration pWriteConfiguration = null)
+        public static int Encode(Stream pSource, Stream pTarget = null, cQuotedPrintableEncodeConfiguration pConfiguration = null)
         {
-            return ZAwait(ZEncodeAsync(pSource, kDefaultQuotedPrintableSourceType, eQuotedPrintableQuotingRule.EBCDIC, pTarget, new cConfiguration(false, pTimeout, CancellationToken.None, pIncrement, pReadConfiguration, pWriteConfiguration)));
+            return ZAwait(ZEncodeAsync(cQuotedPrintableEncodeConfiguration.MC(false, pConfiguration), pSource, kDefaultQuotedPrintableSourceType, eQuotedPrintableEncodeQuotingRule.EBCDIC, pTarget));
         }
 
-        public static Task<int> EncodeAsync(Stream pSource, Stream pTarget, int pTimeout, CancellationToken pCancellationToken, Action<int> pIncrement = null, cBatchSizerConfiguration pReadConfiguration = null, cBatchSizerConfiguration pWriteConfiguration = null)
+        public static Task<int> EncodeAsync(Stream pSource, Stream pTarget, cQuotedPrintableEncodeConfiguration pConfiguration = null)
         {
-            return ZEncodeAsync(pSource, kDefaultQuotedPrintableSourceType, eQuotedPrintableQuotingRule.EBCDIC, pTarget, new cConfiguration(true, pTimeout, pCancellationToken, pIncrement, pReadConfiguration, pWriteConfiguration));
+            return ZEncodeAsync(cQuotedPrintableEncodeConfiguration.MC(true, pConfiguration), pSource, kDefaultQuotedPrintableSourceType, eQuotedPrintableEncodeQuotingRule.EBCDIC, pTarget);
         }
 
-        public static int Encode(Stream pSource, eQuotedPrintableSourceType pSourceType, eQuotedPrintableQuotingRule pQuotingRule, Stream pTarget = null, int pTimeout = Timeout.Infinite, Action<int> pIncrement = null, cBatchSizerConfiguration pReadConfiguration = null, cBatchSizerConfiguration pWriteConfiguration = null)
+        public static int Encode(Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget = null, , cQuotedPrintableEncodeConfiguration pConfiguration = null)
         {
             return ZAwait(ZEncodeAsync(pSource, pSourceType, pQuotingRule, pTarget, new cConfiguration(false, pTimeout, CancellationToken.None, pIncrement, pReadConfiguration, pWriteConfiguration)));
         }
 
-        public static Task<int> EncodeAsync(Stream pSource, eQuotedPrintableSourceType pSourceType, eQuotedPrintableQuotingRule pQuotingRule, Stream pTarget, int pTimeout, CancellationToken pCancellationToken, Action<int> pIncrement = null, cBatchSizerConfiguration pReadConfiguration = null, cBatchSizerConfiguration pWriteConfiguration = null)
+        public static Task<int> EncodeAsync(Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget, int pTimeout, CancellationToken pCancellationToken, Action<int> pIncrement = null, cBatchSizerConfiguration pReadConfiguration = null, cBatchSizerConfiguration pWriteConfiguration = null)
         {
             return ZEncodeAsync(pSource, pSourceType, pQuotingRule, pTarget, new cConfiguration(true, pTimeout, pCancellationToken, pIncrement, pReadConfiguration, pWriteConfiguration));
         }
@@ -44,7 +38,7 @@ namespace work.bacome.imapclient
             return pTask.Result;
         }
 
-        private static async Task<int> ZEncodeAsync(Stream pSource, eQuotedPrintableSourceType pSourceType, eQuotedPrintableQuotingRule pQuotingRule, Stream pTarget, cConfiguration pConfiguration)
+        private static async Task<int> ZEncodeAsync(cQuotedPrintableEncodeConfiguration.cMC pMC, Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget)
         {
             if (pSource == null) throw new ArgumentNullException(nameof(pSource));
             if (!pSource.CanRead) throw new ArgumentOutOfRangeException(nameof(pSource));
@@ -55,29 +49,29 @@ namespace work.bacome.imapclient
             Stopwatch lStopwatch = new Stopwatch();
 
             bool lPendingCR = false;
-            cTarget lTarget = new cTarget(pQuotingRule, pTarget, pConfiguration);
+            cTarget lTarget = new cTarget(pMC, pQuotingRule, pTarget);
 
             while (true)
             {
                 // read some data
 
-                int lCurrent = pConfiguration.ReadSizer.Current;
+                int lCurrent = pMC.ReadSizer.Current;
                 if (lReadBuffer == null || lCurrent > lReadBuffer.Length) lReadBuffer = new byte[lCurrent];
 
                 lStopwatch.Restart();
 
-                if (pSource.CanTimeout) pSource.ReadTimeout = pConfiguration.Timeout;
-                else _ = pConfiguration.Timeout; // check for timeout
+                if (pSource.CanTimeout) pSource.ReadTimeout = pMC.Timeout;
+                else _ = pMC.Timeout; // check for timeout
 
                 int lBytesReadIntoBuffer;
-                if (pConfiguration.Async) lBytesReadIntoBuffer = await pSource.ReadAsync(lReadBuffer, 0, lReadBuffer.Length, pConfiguration.CancellationToken).ConfigureAwait(false);
+                if (pMC.Async) lBytesReadIntoBuffer = await pSource.ReadAsync(lReadBuffer, 0, lReadBuffer.Length, pMC.CancellationToken).ConfigureAwait(false);
                 else lBytesReadIntoBuffer = pSource.Read(lReadBuffer, 0, lReadBuffer.Length);
 
                 lStopwatch.Stop();
 
                 if (lBytesReadIntoBuffer == 0) break;
 
-                pConfiguration.ReadSizer.AddSample(lBytesReadIntoBuffer, lStopwatch.ElapsedMilliseconds);
+                pMC.ReadSizer.AddSample(lBytesReadIntoBuffer, lStopwatch.ElapsedMilliseconds);
 
                 // process the data
 
@@ -87,7 +81,7 @@ namespace work.bacome.imapclient
                 {
                     var lByte = lReadBuffer[lReadBufferPosition++];
 
-                    if (pSourceType == eQuotedPrintableSourceType.CRLFTerminatedLines)
+                    if (pSourceType == eQuotedPrintableEncodeSourceType.CRLFTerminatedLines)
                     {
                         if (lPendingCR)
                         {
@@ -108,7 +102,7 @@ namespace work.bacome.imapclient
                             continue;
                         }
                     }
-                    else if (pSourceType == eQuotedPrintableSourceType.LFTerminatedLines)
+                    else if (pSourceType == eQuotedPrintableEncodeSourceType.LFTerminatedLines)
                     {
                         if (lByte == cASCII.LF)
                         {
@@ -129,67 +123,15 @@ namespace work.bacome.imapclient
             return lTarget.BytesWritten;
         }
 
-        private class cConfiguration
-        {
-            public static readonly cBatchSizerConfiguration kDefaultConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
-
-            public readonly bool Async;
-            private readonly int mTimeout;
-            private readonly Stopwatch mStopwatch;
-            public readonly CancellationToken CancellationToken;
-            private readonly Action<int> mIncrement;
-            private readonly SynchronizationContext mSC;
-            public readonly cBatchSizer ReadSizer;
-            public readonly cBatchSizer WriteSizer;
-
-            public cConfiguration(bool pAsync, int pTimeout, CancellationToken pCancellationToken, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration)
-            {
-                Async = pAsync;
-                if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
-                mTimeout = pTimeout;
-                if (pTimeout == -1) mStopwatch = null;
-                else mStopwatch = Stopwatch.StartNew();
-                CancellationToken = pCancellationToken;
-                mIncrement = pIncrement;
-                mSC = SynchronizationContext.Current;
-                ReadSizer = new cBatchSizer(pReadConfiguration ?? kDefaultConfiguration);
-                WriteSizer = new cBatchSizer(pWriteConfiguration ?? kDefaultConfiguration);
-            }
-
-            public int Timeout
-            {
-                get
-                {
-                    if (mStopwatch == null) return System.Threading.Timeout.Infinite;
-                    long lElapsed = mStopwatch.ElapsedMilliseconds;
-                    if (mTimeout > lElapsed) return (int)(mTimeout - lElapsed);
-                    throw new TimeoutException();
-                }
-            }
-
-            public void Increment(int pInputByteCount)
-            {
-                if (mIncrement == null) return;
-                if (mSC == null || ReferenceEquals(SynchronizationContext.Current, mSC)) mIncrement.Invoke(pInputByteCount);
-                mSC.Post((p) => { mIncrement.Invoke(pInputByteCount); }, null);
-            }
-
-            public override string ToString()
-            {
-                if (mStopwatch == null) return $"{nameof(cConfiguration)}({Async},{CancellationToken.IsCancellationRequested}/{CancellationToken.CanBeCanceled})";
-                return $"{nameof(cConfiguration)}({Async},{mStopwatch.ElapsedMilliseconds}/{mTimeout},{CancellationToken.IsCancellationRequested}/{CancellationToken.CanBeCanceled})";
-            }
-        }
-
         private class cTarget
         {
             private static readonly cBytes kCRLF = new cBytes("\r\n");
             private static readonly cBytes kEQUALSCRLF = new cBytes("=\r\n");
             private static readonly cBytes kEBCDICNotSome = new cBytes("!\"#$@[\\]^`{|}~");
 
-            private readonly eQuotedPrintableQuotingRule mQuotingRule;
+            private readonly cQuotedPrintableEncodeConfiguration.cMC mMC;
+            private readonly eQuotedPrintableEncodeQuotingRule mQuotingRule;
             private readonly Stream mTarget;
-            private readonly cConfiguration mConfiguration;
 
             private List<byte> mPendingBytes = new List<byte>();
             private int mPendingBytesInputByteCount = 0;
@@ -204,14 +146,13 @@ namespace work.bacome.imapclient
 
             private int mBytesWritten = 0;
 
-            public cTarget(eQuotedPrintableQuotingRule pQuotingRule, Stream pTarget, cConfiguration pConfiguration)
+            public cTarget(cQuotedPrintableEncodeConfiguration.cMC pMC, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget)
             {
+                mMC = pMC;
                 mQuotingRule = pQuotingRule;
 
                 if (pTarget == null) mTarget = Stream.Null;
                 else mTarget = pTarget;
-
-                mConfiguration = pConfiguration;
             }
 
             public async Task AddAsync(byte pByte)
@@ -223,7 +164,7 @@ namespace work.bacome.imapclient
                 else if (pByte == cASCII.EQUALS) lNeedsQuoting = true;
                 else if (pByte < cASCII.DEL)
                 {
-                    if (mQuotingRule == eQuotedPrintableQuotingRule.EBCDIC && kEBCDICNotSome.Contains(pByte)) lNeedsQuoting = true;
+                    if (mQuotingRule == eQuotedPrintableEncodeQuotingRule.EBCDIC && kEBCDICNotSome.Contains(pByte)) lNeedsQuoting = true;
                     else lNeedsQuoting = false;
                 }
                 else lNeedsQuoting = true;
@@ -366,7 +307,7 @@ namespace work.bacome.imapclient
             {
                 if (mBytesInWriteBuffer == 0)
                 {
-                    mWriteBufferSize = Math.Max(mConfiguration.WriteSizer.Current, 78);
+                    mWriteBufferSize = Math.Max(mMC.WriteSizer.Current, 78);
                     if (mWriteBuffer == null || mWriteBufferSize > mWriteBuffer.Length) mWriteBuffer = new byte[mWriteBufferSize];
                 }
                 else if (mBytesInWriteBuffer + mPendingBytes.Count > mWriteBufferSize)
@@ -387,21 +328,21 @@ namespace work.bacome.imapclient
 
                 mStopwatch.Restart();
 
-                if (mTarget.CanTimeout) mTarget.WriteTimeout = mConfiguration.Timeout;
-                else _ = mConfiguration.Timeout; // check for timeout
+                if (mTarget.CanTimeout) mTarget.WriteTimeout = mMC.Timeout;
+                else _ = mMC.Timeout; // check for timeout
 
-                if (mConfiguration.Async) await mTarget.WriteAsync(mWriteBuffer, 0, mBytesInWriteBuffer, mConfiguration.CancellationToken).ConfigureAwait(false);
+                if (mMC.Async) await mTarget.WriteAsync(mWriteBuffer, 0, mBytesInWriteBuffer, mMC.CancellationToken).ConfigureAwait(false);
                 else mTarget.Write(mWriteBuffer, 0, mBytesInWriteBuffer);
 
                 mStopwatch.Stop();
 
-                mConfiguration.WriteSizer.AddSample(mBytesInWriteBuffer, mStopwatch.ElapsedMilliseconds);
+                mMC.WriteSizer.AddSample(mBytesInWriteBuffer, mStopwatch.ElapsedMilliseconds);
 
                 // keep track of the number of bytes written
                 mBytesWritten += mBytesInWriteBuffer;
 
                 // feedback
-                mConfiguration.Increment(mWriteBufferInputByteCount);
+                mMC.Increment(mWriteBufferInputByteCount);
             }
         }
 
@@ -453,9 +394,9 @@ namespace work.bacome.imapclient
                 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \n@bcdefghijklmnopqrstuv",
                 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \t@bcdefghijklmnopqrstuv\r",
                 },
-                eQuotedPrintableSourceType.CRLFTerminatedLines,
+                eQuotedPrintableEncodeSourceType.CRLFTerminatedLines,
                 false,
-                eQuotedPrintableQuotingRule.Minimal,
+                eQuotedPrintableEncodeQuotingRule.Minimal,
                 pParentContext);
 
             ZTest(
@@ -530,9 +471,9 @@ namespace work.bacome.imapclient
                     "Why is heaven such a doggie-delight?",
                     "Why, because there's not a single cat in sight!"
                     },
-                    eQuotedPrintableSourceType.CRLFTerminatedLines,
+                    eQuotedPrintableEncodeSourceType.CRLFTerminatedLines,
                     false,
-                    eQuotedPrintableQuotingRule.EBCDIC, pParentContext);
+                    eQuotedPrintableEncodeQuotingRule.EBCDIC, pParentContext);
 
             using (var lInput = new MemoryStream(Encoding.UTF8.GetBytes("All doggies go to heaven (or so I've been told).\r\nThey run and play along the streets of Gold.\r\nWhy is heaven such a doggie-delight?\r\nWhy, because there's not a single cat in sight!")))
             {
@@ -594,43 +535,43 @@ namespace work.bacome.imapclient
 
         private static void ZTest(string pTestName, string[] pLines, cTrace.cContext pParentContext)
         {
-            var lLFFalseMinimal = ZTest(pTestName + ".lf.false.Mininal", pLines, eQuotedPrintableSourceType.LFTerminatedLines, false, eQuotedPrintableQuotingRule.Minimal, pParentContext);
-            var lLFTrueMinimal = ZTest(pTestName + ".lf.true.Mininal", pLines, eQuotedPrintableSourceType.LFTerminatedLines, true, eQuotedPrintableQuotingRule.Minimal, pParentContext);
+            var lLFFalseMinimal = ZTest(pTestName + ".lf.false.Mininal", pLines, eQuotedPrintableEncodeSourceType.LFTerminatedLines, false, eQuotedPrintableEncodeQuotingRule.Minimal, pParentContext);
+            var lLFTrueMinimal = ZTest(pTestName + ".lf.true.Mininal", pLines, eQuotedPrintableEncodeSourceType.LFTerminatedLines, true, eQuotedPrintableEncodeQuotingRule.Minimal, pParentContext);
 
             if (lLFFalseMinimal >= lLFTrueMinimal) throw new cTestsException(pTestName + ".compare.1");
 
-            var lCRLFFalseMinimal = ZTest(pTestName + ".crlf.false.Mininal", pLines, eQuotedPrintableSourceType.CRLFTerminatedLines, false, eQuotedPrintableQuotingRule.Minimal, pParentContext);
+            var lCRLFFalseMinimal = ZTest(pTestName + ".crlf.false.Mininal", pLines, eQuotedPrintableEncodeSourceType.CRLFTerminatedLines, false, eQuotedPrintableEncodeQuotingRule.Minimal, pParentContext);
 
             if (lLFFalseMinimal != lCRLFFalseMinimal) throw new cTestsException(pTestName + ".compare.2");
 
-            var lCRLFTrueMinimal = ZTest(pTestName + ".crlf.true.Mininal", pLines, eQuotedPrintableSourceType.CRLFTerminatedLines, true, eQuotedPrintableQuotingRule.Minimal, pParentContext);
+            var lCRLFTrueMinimal = ZTest(pTestName + ".crlf.true.Mininal", pLines, eQuotedPrintableEncodeSourceType.CRLFTerminatedLines, true, eQuotedPrintableEncodeQuotingRule.Minimal, pParentContext);
 
             if (lCRLFFalseMinimal >= lCRLFTrueMinimal) throw new cTestsException(pTestName + ".compare.3");
 
-            var lBinaryFalseMinimal = ZTest(pTestName + ".binary.false.Mininal", pLines, eQuotedPrintableSourceType.Binary, false, eQuotedPrintableQuotingRule.Minimal, pParentContext);
+            var lBinaryFalseMinimal = ZTest(pTestName + ".binary.false.Mininal", pLines, eQuotedPrintableEncodeSourceType.Binary, false, eQuotedPrintableEncodeQuotingRule.Minimal, pParentContext);
 
             if (lCRLFFalseMinimal >= lBinaryFalseMinimal) throw new cTestsException(pTestName + ".compare.4");
 
-            var lBinaryTrueMinimal = ZTest(pTestName + ".binary.true.Mininal", pLines, eQuotedPrintableSourceType.Binary, true, eQuotedPrintableQuotingRule.Minimal, pParentContext);
+            var lBinaryTrueMinimal = ZTest(pTestName + ".binary.true.Mininal", pLines, eQuotedPrintableEncodeSourceType.Binary, true, eQuotedPrintableEncodeQuotingRule.Minimal, pParentContext);
 
             if (lBinaryFalseMinimal >= lBinaryTrueMinimal) throw new cTestsException(pTestName + ".compare.5");
 
-            var lLFFalseEBCDIC = ZTest(pTestName + ".lf.false.EBCDIC", pLines, eQuotedPrintableSourceType.LFTerminatedLines, false, eQuotedPrintableQuotingRule.EBCDIC, pParentContext);
+            var lLFFalseEBCDIC = ZTest(pTestName + ".lf.false.EBCDIC", pLines, eQuotedPrintableEncodeSourceType.LFTerminatedLines, false, eQuotedPrintableEncodeQuotingRule.EBCDIC, pParentContext);
 
             if (lLFFalseMinimal >= lLFFalseEBCDIC) throw new cTestsException(pTestName + ".compare.6");
         }
 
         private static void ZTest(string pTestName, string[] pLines, bool pNoNo, cTrace.cContext pParentContext)
         {
-            var lLFTrueMinimal = ZTest(pTestName + ".lf.true.Mininal", pLines, eQuotedPrintableSourceType.LFTerminatedLines, true, eQuotedPrintableQuotingRule.Minimal, pParentContext);
-            var lCRLFTrueMinimal = ZTest(pTestName + ".crlf.true.Mininal", pLines, eQuotedPrintableSourceType.CRLFTerminatedLines, true, eQuotedPrintableQuotingRule.Minimal, pParentContext);
+            var lLFTrueMinimal = ZTest(pTestName + ".lf.true.Mininal", pLines, eQuotedPrintableEncodeSourceType.LFTerminatedLines, true, eQuotedPrintableEncodeQuotingRule.Minimal, pParentContext);
+            var lCRLFTrueMinimal = ZTest(pTestName + ".crlf.true.Mininal", pLines, eQuotedPrintableEncodeSourceType.CRLFTerminatedLines, true, eQuotedPrintableEncodeQuotingRule.Minimal, pParentContext);
             if (lLFTrueMinimal != lCRLFTrueMinimal) throw new cTestsException(pTestName + ".compare.1");
-            var lBinaryTrueMinimal = ZTest(pTestName + ".binary.true.Mininal", pLines, eQuotedPrintableSourceType.Binary, true, eQuotedPrintableQuotingRule.Minimal, pParentContext);
+            var lBinaryTrueMinimal = ZTest(pTestName + ".binary.true.Mininal", pLines, eQuotedPrintableEncodeSourceType.Binary, true, eQuotedPrintableEncodeQuotingRule.Minimal, pParentContext);
             if (lCRLFTrueMinimal >= lBinaryTrueMinimal) throw new cTestsException(pTestName + ".compare.2");
-            var lLFTrueEBCDIC = ZTest(pTestName + ".lf.true.EBCDIC", pLines, eQuotedPrintableSourceType.LFTerminatedLines, true, eQuotedPrintableQuotingRule.EBCDIC, pParentContext);
+            var lLFTrueEBCDIC = ZTest(pTestName + ".lf.true.EBCDIC", pLines, eQuotedPrintableEncodeSourceType.LFTerminatedLines, true, eQuotedPrintableEncodeQuotingRule.EBCDIC, pParentContext);
         }
 
-        private static int ZTest(string pTestName, string[] pLines, eQuotedPrintableSourceType pSourceType, bool pTerminateLastLine, eQuotedPrintableQuotingRule pQuotingRule, cTrace.cContext pParentContext)
+        private static int ZTest(string pTestName, string[] pLines, eQuotedPrintableEncodeSourceType pSourceType, bool pTerminateLastLine, eQuotedPrintableEncodeQuotingRule pQuotingRule, cTrace.cContext pParentContext)
         {
             int lBytesWritten;
 
@@ -642,7 +583,7 @@ namespace work.bacome.imapclient
 
                 if (i < pLines.Length - 1 || pTerminateLastLine)
                 {
-                    if (pSourceType == eQuotedPrintableSourceType.LFTerminatedLines) lBuilder.Append('\n');
+                    if (pSourceType == eQuotedPrintableEncodeSourceType.LFTerminatedLines) lBuilder.Append('\n');
                     else lBuilder.Append("\r\n");
                 }
             }
@@ -749,7 +690,7 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                if (pSourceType == eQuotedPrintableSourceType.Binary)
+                if (pSourceType == eQuotedPrintableEncodeSourceType.Binary)
                 {
                     if (lLinesNotEndingWithEquals != 1) throw new cTestsException($"TestQuotedPrintable.{pTestName}.i.1");
                 }
@@ -762,4 +703,5 @@ namespace work.bacome.imapclient
             return lBytesWritten;
         }
     }
+    */
 }

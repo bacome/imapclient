@@ -128,16 +128,16 @@ namespace testharness2
             lSaveFileDialog.FileName = lOpenFileDialog.FileName + ".qpe";
             if (lSaveFileDialog.ShowDialog() != DialogResult.OK) return;
 
-            eQuotedPrintableSourceType lSourceType;
+            eQuotedPrintableEncodeSourceType lSourceType;
 
-            if (rdoBinary.Checked) lSourceType = eQuotedPrintableSourceType.Binary;
-            else if (rdoLF.Checked) lSourceType = eQuotedPrintableSourceType.LFTerminatedLines;
-            else lSourceType = eQuotedPrintableSourceType.CRLFTerminatedLines;
+            if (rdoBinary.Checked) lSourceType = eQuotedPrintableEncodeSourceType.Binary;
+            else if (rdoLF.Checked) lSourceType = eQuotedPrintableEncodeSourceType.LFTerminatedLines;
+            else lSourceType = eQuotedPrintableEncodeSourceType.CRLFTerminatedLines;
 
-            eQuotedPrintableQuotingRule lQuotingRule;
+            eQuotedPrintableEncodeQuotingRule lQuotingRule;
 
-            if (rdoEBCDIC.Checked) lQuotingRule = eQuotedPrintableQuotingRule.EBCDIC;
-            else lQuotingRule = eQuotedPrintableQuotingRule.Minimal;
+            if (rdoEBCDIC.Checked) lQuotingRule = eQuotedPrintableEncodeQuotingRule.EBCDIC;
+            else lQuotingRule = eQuotedPrintableEncodeQuotingRule.Minimal;
 
             frmProgress lProgress = null;
 
@@ -181,16 +181,16 @@ namespace testharness2
             lSaveFileDialog.FileName = lOpenFileDialog.FileName + ".qpe";
             if (lSaveFileDialog.ShowDialog() != DialogResult.OK) return;
 
-            eQuotedPrintableSourceType lSourceType;
+            eQuotedPrintableEncodeSourceType lSourceType;
 
-            if (rdoBinary.Checked) lSourceType = eQuotedPrintableSourceType.Binary;
-            else if (rdoLF.Checked) lSourceType = eQuotedPrintableSourceType.LFTerminatedLines;
-            else lSourceType = eQuotedPrintableSourceType.CRLFTerminatedLines;
+            if (rdoBinary.Checked) lSourceType = eQuotedPrintableEncodeSourceType.Binary;
+            else if (rdoLF.Checked) lSourceType = eQuotedPrintableEncodeSourceType.LFTerminatedLines;
+            else lSourceType = eQuotedPrintableEncodeSourceType.CRLFTerminatedLines;
 
-            eQuotedPrintableQuotingRule lQuotingRule;
+            eQuotedPrintableEncodeQuotingRule lQuotingRule;
 
-            if (rdoEBCDIC.Checked) lQuotingRule = eQuotedPrintableQuotingRule.EBCDIC;
-            else lQuotingRule = eQuotedPrintableQuotingRule.Minimal;
+            if (rdoEBCDIC.Checked) lQuotingRule = eQuotedPrintableEncodeQuotingRule.EBCDIC;
+            else lQuotingRule = eQuotedPrintableEncodeQuotingRule.Minimal;
 
             try
             {

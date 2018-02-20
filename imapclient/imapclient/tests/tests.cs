@@ -34,7 +34,7 @@ namespace work.bacome.imapclient
             cQuotedPrintableDecoder._Tests(lContext);
             cBase64Encoder._Tests(lContext);
             cHeaderFieldValuePart._Tests(lContext);
-            cQuotedPrintableEncoder._Tests(lContext);
+            cTests.QuotedPrintableEncodeTests(lContext);
         }
 
         private partial class cSession
@@ -54,6 +54,11 @@ namespace work.bacome.imapclient
                 //_Tests_ListExtendedCommandParts(lContext);
                 cCommandDetailsBuilder._Tests(lContext);
             }
+        }
+
+        private static partial class cTests
+        {
+            private static cIMAPClient mClient = new cIMAPClient();
         }
     }
 

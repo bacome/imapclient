@@ -18,19 +18,22 @@ namespace work.bacome.imapclient
         public readonly CancellationToken CancellationToken;
 
         /// <summary>
-        /// The progress-setmaximum callback for the operation. May be <see langword="null"/>. Invoked once before any progress-increment invokes, the argument specifies how many bytes are going to be sent in total.
+        /// The progress-setmaximum callback for the operation. May be <see langword="null"/>. 
+        /// Invoked once after all quoted-printable conversions and before any sending to the server, the argument specifies how many bytes are going to be sent to the server.
         /// </summary>
         /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
         public readonly Action<long> SetMaximum;
 
         /// <summary>
-        /// The progress-increment callback for the operation. May be <see langword="null"/>. Invoked once for each batch of bytes sent to the server, the argument specifies how many bytes were sent in the batch.
+        /// The progress-increment callback for the operation. May be <see langword="null"/>. 
+        /// Invoked once for each batch of bytes converted to quoted-printable format on the client-side (before sending to the server starts), the argument specifies how many input bytes were converted.
+        /// Invoked once for each batch of bytes sent to the server (after the <see cref="SetMaximum"/> invoke), the argument specifies how many bytes were sent in the batch.
         /// </summary>
         /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
         public readonly Action<int> Increment;
 
         /// <summary>
-        /// Initialises a new instance with the specified timeout and optional multiappend batch-size configuration. Intended for use with synchronous APIs.
+        /// Initialises a new instance with the specified timeout. Intended for use with synchronous APIs.
         /// </summary>
         /// <param name="pTimeout">May be <see cref="Timeout.Infinite"/>.</param>
         public cAppendConfiguration(int pTimeout)

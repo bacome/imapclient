@@ -8,7 +8,7 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    public abstract class cAppendData : IDisposable
+    public abstract class cAppendData
     {
         public readonly cStorableFlags Flags;
         public readonly DateTime? Received;
@@ -19,26 +19,10 @@ namespace work.bacome.imapclient
             Received = pReceived;
         }
 
-        // this is here because of the mailmessageappenddata and even then only if the mailmessage contains streams that need to be quoted printable encoded
-        //  (as this has to happen into a temp file because I need to know the length of the data before I send it)
-        //  (the dispose deletes the temp files)
-        //  (but it should be noted that the delete could crash the client if it still needs access to it)
-        //
-        /**<summary></summary>*/
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /**<summary></summary>*/
-        protected virtual void Dispose(bool pDisposing) { }
-
         public static implicit operator cAppendData(cMessage pMessage) => new cMessageAppendData(pMessage);
         public static implicit operator cAppendData(string pString) => new cLiteralAppendData(pString);
         public static implicit operator cAppendData(Stream pStream) => new cStreamAppendData(pStream);
         public static implicit operator cAppendData(List<cAppendDataPart> pParts) => new cMultiPartAppendData(pParts);
-        public static implicit operator cAppendData(MailMessage pMessage) => new cMailMessageAppendData(pMessage);
     }
 
     public class cMessageAppendData : cAppendData
@@ -159,24 +143,12 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cStreamAppendData)}({Flags},{Received},{Length},{ReadConfiguration})";
     }
 
-    public abstract class cMultiPartAppendDataBase : cAppendData
+    public class cMultiPartAppendData : cAppendData
     {
+        public readonly ReadOnlyCollection<cAppendDataPart> Parts;
         public readonly Encoding Encoding; // for encoded words and mime parameters, nullable (if null the client's encoding is used if required)
 
-        internal cMultiPartAppendDataBase(cStorableFlags pFlags, DateTime? pReceived, Encoding pEncoding) : base(pFlags, pReceived)
-        {
-            if (pEncoding != null && !cCommandPartFactory.TryAsCharsetName(pEncoding, out _)) throw new ArgumentOutOfRangeException(nameof(pEncoding));
-            Encoding = pEncoding;
-        }
-
-        public abstract ReadOnlyCollection<cAppendDataPart> Parts { get; }
-    }
-
-    public class cMultiPartAppendData : cMultiPartAppendDataBase
-    {
-        private readonly ReadOnlyCollection<cAppendDataPart> mParts;
-
-        public cMultiPartAppendData(IEnumerable<cAppendDataPart> pParts, cStorableFlags pFlags = null, DateTime? pReceived = null, Encoding pEncoding = null) : base(pFlags, pReceived, pEncoding)
+        public cMultiPartAppendData(IEnumerable<cAppendDataPart> pParts, cStorableFlags pFlags = null, DateTime? pReceived = null, Encoding pEncoding = null) : base(pFlags, pReceived)
         {
             if (pParts == null) throw new ArgumentNullException(nameof(pParts));
 
@@ -193,10 +165,18 @@ namespace work.bacome.imapclient
 
             if (!lHasContent) throw new ArgumentOutOfRangeException(nameof(pParts));
 
-            mParts = lParts.AsReadOnly();
+            Parts = lParts.AsReadOnly();
+
+            if (pEncoding != null && !cCommandPartFactory.TryAsCharsetName(pEncoding, out _)) throw new ArgumentOutOfRangeException(nameof(pEncoding));
+
+            Encoding = pEncoding;
         }
 
-        public override ReadOnlyCollection<cAppendDataPart> Parts => mParts;
+        internal cMultiPartAppendData(cStorableFlags pFlags, DateTime? pReceived, ReadOnlyCollection<cAppendDataPart> pParts, Encoding pEncoding) : base(pFlags, pReceived)
+        {
+            Parts = pParts;
+            Encoding = pEncoding;
+        }
 
         public override string ToString()
         {
