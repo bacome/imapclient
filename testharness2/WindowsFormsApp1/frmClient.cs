@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -51,8 +52,6 @@ namespace testharness2
 
                 ZSetControlStateCredentials();
 
-                cmdCancel.Text = "Cancel";
-                cmdCancel.Enabled = false;
                 cmdPoll.Enabled = false;
                 cmdDisconnect.Enabled = false;
             }
@@ -60,21 +59,21 @@ namespace testharness2
             {
                 gbxConnect.Enabled = false;
 
-                var lCancellableCount = mClient.CancellableCount;
-
-                if (lCancellableCount == 0)
-                {
-                    cmdCancel.Text = "Cancel";
-                    cmdCancel.Enabled = false;
-                }
-                else
-                {
-                    cmdCancel.Text = "Cancel " + lCancellableCount.ToString();
-                    cmdCancel.Enabled = true;
-                }
-
                 cmdPoll.Enabled = mClient.IsConnected;
                 cmdDisconnect.Enabled = mClient.IsConnected;
+            }
+
+            var lCancellableCount = mClient.CancellableCount;
+
+            if (lCancellableCount == 0)
+            {
+                cmdCancel.Text = "Cancel";
+                cmdCancel.Enabled = false;
+            }
+            else
+            {
+                cmdCancel.Text = "Cancel " + lCancellableCount.ToString();
+                cmdCancel.Enabled = true;
             }
 
             cmdAppendTestsSecond.Enabled = mFirst == null && mClient.IsConnected && rdoCredBasic.Checked;
@@ -426,6 +425,8 @@ namespace testharness2
             ZLoadBatchSizerConfiguration(mClient.AppendBatchConfiguration, txtABMin, txtABMax, txtABMaxTime, txtABInitial);
             txtAppendTargetBufferSize.Text = mClient.AppendTargetBufferSize.ToString();
             ZLoadBatchSizerConfiguration(mClient.AppendStreamReadConfiguration, txtASMin, txtASMax, txtASMaxTime, txtASInitial);
+
+            ZLoadBatchSizerConfiguration(mClient.QuotedPrintableEncodeReadWriteConfiguration, txtQPMin, txtQPMax, txtQPMaxTime, txtQPInitial);
         }
 
         private void ZLoadBatchSizerConfiguration(cBatchSizerConfiguration pConfig, TextBox pMin, TextBox pMax, TextBox pMaxTime, TextBox pInitial)
@@ -934,6 +935,78 @@ namespace testharness2
         {
             if (mNamedChildren.TryGetValue(nameof(frmAppendTests), out var lForm)) Program.Focus(lForm);
             else ZNamedChildAdd(new frmAppendTests(mClient, mFirst));
+        }
+
+        private void cmdQPSet_Click(object sender, EventArgs e)
+        {
+            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
+
+            try
+            {
+                mClient.QuotedPrintableEncodeReadWriteConfiguration = new cBatchSizerConfiguration(int.Parse(txtQPMin.Text), int.Parse(txtQPMax.Text), int.Parse(txtQPMaxTime.Text), int.Parse(txtQPInitial.Text));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"set qp config error\n{ex}");
+            }
+        }
+
+        private void gbxQPReadWriteConfiguration_Validating(object sender, CancelEventArgs e)
+        {
+            ZValBatchSizerConfiguration(gbxQPReadWriteConfiguration, txtQPMin, txtQPMax, txtQPInitial, e);
+        }
+
+        private void cmdEncode_Click(object sender, EventArgs e) => ZEncodeAsync(false);
+        private void cmdEncodeProgress_Click(object sender, EventArgs e) => ZEncodeAsync(true);
+
+        private async void ZEncodeAsync(bool pProgress)
+        {
+            var lOpenFileDialog = new OpenFileDialog();
+            if (lOpenFileDialog.ShowDialog() != DialogResult.OK) return;
+
+            var lSaveFileDialog = new SaveFileDialog();
+            lSaveFileDialog.FileName = lOpenFileDialog.FileName + ".qpe";
+            if (lSaveFileDialog.ShowDialog() != DialogResult.OK) return;
+
+            eQuotedPrintableEncodeSourceType lSourceType;
+
+            if (rdoBinary.Checked) lSourceType = eQuotedPrintableEncodeSourceType.Binary;
+            else if (rdoLF.Checked) lSourceType = eQuotedPrintableEncodeSourceType.LFTerminatedLines;
+            else lSourceType = eQuotedPrintableEncodeSourceType.CRLFTerminatedLines;
+
+            eQuotedPrintableEncodeQuotingRule lQuotingRule;
+
+            if (rdoEBCDIC.Checked) lQuotingRule = eQuotedPrintableEncodeQuotingRule.EBCDIC;
+            else lQuotingRule = eQuotedPrintableEncodeQuotingRule.Minimal;
+
+            frmProgress lProgress = null;
+
+            try
+            {
+                using (var lSource = new FileStream(lOpenFileDialog.FileName, FileMode.Open, FileAccess.Read))
+                {
+                    if (pProgress)
+                    {
+                        lProgress = new frmProgress("encoding " + lOpenFileDialog.FileName, lSource.Length);
+                        ZUnnamedChildAdd(lProgress, this);
+                    }
+
+                    using (FileStream lTarget = new FileStream(lSaveFileDialog.FileName, FileMode.Create))
+                    {
+                        if (pProgress) await mClient.QuotedPrintableEncodeAsync(lSource, lSourceType, lQuotingRule, lTarget, new cQuotedPrintableEncodeConfiguration(lProgress.CancellationToken, lProgress.Increment));
+                        else await mClient.QuotedPrintableEncodeAsync(lSource, lSourceType, lQuotingRule, lTarget);
+                    }
+                }
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"problem when encoding'\n{ex}");
+            }
+            finally
+            {
+                if (lProgress != null) lProgress.Complete();
+            }
         }
     }
 }

@@ -91,12 +91,5 @@ namespace testharness2
                 tab.Enabled = true;
             }
         }
-
-        private void cmdQPE_Click(object sender, EventArgs e)
-        {
-            var lForm = new frmQPEncoder();
-            Program.Centre(lForm, this);
-            lForm.Show();
-        }
     }
 }

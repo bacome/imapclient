@@ -163,6 +163,9 @@ namespace testharness2
                     ZProgress(" 1");
                     await ZSimpleTestAsync("imaptest1@dovecot.bacome.work", "a simple test message", "i want something here that shows it has been encoded so an '=' should do the trick.");
 
+
+                    ZProgress(" 2");
+                    await ZSimpleTestAsync("imaptest1@dovecot.bacome.work", "an encod€d word subject", "i want something here that will be base64 encoded so a few '€€€€€€€€€€€€€€€€€€€€' should do the trick.");
                     //;?;
 
 
@@ -212,62 +215,42 @@ namespace testharness2
         {
             string lMessageId = cMessageIdGenerator.MsgId();
             cUID lUID = null; // assignment to shut the compiler up
+            bool lRemoveDraft = false;
 
             pMailMessage.Headers.Set(kHeaderFieldName.MessageId, lMessageId);
 
-            if (pMailMessage.AlternateViews.Count > 0 || pMailMessage.Attachments.Count > 0)
+            if (pOrder == eAppendTestOrder.appendthensend)
             {
-                // in this case the conversion to cMailMessageAppendData may need to use temporary files, so we have to dispose the converted object
+                ZProgress("   async append with cancellation and feedback");
 
-                ZProgress("   disposable");
-
-                cStorableFlags lFlags;
-
-                if (pOrder == eAppendTestOrder.sendthenappend)
-                {
-                    ZProgress("    smtp send");
-                    await mSMTPClient.SendAsync(pMailMessage);
-                    lFlags = cStorableFlags.Empty;
-                }
-                else lFlags = cStorableFlags.Draft;
-
-                ZProgress("    append");
-
-                using (var lProgress = new frmProgress("convert message"))
+                // show setting flags and progress
+                using (var lProgress = new frmProgress("append"))
                 {
                     lProgress.ShowAndFocus(this);
-                    
-                    using (var lAppendData = await cMailMessageAppendData.ConstructAsync(pMailMessage, lFlags, null, null, -1, lProgress.CancellationToken, lProgress.Increment))
-                    {
-                        lUID = await mSentItems.AppendAsync(lAppendData, new cAppendConfiguration(lProgress.CancellationToken, lProgress.SetMaximum, lProgress.Increment));
-                    }
+                    lUID = await mSentItems.AppendAsync(pMailMessage, cStorableFlags.Draft, null, null, new cAppendConfiguration(lProgress.CancellationToken, lProgress.SetMaximum, lProgress.Increment));
                 }
 
-                if (pOrder == eAppendTestOrder.appendthensend)
-                {
-                    ZProgress("    smtp send");
-                    await mSMTPClient.SendAsync(pMailMessage);
-                }
+                // mark as draft
+                lRemoveDraft = true;
+            }
+
+            ZProgress("   smtp send");
+            await mSMTPClient.SendAsync(pMailMessage);
+
+            if (pOrder == eAppendTestOrder.sendthenappend)
+            {
+                ZProgress("   synchronous append");
+                // show the simple API
+                lUID = mSentItems.Append(pMailMessage);
+                lRemoveDraft = false;
             }
             else
             {
-                ZProgress("   not disposable");
-
-                if (pOrder == eAppendTestOrder.appendthensend)
+                if (lUID != null) // rfc 4315 response received
                 {
-                    ZProgress("    append");
-                    // mark as draft
-                    lUID = await mSentItems.AppendAsync(new cMailMessageAppendData(pMailMessage, cStorableFlags.Draft));
-                }
-
-                ZProgress("    smtp send");
-                await mSMTPClient.SendAsync(pMailMessage);
-
-                if (pOrder == eAppendTestOrder.sendthenappend)
-                {
-                    ZProgress("    append");
-                    // demonstrate simple API; uses the instance default flags
-                    lUID = await mSentItems.AppendAsync(pMailMessage); 
+                    ZProgress("   uid update appended message");
+                    await mSentItems.UIDStoreAsync(lUID, eStoreOperation.remove, cStorableFlags.Draft);
+                    lRemoveDraft = false;
                 }
             }
 
@@ -281,9 +264,9 @@ namespace testharness2
             if (lMessages.Count != 1) throw new cTestsException("couldn't find appended message");
             var lAppendedMessage = lMessages[0];
 
-            // if we appended before sending, mark the message as not draft
+            // if we appended before sending but didn't get the UID, mark the message as not draft now
             //
-            if (pOrder == eAppendTestOrder.appendthensend)
+            if (lRemoveDraft)
             {
                 ZProgress("   update appended message");
                 lAppendedMessage.Draft = false;
@@ -308,24 +291,52 @@ namespace testharness2
 
             // then compare the two
 
+            ZProgress("   compare");
+
             if (lSentMessage.From.ToString() != lAppendedMessage.From.ToString()) throw new cTestsException("from not same");
             if (lSentMessage.Subject.ToString() != lAppendedMessage.Subject.ToString()) throw new cTestsException("subject not same");
 
             var lPlainTexts = await Task.WhenAll(lSentMessage.PlainTextAsync(), lAppendedMessage.PlainTextAsync());
 
-            // note that smtpclient may add some crlfs at the end 
-            //  and that the bodystructure is a simple one 
-            //  maybe just compare the number of alternates and the number of attachments and the attachment contents
+            if (lPlainTexts[0].Length < lPlainTexts[1].Length || !lPlainTexts[0].StartsWith(lPlainTexts[1], StringComparison.InvariantCulture)) throw new cTestsException("plain text not same");
 
+            // alternative views
 
-            // TODO
-            // if (!ZCompareBodyStructure(lSentMessage.BodyStructure, lAppendedMessage.BodyStructure)) throw new cTestsException("body structure not same");
+            if (lSentMessage.BodyStructure is cMultiPartBody lSentAlternativeViews)
+            {
+                if (lSentAlternativeViews.SubTypeCode == eMultiPartBodySubTypeCode.mixed) lSentAlternativeViews = lSentAlternativeViews.Parts[0] as cMultiPartBody;
+            }
+            else lSentAlternativeViews = null;
 
+            if (lAppendedMessage.BodyStructure is cMultiPartBody lAppendedAlternativeViews)
+            {
+                if (lAppendedAlternativeViews.SubTypeCode == eMultiPartBodySubTypeCode.mixed) lAppendedAlternativeViews = lAppendedAlternativeViews.Parts[0] as cMultiPartBody;
+            }
+            else lAppendedAlternativeViews = null;
 
+            if (pMailMessage.AlternateViews.Count == 0)
+            {
+                if (lSentAlternativeViews != null || lAppendedAlternativeViews != null) throw new cTestsException("found unexpected alternative views");
+            }
+            else
+            {
+                if (lSentAlternativeViews == null || lSentAlternativeViews.SubTypeCode != eMultiPartBodySubTypeCode.alternative) throw new cTestsException("can't find sent alternative views");
+                if (lAppendedAlternativeViews == null || lAppendedAlternativeViews.SubTypeCode != eMultiPartBodySubTypeCode.alternative) throw new cTestsException("can't find appended alternative views");
 
+                if (pMailMessage.AlternateViews.Count != lSentAlternativeViews.Parts.Count || pMailMessage.AlternateViews.Count != lAppendedAlternativeViews.Parts.Count) throw new cTestsException("alternative view count not the same");
 
+                for (int i = 0; i < pMailMessage.AlternateViews.Count; i++)
+                {
+                    // do something 
+                }
+            }
 
+            if (pMailMessage.Attachments.Count != lSentMessage.Attachments.Count || pMailMessage.Attachments.Count != lAppendedMessage.Attachments.Count) throw new cTestsException("attachment count not the same");
 
+            for (int i = 0; i < pMailMessage.Attachments.Count; i++)
+            {
+                // do something 
+            }
         }
     }
 }

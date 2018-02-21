@@ -133,7 +133,7 @@ namespace work.bacome.imapclient
         private cBatchSizerConfiguration mAppendBatchConfiguration = new cBatchSizerConfiguration(1000, int.MaxValue, 10000, 1000);
         private int mAppendTargetBufferSize = cMessageDataStream.DefaultTargetBufferSize;
         private cBatchSizerConfiguration mAppendStreamReadConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
-        private cBatchSizerConfiguration mQuotedPrintableEncodeBatchConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
+        private cBatchSizerConfiguration mQuotedPrintableEncodeReadWriteConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
         private Encoding mEncoding = Encoding.UTF8;
         private cClientId mClientId = new cClientId(new cIdDictionary(true));
         private cClientIdUTF8 mClientIdUTF8 = null;
@@ -758,21 +758,21 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets and sets the default quoted-printable-encode batch-size configuration. You might want to limit this to increase the speed with which you can terminate an encode.
+        /// Gets and sets the quoted-printable-encode configuration. You might want to limit this to increase the speed with which you can terminate an encode.
         /// </summary>
         /// <remarks>
-        /// Limits the size of the buffer used when reading and writing from the streams when quoted-printable-encoding. Measured in bytes.
+        /// Limits the size of the buffer used when reading and writing from streams when quoted printable encoding. Measured in bytes.
         /// The default value is min=1000b, max=100000b, maxtime=1s, initial=1000b.
         /// </remarks>
-        public cBatchSizerConfiguration QuotedPrintableEncodeBatchConfiguration
+        public cBatchSizerConfiguration QuotedPrintableEncodeReadWriteConfiguration
         {
-            get => mQuotedPrintableEncodeBatchConfiguration;
+            get => mQuotedPrintableEncodeReadWriteConfiguration;
 
             set
             {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(QuotedPrintableEncodeBatchConfiguration), value);
+                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(QuotedPrintableEncodeReadWriteConfiguration), value);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                mQuotedPrintableEncodeBatchConfiguration = value ?? throw new ArgumentNullException();
+                mQuotedPrintableEncodeReadWriteConfiguration = value ?? throw new ArgumentNullException();
             }
         }
 

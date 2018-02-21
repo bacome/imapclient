@@ -1100,31 +1100,12 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Copy(IEnumerable{cMessage})" select="returns|remarks"/>
         public Task<cCopyFeedback> CopyAsync(IEnumerable<cMessage> pMessages) => Client.CopyAsync(cMessageHandleList.FromMessages(pMessages), MailboxHandle);
 
-        public cUID Append(cAppendData pMessage, cAppendConfiguration pConfiguration = null) => ZAppendResult(Client.Append(MailboxHandle, cAppendDataList.FromMessage(pMessage), pConfiguration, 0));
-        public async Task<cUID> AppendAsync(cAppendData pMessage, cAppendConfiguration pConfiguration = null) => ZAppendResult(await Client.AppendAsync(MailboxHandle, cAppendDataList.FromMessage(pMessage), pConfiguration, 0).ConfigureAwait(false));
-
-        public cUID Append(MailMessage pMailMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, Encoding pEncoding = null, cAppendConfiguration pConfiguration = null)
-        {
-            using (var lFactory = new cMultiPartAppendDataFactory(Client))
-            {
-                Stopwatch lStopwatch = Stopwatch.StartNew();
-                var lMessage = lFactory.Convert(pMailMessage, pFlags, pReceived, pEncoding, pConfiguration.Timeout, pConfiguration.Increment);
-                lStopwatch.Stop();
-                return ZAppendResult(Client.Append(MailboxHandle, cAppendDataList.FromMessage(lMessage), pConfiguration, lStopwatch.ElapsedMilliseconds));
-            }
-        }
-
+        public cUID Append(cAppendData pMessage, cAppendConfiguration pConfiguration = null) => ZAppendResult(Client.Append(MailboxHandle, cAppendDataList.FromMessage(pMessage), pConfiguration));
+        public async Task<cUID> AppendAsync(cAppendData pMessage, cAppendConfiguration pConfiguration = null) => ZAppendResult(await Client.AppendAsync(MailboxHandle, cAppendDataList.FromMessage(pMessage), pConfiguration).ConfigureAwait(false));
+        public cUID Append(MailMessage pMailMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, Encoding pEncoding = null, cAppendConfiguration pConfiguration = null) 
+            => ZAppendResult(Client.Append(MailboxHandle, cMailMessageList.FromMessage(pMailMessage), pFlags, pReceived, pEncoding, pConfiguration));
         public async Task<cUID> AppendAsync(MailMessage pMailMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, Encoding pEncoding = null, cAppendConfiguration pConfiguration = null)
-        {
-            using (var lFactory = new cMultiPartAppendDataFactory())
-            {
-                Stopwatch lStopwatch = Stopwatch.StartNew();
-                var lMessage = await lFactory.ConvertAsync(pMailMessage, pFlags, pReceived, pEncoding, pConfiguration?.Timeout, pConfiguration., pConfiguration.Increment).ConfigureAwait(false);
-                lStopwatch.Stop();
-                return ZAppendResult(Client.Append(MailboxHandle, cAppendDataList.FromMessage(lMessage), pConfiguration, lStopwatch.ElapsedMilliseconds));
-            }
-        }
-
+            => ZAppendResult(await Client.AppendAsync(MailboxHandle, cMailMessageList.FromMessage(pMailMessage), pFlags, pReceived, pEncoding, pConfiguration).ConfigureAwait(false));
 
         private cUID ZAppendResult(cAppendFeedback pFeedback)
         {
@@ -1140,6 +1121,10 @@ namespace work.bacome.imapclient
 
         public cAppendFeedback Append(IEnumerable<cAppendData> pMessages, cAppendConfiguration pConfiguration = null) => Client.Append(MailboxHandle, cAppendDataList.FromMessages(pMessages), pConfiguration);
         public Task<cAppendFeedback> AppendAsync(IEnumerable<cAppendData> pMessages, cAppendConfiguration pConfiguration = null) => Client.AppendAsync(MailboxHandle, cAppendDataList.FromMessages(pMessages), pConfiguration);
+        public cAppendFeedback Append(IEnumerable<MailMessage> pMailMessages, cStorableFlags pFlags = null, DateTime? pReceived = null, Encoding pEncoding = null, cAppendConfiguration pConfiguration = null) 
+            => Client.Append(MailboxHandle, cMailMessageList.FromMessages(pMailMessages), pFlags, pReceived, pEncoding, pConfiguration);
+        public Task<cAppendFeedback> AppendAsync(IEnumerable<MailMessage> pMailMessages, cStorableFlags pFlags = null, DateTime? pReceived = null, Encoding pEncoding = null, cAppendConfiguration pConfiguration = null)
+            => Client.AppendAsync(MailboxHandle, cMailMessageList.FromMessages(pMailMessages), pFlags, pReceived, pEncoding, pConfiguration);
 
         /// <summary>
         /// Fetches a section of a message into a stream. The mailbox must be selected.

@@ -59,13 +59,13 @@ namespace work.bacome.imapclient
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                    return await ZZQuotedPrintableEncodeAsync(lMC, pSource, pSourceType, pQuotingRule, pTarget, null, mQuotedPrintableEncodeBatchConfiguration, mQuotedPrintableEncodeBatchConfiguration, lContext).ConfigureAwait(false);
+                    return await ZZQuotedPrintableEncodeAsync(lMC, pSource, pSourceType, pQuotingRule, pTarget, null, mQuotedPrintableEncodeReadWriteConfiguration, mQuotedPrintableEncodeReadWriteConfiguration, lContext).ConfigureAwait(false);
                 }
             }
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                return await ZZQuotedPrintableEncodeAsync(lMC, pSource, pSourceType, pQuotingRule, pTarget, pConfiguration.Increment, pConfiguration.ReadConfiguration ?? mQuotedPrintableEncodeBatchConfiguration, pConfiguration.WriteConfiguration ?? mQuotedPrintableEncodeBatchConfiguration, lContext).ConfigureAwait(false);
+                return await ZZQuotedPrintableEncodeAsync(lMC, pSource, pSourceType, pQuotingRule, pTarget, pConfiguration.Increment, pConfiguration.ReadConfiguration ?? mQuotedPrintableEncodeReadWriteConfiguration, pConfiguration.WriteConfiguration ?? mQuotedPrintableEncodeReadWriteConfiguration, lContext).ConfigureAwait(false);
             }
         }
 

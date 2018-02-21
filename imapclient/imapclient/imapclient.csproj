@@ -48,12 +48,9 @@
     <Compile Include="client\quotedprintableencode.cs" />
     <Compile Include="exposed_interfaces\appenddata\headerfieldmimeparameter.cs" />
     <Compile Include="exposed_interfaces\appenddata\headerfieldvalueparts.cs" />
-    <Compile Include="exposed_interfaces\appenddata\multipartappenddatafactory.cs" />
     <Compile Include="exposed_interfaces\appenddata\appenddata.cs" />
     <Compile Include="exposed_interfaces\appenddata\messageidgenerator.cs" />
-    <Compile Include="exposed_interfaces\appenddata\quotedprintableencoder.cs" />
     <Compile Include="exposed_interfaces\configuration\appendconfiguration.cs" />
-    <Compile Include="exposed_interfaces\configuration\convertmailmessageconfiguration.cs" />
     <Compile Include="exposed_interfaces\configuration\quotedprintableencodeconfiguration.cs" />
     <Compile Include="exposed_interfaces\feedback\appendfeedback.cs" />
     <Compile Include="exposed_interfaces\appenddata\appenddatapart.cs" />
@@ -70,6 +67,7 @@
     <Compile Include="support\append\base64encoder.cs" />
     <Compile Include="support\append\headerfieldbytes.cs" />
     <Compile Include="support\collections\appenddatalist.cs" />
+    <Compile Include="support\collections\mailmessagelist.cs" />
     <Compile Include="tools\apidocumentation.cs" />
     <Compile Include="client\base.cs" />
     <Compile Include="client\connect.cs" />

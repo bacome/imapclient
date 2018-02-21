@@ -4,7 +4,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        private cMessageCacheItems mDefaultMessageCacheItems = null;
+        private cMessageCacheItems mDefaultMessageCacheItems = cMessageCacheItems.Empty;
         private cSort mDefaultSort = cSort.None;
         private cStorableFlags mDefaultAppendFlags = cStorableFlags.Empty;
 

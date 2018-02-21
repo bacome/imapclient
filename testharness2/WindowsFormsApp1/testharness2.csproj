@@ -134,12 +134,6 @@
     <Compile Include="frmProgress.Designer.cs">
       <DependentUpon>frmProgress.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmQPEncoder.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmQPEncoder.Designer.cs">
-      <DependentUpon>frmQPEncoder.cs</DependentUpon>
-    </Compile>
     <Compile Include="frmResponseText.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -227,9 +221,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmProgress.resx">
       <DependentUpon>frmProgress.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmQPEncoder.resx">
-      <DependentUpon>frmQPEncoder.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmResponseText.resx">
       <DependentUpon>frmResponseText.cs</DependentUpon>

@@ -197,10 +197,11 @@ namespace work.bacome.imapclient
 
                         case cStreamAppendData lStream:
 
+                            if (lStream.Stream.CanSeek) lStream.Stream.Position = 0;
                             lMessages.Add(new cSessionStreamAppendData(lStream.Flags ?? mAppendDefaultFlags, lStream.Received, lStream.Stream, lStream.Length, lStream.ReadConfiguration ?? mAppendStreamReadConfiguration));
                             break;
 
-                        case cMultiPartAppendDataBase lMultiPart:
+                        case cMultiPartAppendData lMultiPart:
 
                             {
                                 cStorableFlags lFlags;
@@ -285,6 +286,8 @@ namespace work.bacome.imapclient
                                                 {
                                                     cBatchSizerConfiguration lConfiguration = lStreamPart.ReadConfiguration ?? mAppendStreamReadConfiguration;
 
+                                                    if (lStreamPart.Stream.CanSeek) lStreamPart.Stream.Position = 0;
+
                                                     Stream lStream;
                                                     if (lStreamPart.Base64Encode) lStream = new cBase64Encoder(lStreamPart.Stream, lConfiguration);
                                                     else lStream = lStreamPart.Stream;
@@ -354,6 +357,8 @@ namespace work.bacome.imapclient
 
                                                 {
                                                     cBatchSizerConfiguration lConfiguration = lStreamPart.ReadConfiguration ?? mAppendStreamReadConfiguration;
+
+                                                    if (lStreamPart.Stream.CanSeek) lStreamPart.Stream.Position = 0;
 
                                                     Stream lStream;
                                                     if (lStreamPart.Base64Encode) lStream = new cBase64Encoder(lStreamPart.Stream, lConfiguration);

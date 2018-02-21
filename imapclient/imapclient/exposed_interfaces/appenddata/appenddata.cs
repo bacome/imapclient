@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Net.Mail;
 using System.Text;
 using work.bacome.imapclient.support;
 
@@ -124,10 +123,8 @@ namespace work.bacome.imapclient
         public cStreamAppendData(Stream pStream, cStorableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pReadConfiguration = null) : base(pFlags, pReceived)
         {
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
-            if (!pStream.CanRead || !pStream.CanSeek) throw new ArgumentOutOfRangeException(nameof(pStream));
-            long lLength = pStream.Length - pStream.Position;
-            if (lLength <= 0 || lLength > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pStream));
-            Length = (uint)(lLength);
+            if (!pStream.CanRead || !pStream.CanSeek || pStream.Length > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pStream));
+            Length = (uint)pStream.Length;
             ReadConfiguration = pReadConfiguration;
         }
 

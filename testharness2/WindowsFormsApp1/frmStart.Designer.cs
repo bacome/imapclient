@@ -38,14 +38,11 @@
             this.tmrProofOfASync = new System.Windows.Forms.Timer(this.components);
             this.label2 = new System.Windows.Forms.Label();
             this.txtInstanceName = new System.Windows.Forms.TextBox();
-            this.cmdQPE = new System.Windows.Forms.Button();
             this.tab = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.tab.SuspendLayout();
             this.tabPage1.SuspendLayout();
-            this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -128,20 +125,9 @@
             this.txtInstanceName.Size = new System.Drawing.Size(206, 20);
             this.txtInstanceName.TabIndex = 1;
             // 
-            // cmdQPE
-            // 
-            this.cmdQPE.Location = new System.Drawing.Point(6, 6);
-            this.cmdQPE.Name = "cmdQPE";
-            this.cmdQPE.Size = new System.Drawing.Size(100, 25);
-            this.cmdQPE.TabIndex = 2;
-            this.cmdQPE.Text = "Create";
-            this.cmdQPE.UseVisualStyleBackColor = true;
-            this.cmdQPE.Click += new System.EventHandler(this.cmdQPE_Click);
-            // 
             // tab
             // 
             this.tab.Controls.Add(this.tabPage1);
-            this.tab.Controls.Add(this.tabPage2);
             this.tab.Controls.Add(this.tabPage3);
             this.tab.Location = new System.Drawing.Point(2, 2);
             this.tab.Name = "tab";
@@ -161,17 +147,6 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "IMAP Client";
             this.tabPage1.UseVisualStyleBackColor = true;
-            // 
-            // tabPage2
-            // 
-            this.tabPage2.Controls.Add(this.cmdQPE);
-            this.tabPage2.Location = new System.Drawing.Point(4, 22);
-            this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(309, 99);
-            this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "Quoted Printable Encoder";
-            this.tabPage2.UseVisualStyleBackColor = true;
             // 
             // tabPage3
             // 
@@ -201,7 +176,6 @@
             this.tab.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
-            this.tabPage2.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -219,10 +193,8 @@
         private System.Windows.Forms.Timer tmrProofOfASync;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox txtInstanceName;
-        private System.Windows.Forms.Button cmdQPE;
         private System.Windows.Forms.TabControl tab;
         private System.Windows.Forms.TabPage tabPage1;
-        private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.TabPage tabPage3;
     }
 }

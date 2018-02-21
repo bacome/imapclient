@@ -140,6 +140,8 @@ namespace work.bacome.imapclient
 
         public cMessageDataStream(cMailbox pMailbox, cUID pUID, cSection pSection, uint pLength, int pTargetBufferSize = DefaultTargetBufferSize)
         {
+            // note that this API if the length is wrong could lead to bad things
+
             if (pMailbox == null) throw new ArgumentNullException(nameof(pMailbox));
             if (!pMailbox.IsSelected) throw new ArgumentOutOfRangeException(nameof(pMailbox), kArgumentOutOfRangeExceptionMessage.MailboxMustBeSelected);
 
@@ -221,8 +223,6 @@ namespace work.bacome.imapclient
             HasKnownLength = false;
             mLength = 0;
         }
-
-        public bool Unread => mFetchTask == null;
 
         public uint GetKnownLength()
         {

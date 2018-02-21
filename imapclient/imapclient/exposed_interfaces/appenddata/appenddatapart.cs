@@ -864,9 +864,10 @@ namespace work.bacome.imapclient
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!pStream.CanRead || !pStream.CanSeek) throw new ArgumentOutOfRangeException(nameof(pStream));
 
-            long lLength = pStream.Length - pStream.Position;
-            if (lLength < 0) throw new ArgumentOutOfRangeException(nameof(pStream));
-            if (pBase64Encode) lLength = cBase64Encoder.EncodedLength(lLength);
+            long lLength;
+            if (pBase64Encode) lLength = cBase64Encoder.EncodedLength(pStream.Length);
+            else lLength = pStream.Length;
+
             if (lLength > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pStream));
             Length = (uint)lLength;
 

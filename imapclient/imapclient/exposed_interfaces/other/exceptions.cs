@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Mail;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -509,6 +510,40 @@ namespace work.bacome.imapclient
             lBuilder.Append(base.ToString());
             return lBuilder.ToString();
         }
+    }
+
+    /// <summary>
+    /// Thrown when a <see cref="MailMessage"/> instance contains a <see cref="cMessageDataStream"/> that references the <see cref="cIMAPClient"/> instance that the message is being appended through.
+    /// </summary>
+    /// <remarks>
+    /// This situation can lead to a deadlock.
+    /// Either use another <see cref="cIMAPClient"/> instance with the same <see cref="cIMAPClient.ConnectedAccountId"/> as the source of the data
+    /// or read and cache the data locally (e.g. in a file) before appending it.
+    /// </remarks>
+    public class cMailMessageClientException : cIMAPException
+    {
+        /// <summary>
+        /// The mail message concerned.
+        /// </summary>
+        public readonly MailMessage MailMessage;
+
+        internal cMailMessageClientException(MailMessage pMailMessage) { MailMessage = pMailMessage; }
+    }
+
+    /// <summary>
+    /// Thrown when a <see cref="MailMessage"/> instance contains a stream type that is not supported by the library.
+    /// </summary>
+    /// <remarks>
+    /// The library supports all seekable streams and <see cref="cMessageDataStream"/> instances where <see cref="cMessageDataStream.HasKnownLength"/> is <see langword="true"/>.
+    /// </remarks>
+    public class cMailMessageStreamException : cIMAPException
+    {
+        /// <summary>
+        /// The mail message concerned.
+        /// </summary>
+        public readonly MailMessage MailMessage;
+
+        internal cMailMessageStreamException(MailMessage pMailMessage) { MailMessage = pMailMessage; }
     }
 
     /// <summary>

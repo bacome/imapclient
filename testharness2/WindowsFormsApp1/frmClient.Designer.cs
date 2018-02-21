@@ -276,6 +276,26 @@
             this.txtASMax = new System.Windows.Forms.TextBox();
             this.txtASMin = new System.Windows.Forms.TextBox();
             this.cmdPoll = new System.Windows.Forms.Button();
+            this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.gbxQPReadWriteConfiguration = new System.Windows.Forms.GroupBox();
+            this.cmdQPSet = new System.Windows.Forms.Button();
+            this.label41 = new System.Windows.Forms.Label();
+            this.label42 = new System.Windows.Forms.Label();
+            this.label43 = new System.Windows.Forms.Label();
+            this.label45 = new System.Windows.Forms.Label();
+            this.txtQPInitial = new System.Windows.Forms.TextBox();
+            this.txtQPMaxTime = new System.Windows.Forms.TextBox();
+            this.txtQPMax = new System.Windows.Forms.TextBox();
+            this.txtQPMin = new System.Windows.Forms.TextBox();
+            this.groupBox5 = new System.Windows.Forms.GroupBox();
+            this.rdoEBCDIC = new System.Windows.Forms.RadioButton();
+            this.rdoMinimal = new System.Windows.Forms.RadioButton();
+            this.gbxQPSourceType = new System.Windows.Forms.GroupBox();
+            this.rdoLF = new System.Windows.Forms.RadioButton();
+            this.rdoCRLF = new System.Windows.Forms.RadioButton();
+            this.rdoBinary = new System.Windows.Forms.RadioButton();
+            this.cmdEncode = new System.Windows.Forms.Button();
+            this.cmdEncodeProgress = new System.Windows.Forms.Button();
             this.gbxServer.SuspendLayout();
             this.gbxCredentials.SuspendLayout();
             this.gbxTLSRequirement.SuspendLayout();
@@ -316,6 +336,10 @@
             this.groupBox2.SuspendLayout();
             this.gbxAppendBatch.SuspendLayout();
             this.gbxAppendStreamRead.SuspendLayout();
+            this.tabPage5.SuspendLayout();
+            this.gbxQPReadWriteConfiguration.SuspendLayout();
+            this.groupBox5.SuspendLayout();
+            this.gbxQPSourceType.SuspendLayout();
             this.SuspendLayout();
             // 
             // gbxServer
@@ -1721,6 +1745,7 @@
             this.tabClient.Controls.Add(this.tbpWindows);
             this.tabClient.Controls.Add(this.tpgResponseText);
             this.tabClient.Controls.Add(this.tabPage4);
+            this.tabClient.Controls.Add(this.tabPage5);
             this.tabClient.Location = new System.Drawing.Point(383, 10);
             this.tabClient.Name = "tabClient";
             this.tabClient.SelectedIndex = 0;
@@ -3025,6 +3050,224 @@
             this.cmdPoll.UseVisualStyleBackColor = true;
             this.cmdPoll.Click += new System.EventHandler(this.cmdPoll_Click);
             // 
+            // tabPage5
+            // 
+            this.tabPage5.Controls.Add(this.cmdEncodeProgress);
+            this.tabPage5.Controls.Add(this.cmdEncode);
+            this.tabPage5.Controls.Add(this.groupBox5);
+            this.tabPage5.Controls.Add(this.gbxQPSourceType);
+            this.tabPage5.Controls.Add(this.gbxQPReadWriteConfiguration);
+            this.tabPage5.Location = new System.Drawing.Point(4, 22);
+            this.tabPage5.Name = "tabPage5";
+            this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage5.Size = new System.Drawing.Size(516, 454);
+            this.tabPage5.TabIndex = 5;
+            this.tabPage5.Text = "Quoted Printable Encode";
+            this.tabPage5.UseVisualStyleBackColor = true;
+            // 
+            // gbxQPReadWriteConfiguration
+            // 
+            this.gbxQPReadWriteConfiguration.Controls.Add(this.cmdQPSet);
+            this.gbxQPReadWriteConfiguration.Controls.Add(this.label41);
+            this.gbxQPReadWriteConfiguration.Controls.Add(this.label42);
+            this.gbxQPReadWriteConfiguration.Controls.Add(this.label43);
+            this.gbxQPReadWriteConfiguration.Controls.Add(this.label45);
+            this.gbxQPReadWriteConfiguration.Controls.Add(this.txtQPInitial);
+            this.gbxQPReadWriteConfiguration.Controls.Add(this.txtQPMaxTime);
+            this.gbxQPReadWriteConfiguration.Controls.Add(this.txtQPMax);
+            this.gbxQPReadWriteConfiguration.Controls.Add(this.txtQPMin);
+            this.gbxQPReadWriteConfiguration.Location = new System.Drawing.Point(6, 6);
+            this.gbxQPReadWriteConfiguration.Name = "gbxQPReadWriteConfiguration";
+            this.gbxQPReadWriteConfiguration.Size = new System.Drawing.Size(229, 142);
+            this.gbxQPReadWriteConfiguration.TabIndex = 3;
+            this.gbxQPReadWriteConfiguration.TabStop = false;
+            this.gbxQPReadWriteConfiguration.Text = "Read Write Configuration";
+            this.gbxQPReadWriteConfiguration.Validating += new System.ComponentModel.CancelEventHandler(this.gbxQPReadWriteConfiguration_Validating);
+            this.gbxQPReadWriteConfiguration.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // cmdQPSet
+            // 
+            this.cmdQPSet.Location = new System.Drawing.Point(15, 108);
+            this.cmdQPSet.Name = "cmdQPSet";
+            this.cmdQPSet.Size = new System.Drawing.Size(100, 25);
+            this.cmdQPSet.TabIndex = 8;
+            this.cmdQPSet.Text = "Set";
+            this.cmdQPSet.UseVisualStyleBackColor = true;
+            this.cmdQPSet.Click += new System.EventHandler(this.cmdQPSet_Click);
+            // 
+            // label41
+            // 
+            this.label41.AutoSize = true;
+            this.label41.Location = new System.Drawing.Point(12, 85);
+            this.label41.Name = "label41";
+            this.label41.Size = new System.Drawing.Size(31, 13);
+            this.label41.TabIndex = 6;
+            this.label41.Text = "Initial";
+            // 
+            // label42
+            // 
+            this.label42.AutoSize = true;
+            this.label42.Location = new System.Drawing.Point(12, 64);
+            this.label42.Name = "label42";
+            this.label42.Size = new System.Drawing.Size(53, 13);
+            this.label42.TabIndex = 4;
+            this.label42.Text = "Max Time";
+            // 
+            // label43
+            // 
+            this.label43.AutoSize = true;
+            this.label43.Location = new System.Drawing.Point(12, 43);
+            this.label43.Name = "label43";
+            this.label43.Size = new System.Drawing.Size(27, 13);
+            this.label43.TabIndex = 2;
+            this.label43.Text = "Max";
+            // 
+            // label45
+            // 
+            this.label45.AutoSize = true;
+            this.label45.Location = new System.Drawing.Point(12, 22);
+            this.label45.Name = "label45";
+            this.label45.Size = new System.Drawing.Size(24, 13);
+            this.label45.TabIndex = 0;
+            this.label45.Text = "Min";
+            // 
+            // txtQPInitial
+            // 
+            this.txtQPInitial.Location = new System.Drawing.Point(133, 82);
+            this.txtQPInitial.Name = "txtQPInitial";
+            this.txtQPInitial.Size = new System.Drawing.Size(70, 20);
+            this.txtQPInitial.TabIndex = 7;
+            this.txtQPInitial.Text = "1000";
+            this.txtQPInitial.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtQPInitial.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // txtQPMaxTime
+            // 
+            this.txtQPMaxTime.Location = new System.Drawing.Point(133, 61);
+            this.txtQPMaxTime.Name = "txtQPMaxTime";
+            this.txtQPMaxTime.Size = new System.Drawing.Size(70, 20);
+            this.txtQPMaxTime.TabIndex = 5;
+            this.txtQPMaxTime.Text = "1000";
+            this.txtQPMaxTime.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsMilliseconds);
+            this.txtQPMaxTime.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // txtQPMax
+            // 
+            this.txtQPMax.Location = new System.Drawing.Point(133, 40);
+            this.txtQPMax.Name = "txtQPMax";
+            this.txtQPMax.Size = new System.Drawing.Size(70, 20);
+            this.txtQPMax.TabIndex = 3;
+            this.txtQPMax.Text = "1000";
+            this.txtQPMax.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtQPMax.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // txtQPMin
+            // 
+            this.txtQPMin.Location = new System.Drawing.Point(133, 19);
+            this.txtQPMin.Name = "txtQPMin";
+            this.txtQPMin.Size = new System.Drawing.Size(70, 20);
+            this.txtQPMin.TabIndex = 1;
+            this.txtQPMin.Text = "1000";
+            this.txtQPMin.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtQPMin.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // groupBox5
+            // 
+            this.groupBox5.Controls.Add(this.rdoEBCDIC);
+            this.groupBox5.Controls.Add(this.rdoMinimal);
+            this.groupBox5.Location = new System.Drawing.Point(6, 226);
+            this.groupBox5.Name = "groupBox5";
+            this.groupBox5.Size = new System.Drawing.Size(357, 47);
+            this.groupBox5.TabIndex = 5;
+            this.groupBox5.TabStop = false;
+            this.groupBox5.Text = "Quoting Rule";
+            // 
+            // rdoEBCDIC
+            // 
+            this.rdoEBCDIC.AutoSize = true;
+            this.rdoEBCDIC.Location = new System.Drawing.Point(81, 19);
+            this.rdoEBCDIC.Name = "rdoEBCDIC";
+            this.rdoEBCDIC.Size = new System.Drawing.Size(90, 17);
+            this.rdoEBCDIC.TabIndex = 1;
+            this.rdoEBCDIC.Text = "EBCDIC safer";
+            this.rdoEBCDIC.UseVisualStyleBackColor = true;
+            // 
+            // rdoMinimal
+            // 
+            this.rdoMinimal.AutoSize = true;
+            this.rdoMinimal.Checked = true;
+            this.rdoMinimal.Location = new System.Drawing.Point(15, 19);
+            this.rdoMinimal.Name = "rdoMinimal";
+            this.rdoMinimal.Size = new System.Drawing.Size(60, 17);
+            this.rdoMinimal.TabIndex = 0;
+            this.rdoMinimal.TabStop = true;
+            this.rdoMinimal.Text = "Minimal";
+            this.rdoMinimal.UseVisualStyleBackColor = true;
+            // 
+            // gbxQPSourceType
+            // 
+            this.gbxQPSourceType.Controls.Add(this.rdoLF);
+            this.gbxQPSourceType.Controls.Add(this.rdoCRLF);
+            this.gbxQPSourceType.Controls.Add(this.rdoBinary);
+            this.gbxQPSourceType.Location = new System.Drawing.Point(6, 173);
+            this.gbxQPSourceType.Name = "gbxQPSourceType";
+            this.gbxQPSourceType.Size = new System.Drawing.Size(357, 47);
+            this.gbxQPSourceType.TabIndex = 4;
+            this.gbxQPSourceType.TabStop = false;
+            this.gbxQPSourceType.Text = "Source Type";
+            // 
+            // rdoLF
+            // 
+            this.rdoLF.AutoSize = true;
+            this.rdoLF.Location = new System.Drawing.Point(223, 19);
+            this.rdoLF.Name = "rdoLF";
+            this.rdoLF.Size = new System.Drawing.Size(121, 17);
+            this.rdoLF.TabIndex = 2;
+            this.rdoLF.Text = "LF Terminated Lines";
+            this.rdoLF.UseVisualStyleBackColor = true;
+            // 
+            // rdoCRLF
+            // 
+            this.rdoCRLF.AutoSize = true;
+            this.rdoCRLF.Checked = true;
+            this.rdoCRLF.Location = new System.Drawing.Point(81, 19);
+            this.rdoCRLF.Name = "rdoCRLF";
+            this.rdoCRLF.Size = new System.Drawing.Size(136, 17);
+            this.rdoCRLF.TabIndex = 1;
+            this.rdoCRLF.TabStop = true;
+            this.rdoCRLF.Text = "CRLF Terminated Lines";
+            this.rdoCRLF.UseVisualStyleBackColor = true;
+            // 
+            // rdoBinary
+            // 
+            this.rdoBinary.AutoSize = true;
+            this.rdoBinary.Location = new System.Drawing.Point(15, 19);
+            this.rdoBinary.Name = "rdoBinary";
+            this.rdoBinary.Size = new System.Drawing.Size(54, 17);
+            this.rdoBinary.TabIndex = 0;
+            this.rdoBinary.Text = "Binary";
+            this.rdoBinary.UseVisualStyleBackColor = true;
+            // 
+            // cmdEncode
+            // 
+            this.cmdEncode.Location = new System.Drawing.Point(21, 291);
+            this.cmdEncode.Name = "cmdEncode";
+            this.cmdEncode.Size = new System.Drawing.Size(100, 25);
+            this.cmdEncode.TabIndex = 8;
+            this.cmdEncode.Text = "Encode";
+            this.cmdEncode.UseVisualStyleBackColor = true;
+            this.cmdEncode.Click += new System.EventHandler(this.cmdEncode_Click);
+            // 
+            // cmdEncodeProgress
+            // 
+            this.cmdEncodeProgress.Location = new System.Drawing.Point(21, 322);
+            this.cmdEncodeProgress.Name = "cmdEncodeProgress";
+            this.cmdEncodeProgress.Size = new System.Drawing.Size(100, 25);
+            this.cmdEncodeProgress.TabIndex = 9;
+            this.cmdEncodeProgress.Text = "Encode Progress";
+            this.cmdEncodeProgress.UseVisualStyleBackColor = true;
+            this.cmdEncodeProgress.Click += new System.EventHandler(this.cmdEncodeProgress_Click);
+            // 
             // frmClient
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -3108,6 +3351,13 @@
             this.gbxAppendBatch.PerformLayout();
             this.gbxAppendStreamRead.ResumeLayout(false);
             this.gbxAppendStreamRead.PerformLayout();
+            this.tabPage5.ResumeLayout(false);
+            this.gbxQPReadWriteConfiguration.ResumeLayout(false);
+            this.gbxQPReadWriteConfiguration.PerformLayout();
+            this.groupBox5.ResumeLayout(false);
+            this.groupBox5.PerformLayout();
+            this.gbxQPSourceType.ResumeLayout(false);
+            this.gbxQPSourceType.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -3362,5 +3612,25 @@
         private System.Windows.Forms.Button cmdAppendTests;
         private System.Windows.Forms.Button cmdAppendTestsSecond;
         private System.Windows.Forms.Label label44;
+        private System.Windows.Forms.TabPage tabPage5;
+        private System.Windows.Forms.GroupBox gbxQPReadWriteConfiguration;
+        private System.Windows.Forms.Button cmdQPSet;
+        private System.Windows.Forms.Label label41;
+        private System.Windows.Forms.Label label42;
+        private System.Windows.Forms.Label label43;
+        private System.Windows.Forms.Label label45;
+        private System.Windows.Forms.TextBox txtQPInitial;
+        private System.Windows.Forms.TextBox txtQPMaxTime;
+        private System.Windows.Forms.TextBox txtQPMax;
+        private System.Windows.Forms.TextBox txtQPMin;
+        private System.Windows.Forms.GroupBox groupBox5;
+        private System.Windows.Forms.RadioButton rdoEBCDIC;
+        private System.Windows.Forms.RadioButton rdoMinimal;
+        private System.Windows.Forms.GroupBox gbxQPSourceType;
+        private System.Windows.Forms.RadioButton rdoLF;
+        private System.Windows.Forms.RadioButton rdoCRLF;
+        private System.Windows.Forms.RadioButton rdoBinary;
+        private System.Windows.Forms.Button cmdEncode;
+        private System.Windows.Forms.Button cmdEncodeProgress;
     }
 }
