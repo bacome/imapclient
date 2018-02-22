@@ -227,7 +227,7 @@ namespace work.bacome.imapclient
             if (string.IsNullOrWhiteSpace(pAddress.DisplayName)) lOK = cHeaderFieldValuePart.TryAsAddrSpec(ZRemoveQuotes(pAddress.User), pAddress.Host, out lMailbox);
             else lOK = cHeaderFieldValuePart.TryAsNameAddr(pAddress.DisplayName, ZRemoveQuotes(pAddress.User), pAddress.Host, out lMailbox);
 
-            if (!lOK) throw new ArgumentOutOfRangeException(nameof(pAddress));
+            if (!lOK) throw new cMailAddressFormException(pAddress);
 
             var lValueParts = new List<cHeaderFieldValuePart>();
             lValueParts.Add(lMailbox);
@@ -263,7 +263,7 @@ namespace work.bacome.imapclient
                 if (string.IsNullOrWhiteSpace(lAddress.DisplayName)) lOK = cHeaderFieldValuePart.TryAsAddrSpec(ZRemoveQuotes(lAddress.User), lAddress.Host, out lMailbox);
                 else lOK = cHeaderFieldValuePart.TryAsNameAddr(lAddress.DisplayName, ZRemoveQuotes(lAddress.User), lAddress.Host, out lMailbox);
 
-                if (!lOK) throw new ArgumentOutOfRangeException(nameof(pAddresses), kArgumentOutOfRangeExceptionMessage.CantConvert + lAddress.ToString());
+                if (!lOK) throw new cMailAddressFormException(lAddress);
 
                 lMailboxList.Add(lMailbox);
             }

@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Net.Mail;
 using System.Threading.Tasks;
-using System.Text;
 using work.bacome.imapclient.apidocumentation;
 using work.bacome.imapclient.support;
 
@@ -1102,10 +1100,10 @@ namespace work.bacome.imapclient
 
         public cUID Append(cAppendData pMessage, cAppendConfiguration pConfiguration = null) => ZAppendResult(Client.Append(MailboxHandle, cAppendDataList.FromMessage(pMessage), pConfiguration));
         public async Task<cUID> AppendAsync(cAppendData pMessage, cAppendConfiguration pConfiguration = null) => ZAppendResult(await Client.AppendAsync(MailboxHandle, cAppendDataList.FromMessage(pMessage), pConfiguration).ConfigureAwait(false));
-        public cUID Append(MailMessage pMailMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, Encoding pEncoding = null, cAppendConfiguration pConfiguration = null) 
-            => ZAppendResult(Client.Append(MailboxHandle, cMailMessageList.FromMessage(pMailMessage), pFlags, pReceived, pEncoding, pConfiguration));
-        public async Task<cUID> AppendAsync(MailMessage pMailMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, Encoding pEncoding = null, cAppendConfiguration pConfiguration = null)
-            => ZAppendResult(await Client.AppendAsync(MailboxHandle, cMailMessageList.FromMessage(pMailMessage), pFlags, pReceived, pEncoding, pConfiguration).ConfigureAwait(false));
+        public cUID Append(MailMessage pMailMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, cAppendConfiguration pConfiguration = null) 
+            => ZAppendResult(Client.Append(MailboxHandle, cMailMessageList.FromMessage(pMailMessage), pFlags, pReceived, pConfiguration));
+        public async Task<cUID> AppendAsync(MailMessage pMailMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, cAppendConfiguration pConfiguration = null)
+            => ZAppendResult(await Client.AppendAsync(MailboxHandle, cMailMessageList.FromMessage(pMailMessage), pFlags, pReceived, pConfiguration).ConfigureAwait(false));
 
         private cUID ZAppendResult(cAppendFeedback pFeedback)
         {
@@ -1121,10 +1119,10 @@ namespace work.bacome.imapclient
 
         public cAppendFeedback Append(IEnumerable<cAppendData> pMessages, cAppendConfiguration pConfiguration = null) => Client.Append(MailboxHandle, cAppendDataList.FromMessages(pMessages), pConfiguration);
         public Task<cAppendFeedback> AppendAsync(IEnumerable<cAppendData> pMessages, cAppendConfiguration pConfiguration = null) => Client.AppendAsync(MailboxHandle, cAppendDataList.FromMessages(pMessages), pConfiguration);
-        public cAppendFeedback Append(IEnumerable<MailMessage> pMailMessages, cStorableFlags pFlags = null, DateTime? pReceived = null, Encoding pEncoding = null, cAppendConfiguration pConfiguration = null) 
-            => Client.Append(MailboxHandle, cMailMessageList.FromMessages(pMailMessages), pFlags, pReceived, pEncoding, pConfiguration);
-        public Task<cAppendFeedback> AppendAsync(IEnumerable<MailMessage> pMailMessages, cStorableFlags pFlags = null, DateTime? pReceived = null, Encoding pEncoding = null, cAppendConfiguration pConfiguration = null)
-            => Client.AppendAsync(MailboxHandle, cMailMessageList.FromMessages(pMailMessages), pFlags, pReceived, pEncoding, pConfiguration);
+        public cAppendFeedback Append(IEnumerable<MailMessage> pMailMessages, cStorableFlags pFlags = null, DateTime? pReceived = null, cAppendConfiguration pConfiguration = null) 
+            => Client.Append(MailboxHandle, cMailMessageList.FromMessages(pMailMessages), pFlags, pReceived, pConfiguration);
+        public Task<cAppendFeedback> AppendAsync(IEnumerable<MailMessage> pMailMessages, cStorableFlags pFlags = null, DateTime? pReceived = null, cAppendConfiguration pConfiguration = null)
+            => Client.AppendAsync(MailboxHandle, cMailMessageList.FromMessages(pMailMessages), pFlags, pReceived, pConfiguration);
 
         /// <summary>
         /// Fetches a section of a message into a stream. The mailbox must be selected.

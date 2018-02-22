@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
 
                     foreach (var lMessage in pMessages)
                     {
-                        if (lMessage.Flags != null)
+                        if (lMessage.Flags != null && lMessage.Flags.Count > 0)
                         {
                             lBuilder.Add(cCommandPart.Space);
                             lBuilder.BeginList(eListBracketing.bracketed);

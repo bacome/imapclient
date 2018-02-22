@@ -37,9 +37,18 @@ namespace work.bacome.imapclient
         public const string ContainsNulls = "contains nulls";
         public const string ContainsMixedMessageCaches = "contains mixed message caches";
         public const string ContainsMixedUIDValidities = "contains mixed uidvalidities";
-        public const string ContainsMixedEncodings = "contains mixed encodings";
 
-        public const string CantConvert = "can't convert: ";
+        //public const string CantConvert = "can't convert: ";
+    }
+
+    internal static class kMailMessageFormExceptionMessage
+    {
+        public const string UnsupportedPropertyValue = "unsupported property value";
+        public const string UnsupportedCustomHeader = "unsupported custom header";
+        public const string MixedEncodings = "mixed encodings";
+        public const string MessageDataStreamClient = "message data stream client";
+        public const string StreamNotSeekable = "stream not seekable";
+        public const string MessageDataStreamUnknownLength = "message data stream unknown length";
     }
 
     /// <summary>
@@ -512,62 +521,51 @@ namespace work.bacome.imapclient
         }
     }
 
-    /// <summary>
-    /// Thrown when a <see cref="MailMessage"/> instance contains a <see cref="cMessageDataStream"/> that references the <see cref="cIMAPClient"/> instance that the message is being appended through.
-    /// </summary>
-    /// <remarks>
-    /// This situation can lead to a deadlock.
-    /// Either use another <see cref="cIMAPClient"/> instance with the same <see cref="cIMAPClient.ConnectedAccountId"/> as the source of the data
-    /// or read and cache the data locally (e.g. in a file) before appending it.
-    /// </remarks>
-    public class cMailMessageClientException : cIMAPException
+    public class cMailAddressFormException : cIMAPException
     {
         /// <summary>
-        /// The mail message concerned.
+        /// The mail address concerned.
         /// </summary>
-        public readonly MailMessage MailMessage;
+        public readonly MailAddress MailAddress;
 
-        internal cMailMessageClientException(MailMessage pMailMessage) { MailMessage = pMailMessage; }
-    }
-
-    /// <summary>
-    /// Thrown when a <see cref="MailMessage"/> instance contains a stream type that is not supported by the library.
-    /// </summary>
-    /// <remarks>
-    /// The library supports all seekable streams and <see cref="cMessageDataStream"/> instances where <see cref="cMessageDataStream.HasKnownLength"/> is <see langword="true"/>.
-    /// </remarks>
-    public class cMailMessageStreamException : cIMAPException
-    {
-        /// <summary>
-        /// The mail message concerned.
-        /// </summary>
-        public readonly MailMessage MailMessage;
-
-        internal cMailMessageStreamException(MailMessage pMailMessage) { MailMessage = pMailMessage; }
-    }
-
-    /// <summary>
-    /// Thrown when an <see cref="cAppendData"/> instance is larger than <see cref="uint.MaxValue"/> bytes.
-    /// </summary>
-    /// <remarks>
-    /// The maximum size of an IMAP message is <see cref="uint.MaxValue"/> bytes.
-    /// </remarks>
-    public class cAppendDataSizeException : cIMAPException
-    {
-        /// <summary>
-        /// The append data concerned.
-        /// </summary>
-        public readonly cAppendData AppendData;
-
-        internal cAppendDataSizeException(cAppendData pAppendData) { AppendData = pAppendData; }
-
-        /// <inheritdoc/>
-        public override string ToString()
+        internal cMailAddressFormException(MailAddress pMailAddress)
         {
-            var lBuilder = new cListBuilder(nameof(cAppendDataSizeException));
-            lBuilder.Append(AppendData);
-            lBuilder.Append(base.ToString());
-            return lBuilder.ToString();
+            MailAddress = pMailAddress;
+        }
+    }
+
+
+
+    /*
+    ;?; // list
+
+    /// <summary>
+    /// Thrown when a <see cref="MailMessage"/> instance has a form that is not supported by the library.
+    /// </summary>
+    /// <remarks>
+    /// The library only supports messages with the header and subject encoding the same.  ()Note that address encodings are ignored (the subject encoding is used). one <see cref="Encoding"/> per mail message.
+    /// The library supports seekable streams.
+    /// The library supports <see cref="cMessageDataStream"/> instances where;
+    /// <see cref="cMessageDataStream.HasKnownLength"/> is <see langword="true"/>.
+    /// <see cref="cMessageDataStream"/> must not reference the <see cref="cIMAPClient"/> instance that the message is being appended through
+    /// </remarks>
+    /// */
+
+    public class cMailMessageFormException : cIMAPException
+    {
+        /// <summary>
+        /// The mail message concerned.
+        /// </summary>
+        public readonly MailMessage MailMessage;
+
+        internal cMailMessageFormException(MailMessage pMailMessage, string pMessage) : base(pMessage)
+        {
+            MailMessage = pMailMessage;
+        }
+
+        internal cMailMessageFormException(MailMessage pMailMessage, string pMessage, Exception pInnerException) : base(pMessage, pInnerException)
+        {
+            MailMessage = pMailMessage;
         }
     }
 

@@ -227,7 +227,7 @@ namespace testharness2
                 using (var lProgress = new frmProgress("append"))
                 {
                     lProgress.ShowAndFocus(this);
-                    lUID = await mSentItems.AppendAsync(pMailMessage, cStorableFlags.Draft, null, null, new cAppendConfiguration(lProgress.CancellationToken, lProgress.SetMaximum, lProgress.Increment));
+                    lUID = await mSentItems.AppendAsync(pMailMessage, cStorableFlags.Draft, null, new cAppendConfiguration(lProgress.CancellationToken, lProgress.SetMaximum, lProgress.Increment));
                 }
 
                 // mark as draft

@@ -22,18 +22,18 @@ namespace work.bacome.imapclient
             return ZAppendAsync(pMailboxHandle, pMessages, pConfiguration, lContext);
         }
 
-        internal cAppendFeedback Append(iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, Encoding pEncoding, cAppendConfiguration pConfiguration)
+        internal cAppendFeedback Append(iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, cAppendConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Append), 2);
-            var lTask = ZAppendAsync(pMailboxHandle, pMailMessages, pFlags, pReceived, pEncoding, pConfiguration, lContext);
+            var lTask = ZAppendAsync(pMailboxHandle, pMailMessages, pFlags, pReceived, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        internal Task<cAppendFeedback> AppendAsync(iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, Encoding pEncoding, cAppendConfiguration pConfiguration)
+        internal Task<cAppendFeedback> AppendAsync(iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, cAppendConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(AppendAsync), 2);
-            return ZAppendAsync(pMailboxHandle, pMailMessages, pFlags, pReceived, pEncoding, pConfiguration, lContext);
+            return ZAppendAsync(pMailboxHandle, pMailMessages, pFlags, pReceived, pConfiguration, lContext);
         }
 
         private async Task<cAppendFeedback> ZAppendAsync(iMailboxHandle pMailboxHandle, cAppendDataList pMessages, cAppendConfiguration pConfiguration, cTrace.cContext pParentContext)
@@ -136,7 +136,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        private async Task<cAppendFeedback> ZAppendAsync(iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, Encoding pEncoding, cAppendConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private async Task<cAppendFeedback> ZAppendAsync(iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, cAppendConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZAppendAsync), pMailboxHandle, pMailMessages, pFlags, pReceived, pConfiguration);
 
@@ -156,17 +156,17 @@ namespace work.bacome.imapclient
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                    return await ZZAppendAsync(lMC, pMailboxHandle, pMailMessages, pFlags, pReceived, pEncoding, null, null, mQuotedPrintableEncodeReadWriteConfiguration, mQuotedPrintableEncodeReadWriteConfiguration, lContext).ConfigureAwait(false);
+                    return await ZZAppendAsync(lMC, pMailboxHandle, pMailMessages, pFlags, pReceived, null, null, mQuotedPrintableEncodeReadWriteConfiguration, mQuotedPrintableEncodeReadWriteConfiguration, lContext).ConfigureAwait(false);
                 }
             }
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                return await ZZAppendAsync(lMC, pMailboxHandle, pMailMessages, pFlags, pReceived, pEncoding, pConfiguration.SetMaximum, pConfiguration.Increment, pConfiguration.ReadConfiguration ?? mQuotedPrintableEncodeReadWriteConfiguration, pConfiguration.WriteConfiguration ?? mQuotedPrintableEncodeReadWriteConfiguration, lContext).ConfigureAwait(false);
+                return await ZZAppendAsync(lMC, pMailboxHandle, pMailMessages, pFlags, pReceived, pConfiguration.SetMaximum, pConfiguration.Increment, pConfiguration.ReadConfiguration ?? mQuotedPrintableEncodeReadWriteConfiguration, pConfiguration.WriteConfiguration ?? mQuotedPrintableEncodeReadWriteConfiguration, lContext).ConfigureAwait(false);
             }
         }
 
-        private async Task<cAppendFeedback> ZZAppendAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, Encoding pEncoding, Action<long> pSetMaximum, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, cTrace.cContext pParentContext)
+        private async Task<cAppendFeedback> ZZAppendAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, Action<long> pSetMaximum, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZAppendAsync), pMC, pMailboxHandle, pFlags, pReceived, pReadConfiguration, pWriteConfiguration);
 
@@ -190,21 +190,20 @@ namespace work.bacome.imapclient
                     //  (this is the best/safest design as it will work with or without catenate)
                     //
                     // alternatively, read into a temporary file and then use the file as the source of the data (this will obviously never use catenate).
-                    //
                     
                     foreach (var lAlternateView in lMailMessage.AlternateViews)
                         if (lAlternateView.ContentStream is cMessageDataStream lMessageDataStream && ReferenceEquals(lMessageDataStream.Client, this))
-                            throw new cMailMessageClientException(lMailMessage);
+                            throw new cMailMessageFormException(lMailMessage, kMailMessageFormExceptionMessage.MessageDataStreamClient);
 
                     foreach (var lAttachment in lMailMessage.Attachments)
                         if (lAttachment.ContentStream is cMessageDataStream lMessageDataStream && ReferenceEquals(lMessageDataStream.Client, this))
-                            throw new cMailMessageClientException(lMailMessage);
+                            throw new cMailMessageFormException(lMailMessage, kMailMessageFormExceptionMessage.MessageDataStreamClient);
 
                     // convert
-                    var lParts = await ZZConvertMailMessageAsync(pMC, lTempFileCollection, lMailMessage, pIncrement, pReadConfiguration, pWriteConfiguration, lContext).ConfigureAwait(false);
+                    var lResult = await ZZConvertMailMessageAsync(pMC, lTempFileCollection, lMailMessage, pIncrement, pReadConfiguration, pWriteConfiguration, lContext).ConfigureAwait(false);
 
                     // add
-                    lMessages.Add(new cMultiPartAppendData(pFlags, pReceived, lParts.AsReadOnly(), pEncoding));
+                    lMessages.Add(new cMultiPartAppendData(pFlags, pReceived, lResult.Parts.AsReadOnly(), lResult.Encoding));
                 }
 
                 // append

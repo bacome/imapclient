@@ -18,7 +18,7 @@ namespace testharness2
             // quickly get to the test I'm working on
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(CurrentTest));
             //cIMAPClient._Tests(lContext);
-            cIMAPClient._Tests(lContext);
+            ZTestAppend1(lContext);
         }
 
         public static void Tests(bool pQuick, cTrace.cContext pParentContext)
@@ -71,6 +71,10 @@ namespace testharness2
 
                 if (!pQuick) ZTestEarlyTermination1(lContext);
                 if (!pQuick) ZTestEarlyTermination2(lContext);
+
+
+                // TODO: 
+                //ZTestAppend1(lContext);
             }
             catch (Exception e) when (lContext.TraceException(e)) { }
         }
@@ -2748,6 +2752,141 @@ namespace testharness2
 
 
 
+        private static void ZTestAppendNoCatenateNoBinaryNoUTF8(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestAppendNoCatenateNoBinaryNoUTF8));
+
+            cServer lServer = new cServer();
+            lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1] this is the text\r\n");
+            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+            lServer.AddSendData("* LIST () nil \"\"\r\n");
+            lServer.AddSendTagged("OK LIST command completed\r\n");
+
+            // select inbox
+            lServer.AddExpectTagged("EXAMINE INBOX\r\n");
+            lServer.AddSendData("* 1 EXISTS\r\n");
+            lServer.AddSendData("* 1 RECENT\r\n");
+            lServer.AddSendData("* OK [UNSEEN 1] Message 1 is first unseen\r\n");
+            lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+            lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+            lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+            lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
+            lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
+
+            lServer.AddExpectTagged("FETCH 1 BODYSTRUCTURE\r\n");
+            lServer.AddSendData("* 1 FETCH (RFC822.SIZE 226 BODYSTRUCTURE ((\"text\" \"plain\" NIL NIL NIL \"7bit\" 5 0 NIL NIL NIL NIL)(\"message\" \"rfc822\" NIL NIL NIL \"7bit\" 46 (\"thu, 22 feb 2018 15:49:50 +1300\" NIL NIL NIL NIL NIL NIL NIL NIL NIL) (\"text\" \"plain\" NIL NIL NIL \"7bit\" 5 0 NIL NIL NIL NIL) 2) \"mixed\" (\"boundary\" \"boundary\")))\r\n");
+            lServer.AddSendTagged("OK FETCH completed\r\n");
+
+            lServer.AddExpectTagged("FETCH 1 BODY.PEEK[]<0.1000>\r\n");
+            lServer.AddSendData("* 1 FETCH (BODY[] {226}mime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--)\r\n");
+            lServer.AddSendTagged("OK FETCH completed\r\n");
+
+
+            // * 11 FETCH (UID 37 BODYSTRUCTURE (("text" "plain" ("charset" "us-ascii") NIL NIL "7bit" 5 0 NIL NIL NIL NIL)("message" "rfc822" NIL NIL NIL "7bit" 46 ("thu, 22 feb 2018 15:49:50 +1300" NIL NIL NIL NIL NIL NIL NIL NIL NIL) ("text" "plain" ("charset" "us-ascii") NIL NIL "7bit" 5 0 NIL NIL NIL NIL) 2 NIL NIL NIL NIL) "mixed" ("boundary" "boundary") NIL NIL NIL))
+
+
+            lServer.AddExpectTagged("LOGOUT\r\n");
+            lServer.AddSendData("* BYE logging out\r\n");
+            lServer.AddSendTagged("OK logged out\r\n");
+            lServer.AddExpectClose();
+
+            cIMAPClient lClient1 = new cIMAPClient(nameof(ZTestAppendNoCatenateNoBinaryNoUTF8) + ".1"); 
+            lClient1.SetServer("localhost");
+            lClient1.SetNoCredentials();
+            lClient1.IdleConfiguration = null;
+            lClient1.DefaultMessageCacheItems = fMessageCacheAttributes.bodystructure;
+            lClient1.FetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000, 1000, 1000);
+
+            cIMAPClient lClient2 = new cIMAPClient(nameof(ZTestAppendNoCatenateNoBinaryNoUTF8) + ".2");
+            lClient2.Server = lClient1.Server;
+            lClient2.Credentials = lClient1.Credentials;
+            lClient2.IdleConfiguration = null;
+
+            Task lTask = null;
+
+            try
+            {
+                lTask = lServer.RunAsync(lContext);
+
+                lClient1.Connect();
+                lClient1.Inbox.Select();
+                var lMessage = lClient1.Inbox.Messages()[0];
+
+                lClient2.Connect();
+
+                // NoCatenateNoBinaryNoUTF8
+
+
+
+
+                ZTestAppendNoCatenateNoBinaryNoUTF8(lMessage, lContext);
+
+                // add stuff here
+
+                lClient.Disconnect();
+
+                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
+                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+            }
+            finally
+            {
+                ZFinally(lServer, lClient, lTask);
+            }
+        }
+
+        private static void ZTestAppendNoCatenateNoBinaryNoUTF8(cMessage pMessage, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestAppendNoCatenateNoBinaryNoUTF8));
+
+            cServer lServer = new cServer();
+            lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 LITERAL+] this is the text\r\n");
+            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+            lServer.AddSendData("* LIST () nil \"\"\r\n");
+            lServer.AddSendTagged("OK LIST command completed\r\n");
+
+            //                                                       1           2         3         4         5         6         7             8           9         0         1             2           3           4         5         6             7         8         9         0
+            //                                              12345678901234567 8 90123456789012345678901234567890123456789012345678901 2 3 4 56789012345 6 7890123456789012345678901 2 3 4 567890 1 23456789012 3 45678901234567890123456789012 3 4 5 67890123456789012345678901234567890123 4 5 6 789012 3 4567890123456
+            lServer.AddExpectTagged("APPEND INBOX {226+}\r\nmime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--\r\n");
+            lServer.AddSendTagged("OK APPENDed");
+
+            lServer.AddExpectTagged("LOGOUT\r\n");
+            lServer.AddSendData("* BYE logging out\r\n");
+            lServer.AddSendTagged("OK logged out\r\n");
+            lServer.AddExpectClose();
+
+            cIMAPClient lClient = new cIMAPClient(nameof(ZTestAppend1));
+            lClient.SetServer("localhost");
+            lClient.SetNoCredentials();
+            lClient.IdleConfiguration = null;
+            lClient.DefaultMessageCacheItems = fMessageCacheAttributes.bodystructure;
+
+            Task lTask = null;
+
+            try
+            {
+                lTask = lServer.RunAsync(lContext);
+
+                lClient.Connect();
+
+                // add stuff here
+
+                var lUID = lClient.Inbox.Append(pMessage);
+                if (lUID != null) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.1");
+
+                // now test a uid coming back ...
+                //var lUID = lClient.Inbox.Append(pMessage);
+                //if (lUID != null) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.1");
+
+                lClient.Disconnect();
+
+                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
+                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+            }
+            finally
+            {
+                ZFinally(lServer, lClient, lTask);
+            }
+        }
 
 
 
@@ -2825,6 +2964,9 @@ namespace testharness2
             private CancellationTokenSource mCancellationTokenSource = null;
 
             public cServer() { }
+
+
+            ;?; // need to convert this to having multiple sessions 
 
             public void AddExpectData(string pData) => mTasks.Add(new cTask(cTask.eType.expectdata, pData));
             public void AddExpectData(byte[] pData) => mTasks.Add(new cTask(cTask.eType.expectdata, pData));

@@ -209,185 +209,141 @@ namespace work.bacome.imapclient
                                 if (lMultiPart.Flags == null) lFlags = mAppendDefaultFlags;
                                 else lFlags = lMultiPart.Flags;
 
-                                if (_Capabilities.Catenate)
+                                List<cCatenateAppendDataPart> lCatenateParts = new List<cCatenateAppendDataPart>();
+                                List<cSessionAppendDataPart> lSessionParts = new List<cSessionAppendDataPart>();
+
+                                foreach (var lPart in lMultiPart.Parts)
                                 {
-                                    List<cCatenateAppendDataPart> lParts = new List<cCatenateAppendDataPart>();
-
-                                    foreach (var lPart in lMultiPart.Parts)
+                                    switch (lPart)
                                     {
-                                        switch (lPart)
-                                        {
-                                            case cMessageAppendDataPart lWholeMessage:
+                                        case cMessageAppendDataPart lWholeMessage:
 
-                                                {
-                                                    bool lCatenate = lWholeMessage.Client.ConnectedAccountId == _ConnectedAccountId;
+                                            {
+                                                bool lCatenate = _Capabilities.Catenate && lWholeMessage.Client.ConnectedAccountId == _ConnectedAccountId;
 
-                                                    fMessageCacheAttributes lAttributes = 0;
-                                                    if (lCatenate) lAttributes |= fMessageCacheAttributes.uid;
-                                                    else lAttributes |= fMessageCacheAttributes.size;
+                                                fMessageCacheAttributes lAttributes = 0;
+                                                if (lCatenate) lAttributes |= fMessageCacheAttributes.uid;
+                                                else lAttributes |= fMessageCacheAttributes.size;
 
-                                                    if (!await lWholeMessage.Client.FetchAsync(lWholeMessage.MessageHandle, lAttributes))
-                                                    {
-                                                        if (lWholeMessage.MessageHandle.Expunged) throw new cMessageExpungedException(lWholeMessage.MessageHandle);
-                                                        else throw new cRequestedDataNotReturnedException(lWholeMessage.MessageHandle);
-                                                    }
-
-                                                    cCatenateURLAppendDataPart lURLPart = null;
-
-                                                    if (lCatenate && !cCatenateURLAppendDataPart.TryConstruct(lWholeMessage.MessageHandle, cSection.All, mCommandPartFactory, out lURLPart))
-                                                    {
-                                                        lCatenate = false;
-
-                                                        if (!await lWholeMessage.Client.FetchAsync(lWholeMessage.MessageHandle, fMessageCacheAttributes.size))
-                                                        {
-                                                            if (lWholeMessage.MessageHandle.Expunged) throw new cMessageExpungedException(lWholeMessage.MessageHandle);
-                                                            else throw new cRequestedDataNotReturnedException(lWholeMessage.MessageHandle);
-                                                        }
-                                                    }
-
-                                                    if (lCatenate) lParts.Add(lURLPart);
-                                                    else lParts.Add(new cCatenateMessageAppendDataPart(lWholeMessage.Client, lWholeMessage.MessageHandle, cSection.All, lWholeMessage.MessageHandle.Size.Value));
-
-                                                    break;
-                                                }
-
-                                            case cMessagePartAppendDataPart lMessagePart:
-
-                                                {
-                                                    bool lCatenate = lMessagePart.Client.ConnectedAccountId == _ConnectedAccountId;
-
-                                                    if (lCatenate && !await lMessagePart.Client.FetchAsync(lMessagePart.MessageHandle, fMessageCacheAttributes.uid))
-                                                    {
-                                                        if (lMessagePart.MessageHandle.Expunged) throw new cMessageExpungedException(lMessagePart.MessageHandle);
-                                                        else throw new cRequestedDataNotReturnedException(lMessagePart.MessageHandle);
-                                                    }
-
-                                                    if (lCatenate && cCatenateURLAppendDataPart.TryConstruct(lMessagePart.MessageHandle, lMessagePart.Part.Section, mCommandPartFactory, out var lURLPart)) lParts.Add(lURLPart);
-                                                    else lParts.Add(new cCatenateMessageAppendDataPart(lMessagePart.Client, lMessagePart.MessageHandle, lMessagePart.Part.Section, lMessagePart.Part.SizeInBytes));
-
-                                                    break;
-                                                }
-
-                                            case cUIDSectionAppendDataPart lSection:
-
-                                                {
-                                                    if (lSection.Client.ConnectedAccountId == _ConnectedAccountId && cCatenateURLAppendDataPart.TryConstruct(lSection.MailboxHandle, lSection.UID, lSection.Section, mCommandPartFactory, out var lURLPart)) lParts.Add(lURLPart);
-                                                    else lParts.Add(new cCatenateMessageAppendDataPart(lSection.Client, lSection.MailboxHandle, lSection.UID, lSection.Section, lSection.Length));
-                                                    break;
-                                                }
-
-                                            case cFileAppendDataPart lFile:
-
-                                                lParts.Add(new cCatenateFileAppendDataPart(lFile.Path, lFile.Length, lFile.Base64Encode, lFile.ReadConfiguration ?? mAppendStreamReadConfiguration));
-                                                break;
-
-                                            case cStreamAppendDataPart lStreamPart:
-
-                                                {
-                                                    cBatchSizerConfiguration lConfiguration = lStreamPart.ReadConfiguration ?? mAppendStreamReadConfiguration;
-
-                                                    if (lStreamPart.Stream.CanSeek) lStreamPart.Stream.Position = 0;
-
-                                                    Stream lStream;
-                                                    if (lStreamPart.Base64Encode) lStream = new cBase64Encoder(lStreamPart.Stream, lConfiguration);
-                                                    else lStream = lStreamPart.Stream;
-
-                                                    lParts.Add(new cCatenateStreamAppendDataPart(lStream, lStreamPart.Length, lConfiguration));
-                                                    break;
-                                                }
-
-                                            case cLiteralAppendDataPartBase lLiteral:
-
-                                                Encoding lEncoding;
-                                                if ((EnabledExtensions & fEnableableExtensions.utf8) == 0) lEncoding = lMultiPart.Encoding ?? mEncoding;
-                                                else lEncoding = null;
-
-                                                lParts.Add(new cCatenateLiteralAppendDataPart(lLiteral.GetBytes(lEncoding)));
-                                                break;
-
-                                            default:
-
-                                                throw new cInternalErrorException();
-                                        }
-                                    }
-
-                                    lMessages.Add(new cCatenateAppendData(lFlags, lMultiPart.Received, lParts));
-                                }
-                                else
-                                {
-                                    List<cSessionAppendDataPart> lParts = new List<cSessionAppendDataPart>();
-                                    long lLength = 0;
-
-                                    foreach (var lPart in lMultiPart.Parts)
-                                    {
-                                        switch (lPart)
-                                        {
-                                            case cMessageAppendDataPart lWholeMessage:
-
-                                                if (!await lWholeMessage.Client.FetchAsync(lWholeMessage.MessageHandle, fMessageCacheAttributes.size))
+                                                if (!await lWholeMessage.Client.FetchAsync(lWholeMessage.MessageHandle, lAttributes))
                                                 {
                                                     if (lWholeMessage.MessageHandle.Expunged) throw new cMessageExpungedException(lWholeMessage.MessageHandle);
                                                     else throw new cRequestedDataNotReturnedException(lWholeMessage.MessageHandle);
                                                 }
 
-                                                lParts.Add(new cSessionMessageAppendDataPart(lWholeMessage.Client, lWholeMessage.MessageHandle, cSection.All, lWholeMessage.MessageHandle.Size.Value));
-                                                lLength += lWholeMessage.MessageHandle.Size.Value;
+                                                cCatenateURLAppendDataPart lURLPart = null;
 
-                                                break;
-
-                                            case cMessagePartAppendDataPart lMessagePart:
-
-                                                lParts.Add(new cSessionMessageAppendDataPart(lMessagePart.Client, lMessagePart.MessageHandle, lMessagePart.Part.Section, lMessagePart.Part.SizeInBytes));
-                                                lLength += lMessagePart.Part.SizeInBytes;
-                                                break;
-
-                                            case cUIDSectionAppendDataPart lSection:
-
-                                                lParts.Add(new cSessionMessageAppendDataPart(lSection.Client, lSection.MailboxHandle, lSection.UID, lSection.Section, lSection.Length));
-                                                lLength += lSection.Length;
-                                                break;
-
-                                            case cFileAppendDataPart lFile:
-
-                                                lParts.Add(new cSessionFileAppendDataPart(lFile.Path, lFile.Length, lFile.Base64Encode, lFile.ReadConfiguration ?? mAppendStreamReadConfiguration));
-                                                lLength += lFile.Length;
-                                                break;
-
-                                            case cStreamAppendDataPart lStreamPart:
-
+                                                if (lCatenate && !cCatenateURLAppendDataPart.TryConstruct(lWholeMessage.MessageHandle, cSection.All, mCommandPartFactory, out lURLPart))
                                                 {
-                                                    cBatchSizerConfiguration lConfiguration = lStreamPart.ReadConfiguration ?? mAppendStreamReadConfiguration;
+                                                    lCatenate = false;
 
-                                                    if (lStreamPart.Stream.CanSeek) lStreamPart.Stream.Position = 0;
-
-                                                    Stream lStream;
-                                                    if (lStreamPart.Base64Encode) lStream = new cBase64Encoder(lStreamPart.Stream, lConfiguration);
-                                                    else lStream = lStreamPart.Stream;
-
-                                                    lParts.Add(new cSessionStreamAppendDataPart(lStream, lStreamPart.Length, lConfiguration));
-                                                    lLength += lStreamPart.Length;
-                                                    break;
+                                                    if (!await lWholeMessage.Client.FetchAsync(lWholeMessage.MessageHandle, fMessageCacheAttributes.size))
+                                                    {
+                                                        if (lWholeMessage.MessageHandle.Expunged) throw new cMessageExpungedException(lWholeMessage.MessageHandle);
+                                                        else throw new cRequestedDataNotReturnedException(lWholeMessage.MessageHandle);
+                                                    }
                                                 }
 
-                                            case cLiteralAppendDataPartBase lLiteral:
+                                                if (lCatenate)
+                                                {
+                                                    if (lSessionParts.Count > 0)
+                                                    {
+                                                        lCatenateParts.Add(new cCatenateLiteralAppendDataPart(lSessionParts));
+                                                        lSessionParts.Clear();
+                                                    }
 
-                                                Encoding lEncoding;
-                                                if ((EnabledExtensions & fEnableableExtensions.utf8) == 0) lEncoding = lMultiPart.Encoding ?? mEncoding;
-                                                else lEncoding = null;
+                                                    lCatenateParts.Add(lURLPart);
+                                                }
+                                                else lSessionParts.Add(new cSessionMessageAppendDataPart(lWholeMessage.Client, lWholeMessage.MessageHandle, cSection.All, lWholeMessage.MessageHandle.Size.Value));
 
-                                                lParts.Add(new cSessionLiteralAppendDataPart(lLiteral.GetBytes(lEncoding)));
                                                 break;
+                                            }
 
-                                            default:
+                                        case cMessagePartAppendDataPart lMessagePart:
 
-                                                throw new cInternalErrorException();
-                                        }
+                                            {
+                                                bool lCatenate = _Capabilities.Catenate && lMessagePart.Client.ConnectedAccountId == _ConnectedAccountId;
+
+                                                if (lCatenate && !await lMessagePart.Client.FetchAsync(lMessagePart.MessageHandle, fMessageCacheAttributes.uid))
+                                                {
+                                                    if (lMessagePart.MessageHandle.Expunged) throw new cMessageExpungedException(lMessagePart.MessageHandle);
+                                                    else throw new cRequestedDataNotReturnedException(lMessagePart.MessageHandle);
+                                                }
+
+                                                if (lCatenate && cCatenateURLAppendDataPart.TryConstruct(lMessagePart.MessageHandle, lMessagePart.Part.Section, mCommandPartFactory, out var lURLPart))
+                                                {
+                                                    if (lSessionParts.Count > 0)
+                                                    {
+                                                        lCatenateParts.Add(new cCatenateLiteralAppendDataPart(lSessionParts));
+                                                        lSessionParts.Clear();
+                                                    }
+
+                                                    lCatenateParts.Add(lURLPart);
+                                                }
+                                                else lSessionParts.Add(new cSessionMessageAppendDataPart(lMessagePart.Client, lMessagePart.MessageHandle, lMessagePart.Part.Section, lMessagePart.Part.SizeInBytes));
+
+                                                break;
+                                            }
+
+                                        case cUIDSectionAppendDataPart lSection:
+
+                                            {
+                                                if (_Capabilities.Catenate && lSection.Client.ConnectedAccountId == _ConnectedAccountId && cCatenateURLAppendDataPart.TryConstruct(lSection.MailboxHandle, lSection.UID, lSection.Section, mCommandPartFactory, out var lURLPart))
+                                                {
+                                                    if (lSessionParts.Count > 0)
+                                                    {
+                                                        lCatenateParts.Add(new cCatenateLiteralAppendDataPart(lSessionParts));
+                                                        lSessionParts.Clear();
+                                                    }
+
+                                                    lCatenateParts.Add(lURLPart);
+                                                }
+                                                else lSessionParts.Add(new cSessionMessageAppendDataPart(lSection.Client, lSection.MailboxHandle, lSection.UID, lSection.Section, lSection.Length));
+
+                                                break;
+                                            }
+
+                                        case cFileAppendDataPart lFile:
+
+                                            lSessionParts.Add(new cSessionFileAppendDataPart(lFile.Path, lFile.Length, lFile.Base64Encode, lFile.ReadConfiguration ?? mAppendStreamReadConfiguration));
+                                            break;
+
+                                        case cStreamAppendDataPart lStreamPart:
+
+                                            {
+                                                cBatchSizerConfiguration lConfiguration = lStreamPart.ReadConfiguration ?? mAppendStreamReadConfiguration;
+
+                                                if (lStreamPart.Stream.CanSeek) lStreamPart.Stream.Position = 0;
+
+                                                Stream lStream;
+                                                if (lStreamPart.Base64Encode) lStream = new cBase64Encoder(lStreamPart.Stream, lConfiguration);
+                                                else lStream = lStreamPart.Stream;
+
+                                                lSessionParts.Add(new cSessionStreamAppendDataPart(lStream, lStreamPart.Length, lConfiguration));
+                                                break;
+                                            }
+
+                                        case cLiteralAppendDataPartBase lLiteral:
+
+                                            Encoding lEncoding;
+                                            if ((EnabledExtensions & fEnableableExtensions.utf8) == 0) lEncoding = lMultiPart.Encoding ?? mEncoding;
+                                            else lEncoding = null;
+
+                                            lSessionParts.Add(new cSessionLiteralAppendDataPart(lLiteral.GetBytes(lEncoding)));
+                                            break;
+
+                                        default:
+
+                                            throw new cInternalErrorException();
                                     }
-
-                                    if (lLength > uint.MaxValue) throw new cAppendDataSizeException(lMultiPart);
-
-                                    lMessages.Add(new cSessionMultiPartAppendData(lFlags, lMultiPart.Received, lParts));
                                 }
+
+                                if (lCatenateParts.Count > 0)
+                                {
+                                    if (lSessionParts.Count > 0) lCatenateParts.Add(new cCatenateLiteralAppendDataPart(lSessionParts));
+                                    lMessages.Add(new cCatenateAppendData(lFlags, lMultiPart.Received, lCatenateParts));
+                                }
+                                else lMessages.Add(new cSessionMultiPartAppendData(lFlags, lMultiPart.Received, lSessionParts));
 
                                 break;
                             }
