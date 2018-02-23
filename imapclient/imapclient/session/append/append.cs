@@ -117,7 +117,7 @@ namespace work.bacome.imapclient
                                 if (lCatenate) lAttributes |= fMessageCacheAttributes.uid;
                                 else lAttributes |= fMessageCacheAttributes.size;
 
-                                if (!await lWholeMessage.Client.FetchAsync(lWholeMessage.MessageHandle, lAttributes))
+                                if (!await lWholeMessage.Client.FetchAsync(lWholeMessage.MessageHandle, lAttributes).ConfigureAwait(false))
                                 {
                                     if (lWholeMessage.MessageHandle.Expunged) throw new cMessageExpungedException(lWholeMessage.MessageHandle);
                                     else throw new cRequestedDataNotReturnedException(lWholeMessage.MessageHandle);
@@ -129,7 +129,7 @@ namespace work.bacome.imapclient
                                 {
                                     lCatenate = false;
 
-                                    if (!await lWholeMessage.Client.FetchAsync(lWholeMessage.MessageHandle, fMessageCacheAttributes.size))
+                                    if (!await lWholeMessage.Client.FetchAsync(lWholeMessage.MessageHandle, fMessageCacheAttributes.size).ConfigureAwait(false))
                                     {
                                         if (lWholeMessage.MessageHandle.Expunged) throw new cMessageExpungedException(lWholeMessage.MessageHandle);
                                         else throw new cRequestedDataNotReturnedException(lWholeMessage.MessageHandle);
@@ -160,7 +160,7 @@ namespace work.bacome.imapclient
                                 if (lMessagePart.Received == null) lAttributes |= fMessageCacheAttributes.received;
                                 if (lCatenate) lAttributes |= fMessageCacheAttributes.uid;
 
-                                if (!await lMessagePart.Client.FetchAsync(lMessagePart.MessageHandle, lAttributes))
+                                if (!await lMessagePart.Client.FetchAsync(lMessagePart.MessageHandle, lAttributes).ConfigureAwait(false))
                                 {
                                     if (lMessagePart.MessageHandle.Expunged) throw new cMessageExpungedException(lMessagePart.MessageHandle);
                                     else throw new cRequestedDataNotReturnedException(lMessagePart.MessageHandle);
@@ -225,7 +225,7 @@ namespace work.bacome.imapclient
                                                 if (lCatenate) lAttributes |= fMessageCacheAttributes.uid;
                                                 else lAttributes |= fMessageCacheAttributes.size;
 
-                                                if (!await lWholeMessage.Client.FetchAsync(lWholeMessage.MessageHandle, lAttributes))
+                                                if (!await lWholeMessage.Client.FetchAsync(lWholeMessage.MessageHandle, lAttributes).ConfigureAwait(false))
                                                 {
                                                     if (lWholeMessage.MessageHandle.Expunged) throw new cMessageExpungedException(lWholeMessage.MessageHandle);
                                                     else throw new cRequestedDataNotReturnedException(lWholeMessage.MessageHandle);
@@ -237,7 +237,7 @@ namespace work.bacome.imapclient
                                                 {
                                                     lCatenate = false;
 
-                                                    if (!await lWholeMessage.Client.FetchAsync(lWholeMessage.MessageHandle, fMessageCacheAttributes.size))
+                                                    if (!await lWholeMessage.Client.FetchAsync(lWholeMessage.MessageHandle, fMessageCacheAttributes.size).ConfigureAwait(false))
                                                     {
                                                         if (lWholeMessage.MessageHandle.Expunged) throw new cMessageExpungedException(lWholeMessage.MessageHandle);
                                                         else throw new cRequestedDataNotReturnedException(lWholeMessage.MessageHandle);
@@ -264,7 +264,7 @@ namespace work.bacome.imapclient
                                             {
                                                 bool lCatenate = _Capabilities.Catenate && lMessagePart.Client.ConnectedAccountId == _ConnectedAccountId;
 
-                                                if (lCatenate && !await lMessagePart.Client.FetchAsync(lMessagePart.MessageHandle, fMessageCacheAttributes.uid))
+                                                if (lCatenate && !await lMessagePart.Client.FetchAsync(lMessagePart.MessageHandle, fMessageCacheAttributes.uid).ConfigureAwait(false))
                                                 {
                                                     if (lMessagePart.MessageHandle.Expunged) throw new cMessageExpungedException(lMessagePart.MessageHandle);
                                                     else throw new cRequestedDataNotReturnedException(lMessagePart.MessageHandle);

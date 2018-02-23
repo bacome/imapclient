@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
@@ -18,7 +19,7 @@ namespace testharness2
             // quickly get to the test I'm working on
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(CurrentTest));
             //cIMAPClient._Tests(lContext);
-            ZTestAppend1(lContext);
+            ZTestAppendNoCatenateNoBinaryNoUTF8(lContext);
         }
 
         public static void Tests(bool pQuick, cTrace.cContext pParentContext)
@@ -27,15 +28,17 @@ namespace testharness2
 
             try
             {
-                cIMAPClient._Tests(lContext);
+                if (!pQuick) cIMAPClient._Tests(lContext);
 
                 ZTestByeAtStartup1(cTrace.cContext.None); // tests BYE at startup and ALERT
+
                 ZTestByeAtStartup2(cTrace.cContext.None); // tests BYE at startup and greeting
                 ZTestByeAtStartup3(lContext); // tests BYE at startup with referral
 
                 if (!pQuick) ZTestPreauthAtStartup1(lContext); // tests capability in greeting and logout
                 ZTestPreauthAtStartup1_2(lContext); // tests utf8 id
                 ZTestPreauthAtStartup1_3(lContext); // tests utf8 id 2
+
                 ZTestPreauthAtStartup2(lContext); // tests capability command, enabling UTF8, information, warning and error messages, 
                 ZTestPreauthAtStartup3(cTrace.cContext.None); // tests that when there is nothing to enable that the enable isn't done
 
@@ -62,6 +65,7 @@ namespace testharness2
                 ZTestSearch1(lContext);
                 ZTestSearch2(lContext);
                 ZTestSearch3(lContext);
+
                 if (!pQuick) ZTestIdleRestart(lContext);
                 ZTestUIDFetch1(lContext);
 
@@ -72,9 +76,7 @@ namespace testharness2
                 if (!pQuick) ZTestEarlyTermination1(lContext);
                 if (!pQuick) ZTestEarlyTermination2(lContext);
 
-
-                // TODO: 
-                //ZTestAppend1(lContext);
+                ZTestAppendNoCatenateNoBinaryNoUTF8(lContext);
             }
             catch (Exception e) when (lContext.TraceException(e)) { }
         }
@@ -83,22 +85,16 @@ namespace testharness2
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestByeAtStartup1));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* BYE [ALERT] this is the text\r\n");
-            lServer.AddExpectClose();
-
-            cIMAPClient lClient = new cIMAPClient("ZTestByeAtStartup1_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus");
-
-            cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greetingbye, eResponseTextCode.alert, "this is the text");
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestByeAtStartup1)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* BYE [ALERT] this is the text\r\n");
+                lServer.AddExpectClose();
+
+                lClient.SetPlainCredentials("fred", "angus");
+
+                cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
+                lExpecter.Expect(eResponseTextContext.greetingbye, eResponseTextCode.alert, "this is the text");
 
                 try
                 {
@@ -109,488 +105,380 @@ namespace testharness2
 
                 if (lClient.HomeServerReferral != null) throw new cTestsException("referral should be null", lContext);
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.ThrowAnyErrors();
+                lExpecter.Done();
             }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-
-            lExpecter.Done();
         }
 
         private static void ZTestByeAtStartup2(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestByeAtStartup2));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* BYE this is the text\r\n");
-            lServer.AddExpectClose();
-
-            cIMAPClient lClient = new cIMAPClient("ZTestByeAtStartup2_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus");
-
-            cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greetingbye, eResponseTextCode.none, "this is the text");
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestByeAtStartup2)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* BYE this is the text\r\n");
+                lServer.AddExpectClose();
+
+                lClient.SetPlainCredentials("fred", "angus");
+
+                cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
+                lExpecter.Expect(eResponseTextContext.greetingbye, eResponseTextCode.none, "this is the text");
 
                 try
                 {
                     lClient.Connect();
                     throw new cTestsException("connect should have failed", lContext);
                 }
-                catch (cConnectByeException) { /* expected */ }
+                catch (cConnectByeException) { }
 
                 if (lClient.HomeServerReferral != null) throw new cTestsException("referral should be null", lContext);
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.ThrowAnyErrors();
+                lExpecter.Done();
             }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-
-            lExpecter.Done();
         }
 
         private static void ZTestByeAtStartup3(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestByeAtStartup3));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* BYE [REFERRAL IMAP://user;AUTH=*@SERVER2/] Server not accepting connections.Try SERVER2\r\n");
-            lServer.AddExpectClose();
-
-            cIMAPClient lClient = new cIMAPClient("ZTestByeAtStartup3_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus");
-
-            cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greetingbye, eResponseTextCode.referral, "Server not accepting connections.Try SERVER2");
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestByeAtStartup3)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* BYE [REFERRAL IMAP://user;AUTH=*@SERVER2/] Server not accepting connections.Try SERVER2\r\n");
+                lServer.AddExpectClose();
+
+                lClient.SetPlainCredentials("fred", "angus");
+
+                cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
+                lExpecter.Expect(eResponseTextContext.greetingbye, eResponseTextCode.referral, "Server not accepting connections.Try SERVER2");
 
                 try
                 {
                     lClient.Connect();
                     throw new cTestsException("connect should have failed", lContext);
                 }
-                catch (cHomeServerReferralException) { /* expected */ }
+                catch (cHomeServerReferralException) { }
 
                 if (lClient.HomeServerReferral == null) throw new cTestsException("referral should be set", lContext);
                 if (lClient.HomeServerReferral.MustUseAnonymous || lClient.HomeServerReferral.UserId != "user" || lClient.HomeServerReferral.MechanismName != null || lClient.HomeServerReferral.Host != "SERVER2" || lClient.HomeServerReferral.Port != 143) throw new cTestsException("referral isn't what is expected", lContext);
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.ThrowAnyErrors();
+                lExpecter.Done();
             }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-
-            lExpecter.Done();
         }
 
         private static void ZTestPreauthAtStartup1(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestPreauthAtStartup1));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 AUTH=GSSAPI AUTH=PLAIN ID NAMESPACE] this is the text\r\n");
-            lServer.AddExpectTagged("ID (\"name\" \"fred\")\r\n");
-            lServer.AddExpectTagged("NAMESPACE\r\n");
-            lServer.AddSendData("* NAMESPACE ((\"\" \"/\")) ((\"~\" \"/\")) NIL\r\n");
-            lServer.AddSendData("* ID (\"name\" \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\")\r\n");
-            lServer.AddSendTagged("OK NAMESPACE command completed\r\n");
-            lServer.AddDelay(1000);
-            lServer.AddSendTagged("OK ID command completed\r\n");
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddExpectClose();
-
-            cIMAPClient lClient = new cIMAPClient("ZTestPreauthAtStartup1_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus");
-
-            cIdDictionary lIdDictionary = new cIdDictionary(false);
-            lIdDictionary.Name = "fred";
-            lClient.ClientId = lIdDictionary;
-
-            cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greetingpreauth, eResponseTextCode.other, "this is the text");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "NAMESPACE command completed");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
-            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestPreauthAtStartup1)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 AUTH=GSSAPI AUTH=PLAIN ID NAMESPACE] this is the text\r\n");
+                lServer.AddExpectTagged("ID (\"name\" \"fred\")\r\n");
+                lServer.AddExpectTagged("NAMESPACE\r\n");
+                lServer.AddSendData("* NAMESPACE ((\"\" \"/\")) ((\"~\" \"/\")) NIL\r\n");
+                lServer.AddSendData("* ID (\"name\" \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\")\r\n");
+                lServer.AddSendTagged("OK NAMESPACE command completed\r\n");
+                lServer.AddDelay(1000);
+                lServer.AddSendTagged("OK ID command completed\r\n");
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddExpectClose();
+
+                lClient.SetPlainCredentials("fred", "angus");
+
+                cIdDictionary lIdDictionary = new cIdDictionary(false);
+                lIdDictionary.Name = "fred";
+                lClient.ClientId = lIdDictionary;
+
+                cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
+                lExpecter.Expect(eResponseTextContext.greetingpreauth, eResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "NAMESPACE command completed");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
+                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
                 lClient.Connect();
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.ThrowAnyErrors();
+                lExpecter.Done();
+
+                if (lClient.ServerId.Name != "Cyrus") throw new cTestsException("serverid failure 1");
+                if (lClient.ServerId.Count != 5) throw new cTestsException("serverid failure 2");
+
+                if (lClient.Namespaces.Personal.Count != 1 || lClient.Namespaces.Personal[0].Prefix.Length != 0 || lClient.Namespaces.Personal[0].NamespaceName.Delimiter != '/') throw new cTestsException("namespace failure 1", lContext);
+                if (lClient.Namespaces.OtherUsers.Count != 1 || lClient.Namespaces.OtherUsers[0].Prefix != "~" || lClient.Namespaces.OtherUsers[0].NamespaceName.Delimiter != '/') throw new cTestsException("namespace failure 1", lContext);
+                if (lClient.Namespaces.Shared != null) throw new cTestsException("namespace failure 1", lContext);
             }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-
-            lExpecter.Done();
-
-            if (lClient.ServerId.Name != "Cyrus") throw new cTestsException("serverid failure 1");
-            if (lClient.ServerId.Count != 5) throw new cTestsException("serverid failure 2");
-
-            if (lClient.Namespaces.Personal.Count != 1 || lClient.Namespaces.Personal[0].Prefix.Length != 0 || lClient.Namespaces.Personal[0].NamespaceName.Delimiter != '/') throw new cTestsException("namespace failure 1", lContext);
-            if (lClient.Namespaces.OtherUsers.Count != 1 || lClient.Namespaces.OtherUsers[0].Prefix != "~" || lClient.Namespaces.OtherUsers[0].NamespaceName.Delimiter != '/') throw new cTestsException("namespace failure 1", lContext);
-            if (lClient.Namespaces.Shared != null) throw new cTestsException("namespace failure 1", lContext);
         }
 
         private static void ZTestPreauthAtStartup1_2(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestPreauthAtStartup1_2));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 AUTH=GSSAPI AUTH=PLAIN ID] this is the text\r\n");
-            lServer.AddExpectTagged("ID (\"name\" \"fr?d\")\r\n");
-            lServer.AddSendData("* ID (\"name\" \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\")\r\n");
-            lServer.AddSendTagged("OK ID command completed\r\n");
-
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () nil \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddExpectClose();
-
-            cIMAPClient lClient = new cIMAPClient("ZTestPreauthAtStartup1_2_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus");
-
-            cIdDictionary lIdDictionary = new cIdDictionary();
-            lIdDictionary.Name = "fr€d";
-
-            bool lFailed = false;
-            try { lClient.ClientId = lIdDictionary; }
-            catch (Exception) { lFailed = true; }
-            if (!lFailed) throw new cTestsException("ZTestPreauthAtStartup1_2: utf8 client id should have failed");
-
-            lIdDictionary = new cIdDictionary(false);
-            lIdDictionary.Name = "fr?d";
-            lClient.ClientId = lIdDictionary;
-
-            lClient.IdleConfiguration = null;
-
-            cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greetingpreauth, eResponseTextCode.other, "this is the text");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
-            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestPreauthAtStartup1_2)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 AUTH=GSSAPI AUTH=PLAIN ID] this is the text\r\n");
+                lServer.AddExpectTagged("ID (\"name\" \"fr?d\")\r\n");
+                lServer.AddSendData("* ID (\"name\" \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\")\r\n");
+                lServer.AddSendTagged("OK ID command completed\r\n");
+
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () nil \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddExpectClose();
+
+                lClient.SetPlainCredentials("fred", "angus");
+
+                cIdDictionary lIdDictionary = new cIdDictionary();
+                lIdDictionary.Name = "fr€d";
+
+                bool lFailed = false;
+                try { lClient.ClientId = lIdDictionary; }
+                catch (Exception) { lFailed = true; }
+                if (!lFailed) throw new cTestsException("ZTestPreauthAtStartup1_2: utf8 client id should have failed");
+
+                lIdDictionary = new cIdDictionary(false);
+                lIdDictionary.Name = "fr?d";
+                lClient.ClientId = lIdDictionary;
+
+                lClient.IdleConfiguration = null;
+
+                cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
+                lExpecter.Expect(eResponseTextContext.greetingpreauth, eResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
+                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
                 lClient.Connect();
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
-            }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
+                lServer.ThrowAnyErrors();
+                lExpecter.Done();
 
-            lExpecter.Done();
-
-            if (lClient.ServerId.Name != "Cyrus") throw new cTestsException("serverid failure 1");
-            if (lClient.ServerId.Count != 5) throw new cTestsException("serverid failure 2");
+                if (lClient.ServerId.Name != "Cyrus") throw new cTestsException("serverid failure 1");
+                if (lClient.ServerId.Count != 5) throw new cTestsException("serverid failure 2");
+            }
         }
 
         private static void ZTestPreauthAtStartup1_3(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestPreauthAtStartup1_3));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY ENABLE IMAP4rev1 AUTH=GSSAPI UTF8=ACCEPT LITERAL- ID] this is the text\r\n");
-            //lServer.AddExpectTagged("ID (\"name\" \"fr?d\")\r\n");
-            //lServer.AddSendData("* ID (\"name\" \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\")\r\n");
-            //lServer.AddSendTagged("OK ID command completed\r\n");
-
-
-            lServer.AddExpectTagged("LOGIN {4+}\r\nfred {5+}\r\nangus\r\n");
-            lServer.AddSendTagged("OK [CAPABILITY ENABLE IMAP4rev1 AUTH=GSSAPI UTF8=ACCEPT LITERAL- ID] logged in\r\n");
-
-            lServer.AddExpectTagged("ENABLE UTF8=ACCEPT\r\n");
-            lServer.AddSendData("* ENABLED UTF8=ACCEPT\r\n");
-            lServer.AddSendTagged("OK enable done\r\n");
-
-            lServer.AddExpectTagged(Encoding.UTF8.GetBytes("ID (\"name\" \"fr€d\")\r\n"));
-            lServer.AddSendData(Encoding.UTF8.GetBytes("* ID (\"name\" \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andr€w.cmu.€du\")\r\n"));
-            lServer.AddSendTagged("OK ID command completed\r\n");
-
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () nil \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddExpectClose();
-
-            cIMAPClient lClient = new cIMAPClient("ZTestPreauthAtStartup1_3_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
-
-            cIdDictionary lIdDictionary = new cIdDictionary(false);
-            lIdDictionary.Name = "fr€d";
-            lClient.ClientIdUTF8 = lIdDictionary;
-
-            cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
-            //lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.other, "logged in");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "enable done");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
-            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestPreauthAtStartup1_3)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* OK [CAPABILITY ENABLE IMAP4rev1 AUTH=GSSAPI UTF8=ACCEPT LITERAL- ID] this is the text\r\n");
+                //lServer.AddExpectTagged("ID (\"name\" \"fr?d\")\r\n");
+                //lServer.AddSendData("* ID (\"name\" \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\")\r\n");
+                //lServer.AddSendTagged("OK ID command completed\r\n");
+
+
+                lServer.AddExpectTagged("LOGIN {4+}\r\nfred {5+}\r\nangus\r\n");
+                lServer.AddSendTagged("OK [CAPABILITY ENABLE IMAP4rev1 AUTH=GSSAPI UTF8=ACCEPT LITERAL- ID] logged in\r\n");
+
+                lServer.AddExpectTagged("ENABLE UTF8=ACCEPT\r\n");
+                lServer.AddSendData("* ENABLED UTF8=ACCEPT\r\n");
+                lServer.AddSendTagged("OK enable done\r\n");
+
+                lServer.AddExpectTagged(Encoding.UTF8.GetBytes("ID (\"name\" \"fr€d\")\r\n"));
+                lServer.AddSendData(Encoding.UTF8.GetBytes("* ID (\"name\" \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andr€w.cmu.€du\")\r\n"));
+                lServer.AddSendTagged("OK ID command completed\r\n");
+
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () nil \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddExpectClose();
+
+                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+
+                cIdDictionary lIdDictionary = new cIdDictionary(false);
+                lIdDictionary.Name = "fr€d";
+                lClient.ClientIdUTF8 = lIdDictionary;
+
+                cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
+                lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
+                //lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.other, "logged in");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "enable done");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
+                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
                 lClient.Connect();
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
-            }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
+                lServer.ThrowAnyErrors();
+                lExpecter.Done();
 
-            lExpecter.Done();
-
-            if (lClient.ServerId.Count != 5) throw new cTestsException("expected 5 fields");
-            if (lClient.ServerId.Name != "Cyrus") throw new cTestsException("expected cyrus");
-            if (lClient.ServerId.SupportURL != "mailto:cyrus-bugs+@andr€w.cmu.€du") throw new cTestsException("expected UTF8 in the support URL");
-            if (lClient.Namespaces.Personal.Count != 1 || lClient.Namespaces.OtherUsers != null || lClient.Namespaces.Shared != null || lClient.Namespaces.Personal[0].NamespaceName.Delimiter != null || lClient.Namespaces.Personal[0].Prefix != "") throw new cTestsException("namespace problem");
+                if (lClient.ServerId.Count != 5) throw new cTestsException("expected 5 fields");
+                if (lClient.ServerId.Name != "Cyrus") throw new cTestsException("expected cyrus");
+                if (lClient.ServerId.SupportURL != "mailto:cyrus-bugs+@andr€w.cmu.€du") throw new cTestsException("expected UTF8 in the support URL");
+                if (lClient.Namespaces.Personal.Count != 1 || lClient.Namespaces.OtherUsers != null || lClient.Namespaces.Shared != null || lClient.Namespaces.Personal[0].NamespaceName.Delimiter != null || lClient.Namespaces.Personal[0].Prefix != "") throw new cTestsException("namespace problem");
+            }
         }
 
         private static void ZTestPreauthAtStartup2(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestPreauthAtStartup2));
 
-            cServer lServer = new cServer();
-
-            lServer.AddSendData("* PREAUTH this is the text\r\n");
-            lServer.AddExpectTagged("CAPABILITY\r\n");
-            lServer.AddSendData("* CAPABILITY ENABLE IDLE LITERAL+ UTF8=ACCEPT IMAP4rev1 AUTH=PLAIN XSOMEFEATURE XSOMEOTHERFEATURE LOGINDISABLED\r\n");
-            lServer.AddSendTagged("OK capability done\r\n");
-
-            lServer.AddExpectTagged("ENABLE UTF8=ACCEPT\r\n");
-            lServer.AddSendData("* ENABLED UTF8=ACCEPT\r\n");
-            lServer.AddSendData("* OK information message\r\n");
-            lServer.AddSendData("* NO warning message\r\n");
-            lServer.AddSendData("* BAD error message\r\n");
-            lServer.AddSendData("* ENABLED UTF8=ACCEPT\r\n");
-            lServer.AddSendTagged("OK enable done\r\n");
-
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddExpectClose();
-
-            cIMAPClient lClient = new cIMAPClient("ZTestPreauthAtStartup2_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus");
-
-            cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greetingpreauth, eResponseTextCode.none, "this is the text");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "capability done");
-            lExpecter.Expect(eResponseTextContext.information, eResponseTextCode.none, "information message");
-            lExpecter.Expect(eResponseTextContext.warning, eResponseTextCode.none, "warning message");
-            lExpecter.Expect(eResponseTextContext.protocolerror, eResponseTextCode.none, "error message");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "enable done");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
-            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestPreauthAtStartup2)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+
+                lServer.AddSendData("* PREAUTH this is the text\r\n");
+                lServer.AddExpectTagged("CAPABILITY\r\n");
+                lServer.AddSendData("* CAPABILITY ENABLE IDLE LITERAL+ UTF8=ACCEPT IMAP4rev1 AUTH=PLAIN XSOMEFEATURE XSOMEOTHERFEATURE LOGINDISABLED\r\n");
+                lServer.AddSendTagged("OK capability done\r\n");
+
+                lServer.AddExpectTagged("ENABLE UTF8=ACCEPT\r\n");
+                lServer.AddSendData("* ENABLED UTF8=ACCEPT\r\n");
+                lServer.AddSendData("* OK information message\r\n");
+                lServer.AddSendData("* NO warning message\r\n");
+                lServer.AddSendData("* BAD error message\r\n");
+                lServer.AddSendData("* ENABLED UTF8=ACCEPT\r\n");
+                lServer.AddSendTagged("OK enable done\r\n");
+
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddExpectClose();
+
+                lClient.SetPlainCredentials("fred", "angus");
+
+                cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
+                lExpecter.Expect(eResponseTextContext.greetingpreauth, eResponseTextCode.none, "this is the text");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "capability done");
+                lExpecter.Expect(eResponseTextContext.information, eResponseTextCode.none, "information message");
+                lExpecter.Expect(eResponseTextContext.warning, eResponseTextCode.none, "warning message");
+                lExpecter.Expect(eResponseTextContext.protocolerror, eResponseTextCode.none, "error message");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "enable done");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
+                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
                 lClient.Connect();
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.ThrowAnyErrors();
+                lExpecter.Done();
+
+                if (lClient.Namespaces.Personal[0].NamespaceName.Delimiter != '/' || lClient.Namespaces.Personal[0].Prefix != "") throw new cTestsException("namespace problem");
             }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-
-            lExpecter.Done();
-
-            if (lClient.Namespaces.Personal[0].NamespaceName.Delimiter != '/' || lClient.Namespaces.Personal[0].Prefix != "") throw new cTestsException("namespace problem");
-
         }
 
         private static void ZTestPreauthAtStartup3(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestPreauthAtStartup3));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* PREAUTH [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 AUTH=PLAIN XSOMEFEATURE XSOMEOTHERFEATURE LOGINDISABLED] this is the text\r\n");
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddClose();
-
-            cIMAPClient lClient = new cIMAPClient("ZTestPreauthAtStartup3_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus");
-
-            cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greetingpreauth, eResponseTextCode.other, "this is the text");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
-            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestPreauthAtStartup3)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* PREAUTH [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 AUTH=PLAIN XSOMEFEATURE XSOMEOTHERFEATURE LOGINDISABLED] this is the text\r\n");
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.SetPlainCredentials("fred", "angus");
+
+                cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
+                lExpecter.Expect(eResponseTextContext.greetingpreauth, eResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
+                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
                 lClient.Connect();
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.ThrowAnyErrors();
+                lExpecter.Done();
             }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-
-            lExpecter.Done();
         }
 
         private static void ZTestAuthAtStartup1(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestAuthAtStartup1));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE LOGINDISABLED] this is the text\r\n");
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddClose();
-
-            cIMAPClient lClient = new cIMAPClient("ZTestAuthAtStartup1_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus");
-
-            cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
-            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAuthAtStartup1)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE LOGINDISABLED] this is the text\r\n");
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.SetPlainCredentials("fred", "angus");
+
+                cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
+                lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
+
 
                 bool lFailed = false;
                 try { lClient.Connect(); }
                 catch (cAuthenticationMechanismsException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("expected connect to fail");
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.ThrowAnyErrors();
+                lExpecter.Done();
             }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-
-            lExpecter.Done();
         }
 
         private static void ZTestAuthAtStartup2(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestAuthAtStartup2));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] this is the text\r\n");
-            lServer.AddExpectTagged("LOGIN {4+}\r\nfred {5+}\r\nangus\r\n");
-            lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] logged in\r\n");
-
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddClose();
-
-            cIMAPClient lClient = new cIMAPClient("ZTestAuthAtStartup2_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
-
-            cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.other, "logged in");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
-            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAuthAtStartup2)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] this is the text\r\n");
+                lServer.AddExpectTagged("LOGIN {4+}\r\nfred {5+}\r\nangus\r\n");
+                lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] logged in\r\n");
+
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+
+                cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
+                lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.other, "logged in");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
+                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
                 lClient.Connect();
 
@@ -598,51 +486,39 @@ namespace testharness2
 
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.ThrowAnyErrors();
+                lExpecter.Done();
             }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-
-            lExpecter.Done();
         }
 
         private static void ZTestAuthAtStartup3(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestAuthAtStartup3));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE AUTH=PLAIN XSOMEOTHERFEATURE] this is the text\r\n");
-            lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
-            lServer.AddSendData("+ \r\n");
-            lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
-            lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] logged in\r\n");
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddClose();
-
-            cIMAPClient lClient = new cIMAPClient("ZTestAuthAtStartup3_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
-
-            cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.other, "logged in");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
-            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAuthAtStartup3)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE AUTH=PLAIN XSOMEOTHERFEATURE] this is the text\r\n");
+                lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
+                lServer.AddSendData("+ \r\n");
+                lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
+                lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] logged in\r\n");
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+
+                cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
+                lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.other, "logged in");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
+                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
                 lClient.Connect();
 
@@ -650,108 +526,84 @@ namespace testharness2
 
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.ThrowAnyErrors();
+                lExpecter.Done();
             }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-
-            lExpecter.Done();
         }
 
         private static void ZTestAuthAtStartup4(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestAuthAtStartup4));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE IMAP4rev1 XSOMEFEATURE AUTH=PLAIN XSOMEOTHERFEATURE] this is the text\r\n");
-
-            lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
-            lServer.AddSendData("+ \r\n");
-            lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
-            lServer.AddSendTagged("NO incorrect password\r\n");
-
-            lServer.AddExpectTagged("LOGIN {4}\r\n");
-            lServer.AddSendData("+ ready\r\n");
-            lServer.AddExpectData("fred {5}\r\n");
-            lServer.AddSendData("+ ready\r\n");
-            lServer.AddExpectData("angus\r\n");
-            lServer.AddSendTagged("NO [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] incorrect password again\r\n");
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddClose();
-
-            cIMAPClient lClient = new cIMAPClient("ZTestAuthAtStartup4_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
-
-            cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
-            lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.none, "incorrect password");
-            lExpecter.Expect(eResponseTextContext.continuerequest, eResponseTextCode.none, "ready");
-            lExpecter.Expect(eResponseTextContext.continuerequest, eResponseTextCode.none, "ready");
-            lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.other, "incorrect password again"); // the CAPABILITY on a NO is not allowed by the base spec
-            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAuthAtStartup4)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE IMAP4rev1 XSOMEFEATURE AUTH=PLAIN XSOMEOTHERFEATURE] this is the text\r\n");
+
+                lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
+                lServer.AddSendData("+ \r\n");
+                lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
+                lServer.AddSendTagged("NO incorrect password\r\n");
+
+                lServer.AddExpectTagged("LOGIN {4}\r\n");
+                lServer.AddSendData("+ ready\r\n");
+                lServer.AddExpectData("fred {5}\r\n");
+                lServer.AddSendData("+ ready\r\n");
+                lServer.AddExpectData("angus\r\n");
+                lServer.AddSendTagged("NO [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] incorrect password again\r\n");
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+
+                cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
+                lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.none, "incorrect password");
+                lExpecter.Expect(eResponseTextContext.continuerequest, eResponseTextCode.none, "ready");
+                lExpecter.Expect(eResponseTextContext.continuerequest, eResponseTextCode.none, "ready");
+                lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.other, "incorrect password again"); // the CAPABILITY on a NO is not allowed by the base spec
+                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
                 bool lFailed = false;
                 try { lClient.Connect(); }
                 catch (cCredentialsException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("expected connect to fail");
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.ThrowAnyErrors();
+                lExpecter.Done();
             }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-
-            lExpecter.Done();
         }
 
         private static void ZTestAuthAtStartup4_1(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestAuthAtStartup4_1));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE IMAP4rev1 XSOMEFEATURE AUTH=PLAIN XSOMEOTHERFEATURE LOGIN-REFERRALS] this is the text\r\n");
-
-            lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
-            lServer.AddSendData("+ \r\n");
-            lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
-            lServer.AddSendTagged("NO [REFERRAL IMAP://user;AUTH=GSSAPI@SERVER2/] Specified user is invalid on this server.Try SERVER2.\r\n");
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddClose();
-
-            cIMAPClient lClient = new cIMAPClient("ZTestAuthAtStartup4_1_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
-
-            cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
-            lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.referral, "Specified user is invalid on this server.Try SERVER2.");
-            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAuthAtStartup4_1)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE IMAP4rev1 XSOMEFEATURE AUTH=PLAIN XSOMEOTHERFEATURE LOGIN-REFERRALS] this is the text\r\n");
+
+                lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
+                lServer.AddSendData("+ \r\n");
+                lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
+                lServer.AddSendTagged("NO [REFERRAL IMAP://user;AUTH=GSSAPI@SERVER2/] Specified user is invalid on this server.Try SERVER2.\r\n");
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+
+                cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
+                lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.referral, "Specified user is invalid on this server.Try SERVER2.");
+                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
                 bool lFailed = false;
                 try { lClient.Connect(); }
@@ -765,133 +617,108 @@ namespace testharness2
                 if (lClient.HomeServerReferral == null) throw new cTestsException("referral should be set", lContext);
                 if (lClient.HomeServerReferral.MustUseAnonymous || lClient.HomeServerReferral.UserId != "user" || lClient.HomeServerReferral.MechanismName != "GSSAPI" || lClient.HomeServerReferral.Host != "SERVER2" || lClient.HomeServerReferral.Port != 143) throw new cTestsException("referral isn't what is expected", lContext);
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.ThrowAnyErrors();
+                lExpecter.Done();
             }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-
-            lExpecter.Done();
         }
 
         private static void ZTestAuthAtStartup4_2(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestAuthAtStartup4_2));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE IMAP4rev1 XSOMEFEATURE AUTH=PLAIN XSOMEOTHERFEATURE] this is the text\r\n");
-
-            lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
-            lServer.AddSendData("+ \r\n");
-            lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
-            lServer.AddSendTagged("NO [AUTHENTICATIONFAILED] incorrect password\r\n");
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddClose();
-
-            cIMAPClient lClient = new cIMAPClient("ZTestAuthAtStartup4_2_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
-
-            cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
-            lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.authenticationfailed, "incorrect password");
-            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAuthAtStartup4_2)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE IMAP4rev1 XSOMEFEATURE AUTH=PLAIN XSOMEOTHERFEATURE] this is the text\r\n");
+
+                lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
+                lServer.AddSendData("+ \r\n");
+                lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
+                lServer.AddSendTagged("NO [AUTHENTICATIONFAILED] incorrect password\r\n");
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+
+                cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
+                lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.authenticationfailed, "incorrect password");
+                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
                 bool lFailed = false;
                 try { lClient.Connect(); }
                 catch (cCredentialsException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("expected connect to fail");
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.ThrowAnyErrors();
+                lExpecter.Done();
             }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-
-            lExpecter.Done();
         }
 
         private static void ZTestAuthAtStartup5(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestAuthAtStartup5));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE AUTH=PLAIN XSOMEOTHERFEATURE] this is the text\r\n");
-
-            lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
-            lServer.AddSendData("+ \r\n");
-            lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
-            lServer.AddSendTagged("OK logged in\r\n");
-
-            lServer.AddExpectTagged("CAPABILITY\r\n");
-            lServer.AddSendData("* CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE\r\n");
-            lServer.AddSendTagged("OK capability done\r\n");
-
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-
-            lServer.AddExpectTagged("IDLE\r\n");
-            lServer.AddSendData("+ idling\r\n");
-            lServer.AddDelay(1000);
-            lServer.AddSendData("* OK information message\r\n");
-            lServer.AddDelay(1000);
-            lServer.AddSendData("* NO warning message\r\n");
-            lServer.AddDelay(1000);
-            lServer.AddSendData("* BAD error message\r\n");
-            lServer.AddExpectData("DONE\r\n");
-            lServer.AddSendTagged("OK idle terminated\r\n");
-
-            lServer.AddExpectTagged("IDLE\r\n");
-            lServer.AddSendData("+ idling\r\n");
-            lServer.AddDelay(1000);
-            lServer.AddSendData("* BYE unilateral bye\r\n");
-
-            lServer.AddExpectClose();
-
-            cIMAPClient lClient = new cIMAPClient("ZTestAuthAtStartup5_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
-            lClient.IdleConfiguration = new cIdleConfiguration(2000, 10000);
-
-            cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged in");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "capability done");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
-            lExpecter.Expect(eResponseTextContext.continuerequest, eResponseTextCode.none, "idling");
-            lExpecter.Expect(eResponseTextContext.information, eResponseTextCode.none, "information message");
-            lExpecter.Expect(eResponseTextContext.warning, eResponseTextCode.none, "warning message");
-            lExpecter.Expect(eResponseTextContext.protocolerror, eResponseTextCode.none, "error message");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "idle terminated");
-            lExpecter.Expect(eResponseTextContext.continuerequest, eResponseTextCode.none, "idling");
-            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "unilateral bye");
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAuthAtStartup5), 60000))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE AUTH=PLAIN XSOMEOTHERFEATURE] this is the text\r\n");
+
+                lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
+                lServer.AddSendData("+ \r\n");
+                lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
+                lServer.AddSendTagged("OK logged in\r\n");
+
+                lServer.AddExpectTagged("CAPABILITY\r\n");
+                lServer.AddSendData("* CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE\r\n");
+                lServer.AddSendTagged("OK capability done\r\n");
+
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+
+                lServer.AddExpectTagged("IDLE\r\n");
+                lServer.AddSendData("+ idling\r\n");
+                lServer.AddDelay(1000);
+                lServer.AddSendData("* OK information message\r\n");
+                lServer.AddDelay(1000);
+                lServer.AddSendData("* NO warning message\r\n");
+                lServer.AddDelay(1000);
+                lServer.AddSendData("* BAD error message\r\n");
+                lServer.AddExpectData("DONE\r\n");
+                lServer.AddSendTagged("OK idle terminated\r\n");
+
+                lServer.AddExpectTagged("IDLE\r\n");
+                lServer.AddSendData("+ idling\r\n");
+                lServer.AddDelay(1000);
+                lServer.AddSendData("* BYE unilateral bye\r\n");
+
+                lServer.AddExpectClose();
+
+                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+                lClient.IdleConfiguration = new cIdleConfiguration(2000, 10000);
+
+                cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
+                lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged in");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "capability done");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
+                lExpecter.Expect(eResponseTextContext.continuerequest, eResponseTextCode.none, "idling");
+                lExpecter.Expect(eResponseTextContext.information, eResponseTextCode.none, "information message");
+                lExpecter.Expect(eResponseTextContext.warning, eResponseTextCode.none, "warning message");
+                lExpecter.Expect(eResponseTextContext.protocolerror, eResponseTextCode.none, "error message");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "idle terminated");
+                lExpecter.Expect(eResponseTextContext.continuerequest, eResponseTextCode.none, "idling");
+                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "unilateral bye");
 
                 lClient.Connect();
 
-                if (!lTask.Wait(60000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.GetSessionTask(0).Wait(60000);
 
                 bool lFailed = false;
                 try { lClient.Disconnect(); }
@@ -902,49 +729,41 @@ namespace testharness2
                 }
 
                 if (!lFailed) throw new cTestsException("disconnect should have failed");
-            }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
 
-            lExpecter.Done();
+                lServer.ThrowAnyErrors();
+                lExpecter.Done();
+            }
         }
 
         private static void ZTestAuthAtStartup5_1(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestAuthAtStartup5_1));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE AUTH=PLAIN XSOMEOTHERFEATURE LOGIN-REFERRALS] this is the text\r\n");
-
-            lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
-            lServer.AddSendData("+ \r\n");
-            lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
-            lServer.AddSendTagged("OK [REFERRAL IMAP://MATTHEW@SERVER2/] Specified user's personal mailboxes located on Server2, but public mailboxes are available.\r\n");
-
-            lServer.AddExpectTagged("CAPABILITY\r\n");
-            lServer.AddSendData("* CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE\r\n");
-            lServer.AddSendTagged("OK capability done\r\n");
-
-
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-
-
-
-            lServer.AddSendData("* BYE unilateral bye\r\n");
-
-            lServer.AddExpectClose();
-
-            cIMAPClient lClient = new cIMAPClient("ZTestAuthAtStartup5_1_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAuthAtStartup5_1)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE AUTH=PLAIN XSOMEOTHERFEATURE LOGIN-REFERRALS] this is the text\r\n");
+
+                lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
+                lServer.AddSendData("+ \r\n");
+                lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
+                lServer.AddSendTagged("OK [REFERRAL IMAP://MATTHEW@SERVER2/] Specified user's personal mailboxes located on Server2, but public mailboxes are available.\r\n");
+
+                lServer.AddExpectTagged("CAPABILITY\r\n");
+                lServer.AddSendData("* CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE\r\n");
+                lServer.AddSendTagged("OK capability done\r\n");
+
+
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+
+
+
+                lServer.AddSendData("* BYE unilateral bye\r\n");
+
+                lServer.AddExpectClose();
+
+                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+
 
                 try { lClient.Connect(); }
                 catch { }
@@ -956,18 +775,12 @@ namespace testharness2
                 try { lClient.Poll(); }
                 catch (Exception e)
                 {
-                    lContext.TraceVerbose($"disconnect failed as expected:\n{e}");
+                    lContext.TraceVerbose($"poll failed as expected:\n{e}");
                     lFailed = true;
                 }
                 if (!lFailed) throw new cTestsException("poll should have failed");
 
-                if (!lTask.Wait(60000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
-
-            }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
+                lServer.ThrowAnyErrors();
             }
         }
 
@@ -992,66 +805,55 @@ namespace testharness2
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestLiteralMinusWorker), pUserId, pPassword);
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY LITERAL- IMAP4rev1] this is the text\r\n");
-
-            if (pUserId.Length < 4097 && pPassword.Length < 4097)
+            using (cServer lServer = new cServer(lContext, nameof(ZTestLiteralMinusWorker)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lServer.AddExpectTagged("LOGIN {" + pUserId.Length.ToString() + "+}\r\n" + pUserId + " {" + pPassword.Length.ToString() + "+}\r\n" + pPassword + "\r\n");
-            }
-            else if (pUserId.Length > 4096 && pPassword.Length > 4096)
-            {
-                lServer.AddExpectTagged("LOGIN {" + pUserId.Length.ToString() + "}\r\n");
-                lServer.AddSendData("+ ready\r\n");
-                lServer.AddExpectData(pUserId + " {" + pPassword.Length.ToString() + "}\r\n");
-                lServer.AddSendData("+ ready\r\n");
-                lServer.AddExpectData(pPassword + "\r\n");
-            }
-            else if (pUserId.Length < 4097)
-            {
-                lServer.AddExpectTagged("LOGIN {" + pUserId.Length.ToString() + "+}\r\n" + pUserId + " {" + pPassword.Length.ToString() + "}\r\n");
-                lServer.AddSendData("+ ready\r\n");
-                lServer.AddExpectData(pPassword + "\r\n");
-            }
-            else
-            {
-                lServer.AddExpectTagged("LOGIN {" + pUserId.Length.ToString() + "}\r\n");
-                lServer.AddSendData("+ ready\r\n");
-                lServer.AddExpectData(pUserId + " {" + pPassword.Length.ToString() + "+}\r\n" + pPassword + "\r\n");
-            }
+                lServer.AddSendData("* OK [CAPABILITY LITERAL- IMAP4rev1] this is the text\r\n");
 
-            lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] logged in\r\n");
+                if (pUserId.Length < 4097 && pPassword.Length < 4097)
+                {
+                    lServer.AddExpectTagged("LOGIN {" + pUserId.Length.ToString() + "+}\r\n" + pUserId + " {" + pPassword.Length.ToString() + "+}\r\n" + pPassword + "\r\n");
+                }
+                else if (pUserId.Length > 4096 && pPassword.Length > 4096)
+                {
+                    lServer.AddExpectTagged("LOGIN {" + pUserId.Length.ToString() + "}\r\n");
+                    lServer.AddSendData("+ ready\r\n");
+                    lServer.AddExpectData(pUserId + " {" + pPassword.Length.ToString() + "}\r\n");
+                    lServer.AddSendData("+ ready\r\n");
+                    lServer.AddExpectData(pPassword + "\r\n");
+                }
+                else if (pUserId.Length < 4097)
+                {
+                    lServer.AddExpectTagged("LOGIN {" + pUserId.Length.ToString() + "+}\r\n" + pUserId + " {" + pPassword.Length.ToString() + "}\r\n");
+                    lServer.AddSendData("+ ready\r\n");
+                    lServer.AddExpectData(pPassword + "\r\n");
+                }
+                else
+                {
+                    lServer.AddExpectTagged("LOGIN {" + pUserId.Length.ToString() + "}\r\n");
+                    lServer.AddSendData("+ ready\r\n");
+                    lServer.AddExpectData(pUserId + " {" + pPassword.Length.ToString() + "+}\r\n" + pPassword + "\r\n");
+                }
+
+                lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] logged in\r\n");
 
 
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
 
 
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddClose();
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddExpectClose();
 
-            cIMAPClient lClient = new cIMAPClient("ZTestLiteralMinusWorker_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials(pUserId, pPassword, eTLSRequirement.indifferent);
-
-            Task lTask = null;
-
-            try
-            {
-                lTask = lServer.RunAsync(lContext);
+                lClient.SetPlainCredentials(pUserId, pPassword, eTLSRequirement.indifferent);
 
                 lClient.Connect();
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
-            }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
+                lServer.ThrowAnyErrors();
             }
         }
 
@@ -1059,70 +861,64 @@ namespace testharness2
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestNonIdlePolling));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY ENABLE LITERAL+ IMAP4rev1 XSOMEFEATURE AUTH=PLAIN XSOMEOTHERFEATURE] this is the text\r\n");
-
-            lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
-            lServer.AddSendData("+ \r\n");
-            lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
-            lServer.AddSendTagged("OK logged in\r\n");
-
-            lServer.AddExpectTagged("CAPABILITY\r\n");
-            lServer.AddSendData("* CAPABILITY ENABLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE\r\n");
-            lServer.AddSendTagged("OK capability done\r\n");
-
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-
-            lServer.AddExpectTagged("NOOP\r\n");
-            lServer.AddSendData("* OK information message\r\n");
-            lServer.AddSendData("* NO warning message\r\n");
-            lServer.AddSendData("* BAD error message\r\n");
-            lServer.AddSendTagged("OK noop completed\r\n");
-
-            lServer.AddExpectTagged("NOOP\r\n");
-            lServer.AddSendData("* OK information message\r\n");
-            lServer.AddSendData("* NO warning message\r\n");
-            lServer.AddSendData("* BAD error message\r\n");
-            lServer.AddSendTagged("OK noop completed\r\n");
-
-            lServer.AddExpectTagged("NOOP\r\n");
-            lServer.AddSendData("* BYE unilateral bye\r\n");
-            lServer.AddExpectClose();
-
-
-            cIMAPClient lClient = new cIMAPClient("ZTestNonIdlePolling_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
-            lClient.IdleConfiguration = new cIdleConfiguration(2000, 1200000, 7000);
-            
-            cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged in");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "capability done");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
-            lExpecter.Expect(eResponseTextContext.information, eResponseTextCode.none, "information message");
-            lExpecter.Expect(eResponseTextContext.warning, eResponseTextCode.none, "warning message");
-            lExpecter.Expect(eResponseTextContext.protocolerror, eResponseTextCode.none, "error message");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "noop completed");
-            lExpecter.Expect(eResponseTextContext.information, eResponseTextCode.none, "information message");
-            lExpecter.Expect(eResponseTextContext.warning, eResponseTextCode.none, "warning message");
-            lExpecter.Expect(eResponseTextContext.protocolerror, eResponseTextCode.none, "error message");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "noop completed");
-            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "unilateral bye");
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestNonIdlePolling), 60000))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* OK [CAPABILITY ENABLE LITERAL+ IMAP4rev1 XSOMEFEATURE AUTH=PLAIN XSOMEOTHERFEATURE] this is the text\r\n");
+
+                lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
+                lServer.AddSendData("+ \r\n");
+                lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
+                lServer.AddSendTagged("OK logged in\r\n");
+
+                lServer.AddExpectTagged("CAPABILITY\r\n");
+                lServer.AddSendData("* CAPABILITY ENABLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE\r\n");
+                lServer.AddSendTagged("OK capability done\r\n");
+
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+
+                lServer.AddExpectTagged("NOOP\r\n");
+                lServer.AddSendData("* OK information message\r\n");
+                lServer.AddSendData("* NO warning message\r\n");
+                lServer.AddSendData("* BAD error message\r\n");
+                lServer.AddSendTagged("OK noop completed\r\n");
+
+                lServer.AddExpectTagged("NOOP\r\n");
+                lServer.AddSendData("* OK information message\r\n");
+                lServer.AddSendData("* NO warning message\r\n");
+                lServer.AddSendData("* BAD error message\r\n");
+                lServer.AddSendTagged("OK noop completed\r\n");
+
+                lServer.AddExpectTagged("NOOP\r\n");
+                lServer.AddSendData("* BYE unilateral bye\r\n");
+                lServer.AddExpectClose();
+
+
+                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+                lClient.IdleConfiguration = new cIdleConfiguration(2000, 1200000, 7000);
+
+                cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
+                lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged in");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "capability done");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
+                lExpecter.Expect(eResponseTextContext.information, eResponseTextCode.none, "information message");
+                lExpecter.Expect(eResponseTextContext.warning, eResponseTextCode.none, "warning message");
+                lExpecter.Expect(eResponseTextContext.protocolerror, eResponseTextCode.none, "error message");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "noop completed");
+                lExpecter.Expect(eResponseTextContext.information, eResponseTextCode.none, "information message");
+                lExpecter.Expect(eResponseTextContext.warning, eResponseTextCode.none, "warning message");
+                lExpecter.Expect(eResponseTextContext.protocolerror, eResponseTextCode.none, "error message");
+                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "noop completed");
+                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "unilateral bye");
+
 
                 lClient.Connect();
 
-                if (!lTask.Wait(60000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.GetSessionTask(0).Wait(60000);
 
                 bool lFailed = false;
                 try { lClient.Disconnect(); }
@@ -1132,13 +928,10 @@ namespace testharness2
                     lFailed = true;
                 }
                 if (!lFailed) throw new cTestsException("disconnect should have failed");
-            }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
 
-            lExpecter.Done();
+                lExpecter.Done();
+                lServer.ThrowAnyErrors();
+            }
         }
 
         private class cTestAuth1Creds : cCredentials
@@ -1153,221 +946,160 @@ namespace testharness2
             cTestAuth1Creds lCredsFalse = new cTestAuth1Creds(false);
             cTestAuth1Creds lCredsTrue = new cTestAuth1Creds(true);
 
-            cServer lServer;
-            cIMAPClient lClient;
-            Task lTask;
             bool lFailed;
 
-
-
             // 1 - mechanisms not advertised
-
-            lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] this is the text\r\n");
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddClose();
-
-            lClient = new cIMAPClient("ZTestAuth1_1_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.Credentials = lCredsFalse;
-
-            lTask = null;
-
-            try
+            //
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAuth1) + "1"))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] this is the text\r\n");
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.Credentials = lCredsFalse;
 
                 lFailed = false;
                 try { lClient.Connect(); }
                 catch (cAuthenticationMechanismsException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("should have failed to connect", lContext);
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
-            }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
+                lServer.ThrowAnyErrors();
             }
 
 
             // 2 - just anon advertised
-
-            lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE AUTH=ANONYMOUS XSOMEOTHERFEATURE] this is the text\r\n");
-
-            lServer.AddExpectTagged("AUTHENTICATE ANONYMOUS\r\n");
-            lServer.AddSendData("+ \r\n");
-            lServer.AddExpectData("ZnLigqxk\r\n");
-            lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] logged in\r\n");
-
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddClose();
-
-            lClient = new cIMAPClient("ZTestAuth1_2_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.Credentials = lCredsFalse;
-
-            lTask = null;
-
-            try
+            //
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAuth1) + "2"))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE AUTH=ANONYMOUS XSOMEOTHERFEATURE] this is the text\r\n");
+
+                lServer.AddExpectTagged("AUTHENTICATE ANONYMOUS\r\n");
+                lServer.AddSendData("+ \r\n");
+                lServer.AddExpectData("ZnLigqxk\r\n");
+                lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] logged in\r\n");
+
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.Credentials = lCredsFalse;
 
                 lClient.Connect();
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.ThrowAnyErrors();
             }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-
 
 
 
             // 3 - both advertised
-
-            lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE AUTH=ANONYMOUS AUTH=PLAIN XSOMEOTHERFEATURE] this is the text\r\n");
-
-            lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
-            lServer.AddSendData("+ \r\n");
-            lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
-            lServer.AddSendTagged("NO why not try anonymous\r\n");
-
-            lServer.AddExpectTagged("AUTHENTICATE ANONYMOUS\r\n");
-            lServer.AddSendData("+ \r\n");
-            lServer.AddExpectData("ZnLigqxk\r\n");
-            lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] logged in\r\n");
-
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddClose();
-
-            lClient = new cIMAPClient("ZTestAuth1_3_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.Credentials = lCredsFalse;
-
-            lTask = null;
-
-            try
+            //
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAuth1) + "3"))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE AUTH=ANONYMOUS AUTH=PLAIN XSOMEOTHERFEATURE] this is the text\r\n");
+
+                lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
+                lServer.AddSendData("+ \r\n");
+                lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
+                lServer.AddSendTagged("NO why not try anonymous\r\n");
+
+                lServer.AddExpectTagged("AUTHENTICATE ANONYMOUS\r\n");
+                lServer.AddSendData("+ \r\n");
+                lServer.AddExpectData("ZnLigqxk\r\n");
+                lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] logged in\r\n");
+
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.Credentials = lCredsFalse;
 
                 lClient.Connect();
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
-            }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
+                lServer.ThrowAnyErrors();
             }
 
 
             // 4 - mechanisms not advertised but force try on
-
-            lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] this is the text\r\n");
-
-            lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
-            lServer.AddSendData("+ \r\n");
-            lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
-            lServer.AddSendTagged("NO why not try anonymous\r\n");
-
-            lServer.AddExpectTagged("AUTHENTICATE ANONYMOUS\r\n");
-            lServer.AddSendData("+ \r\n");
-            lServer.AddExpectData("ZnLigqxk\r\n");
-            lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] logged in\r\n");
-
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddClose();
-
-            lClient = new cIMAPClient("ZTestAuth1_4_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.Credentials = lCredsTrue;
-
-            lTask = null;
-
-            try
+            //
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAuth1) + "4"))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] this is the text\r\n");
+
+                lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
+                lServer.AddSendData("+ \r\n");
+                lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
+                lServer.AddSendTagged("NO why not try anonymous\r\n");
+
+                lServer.AddExpectTagged("AUTHENTICATE ANONYMOUS\r\n");
+                lServer.AddSendData("+ \r\n");
+                lServer.AddExpectData("ZnLigqxk\r\n");
+                lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] logged in\r\n");
+
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.Credentials = lCredsTrue;
 
                 lClient.Connect();
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
-            }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
+                lServer.ThrowAnyErrors();
             }
 
 
             // 5 - mechanisms not advertised but force try on and plain succeeds
-
-            lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] this is the text\r\n");
-
-            lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
-            lServer.AddSendData("+ \r\n");
-            lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
-            lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] why not try anonymous\r\n");
-
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddClose();
-
-            lClient = new cIMAPClient("ZTestAuth1_5_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.Credentials = lCredsTrue;
-
-            lTask = null;
-
-            try
+            //
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAuth1) + "5"))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] this is the text\r\n");
+
+                lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
+                lServer.AddSendData("+ \r\n");
+                lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
+                lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] why not try anonymous\r\n");
+
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.Credentials = lCredsTrue;
 
                 lClient.Connect();
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
-            }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
+                lServer.ThrowAnyErrors();
             }
 
 
@@ -1377,46 +1109,43 @@ namespace testharness2
 
 
 
-            /*
+            //???; // try continuing twice
 
-            ???; // try continuing twice
+            //// 5 - mechanisms not advertised but force try on and plain succeeds
 
-            // 5 - mechanisms not advertised but force try on and plain succeeds
+            //lServer = new cServer();
+            //lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] this is the text\r\n");
 
-            lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] this is the text\r\n");
+            //lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
+            //lServer.AddSendData("+ \r\n");
+            //lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
+            //lServer.AddSendData("+ \r\n");
+            //lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] why not try anonymous\r\n");
 
-            lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
-            lServer.AddSendData("+ \r\n");
-            lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
-            lServer.AddSendData("+ \r\n");
-            lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] why not try anonymous\r\n");
+            //lServer.AddExpectTagged("LOGOUT\r\n");
+            //lServer.AddSendData("* BYE logging out\r\n");
+            //lServer.AddSendTagged("OK logged out\r\n");
+            //lServer.AddClose();
 
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddClose();
+            //lClient = new cIMAPClient("ZTestAuth1_5_cIMAPClient");
 
-            lClient = new cIMAPClient("ZTestAuth1_5_cIMAPClient");
+            //lTask = null;
 
-            lTask = null;
+            //try
+            //{
+            //    lTask = lServer.RunAsync(lContext);
 
-            try
-            {
-                lTask = lServer.RunAsync(lContext);
+            //    lClient.Connect("localhost", 143, false, lCredsTrue);
+            //    lClient.Disconnect();
 
-                lClient.Connect("localhost", 143, false, lCredsTrue);
-                lClient.Disconnect();
+            //    if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
+            //    if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+            //}
+            //finally
+            //{
+            //    ZFinally(lServer, lClient, lTask);
+            //}
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
-            }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-
-*/
 
 
         }
@@ -1425,50 +1154,32 @@ namespace testharness2
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestSASLIR));
 
-            cServer lServer;
-            cIMAPClient lClient;
-            Task lTask;
-
-            // 1
-
-            lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY IMAP4rev1 SASL-IR AUTH=PLAIN] this is the text\r\n");
-            lServer.AddExpectTagged("AUTHENTICATE PLAIN AGZyZWQAYW5ndXM=\r\n");
-            lServer.AddSendTagged("OK [CAPABILITY IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] logged in\r\n");
-
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddClose();
-
-            lClient = new cIMAPClient("ZTestAuth2_1_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
-
-            lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestSASLIR)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* OK [CAPABILITY IMAP4rev1 SASL-IR AUTH=PLAIN] this is the text\r\n");
+                lServer.AddExpectTagged("AUTHENTICATE PLAIN AGZyZWQAYW5ndXM=\r\n");
+                lServer.AddSendTagged("OK [CAPABILITY IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] logged in\r\n");
+
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
                 lClient.Connect();
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.ThrowAnyErrors();
             }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-
-
         }
 
+        /*
         private static void ZTestLoginReferrals(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestLoginReferrals));
@@ -1515,142 +1226,135 @@ namespace testharness2
             }
 
 
-        }
+        } */
 
         private static void ZTestSearch1(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestSearch1));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1] this is the text\r\n");
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () nil \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-            lServer.AddExpectTagged("SELECT INBOX\r\n");
-            lServer.AddSendData("* 172 EXISTS\r\n");
-            lServer.AddSendData("* 1 RECENT\r\n");
-            lServer.AddSendData("* OK [UNSEEN 12] Message 12 is first unseen\r\n");
-            lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
-            lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
-            lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
-            lServer.AddSendData("* OK [PERMANENTFLAGS (\\Deleted \\Seen \\*)] Limited\r\n");
-            lServer.AddSendTagged("OK [READ-WRITE] SELECT completed\r\n");
-
-            lServer.AddExpectTagged("SEARCH UNSEEN\r\n");
-            lServer.AddSendData("* OK [UIDVALIDITY 3857529046] clear cache\r\n");
-            lServer.AddSendData("* SEARCH 2 84 172\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-            lServer.AddExpectTagged("SEARCH UNSEEN\r\n");
-            lServer.AddSendData("* SEARCH 2 84 172\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-            lServer.AddExpectTagged("STATUS blurdybloop (MESSAGES UIDNEXT UNSEEN)\r\n");
-            lServer.AddSendData("* STATUS blurdybloop (MESSAGES 231 UIDNEXT 44292)\r\n");
-            lServer.AddSendTagged("OK STATUS completed\r\n");
-
-            lServer.AddExpectTagged("STATUS blurdybloop (MESSAGES UIDNEXT UNSEEN)\r\n");
-            lServer.AddSendData("* STATUS blurdybloop (MESSAGES 232 UNSEEN 3)\r\n");
-            lServer.AddSendData("* STATUS blurdybloop (UIDNEXT 44293)\r\n");
-            lServer.AddSendTagged("OK STATUS completed\r\n");
-
-
-            lServer.AddExpectTagged("EXAMINE blurdybloop\r\n");
-            lServer.AddSendData("* 17 EXISTS\r\n");
-            lServer.AddSendData("* 2 RECENT\r\n");
-            lServer.AddSendData("* OK [UNSEEN 8] Message 8 is first unseen\r\n");
-            lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
-            lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
-            lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
-            lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
-            //lServer.AddSendData("* CAPABILITY IMAP4rev1 ESEARCH\r\n");
-            lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
-
-
-            lServer.AddExpectTagged("SEARCH UNSEEN\r\n");
-            lServer.AddSendData("* SEARCH 2 10 11\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-            lServer.AddExpectTagged("SEARCH SINCE 8-JUN-2017\r\n");
-            lServer.AddSendData("* SEARCH 15 16 17\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-            lServer.AddExpectTagged("SEARCH SINCE 8-JUN-2017\r\n");
-            lServer.AddSendData("* SEARCH 15 16 17\r\n");
-            lServer.AddSendData("* 16 FETCH (INTERNALDATE \"08-JUN-2017 08:09:16 -1200\")\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-            lServer.AddExpectTagged("FETCH 15 INTERNALDATE\r\n");
-            lServer.AddSendData("* 15 FETCH (INTERNALDATE \"08-JUN-2017 08:09:15 -1200\")\r\n");
-            lServer.AddSendTagged("OK FETCH completed\r\n");
-
-            lServer.AddExpectTagged("FETCH 17 INTERNALDATE\r\n");
-            lServer.AddSendData("* 17 FETCH (INTERNALDATE \"08-JUN-2017 08:09:17 -1200\")\r\n");
-            lServer.AddSendTagged("OK FETCH completed\r\n");
-
-            lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
-            lServer.AddSendData("* SEARCH 15 16 17 14 13 12\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-            lServer.AddExpectTagged("FETCH 12:14 INTERNALDATE\r\n");
-            lServer.AddSendData("* 12 FETCH (INTERNALDATE \"08-JUN-2017 08:09:12 -1200\")\r\n");
-            lServer.AddSendData("* 14 FETCH (INTERNALDATE \"08-JUN-2017 08:09:14 -1200\")\r\n");
-            lServer.AddSendData("* 13 FETCH (INTERNALDATE \"08-JUN-2017 08:09:14 -1200\")\r\n");
-            //lServer.AddSendData("* CAPABILITY IMAP4rev1 SORT\r\n");
-            lServer.AddSendTagged("OK FETCH completed\r\n");
-
-            /*
-            lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 7-JUN-2017\r\n");
-            lServer.AddSendData("* SORT 17 16 15 13 14 12\r\n");
-            lServer.AddSendTagged("OK SORT completed\r\n"); 
-
-
-            lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
-            lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 8-JUN-2017\r\n");
-            lServer.AddSendData("* SORT 17 16 15\r\n");
-            lServer.AddSendTagged("OK SORT completed\r\n");
-            lServer.AddSendData("* SEARCH 15 16 17 14 13 12\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-
-            lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
-            lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 8-JUN-2017\r\n");
-            lServer.AddSendData("* SORT 17 16 15\r\n");
-            lServer.AddSendTagged("OK SORT completed\r\n");
-            lServer.AddSendData("* SEARCH 15 16 17 14 13 12\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-            lServer.AddExpectTagged("SEARCH SINCE 8-JUN-2017\r\n");
-            lServer.AddSendData("* SEARCH 15 16 17\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n"); */
-
-
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddExpectClose();
-
-
-            cIMAPClient lClient = new cIMAPClient("ZTestSearch1_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetNoCredentials();
-            lClient.IdleConfiguration = null;
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestSearch1)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
+                lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1] this is the text\r\n");
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () nil \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                lServer.AddExpectTagged("SELECT INBOX\r\n");
+                lServer.AddSendData("* 172 EXISTS\r\n");
+                lServer.AddSendData("* 1 RECENT\r\n");
+                lServer.AddSendData("* OK [UNSEEN 12] Message 12 is first unseen\r\n");
+                lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+                lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+                lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+                lServer.AddSendData("* OK [PERMANENTFLAGS (\\Deleted \\Seen \\*)] Limited\r\n");
+                lServer.AddSendTagged("OK [READ-WRITE] SELECT completed\r\n");
+
+                lServer.AddExpectTagged("SEARCH UNSEEN\r\n");
+                lServer.AddSendData("* OK [UIDVALIDITY 3857529046] clear cache\r\n");
+                lServer.AddSendData("* SEARCH 2 84 172\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+                lServer.AddExpectTagged("SEARCH UNSEEN\r\n");
+                lServer.AddSendData("* SEARCH 2 84 172\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+                lServer.AddExpectTagged("STATUS blurdybloop (MESSAGES UIDNEXT UNSEEN)\r\n");
+                lServer.AddSendData("* STATUS blurdybloop (MESSAGES 231 UIDNEXT 44292)\r\n");
+                lServer.AddSendTagged("OK STATUS completed\r\n");
+
+                lServer.AddExpectTagged("STATUS blurdybloop (MESSAGES UIDNEXT UNSEEN)\r\n");
+                lServer.AddSendData("* STATUS blurdybloop (MESSAGES 232 UNSEEN 3)\r\n");
+                lServer.AddSendData("* STATUS blurdybloop (UIDNEXT 44293)\r\n");
+                lServer.AddSendTagged("OK STATUS completed\r\n");
+
+
+                lServer.AddExpectTagged("EXAMINE blurdybloop\r\n");
+                lServer.AddSendData("* 17 EXISTS\r\n");
+                lServer.AddSendData("* 2 RECENT\r\n");
+                lServer.AddSendData("* OK [UNSEEN 8] Message 8 is first unseen\r\n");
+                lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+                lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+                lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+                lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
+                //lServer.AddSendData("* CAPABILITY IMAP4rev1 ESEARCH\r\n");
+                lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
+
+
+                lServer.AddExpectTagged("SEARCH UNSEEN\r\n");
+                lServer.AddSendData("* SEARCH 2 10 11\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+                lServer.AddExpectTagged("SEARCH SINCE 8-JUN-2017\r\n");
+                lServer.AddSendData("* SEARCH 15 16 17\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+                lServer.AddExpectTagged("SEARCH SINCE 8-JUN-2017\r\n");
+                lServer.AddSendData("* SEARCH 15 16 17\r\n");
+                lServer.AddSendData("* 16 FETCH (INTERNALDATE \"08-JUN-2017 08:09:16 -1200\")\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+                lServer.AddExpectTagged("FETCH 15 INTERNALDATE\r\n");
+                lServer.AddSendData("* 15 FETCH (INTERNALDATE \"08-JUN-2017 08:09:15 -1200\")\r\n");
+                lServer.AddSendTagged("OK FETCH completed\r\n");
+
+                lServer.AddExpectTagged("FETCH 17 INTERNALDATE\r\n");
+                lServer.AddSendData("* 17 FETCH (INTERNALDATE \"08-JUN-2017 08:09:17 -1200\")\r\n");
+                lServer.AddSendTagged("OK FETCH completed\r\n");
+
+                lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
+                lServer.AddSendData("* SEARCH 15 16 17 14 13 12\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+                lServer.AddExpectTagged("FETCH 12:14 INTERNALDATE\r\n");
+                lServer.AddSendData("* 12 FETCH (INTERNALDATE \"08-JUN-2017 08:09:12 -1200\")\r\n");
+                lServer.AddSendData("* 14 FETCH (INTERNALDATE \"08-JUN-2017 08:09:14 -1200\")\r\n");
+                lServer.AddSendData("* 13 FETCH (INTERNALDATE \"08-JUN-2017 08:09:14 -1200\")\r\n");
+                //lServer.AddSendData("* CAPABILITY IMAP4rev1 SORT\r\n");
+                lServer.AddSendTagged("OK FETCH completed\r\n");
+
+                //lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 7-JUN-2017\r\n");
+                //lServer.AddSendData("* SORT 17 16 15 13 14 12\r\n");
+                //lServer.AddSendTagged("OK SORT completed\r\n"); 
+
+
+                //lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
+                //lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 8-JUN-2017\r\n");
+                //lServer.AddSendData("* SORT 17 16 15\r\n");
+                //lServer.AddSendTagged("OK SORT completed\r\n");
+                //lServer.AddSendData("* SEARCH 15 16 17 14 13 12\r\n");
+                //lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+
+                //lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
+                //lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 8-JUN-2017\r\n");
+                //lServer.AddSendData("* SORT 17 16 15\r\n");
+                //lServer.AddSendTagged("OK SORT completed\r\n");
+                //lServer.AddSendData("* SEARCH 15 16 17 14 13 12\r\n");
+                //lServer.AddSendTagged("OK SEARCH completed\r\n");
+                //lServer.AddExpectTagged("SEARCH SINCE 8-JUN-2017\r\n");
+                //lServer.AddSendData("* SEARCH 15 16 17\r\n");
+                //lServer.AddSendTagged("OK SEARCH completed\r\n"); 
+
+
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddExpectClose();
+
+
+                lClient.SetNoCredentials();
+                lClient.IdleConfiguration = null;
+
                 cMessageFlags lFlags;
                 cMailbox lMailbox;
                 List<cMessage> lMessageList;
                 cMessage lMessage;
-                /*Task<List<cMessage>> lTask1;
-                Task<List<cMessage>> lTask2;
-                Task<List<cMessage>> lTask3; */
+                //Task<List<cMessage>> lTask1;
+                //Task<List<cMessage>> lTask2;
+                //Task<List<cMessage>> lTask3; 
 
-
-                lTask = lServer.RunAsync(lContext);
 
                 lClient.MailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.unseencount | fMailboxCacheDataItems.uidnext;
 
@@ -1724,33 +1428,32 @@ namespace testharness2
                 if (lMessageList[0].MessageHandle.CacheSequence != 16 || lMessageList[1].MessageHandle.CacheSequence != 15 || lMessageList[2].MessageHandle.CacheSequence != 14 ||
                     lMessageList[3].MessageHandle.CacheSequence != 12 || lMessageList[4].MessageHandle.CacheSequence != 13 || lMessageList[5].MessageHandle.CacheSequence != 11) throw new cTestsException("ZTestSearch5.2");
 
-                /*
-                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
+                //lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
 
-                if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch6.1");
-                if (lMessageList[0].Handle.CacheSequence != 16 || lMessageList[1].Handle.CacheSequence != 15 || lMessageList[2].Handle.CacheSequence != 14 ||
-                    lMessageList[3].Handle.CacheSequence != 12 || lMessageList[4].Handle.CacheSequence != 13 || lMessageList[5].Handle.CacheSequence != 11) throw new cTestsException("ZTestSearch6.2");
-                    
-
-                lTask1 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
-                lTask2 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
-
-                Task.WaitAll(lTask1, lTask2);
-
-                lMessageList = lTask1.Result;
-                if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch7.1");
-
-                lMessageList = lTask2.Result;
-                if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch7.2"); 
+                //if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch6.1");
+                //if (lMessageList[0].Handle.CacheSequence != 16 || lMessageList[1].Handle.CacheSequence != 15 || lMessageList[2].Handle.CacheSequence != 14 ||
+                //    lMessageList[3].Handle.CacheSequence != 12 || lMessageList[4].Handle.CacheSequence != 13 || lMessageList[5].Handle.CacheSequence != 11) throw new cTestsException("ZTestSearch6.2");
 
 
-                // this checks that the search commands lock one another out ...
+                //lTask1 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
+                //lTask2 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
 
-                lTask1 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
-                lTask2 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8));
-                lTask3 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
+                //Task.WaitAll(lTask1, lTask2);
 
-                Task.WaitAll(lTask1, lTask2, lTask3); */
+                //lMessageList = lTask1.Result;
+                //if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch7.1");
+
+                //lMessageList = lTask2.Result;
+                //if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch7.2"); 
+
+
+                //// this checks that the search commands lock one another out ...
+
+                //lTask1 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
+                //lTask2 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8));
+                //lTask3 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
+
+                //Task.WaitAll(lTask1, lTask2, lTask3); 
 
 
 
@@ -1759,152 +1462,139 @@ namespace testharness2
 
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.ThrowAnyErrors();
             }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-
         }
 
         private static void ZTestSearch2(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestSearch2));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 ESEARCH] this is the text\r\n");
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () nil \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-            lServer.AddExpectTagged("SELECT INBOX\r\n");
-            lServer.AddSendData("* 172 EXISTS\r\n");
-            lServer.AddSendData("* 1 RECENT\r\n");
-            lServer.AddSendData("* OK [UNSEEN 12] Message 12 is first unseen\r\n");
-            lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
-            lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
-            lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
-            lServer.AddSendData("* OK [PERMANENTFLAGS (\\Deleted \\Seen \\*)] Limited\r\n");
-            lServer.AddSendTagged("OK [READ-WRITE] SELECT completed\r\n");
-
-            lServer.AddExpectTagged("SEARCH RETURN () UNSEEN\r\n");
-            lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 2,10:11\r\n");
-            lServer.AddSendData("* OK [UIDVALIDITY 3857529046] clear cache\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-            lServer.AddExpectTagged("SEARCH RETURN () UNSEEN\r\n");
-            lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 2,10:11\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-            lServer.AddExpectTagged("STATUS blurdybloop (MESSAGES UIDNEXT UNSEEN)\r\n");
-            lServer.AddSendData("* STATUS blurdybloop (MESSAGES 231 UIDNEXT 44292)\r\n");
-            lServer.AddSendTagged("OK STATUS completed\r\n");
-
-            lServer.AddExpectTagged("STATUS blurdybloop (MESSAGES UIDNEXT UNSEEN)\r\n");
-            lServer.AddSendData("* STATUS blurdybloop (MESSAGES 232 UNSEEN 3)\r\n");
-            lServer.AddSendData("* STATUS blurdybloop (UIDNEXT 44293)\r\n");
-            lServer.AddSendTagged("OK STATUS completed\r\n");
-
-
-            lServer.AddExpectTagged("EXAMINE blurdybloop\r\n");
-            lServer.AddSendData("* 17 EXISTS\r\n");
-            lServer.AddSendData("* 2 RECENT\r\n");
-            lServer.AddSendData("* OK [UNSEEN 8] Message 8 is first unseen\r\n");
-            lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
-            lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
-            lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
-            lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
-            //lServer.AddSendData("* CAPABILITY IMAP4rev1 ESEARCH\r\n");
-            lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
-
-
-            lServer.AddExpectTagged("SEARCH RETURN () UNSEEN\r\n");
-            lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 2,10:11\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-            lServer.AddExpectTagged("SEARCH RETURN () SINCE 8-JUN-2017\r\n");
-            lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 15:17\r\n");
-            //lServer.AddSendData("* CAPABILITY IMAP4rev1 ESEARCH\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-            lServer.AddExpectTagged("SEARCH RETURN () SINCE 8-JUN-2017\r\n");
-            lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 15:17\r\n");
-            lServer.AddSendData("* 16 FETCH (INTERNALDATE \"08-JUN-2017 08:09:16 -1200\")\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-            lServer.AddExpectTagged("FETCH 15 INTERNALDATE\r\n");
-            lServer.AddSendData("* 15 FETCH (INTERNALDATE \"08-JUN-2017 08:09:15 -1200\")\r\n");
-            lServer.AddSendTagged("OK FETCH completed\r\n");
-
-            lServer.AddExpectTagged("FETCH 17 INTERNALDATE\r\n");
-            lServer.AddSendData("* 17 FETCH (INTERNALDATE \"08-JUN-2017 08:09:17 -1200\")\r\n");
-            //lServer.AddSendData("* CAPABILITY IMAP4rev1\r\n");
-            lServer.AddSendTagged("OK FETCH completed\r\n");
-
-            lServer.AddExpectTagged("SEARCH RETURN () SINCE 7-JUN-2017\r\n");
-            lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 12:17\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-            lServer.AddExpectTagged("FETCH 12:14 INTERNALDATE\r\n");
-            lServer.AddSendData("* 12 FETCH (INTERNALDATE \"08-JUN-2017 08:09:12 -1200\")\r\n");
-            lServer.AddSendData("* 14 FETCH (INTERNALDATE \"08-JUN-2017 08:09:14 -1200\")\r\n");
-            lServer.AddSendData("* 13 FETCH (INTERNALDATE \"08-JUN-2017 08:09:14 -1200\")\r\n");
-            //lServer.AddSendData("* CAPABILITY IMAP4rev1 SORT\r\n");
-            lServer.AddSendTagged("OK FETCH completed\r\n");
-
-            /*
-            lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 7-JUN-2017\r\n");
-            lServer.AddSendData("* SORT 17 16 15 13 14 12\r\n");
-            lServer.AddSendTagged("OK SORT completed\r\n"); 
-
-
-            lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
-            lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 8-JUN-2017\r\n");
-            lServer.AddSendData("* SORT 17 16 15\r\n");
-            lServer.AddSendTagged("OK SORT completed\r\n");
-            lServer.AddSendData("* SEARCH 15 16 17 14 13 12\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-
-            lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
-            lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 8-JUN-2017\r\n");
-            lServer.AddSendData("* SORT 17 16 15\r\n");
-            lServer.AddSendTagged("OK SORT completed\r\n");
-            lServer.AddSendData("* SEARCH 15 16 17 14 13 12\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-            lServer.AddExpectTagged("SEARCH SINCE 8-JUN-2017\r\n");
-            lServer.AddSendData("* SEARCH 15 16 17\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");*/
-
-
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddExpectClose();
-
-
-            cIMAPClient lClient = new cIMAPClient("ZTestSearch2_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetNoCredentials();
-            lClient.IdleConfiguration = null;
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestSearch2)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
+                lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 ESEARCH] this is the text\r\n");
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () nil \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                lServer.AddExpectTagged("SELECT INBOX\r\n");
+                lServer.AddSendData("* 172 EXISTS\r\n");
+                lServer.AddSendData("* 1 RECENT\r\n");
+                lServer.AddSendData("* OK [UNSEEN 12] Message 12 is first unseen\r\n");
+                lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+                lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+                lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+                lServer.AddSendData("* OK [PERMANENTFLAGS (\\Deleted \\Seen \\*)] Limited\r\n");
+                lServer.AddSendTagged("OK [READ-WRITE] SELECT completed\r\n");
+
+                lServer.AddExpectTagged("SEARCH RETURN () UNSEEN\r\n");
+                lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 2,10:11\r\n");
+                lServer.AddSendData("* OK [UIDVALIDITY 3857529046] clear cache\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+                lServer.AddExpectTagged("SEARCH RETURN () UNSEEN\r\n");
+                lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 2,10:11\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+                lServer.AddExpectTagged("STATUS blurdybloop (MESSAGES UIDNEXT UNSEEN)\r\n");
+                lServer.AddSendData("* STATUS blurdybloop (MESSAGES 231 UIDNEXT 44292)\r\n");
+                lServer.AddSendTagged("OK STATUS completed\r\n");
+
+                lServer.AddExpectTagged("STATUS blurdybloop (MESSAGES UIDNEXT UNSEEN)\r\n");
+                lServer.AddSendData("* STATUS blurdybloop (MESSAGES 232 UNSEEN 3)\r\n");
+                lServer.AddSendData("* STATUS blurdybloop (UIDNEXT 44293)\r\n");
+                lServer.AddSendTagged("OK STATUS completed\r\n");
+
+
+                lServer.AddExpectTagged("EXAMINE blurdybloop\r\n");
+                lServer.AddSendData("* 17 EXISTS\r\n");
+                lServer.AddSendData("* 2 RECENT\r\n");
+                lServer.AddSendData("* OK [UNSEEN 8] Message 8 is first unseen\r\n");
+                lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+                lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+                lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+                lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
+                //lServer.AddSendData("* CAPABILITY IMAP4rev1 ESEARCH\r\n");
+                lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
+
+
+                lServer.AddExpectTagged("SEARCH RETURN () UNSEEN\r\n");
+                lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 2,10:11\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+                lServer.AddExpectTagged("SEARCH RETURN () SINCE 8-JUN-2017\r\n");
+                lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 15:17\r\n");
+                //lServer.AddSendData("* CAPABILITY IMAP4rev1 ESEARCH\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+                lServer.AddExpectTagged("SEARCH RETURN () SINCE 8-JUN-2017\r\n");
+                lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 15:17\r\n");
+                lServer.AddSendData("* 16 FETCH (INTERNALDATE \"08-JUN-2017 08:09:16 -1200\")\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+                lServer.AddExpectTagged("FETCH 15 INTERNALDATE\r\n");
+                lServer.AddSendData("* 15 FETCH (INTERNALDATE \"08-JUN-2017 08:09:15 -1200\")\r\n");
+                lServer.AddSendTagged("OK FETCH completed\r\n");
+
+                lServer.AddExpectTagged("FETCH 17 INTERNALDATE\r\n");
+                lServer.AddSendData("* 17 FETCH (INTERNALDATE \"08-JUN-2017 08:09:17 -1200\")\r\n");
+                //lServer.AddSendData("* CAPABILITY IMAP4rev1\r\n");
+                lServer.AddSendTagged("OK FETCH completed\r\n");
+
+                lServer.AddExpectTagged("SEARCH RETURN () SINCE 7-JUN-2017\r\n");
+                lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 12:17\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+                lServer.AddExpectTagged("FETCH 12:14 INTERNALDATE\r\n");
+                lServer.AddSendData("* 12 FETCH (INTERNALDATE \"08-JUN-2017 08:09:12 -1200\")\r\n");
+                lServer.AddSendData("* 14 FETCH (INTERNALDATE \"08-JUN-2017 08:09:14 -1200\")\r\n");
+                lServer.AddSendData("* 13 FETCH (INTERNALDATE \"08-JUN-2017 08:09:14 -1200\")\r\n");
+                //lServer.AddSendData("* CAPABILITY IMAP4rev1 SORT\r\n");
+                lServer.AddSendTagged("OK FETCH completed\r\n");
+
+                //lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 7-JUN-2017\r\n");
+                //lServer.AddSendData("* SORT 17 16 15 13 14 12\r\n");
+                //lServer.AddSendTagged("OK SORT completed\r\n"); 
+
+
+                //lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
+                //lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 8-JUN-2017\r\n");
+                //lServer.AddSendData("* SORT 17 16 15\r\n");
+                //lServer.AddSendTagged("OK SORT completed\r\n");
+                //lServer.AddSendData("* SEARCH 15 16 17 14 13 12\r\n");
+                //lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+
+                //lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
+                //lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 8-JUN-2017\r\n");
+                //lServer.AddSendData("* SORT 17 16 15\r\n");
+                //lServer.AddSendTagged("OK SORT completed\r\n");
+                //lServer.AddSendData("* SEARCH 15 16 17 14 13 12\r\n");
+                //lServer.AddSendTagged("OK SEARCH completed\r\n");
+                //lServer.AddExpectTagged("SEARCH SINCE 8-JUN-2017\r\n");
+                //lServer.AddSendData("* SEARCH 15 16 17\r\n");
+                //lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddExpectClose();
+
+
+                lClient.SetNoCredentials();
+                lClient.IdleConfiguration = null;
+
                 cMessageFlags lFlags;
                 cMailbox lMailbox;
                 List<cMessage> lMessageList;
                 cMessage lMessage;
-                /*Task<List<cMessage>> lTask1;
-                Task<List<cMessage>> lTask2;
-                Task<List<cMessage>> lTask3; */
+                //Task<List<cMessage>> lTask1;
+                //Task<List<cMessage>> lTask2;
+                //Task<List<cMessage>> lTask3; 
 
-
-                lTask = lServer.RunAsync(lContext);
 
                 lClient.MailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.unseencount | fMailboxCacheDataItems.uidnext;
 
@@ -1978,33 +1668,32 @@ namespace testharness2
                 if (lMessageList[0].MessageHandle.CacheSequence != 16 || lMessageList[1].MessageHandle.CacheSequence != 15 || lMessageList[2].MessageHandle.CacheSequence != 14 ||
                     lMessageList[3].MessageHandle.CacheSequence != 12 || lMessageList[4].MessageHandle.CacheSequence != 13 || lMessageList[5].MessageHandle.CacheSequence != 11) throw new cTestsException("ZTestSearch2_5.2");
 
-                /*
-                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
+                //lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
 
-                if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch6.1");
-                if (lMessageList[0].Handle.CacheSequence != 16 || lMessageList[1].Handle.CacheSequence != 15 || lMessageList[2].Handle.CacheSequence != 14 ||
-                    lMessageList[3].Handle.CacheSequence != 12 || lMessageList[4].Handle.CacheSequence != 13 || lMessageList[5].Handle.CacheSequence != 11) throw new cTestsException("ZTestSearch6.2");
-                    
-
-                lTask1 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
-                lTask2 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
-
-                Task.WaitAll(lTask1, lTask2);
-
-                lMessageList = lTask1.Result;
-                if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch7.1");
-
-                lMessageList = lTask2.Result;
-                if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch7.2");
+                //if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch6.1");
+                //if (lMessageList[0].Handle.CacheSequence != 16 || lMessageList[1].Handle.CacheSequence != 15 || lMessageList[2].Handle.CacheSequence != 14 ||
+                //    lMessageList[3].Handle.CacheSequence != 12 || lMessageList[4].Handle.CacheSequence != 13 || lMessageList[5].Handle.CacheSequence != 11) throw new cTestsException("ZTestSearch6.2");
 
 
-                // this checks that the search commands lock one another out ...
+                //lTask1 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
+                //lTask2 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
 
-                lTask1 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
-                lTask2 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8));
-                lTask3 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
+                //Task.WaitAll(lTask1, lTask2);
 
-                Task.WaitAll(lTask1, lTask2, lTask3);*/
+                //lMessageList = lTask1.Result;
+                //if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch7.1");
+
+                //lMessageList = lTask2.Result;
+                //if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch7.2");
+
+
+                //// this checks that the search commands lock one another out ...
+
+                //lTask1 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
+                //lTask2 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8));
+                //lTask3 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
+
+                //Task.WaitAll(lTask1, lTask2, lTask3);
 
 
 
@@ -2013,84 +1702,74 @@ namespace testharness2
 
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.ThrowAnyErrors();
             }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-
         }
 
         private static void ZTestSearch3(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestSearch3));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 SORT] this is the text\r\n");
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () nil \"\"\r\n");
-            lServer.AddSendData("* STATUS blurdybloop (MESSAGES 231 UNSEEN 0)\r\n");
-            lServer.AddSendData("* STATUS blurdybloop (UIDNEXT 44292)\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-            lServer.AddExpectTagged("STATUS blurdybloop (MESSAGES UIDNEXT UNSEEN)\r\n");
-            lServer.AddSendData("* STATUS blurdybloop (MESSAGES 232 UNSEEN 3)\r\n");
-            lServer.AddSendData("* STATUS blurdybloop (UIDNEXT 44293)\r\n");
-            lServer.AddSendTagged("OK STATUS completed\r\n");
-
-
-            lServer.AddExpectTagged("EXAMINE blurdybloop\r\n");
-            lServer.AddSendData("* 17 EXISTS\r\n");
-            lServer.AddSendData("* 2 RECENT\r\n");
-            lServer.AddSendData("* OK [UNSEEN 8] Message 8 is first unseen\r\n");
-            lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
-            lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
-            lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
-            lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
-            lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
-
-            lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 7-JUN-2017\r\n");
-            lServer.AddSendData("* SORT 17 16 15 13 14 12\r\n");
-            lServer.AddSendTagged("OK SORT completed\r\n");
-
-
-            lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
-            lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 8-JUN-2017\r\n");
-            lServer.AddSendData("* SORT 17 16 15\r\n");
-            lServer.AddSendTagged("OK SORT completed\r\n");
-            lServer.AddSendData("* SEARCH 15 16 17 14 13 12\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-
-            lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
-            lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 8-JUN-2017\r\n");
-            lServer.AddSendData("* SORT 17 16 15\r\n");
-            lServer.AddSendTagged("OK SORT completed\r\n");
-            lServer.AddSendData("* SEARCH 15 16 17 14 13 12\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-            lServer.AddExpectTagged("SEARCH SINCE 8-JUN-2017\r\n");
-            lServer.AddSendData("* SEARCH 15 16 17\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddExpectClose();
-
-
-            cIMAPClient lClient = new cIMAPClient("ZTestSearch3_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetNoCredentials();
-            lClient.IdleConfiguration = null;
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestSearch3)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
+                lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 SORT] this is the text\r\n");
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () nil \"\"\r\n");
+                lServer.AddSendData("* STATUS blurdybloop (MESSAGES 231 UNSEEN 0)\r\n");
+                lServer.AddSendData("* STATUS blurdybloop (UIDNEXT 44292)\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                lServer.AddExpectTagged("STATUS blurdybloop (MESSAGES UIDNEXT UNSEEN)\r\n");
+                lServer.AddSendData("* STATUS blurdybloop (MESSAGES 232 UNSEEN 3)\r\n");
+                lServer.AddSendData("* STATUS blurdybloop (UIDNEXT 44293)\r\n");
+                lServer.AddSendTagged("OK STATUS completed\r\n");
+
+
+                lServer.AddExpectTagged("EXAMINE blurdybloop\r\n");
+                lServer.AddSendData("* 17 EXISTS\r\n");
+                lServer.AddSendData("* 2 RECENT\r\n");
+                lServer.AddSendData("* OK [UNSEEN 8] Message 8 is first unseen\r\n");
+                lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+                lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+                lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+                lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
+                lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
+
+                lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 7-JUN-2017\r\n");
+                lServer.AddSendData("* SORT 17 16 15 13 14 12\r\n");
+                lServer.AddSendTagged("OK SORT completed\r\n");
+
+
+                lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
+                lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 8-JUN-2017\r\n");
+                lServer.AddSendData("* SORT 17 16 15\r\n");
+                lServer.AddSendTagged("OK SORT completed\r\n");
+                lServer.AddSendData("* SEARCH 15 16 17 14 13 12\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+
+                lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
+                lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 8-JUN-2017\r\n");
+                lServer.AddSendData("* SORT 17 16 15\r\n");
+                lServer.AddSendTagged("OK SORT completed\r\n");
+                lServer.AddSendData("* SEARCH 15 16 17 14 13 12\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+                lServer.AddExpectTagged("SEARCH SINCE 8-JUN-2017\r\n");
+                lServer.AddSendData("* SEARCH 15 16 17\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddExpectClose();
+
+
+                lClient.SetNoCredentials();
+                lClient.IdleConfiguration = null;
+
                 cMessageFlags lFlags;
                 cMailbox lMailbox;
                 List<cMessage> lMessageList;
@@ -2098,8 +1777,6 @@ namespace testharness2
                 Task<List<cMessage>> lTask2;
                 Task<List<cMessage>> lTask3;
 
-
-                lTask = lServer.RunAsync(lContext);
 
                 lClient.MailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.unseencount | fMailboxCacheDataItems.uidnext;
 
@@ -2160,63 +1837,51 @@ namespace testharness2
 
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.ThrowAnyErrors();
             }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-
         }
 
         private static void ZTestBadCharsetUIDNotSticky(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestBadCharsetUIDNotSticky));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 LITERAL+] this is the text\r\n");
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () nil \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-            lServer.AddExpectTagged("EXAMINE INBOX\r\n");
-            lServer.AddSendData("* 17 EXISTS\r\n");
-            lServer.AddSendData("* 2 RECENT\r\n");
-            lServer.AddSendData("* OK [UNSEEN 8] Message 8 is first unseen\r\n");
-            lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
-            lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
-            lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
-            lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
-            lServer.AddSendData("* NO [UIDNOTSTICKY] Non-persistent UIDs\r\n");
-            lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
-
-
-
-
-
-            lServer.AddExpectTagged(Encoding.UTF8.GetBytes("SEARCH CHARSET utf-8 BODY {6+}\r\nfr€d\r\n"));
-            lServer.AddSendTagged("NO [BADCHARSET] invalid charset\r\n");
-
-            lServer.AddExpectTagged(Encoding.UTF8.GetBytes("SEARCH CHARSET utf-8 BODY {6+}\r\nfr€d\r\n"));
-            lServer.AddSendTagged("NO [BADCHARSET (x1 x2 \"a nother 1\")] invalid charset, use one of the ones I support\r\n");
-
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddExpectClose();
-
-
-            cIMAPClient lClient = new cIMAPClient("ZTestBadCharset_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetNoCredentials();
-            lClient.IdleConfiguration = null;
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestBadCharsetUIDNotSticky)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 LITERAL+] this is the text\r\n");
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () nil \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+                lServer.AddExpectTagged("EXAMINE INBOX\r\n");
+                lServer.AddSendData("* 17 EXISTS\r\n");
+                lServer.AddSendData("* 2 RECENT\r\n");
+                lServer.AddSendData("* OK [UNSEEN 8] Message 8 is first unseen\r\n");
+                lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+                lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+                lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+                lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
+                lServer.AddSendData("* NO [UIDNOTSTICKY] Non-persistent UIDs\r\n");
+                lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
+
+
+
+
+
+                lServer.AddExpectTagged(Encoding.UTF8.GetBytes("SEARCH CHARSET utf-8 BODY {6+}\r\nfr€d\r\n"));
+                lServer.AddSendTagged("NO [BADCHARSET] invalid charset\r\n");
+
+                lServer.AddExpectTagged(Encoding.UTF8.GetBytes("SEARCH CHARSET utf-8 BODY {6+}\r\nfr€d\r\n"));
+                lServer.AddSendTagged("NO [BADCHARSET (x1 x2 \"a nother 1\")] invalid charset, use one of the ones I support\r\n");
+
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddExpectClose();
+
+
+                lClient.SetNoCredentials();
+                lClient.IdleConfiguration = null;
 
                 lClient.Connect();
                 lClient.Inbox.Select();
@@ -2247,14 +1912,8 @@ namespace testharness2
 
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.ThrowAnyErrors();
             }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-
         }
 
         private static void ZTestIdleRestart(cTrace.cContext pParentContext)
@@ -2265,91 +1924,85 @@ namespace testharness2
 
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestIdleRestart));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 IDLE] this is the text\r\n");
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () nil \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-            lServer.AddExpectTagged("SELECT INBOX\r\n");
-            lServer.AddSendData("* 172 EXISTS\r\n");
-            lServer.AddSendData("* 1 RECENT\r\n");
-            lServer.AddSendData("* OK [UNSEEN 12] Message 12 is first unseen\r\n");
-            lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
-            lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
-            lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
-            lServer.AddSendData("* OK [PERMANENTFLAGS (\\Deleted \\Seen \\*)] Limited\r\n");
-            lServer.AddSendTagged("OK [READ-WRITE] SELECT completed\r\n");
-
-            lServer.AddExpectTagged("SEARCH UNSEEN\r\n");
-            lServer.AddSendData("* SEARCH 167 168 170\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-            lServer.AddExpectTagged("IDLE\r\n");
-            lServer.AddSendData("+ idling\r\n");
-            lServer.AddSendData("* 168 EXPUNGE\r\n");
-            lServer.AddSendData("* 167 FETCH (UID 10167)\r\n");
-            lServer.AddExpectData("DONE\r\n");
-            lServer.AddSendTagged("OK idle terminated\r\n");
-
-            lServer.AddExpectTagged("IDLE\r\n");
-            lServer.AddSendData("+ idling\r\n");
-            lServer.AddExpectData("DONE\r\n");
-            lServer.AddSendTagged("OK idle terminated\r\n");
-
-            lServer.AddExpectTagged("FETCH 169 INTERNALDATE\r\n");
-            lServer.AddSendData("* 169 FETCH (INTERNALDATE \"08-JUN-2017 01:06:09 -1200\")\r\n");
-            lServer.AddSendTagged("OK FETCH completed\r\n");
-
-            lServer.AddExpectTagged("UID FETCH 10167 INTERNALDATE\r\n");
-            lServer.AddSendData("* 167 FETCH (INTERNALDATE \"08-JUN-2017 01:06:07 -1200\")\r\n");
-            lServer.AddSendTagged("OK UID FETCH completed\r\n");
-
-            lServer.AddExpectTagged("IDLE\r\n");
-            lServer.AddSendData("+ idling\r\n");
-            lServer.AddExpectData("DONE\r\n");
-            lServer.AddSendTagged("OK idle terminated\r\n");
-
-            lServer.AddExpectTagged("FETCH 167,169 FLAGS\r\n");
-            lServer.AddSendData("* 169 FETCH (FLAGS ())\r\n");
-            lServer.AddSendData("* 167 FETCH (FLAGS ())\r\n");
-            lServer.AddSendTagged("OK FETCH completed\r\n");
-
-
-            lServer.AddExpectTagged("EXAMINE blurdybloop\r\n");
-            lServer.AddSendData("* 17 EXISTS\r\n");
-            lServer.AddSendData("* 2 RECENT\r\n");
-            lServer.AddSendData("* OK [UNSEEN 8] Message 8 is first unseen\r\n");
-            lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
-            lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
-            lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
-            lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
-            //lServer.AddSendData("* CAPABILITY IMAP4rev1 ESEARCH\r\n");
-            lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
-
-            lServer.AddExpectTagged("SEARCH UID 4392:4294967295\r\n");
-            lServer.AddSendData("* SEARCH\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddExpectClose();
-
-
-
-
-            cIMAPClient lClient = new cIMAPClient("ZTestIdleRestart_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetNoCredentials();
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestIdleRestart)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 IDLE] this is the text\r\n");
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () nil \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                lServer.AddExpectTagged("SELECT INBOX\r\n");
+                lServer.AddSendData("* 172 EXISTS\r\n");
+                lServer.AddSendData("* 1 RECENT\r\n");
+                lServer.AddSendData("* OK [UNSEEN 12] Message 12 is first unseen\r\n");
+                lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+                lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+                lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+                lServer.AddSendData("* OK [PERMANENTFLAGS (\\Deleted \\Seen \\*)] Limited\r\n");
+                lServer.AddSendTagged("OK [READ-WRITE] SELECT completed\r\n");
+
+                lServer.AddExpectTagged("SEARCH UNSEEN\r\n");
+                lServer.AddSendData("* SEARCH 167 168 170\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+                lServer.AddExpectTagged("IDLE\r\n");
+                lServer.AddSendData("+ idling\r\n");
+                lServer.AddSendData("* 168 EXPUNGE\r\n");
+                lServer.AddSendData("* 167 FETCH (UID 10167)\r\n");
+                lServer.AddExpectData("DONE\r\n");
+                lServer.AddSendTagged("OK idle terminated\r\n");
+
+                lServer.AddExpectTagged("IDLE\r\n");
+                lServer.AddSendData("+ idling\r\n");
+                lServer.AddExpectData("DONE\r\n");
+                lServer.AddSendTagged("OK idle terminated\r\n");
+
+                lServer.AddExpectTagged("FETCH 169 INTERNALDATE\r\n");
+                lServer.AddSendData("* 169 FETCH (INTERNALDATE \"08-JUN-2017 01:06:09 -1200\")\r\n");
+                lServer.AddSendTagged("OK FETCH completed\r\n");
+
+                lServer.AddExpectTagged("UID FETCH 10167 INTERNALDATE\r\n");
+                lServer.AddSendData("* 167 FETCH (INTERNALDATE \"08-JUN-2017 01:06:07 -1200\")\r\n");
+                lServer.AddSendTagged("OK UID FETCH completed\r\n");
+
+                lServer.AddExpectTagged("IDLE\r\n");
+                lServer.AddSendData("+ idling\r\n");
+                lServer.AddExpectData("DONE\r\n");
+                lServer.AddSendTagged("OK idle terminated\r\n");
+
+                lServer.AddExpectTagged("FETCH 167,169 FLAGS\r\n");
+                lServer.AddSendData("* 169 FETCH (FLAGS ())\r\n");
+                lServer.AddSendData("* 167 FETCH (FLAGS ())\r\n");
+                lServer.AddSendTagged("OK FETCH completed\r\n");
+
+
+                lServer.AddExpectTagged("EXAMINE blurdybloop\r\n");
+                lServer.AddSendData("* 17 EXISTS\r\n");
+                lServer.AddSendData("* 2 RECENT\r\n");
+                lServer.AddSendData("* OK [UNSEEN 8] Message 8 is first unseen\r\n");
+                lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+                lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+                lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+                lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
+                //lServer.AddSendData("* CAPABILITY IMAP4rev1 ESEARCH\r\n");
+                lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
+
+                lServer.AddExpectTagged("SEARCH UID 4392:4294967295\r\n");
+                lServer.AddSendData("* SEARCH\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddExpectClose();
+
+
+
+
+                lClient.SetNoCredentials();
 
                 lClient.Connect();
 
@@ -2420,87 +2073,72 @@ namespace testharness2
 
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
-                }
-                finally
-                {
-                    ZFinally(lServer, lClient, lTask);
-                }
+                lServer.ThrowAnyErrors();
+            }
         }
 
         private static void ZTestUIDFetch1(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestUIDFetch1));
 
-
-
-            cServer lServer = new cServer();
-            lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1] this is the text\r\n");
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () nil \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-            // open inbox
-            lServer.AddExpectTagged("SELECT INBOX\r\n");
-            lServer.AddSendData("* 172 EXISTS\r\n");
-            lServer.AddSendData("* 1 RECENT\r\n");
-            lServer.AddSendData("* OK [UNSEEN 12] Message 12 is first unseen\r\n");
-            lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
-            lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
-            lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
-            lServer.AddSendData("* OK [PERMANENTFLAGS (\\Deleted \\Seen \\*)] Limited\r\n");
-            lServer.AddSendTagged("OK [READ-WRITE] SELECT completed\r\n");
-
-            // poll
-            lServer.AddExpectTagged("CHECK\r\n");
-            lServer.AddSendTagged("OK CHECK completed\r\n");
-            lServer.AddExpectTagged("NOOP\r\n");
-            lServer.AddSendData("* 2 FETCH (FLAGS ())\r\n");
-            lServer.AddSendData("* 3 FETCH (UID 103)\r\n");
-            lServer.AddSendData("* 4 FETCH (FLAGS () UID 105)\r\n");
-            lServer.AddSendTagged("OK NOOP completed\r\n");
-
-            /*
-                 
-                the mailbox looks like this in the client;
-                MSN     UID     UID known   flags known     internal date known
-                1       101     
-                2       102                 y
-                3       103     y
-                4       105     y           y
-
-                (104 has been expunged)
-
-                */
-
-            // fetch
-            lServer.AddExpectTagged("UID FETCH 105 INTERNALDATE\r\n");
-            lServer.AddSendData("* 4 FETCH (UID 105 INTERNALDATE \"08-JUN-2017 01:05:00 -1200\")\r\n");
-            lServer.AddSendTagged("OK FETCH completed\r\n");
-            lServer.AddExpectTagged("UID FETCH 101:102 (FLAGS INTERNALDATE)\r\n");
-            lServer.AddSendData("* 1 FETCH (UID 101 FLAGS () INTERNALDATE \"08-JUN-2017 01:01:00 -1200\")\r\n");
-            lServer.AddSendData("* 2 FETCH (UID 102 FLAGS () INTERNALDATE \"08-JUN-2017 01:02:00 -1200\")\r\n");
-            lServer.AddSendTagged("OK UID FETCH completed\r\n");
-            lServer.AddExpectTagged("UID FETCH 103:104 (FLAGS INTERNALDATE)\r\n");
-            lServer.AddSendData("* 3 FETCH (UID 103 FLAGS () INTERNALDATE \"08-JUN-2017 01:03:00 -1200\")\r\n");
-            lServer.AddSendTagged("OK UID FETCH completed\r\n");
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddExpectClose();
-
-            cIMAPClient lClient = new cIMAPClient(nameof(ZTestUIDFetch1));
-            lClient.SetServer("localhost");
-            lClient.SetNoCredentials();
-            lClient.IdleConfiguration = null;
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestUIDFetch1)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1] this is the text\r\n");
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () nil \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                // open inbox
+                lServer.AddExpectTagged("SELECT INBOX\r\n");
+                lServer.AddSendData("* 172 EXISTS\r\n");
+                lServer.AddSendData("* 1 RECENT\r\n");
+                lServer.AddSendData("* OK [UNSEEN 12] Message 12 is first unseen\r\n");
+                lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+                lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+                lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+                lServer.AddSendData("* OK [PERMANENTFLAGS (\\Deleted \\Seen \\*)] Limited\r\n");
+                lServer.AddSendTagged("OK [READ-WRITE] SELECT completed\r\n");
+
+                // poll
+                lServer.AddExpectTagged("CHECK\r\n");
+                lServer.AddSendTagged("OK CHECK completed\r\n");
+                lServer.AddExpectTagged("NOOP\r\n");
+                lServer.AddSendData("* 2 FETCH (FLAGS ())\r\n");
+                lServer.AddSendData("* 3 FETCH (UID 103)\r\n");
+                lServer.AddSendData("* 4 FETCH (FLAGS () UID 105)\r\n");
+                lServer.AddSendTagged("OK NOOP completed\r\n");
+
+
+                //the mailbox looks like this in the client;
+                //MSN     UID     UID known   flags known     internal date known
+                //1       101     
+                //2       102                 y
+                //3       103     y
+                //4       105     y           y
+
+                //(104 has been expunged)
+
+
+                // fetch
+                lServer.AddExpectTagged("UID FETCH 105 INTERNALDATE\r\n");
+                lServer.AddSendData("* 4 FETCH (UID 105 INTERNALDATE \"08-JUN-2017 01:05:00 -1200\")\r\n");
+                lServer.AddSendTagged("OK FETCH completed\r\n");
+                lServer.AddExpectTagged("UID FETCH 101:102 (FLAGS INTERNALDATE)\r\n");
+                lServer.AddSendData("* 1 FETCH (UID 101 FLAGS () INTERNALDATE \"08-JUN-2017 01:01:00 -1200\")\r\n");
+                lServer.AddSendData("* 2 FETCH (UID 102 FLAGS () INTERNALDATE \"08-JUN-2017 01:02:00 -1200\")\r\n");
+                lServer.AddSendTagged("OK UID FETCH completed\r\n");
+                lServer.AddExpectTagged("UID FETCH 103:104 (FLAGS INTERNALDATE)\r\n");
+                lServer.AddSendData("* 3 FETCH (UID 103 FLAGS () INTERNALDATE \"08-JUN-2017 01:03:00 -1200\")\r\n");
+                lServer.AddSendTagged("OK UID FETCH completed\r\n");
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddExpectClose();
+
+                lClient.SetNoCredentials();
+                lClient.IdleConfiguration = null;
 
                 lClient.Connect();
 
@@ -2520,12 +2158,7 @@ namespace testharness2
 
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
-            }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
+                lServer.ThrowAnyErrors();
             }
         }
 
@@ -2542,71 +2175,67 @@ namespace testharness2
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestPipelineCancellation)); // CHANGE THE NAME HERE
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 ESEARCH] this is the text\r\n");
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () nil \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-            // add stuff here
-
-            lServer.AddExpectTagged("SELECT INBOX\r\n");
-            lServer.AddSendData("* 172 EXISTS\r\n");
-            lServer.AddSendData("* 1 RECENT\r\n");
-            lServer.AddSendData("* OK [UNSEEN 12] Message 12 is first unseen\r\n");
-            lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
-            lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
-            lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
-            lServer.AddSendData("* OK [PERMANENTFLAGS (\\Deleted \\Seen \\*)] Limited\r\n");
-            lServer.AddSendTagged("OK [READ-WRITE] SELECT completed\r\n");
-
-            lServer.AddExpectTagged("SEARCH RETURN () BODY {6}\r\n");
-            lServer.AddSendData("+ ready\r\n");
-            lServer.AddExpectData("stu\rff\r\n");
-
-            lServer.AddExpectTagged("SEARCH RETURN () BODY {5}\r\n");
-            lServer.AddSendData("+ ready\r\n");
-            lServer.AddExpectData("stu\rf\r\n");
-
-            lServer.AddSendData("* ESEARCH (TAG \"\t\")\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-            lServer.AddSendData("* ESEARCH (TAG \"\t\")\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-
-            lServer.AddExpectTagged("SEARCH RETURN () BODY {6}\r\n");
-            lServer.AddDelay(3000);
-            lServer.AddSendData("+ ready\r\n");
-            lServer.AddExpectData("stu\rff\r\n");
-
-            lServer.AddSendData("* ESEARCH (TAG \"\t\")\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
-
-
-
-
-
-            //
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddExpectClose();
-
-            cIMAPClient lClient = new cIMAPClient(nameof(ZTestPipelineCancellation)); // CHANGE THE NAME HERE
-            lClient.SetServer("localhost");
-            lClient.SetNoCredentials();
-            lClient.IdleConfiguration = null;
-
-            Task lTask = null;
-            Task<List<cMessage>> lTask1;
-            Task<List<cMessage>> lTask2;
-            List<cMessage> lMessages;
-            bool lFailed;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestPipelineCancellation)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 ESEARCH] this is the text\r\n");
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () nil \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                // add stuff here
+
+                lServer.AddExpectTagged("SELECT INBOX\r\n");
+                lServer.AddSendData("* 172 EXISTS\r\n");
+                lServer.AddSendData("* 1 RECENT\r\n");
+                lServer.AddSendData("* OK [UNSEEN 12] Message 12 is first unseen\r\n");
+                lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+                lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+                lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+                lServer.AddSendData("* OK [PERMANENTFLAGS (\\Deleted \\Seen \\*)] Limited\r\n");
+                lServer.AddSendTagged("OK [READ-WRITE] SELECT completed\r\n");
+
+                lServer.AddExpectTagged("SEARCH RETURN () BODY {6}\r\n");
+                lServer.AddSendData("+ ready\r\n");
+                lServer.AddExpectData("stu\rff\r\n");
+
+                lServer.AddExpectTagged("SEARCH RETURN () BODY {5}\r\n");
+                lServer.AddSendData("+ ready\r\n");
+                lServer.AddExpectData("stu\rf\r\n");
+
+                lServer.AddSendData("* ESEARCH (TAG \"\t\")\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+                lServer.AddSendData("* ESEARCH (TAG \"\t\")\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+
+                lServer.AddExpectTagged("SEARCH RETURN () BODY {6}\r\n");
+                lServer.AddDelay(3000);
+                lServer.AddSendData("+ ready\r\n");
+                lServer.AddExpectData("stu\rff\r\n");
+
+                lServer.AddSendData("* ESEARCH (TAG \"\t\")\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+
+
+
+
+                //
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddExpectClose();
+
+                lClient.SetNoCredentials();
+                lClient.IdleConfiguration = null;
+
+                Task<List<cMessage>> lTask1;
+                Task<List<cMessage>> lTask2;
+                List<cMessage> lMessages;
+                bool lFailed;
+
 
                 lClient.Connect();
                 lClient.Inbox.Select(true);
@@ -2639,12 +2268,7 @@ namespace testharness2
 
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
-            }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
+                lServer.ThrowAnyErrors();
             }
         }
 
@@ -2652,40 +2276,29 @@ namespace testharness2
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestEarlyTermination1));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY IMAP4rev1] this is the text\r\n");
-
-            lServer.AddExpectTagged("LOGIN {4}\r\n");
-            lServer.AddSendData("+ ready\r\n");
-            lServer.AddExpectData("fred {5}\r\n");
-            lServer.AddSendTagged("NO we don't like you fred\r\n");
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddClose();
-
-            cIMAPClient lClient = new cIMAPClient("ZTestEarlyTermination_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestEarlyTermination1)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* OK [CAPABILITY IMAP4rev1] this is the text\r\n");
+
+                lServer.AddExpectTagged("LOGIN {4}\r\n");
+                lServer.AddSendData("+ ready\r\n");
+                lServer.AddExpectData("fred {5}\r\n");
+                lServer.AddSendTagged("NO we don't like you fred\r\n");
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
                 bool lFailed = false;
                 try { lClient.Connect(); }
                 catch (cCredentialsException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("expected connect to fail");
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
-            }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
+                lServer.ThrowAnyErrors();
             }
         }
 
@@ -2706,107 +2319,127 @@ namespace testharness2
             throw new cTestsException("ZTestEarlyTermination2");
         }
 
-
-
         private static void ZTestEarlyTermination2Worker(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestEarlyTermination2Worker));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* OK [CAPABILITY LITERAL- IMAP4rev1] this is the text\r\n");
-
-            lServer.AddExpectTagged("LOGIN {4+}\r\n");
-            lServer.AddSendTagged("NO shutting down\r\n");
-            lServer.AddExpectData("fred\r\n");
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddClose();
-
-            cIMAPClient lClient = new cIMAPClient("ZTestEarlyTermination_cIMAPClient");
-            lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
-            lClient.NetworkWriteConfiguration = new cBatchSizerConfiguration(1, 1, 10000, 1);
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestEarlyTermination2Worker)))
+            using (cIMAPClient lClient = lServer.NewClient())
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* OK [CAPABILITY LITERAL- IMAP4rev1] this is the text\r\n");
+
+                lServer.AddExpectTagged("LOGIN {4+}\r\n");
+                lServer.AddSendTagged("NO shutting down\r\n");
+                lServer.AddExpectData("fred\r\n");
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+                lClient.NetworkWriteConfiguration = new cBatchSizerConfiguration(1, 1, 10000, 1);
+
 
                 bool lFailed = false;
                 try { lClient.Connect(); }
                 catch (cCredentialsException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("expected connect to fail");
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
-            }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
+                lServer.ThrowAnyErrors();
             }
         }
-
-
-
 
         private static void ZTestAppendNoCatenateNoBinaryNoUTF8(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestAppendNoCatenateNoBinaryNoUTF8));
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1] this is the text\r\n");
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () nil \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-            // select inbox
-            lServer.AddExpectTagged("EXAMINE INBOX\r\n");
-            lServer.AddSendData("* 1 EXISTS\r\n");
-            lServer.AddSendData("* 1 RECENT\r\n");
-            lServer.AddSendData("* OK [UNSEEN 1] Message 1 is first unseen\r\n");
-            lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
-            lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
-            lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
-            lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
-            lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
-
-            lServer.AddExpectTagged("FETCH 1 BODYSTRUCTURE\r\n");
-            lServer.AddSendData("* 1 FETCH (RFC822.SIZE 226 BODYSTRUCTURE ((\"text\" \"plain\" NIL NIL NIL \"7bit\" 5 0 NIL NIL NIL NIL)(\"message\" \"rfc822\" NIL NIL NIL \"7bit\" 46 (\"thu, 22 feb 2018 15:49:50 +1300\" NIL NIL NIL NIL NIL NIL NIL NIL NIL) (\"text\" \"plain\" NIL NIL NIL \"7bit\" 5 0 NIL NIL NIL NIL) 2) \"mixed\" (\"boundary\" \"boundary\")))\r\n");
-            lServer.AddSendTagged("OK FETCH completed\r\n");
-
-            lServer.AddExpectTagged("FETCH 1 BODY.PEEK[]<0.1000>\r\n");
-            lServer.AddSendData("* 1 FETCH (BODY[] {226}mime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--)\r\n");
-            lServer.AddSendTagged("OK FETCH completed\r\n");
-
-
-            // * 11 FETCH (UID 37 BODYSTRUCTURE (("text" "plain" ("charset" "us-ascii") NIL NIL "7bit" 5 0 NIL NIL NIL NIL)("message" "rfc822" NIL NIL NIL "7bit" 46 ("thu, 22 feb 2018 15:49:50 +1300" NIL NIL NIL NIL NIL NIL NIL NIL NIL) ("text" "plain" ("charset" "us-ascii") NIL NIL "7bit" 5 0 NIL NIL NIL NIL) 2 NIL NIL NIL NIL) "mixed" ("boundary" "boundary") NIL NIL NIL))
-
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddExpectClose();
-
-            cIMAPClient lClient1 = new cIMAPClient(nameof(ZTestAppendNoCatenateNoBinaryNoUTF8) + ".1"); 
-            lClient1.SetServer("localhost");
-            lClient1.SetNoCredentials();
-            lClient1.IdleConfiguration = null;
-            lClient1.DefaultMessageCacheItems = fMessageCacheAttributes.bodystructure;
-            lClient1.FetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000, 1000, 1000);
-
-            cIMAPClient lClient2 = new cIMAPClient(nameof(ZTestAppendNoCatenateNoBinaryNoUTF8) + ".2");
-            lClient2.Server = lClient1.Server;
-            lClient2.Credentials = lClient1.Credentials;
-            lClient2.IdleConfiguration = null;
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)))
+            using (cIMAPClient lClient1 = lServer.NewClient(1))
+            using (cIMAPClient lClient2 = lServer.NewClient(2))
             {
-                lTask = lServer.RunAsync(lContext);
+                lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 LITERAL+] this is the text\r\n");
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () nil \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                // select inbox
+                lServer.AddExpectTagged("EXAMINE INBOX\r\n");
+                lServer.AddSendData("* 1 EXISTS\r\n");
+                lServer.AddSendData("* 1 RECENT\r\n");
+                lServer.AddSendData("* OK [UNSEEN 1] Message 1 is first unseen\r\n");
+                lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+                lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+                lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+                lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
+                lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
+
+                // the second client connects
+                var lServer2 = lServer.NewJobList();
+                lServer2.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 LITERAL+] this is the text\r\n");
+                lServer2.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer2.AddSendData("* LIST () nil \"\"\r\n");
+                lServer2.AddSendTagged("OK LIST command completed\r\n");
+
+                // the second client requests the message details from the first client
+                lServer.AddExpectTagged("FETCH 1 (FLAGS INTERNALDATE RFC822.SIZE)\r\n");
+                lServer.AddSendData("* 1 FETCH (FLAGS (\\seen) INTERNALDATE \"22-feb-2018 14:48:49 +1300\" RFC822.SIZE 226)\r\n");
+                lServer.AddSendTagged("OK FETCH completed\r\n");
+
+
+                // the second client requests the message text from the first client
+                lServer.AddExpectTagged("FETCH 1 BODY.PEEK[]<0.1000>\r\n");
+                //                                              12345678901234567 8 90123456789012345678901234567890123456789 012345678 9 0 1 2 34567890123 4 5678901234567890123456789 0 1 2 345678 9 01234567890 1 23456789012345678901234567890 1 2 3 45678901234567890123456789012345678901 2 3 4 567890 1 2345678901234 5 6
+                lServer.AddSendData("* 1 FETCH (BODY[] {226}\r\nmime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--\r\n)\r\n");
+                lServer.AddSendTagged("OK FETCH completed\r\n");
+
+                // the second client appends; no rfc 4315 response
+                lServer2.AddExpectTagged("APPEND INBOX (\\seen) \"22-FEB-2018 14:48:49 +1300\" {226+}\r\nmime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--\r\n\r\n");
+                lServer2.AddSendTagged("OK APPENDed\r\n");
+
+                // the second client requests the message text from the first client again (message data is not cached)
+                lServer.AddExpectTagged("FETCH 1 BODY.PEEK[]<0.1000>\r\n");
+                //                                              12345678901234567 8 90123456789012345678901234567890123456789 012345678 9 0 1 2 34567890123 4 5678901234567890123456789 0 1 2 345678 9 01234567890 1 23456789012345678901234567890 1 2 3 45678901234567890123456789012345678901 2 3 4 567890 1 2345678901234 5 6
+                lServer.AddSendData("* 1 FETCH (BODY[] {226}\r\nmime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--\r\n)\r\n");
+                lServer.AddSendTagged("OK FETCH completed\r\n");
+
+                // the second client appends; rfc 4315 response
+                lServer2.AddExpectTagged("APPEND INBOX (\\seen) \"22-FEB-2018 14:48:49 +1300\" {226+}\r\nmime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--\r\n\r\n");
+                lServer2.AddSendTagged("OK [APPENDUID 2 1] APPENDed\r\n");
+
+                // the second client requests the body structure from the first client
+                lServer.AddExpectTagged("FETCH 1 BODYSTRUCTURE\r\n");
+                lServer.AddSendData("* 1 FETCH (RFC822.SIZE 226 BODYSTRUCTURE ((\"text\" \"plain\" NIL NIL NIL \"7bit\" 5 0 NIL NIL NIL NIL)(\"message\" \"rfc822\" NIL NIL NIL \"7bit\" 46 (\"thu, 22 feb 2018 15:49:50 +1300\" NIL NIL NIL NIL NIL NIL NIL NIL NIL) (\"text\" \"plain\" NIL NIL NIL \"7bit\" 5 0 NIL NIL NIL NIL) 2) \"mixed\" (\"boundary\" \"boundary\")))\r\n");
+                lServer.AddSendTagged("OK FETCH completed\r\n");
+
+                // the second client requests the encapsulated message text from the first client
+                lServer.AddExpectTagged("FETCH 1 BODY.PEEK[2]<0.1000>\r\n");
+                //                                             1234567890123456789012345678901234567 8 9 0 123456
+                lServer.AddSendData("* 1 FETCH (BODY[2] {46}\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello)\r\n");
+                lServer.AddSendTagged("OK FETCH completed\r\n");
+
+                // the second client appends the encapsulated message
+                lServer2.AddExpectTagged("APPEND INBOX \"22-FEB-2018 14:48:49 +1300\" {46+}\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n");
+                lServer2.AddSendTagged("OK [APPENDUID 2 3] APPENDed\r\n");
+
+                // the second client disconnects
+                lServer2.AddExpectTagged("LOGOUT\r\n");
+                lServer2.AddSendData("* BYE logging out\r\n");
+                lServer2.AddSendTagged("OK logged out\r\n");
+                lServer2.AddExpectClose();
+
+                // the first client disconnects
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddExpectClose();
+
+                lClient1.SetNoCredentials();
+                lClient1.IdleConfiguration = null;
+                lClient1.FetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000, 1000, 1000);
+
+                lClient2.Credentials = lClient1.Credentials;
+                lClient2.IdleConfiguration = null;
 
                 lClient1.Connect();
                 lClient1.Inbox.Select();
@@ -2814,77 +2447,23 @@ namespace testharness2
 
                 lClient2.Connect();
 
-                // NoCatenateNoBinaryNoUTF8
+                cUID lUID;
 
-
-
-
-                ZTestAppendNoCatenateNoBinaryNoUTF8(lMessage, lContext);
-
-                // add stuff here
-
-                lClient.Disconnect();
-
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
-            }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-        }
-
-        private static void ZTestAppendNoCatenateNoBinaryNoUTF8(cMessage pMessage, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestAppendNoCatenateNoBinaryNoUTF8));
-
-            cServer lServer = new cServer();
-            lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 LITERAL+] this is the text\r\n");
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () nil \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-            //                                                       1           2         3         4         5         6         7             8           9         0         1             2           3           4         5         6             7         8         9         0
-            //                                              12345678901234567 8 90123456789012345678901234567890123456789012345678901 2 3 4 56789012345 6 7890123456789012345678901 2 3 4 567890 1 23456789012 3 45678901234567890123456789012 3 4 5 67890123456789012345678901234567890123 4 5 6 789012 3 4567890123456
-            lServer.AddExpectTagged("APPEND INBOX {226+}\r\nmime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--\r\n");
-            lServer.AddSendTagged("OK APPENDed");
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddExpectClose();
-
-            cIMAPClient lClient = new cIMAPClient(nameof(ZTestAppend1));
-            lClient.SetServer("localhost");
-            lClient.SetNoCredentials();
-            lClient.IdleConfiguration = null;
-            lClient.DefaultMessageCacheItems = fMessageCacheAttributes.bodystructure;
-
-            Task lTask = null;
-
-            try
-            {
-                lTask = lServer.RunAsync(lContext);
-
-                lClient.Connect();
-
-                // add stuff here
-
-                var lUID = lClient.Inbox.Append(pMessage);
+                lUID = lClient2.Inbox.Append(lMessage);
                 if (lUID != null) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.1");
 
-                // now test a uid coming back ...
-                //var lUID = lClient.Inbox.Append(pMessage);
-                //if (lUID != null) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.1");
+                lUID = lClient2.Inbox.Append(lMessage);
+                if (lUID != new cUID(2, 1)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.2");
 
-                lClient.Disconnect();
+                var lBS = lMessage.BodyStructure as cMultiPartBody;
+                lUID = lClient2.Inbox.Append(new cMessagePartAppendData(lMessage, lBS.Parts[1] as cMessageBodyPart));
+                if (lUID != new cUID(2, 3)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.3");
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
-            }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
+                lClient2.Disconnect();
+
+                lClient1.Disconnect();
+
+                lServer.ThrowAnyErrors();
             }
         }
 
@@ -2895,29 +2474,25 @@ namespace testharness2
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestBlank)); // CHANGE THE NAME HERE
 
-            cServer lServer = new cServer();
-            lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1] this is the text\r\n");
-            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-            lServer.AddSendData("* LIST () nil \"\"\r\n");
-            lServer.AddSendTagged("OK LIST command completed\r\n");
-
-            // add stuff here
-
-            lServer.AddExpectTagged("LOGOUT\r\n");
-            lServer.AddSendData("* BYE logging out\r\n");
-            lServer.AddSendTagged("OK logged out\r\n");
-            lServer.AddExpectClose();
-
-            cIMAPClient lClient = new cIMAPClient(nameof(ZTestBlank)); // CHANGE THE NAME HERE
-            lClient.SetServer("localhost");
-            lClient.SetNoCredentials();
-            lClient.IdleConfiguration = null;
-
-            Task lTask = null;
-
-            try
+            using (cServer lServer = new cServer(lContext, nameof(ZTestBlank)))// CHANGE THE NAME HERE
+            using (cIMAPClient lClient = lServer.NewClient()) 
             {
-                lTask = lServer.RunAsync(lContext);
+
+                lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1] this is the text\r\n");
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () nil \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                // add stuff here
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddExpectClose();
+
+                lClient.SetServer("localhost");
+                lClient.SetNoCredentials();
+                lClient.IdleConfiguration = null;
 
                 lClient.Connect();
 
@@ -2925,31 +2500,8 @@ namespace testharness2
 
                 lClient.Disconnect();
 
-                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
-                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                lServer.ThrowAnyErrors();
             }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
-        }
-
-        private static void ZFinally(cServer pServer, cIMAPClient pClient, Task pTask)
-        {
-            if (pTask != null)
-            {
-                if (!pTask.IsCompleted)
-                {
-                    pServer.Cancel();
-                    try { pTask.Wait(); }
-                    catch { }
-                }
-
-                pTask.Dispose();
-            }
-
-            pClient.Dispose();
-            pServer.Dispose();
         }
 
         // disable warning about my listener
@@ -2957,209 +2509,143 @@ namespace testharness2
 
         private sealed class cServer : IDisposable
         {
-            private List<cTask> mTasks = new List<cTask>();
-            TcpListener mListener = new TcpListener(143);
-            private TcpClient mClient = null;
-            private NetworkStream mStream = null;
-            private CancellationTokenSource mCancellationTokenSource = null;
+            private readonly string mNameOfTest;
+            private readonly TcpListener mListener = new TcpListener(143);
+            private readonly CancellationTokenSource mCancellationTokenSource = new CancellationTokenSource();
+            private readonly List<cJobList> mJobLists = new List<cJobList>();
+            private readonly List<cSession> mSessions = new List<cSession>();
+            private readonly List<Task> mSessionTasks = new List<Task>();
+            private readonly Task mServerTask;
+            private readonly Task mTimeoutTask;
 
-            public cServer() { }
-
-
-            ;?; // need to convert this to having multiple sessions 
-
-            public void AddExpectData(string pData) => mTasks.Add(new cTask(cTask.eType.expectdata, pData));
-            public void AddExpectData(byte[] pData) => mTasks.Add(new cTask(cTask.eType.expectdata, pData));
-            public void AddExpectTagged(string pData) => mTasks.Add(new cTask(cTask.eType.expecttagged, pData));
-            public void AddExpectTagged(byte[] pData) => mTasks.Add(new cTask(cTask.eType.expecttagged, pData));
-            public void AddExpectClose() => mTasks.Add(new cTask(cTask.eType.expectclose));
-            public void AddDelay(int pDelay) => mTasks.Add(new cTask(pDelay));
-            public void AddSendData(string pData) => mTasks.Add(new cTask(cTask.eType.senddata, pData));
-            public void AddSendData(byte[] pData) => mTasks.Add(new cTask(cTask.eType.senddata, pData));
-            public void AddSendTagged(string pData) => mTasks.Add(new cTask(cTask.eType.sendtagged, pData));
-            public void AddClose() => mTasks.Add(new cTask(cTask.eType.close));
-
-            public async Task RunAsync(cTrace.cContext pParentContext)
+            public cServer(cTrace.cContext pContext, string pNameOfTest, int pMaxRunTime = 10000)
             {
-                var lContext = pParentContext.NewMethod(nameof(cServer), nameof(RunAsync));
+                mNameOfTest = pNameOfTest;
 
+                mJobLists.Add(new cJobList());
+
+                mServerTask = ZServer(pContext);
+                mTimeoutTask = ZTimeout(pMaxRunTime);
+            }
+
+            public void AddExpectData(string pData) => mJobLists[0].AddExpectData(pData);
+            public void AddExpectData(byte[] pData) => mJobLists[0].AddExpectData(pData);
+            public void AddExpectTagged(string pData) => mJobLists[0].AddExpectTagged(pData);
+            public void AddExpectTagged(byte[] pData) => mJobLists[0].AddExpectTagged(pData);
+            public void AddExpectClose() => mJobLists[0].AddExpectClose();
+            public void AddDelay(int pDelay) => mJobLists[0].AddDelay(pDelay);
+            public void AddSendData(string pData) => mJobLists[0].AddSendData(pData);
+            public void AddSendData(byte[] pData) => mJobLists[0].AddSendData(pData);
+            public void AddSendTagged(string pData) => mJobLists[0].AddSendTagged(pData);
+            public void AddClose() => mJobLists[0].AddClose();
+
+            public cIMAPClient NewClient(int pInstance = 0)
+            {
+                cIMAPClient lClient = new cIMAPClient(mNameOfTest + "." + pInstance);
+                lClient.SetServer("localhost");
+                lClient.CancellationToken = mCancellationTokenSource.Token;
+                return lClient;
+            }
+
+            public cJobList NewJobList()
+            {
+                var lJobList = new cJobList();
+                mJobLists.Add(lJobList);
+                return lJobList;
+            }
+
+            public Task GetSessionTask(int i) => mSessionTasks[i];
+
+            public void ThrowAnyErrors()
+            {
+                if (mServerTask == null) throw new InvalidOperationException();
+                mCancellationTokenSource.Cancel();
+                Task.WaitAll(mSessionTasks.ToArray());
+            }
+
+            private async Task ZServer(cTrace.cContext pContext)
+            { 
                 mListener.Start();
-                mClient = await mListener.AcceptTcpClientAsync().ConfigureAwait(false);
-                mStream = mClient.GetStream();
-                mCancellationTokenSource = new CancellationTokenSource();
-
-                int lTaskNo = 0;
-                int lByteInLine = 0;
-                bool lReadTag = false;
-                List<byte> lTagBuilder = new List<byte>();
-                Stack<byte[]> lTagStack = new Stack<byte[]>();
-
-                byte[] lBuffer = new byte[1000];
-                int lBytesRead = 0;
-                int lByteInBuffer = 0;
-
-                cTask lTask = mTasks[lTaskNo++];
 
                 try
                 {
                     while (true)
                     {
-                        if (lTask.Type == cTask.eType.close) break;
-
-                        if (lTask.Type == cTask.eType.delay)
-                        {
-                            lContext.TraceVerbose($"waiting for {lTask.Delay}ms");
-                            await Task.Delay(lTask.Delay, mCancellationTokenSource.Token).ConfigureAwait(false);
-                            lTask = mTasks[lTaskNo++];
-                            goto next_task;
-                        }
-
-                        if (lTask.Type == cTask.eType.senddata)
-                        {
-                            List<byte> lBytes = new List<byte>();
-
-                            foreach (var lByte in lTask.Data)
-                            {
-                                if (lByte == 9) lBytes.AddRange(lTagStack.Peek());
-                                else lBytes.Add(lByte);
-                            }
-
-                            byte[] lData = lBytes.ToArray();
-
-                            //lContext.TraceVerbose($"sending {new cBytes(lBytes)}");
-                            await mStream.WriteAsync(lData, 0, lData.Length, mCancellationTokenSource.Token).ConfigureAwait(false);
-                            lTask = mTasks[lTaskNo++];
-                            goto next_task;
-                        }
-
-                        if (lTask.Type == cTask.eType.sendtagged)
-                        {
-                            byte[] lTag = lTagStack.Pop();
-                            //lContext.TraceVerbose($"sending {new cBytes(lTag)} {new cBytes(lTask.Data)}");
-                            await mStream.WriteAsync(lTag, 0, lTag.Length, mCancellationTokenSource.Token).ConfigureAwait(false);
-                            await mStream.WriteAsync(new byte[1] { 32 }, 0, 1, mCancellationTokenSource.Token).ConfigureAwait(false);
-                            await mStream.WriteAsync(lTask.Data, 0, lTask.Data.Length, mCancellationTokenSource.Token).ConfigureAwait(false);
-                            lTask = mTasks[lTaskNo++];
-                            goto next_task;
-                        }
-
-                        if (lTask.Type == cTask.eType.expectclose)
-                        {
-                            lContext.TraceVerbose("expecting close");
-                            lBytesRead = await mStream.ReadAsync(lBuffer, 0, 1000).ConfigureAwait(false);
-
-                            if (lBytesRead != 0)
-                            {
-                                List<byte> lBytes = new List<byte>(lBytesRead);
-                                for (int i = 0; i < lBytesRead; i++) lBytes.Add(lBuffer[i]);
-                                //throw new cTestsException($"expected close, got {new cBytes(lBytes)}", lContext);
-                                throw new cTestsException($"expected close, got data", lContext);
-                            }
-
-                            lContext.TraceVerbose("closed");
-                            break;
-                        }
-
-                        if (lTask.Type == cTask.eType.expecttagged && !lReadTag)
-                        {
-                            while (lByteInBuffer < lBytesRead)
-                            {
-                                byte lByte = lBuffer[lByteInBuffer++];
-
-                                if (lByte < 48 || lByte > 57)
-                                {
-                                    if (lTagBuilder.Count == 0) throw new cTestsException("expected tag", lContext);
-                                    if (lByte != 32) throw new cTestsException("expected space to terminate tag", lContext);
-
-                                    lTagStack.Push(lTagBuilder.ToArray());
-                                    lTagBuilder.Clear();
-                                    lReadTag = true;
-
-                                    break;
-                                }
-
-                                lTagBuilder.Add(lByte);
-                            }
-                        }
-
-                        while (lByteInBuffer < lBytesRead)
-                        {
-                            // this is case sensitive
-                            if (lBuffer[lByteInBuffer++] != lTask.Data[lByteInLine++])
-                                throw new cTestsException($"received bytes don't match expectation: ", lContext);
-                            //throw new cTestsException($"received bytes don't match expectation: {new cBytes(lTask.Data)} at position {lByteInLine}", lContext);
-
-                            if (lByteInLine == lTask.Data.Length)
-                            {
-                                lTask = mTasks[lTaskNo++];
-                                lByteInLine = 0;
-                                lReadTag = false;
-                                goto next_task;
-                            }
-                        }
-
-                        lContext.TraceVerbose("waiting for data");
-
-                        lBytesRead = await mStream.ReadAsync(lBuffer, 0, 1000).ConfigureAwait(false);
-
-                        if (lBytesRead == 0) throw new cTestsException("connection closed", lContext);
-
-                        {
-                            List<byte> lBytes = new List<byte>(lBytesRead);
-                            for (int i = 0; i < lBytesRead; i++) lBytes.Add(lBuffer[i]);
-                            //lContext.TraceVerbose($"read {new cBytes(lBytes)}");
-                        }
-
-                        lByteInBuffer = 0;
-
-                        next_task:;
+                        var lClient = await mListener.AcceptTcpClientAsync().ConfigureAwait(false);
+                        var lJobList = mJobLists[mSessions.Count];
+                        var lSession = new cSession(lClient, lJobList, mCancellationTokenSource);
+                        mSessions.Add(lSession);
+                        mSessionTasks.Add(lSession.RunAsync(pContext));
                     }
                 }
                 finally
                 {
                     mListener.Stop();
-                    mStream.Dispose();
-                    mStream = null;
-                    mClient.Close();
-                    mClient = null;
+                    mCancellationTokenSource.Cancel();
                 }
             }
 
-            public void Cancel()
+            public async Task ZTimeout(int pMaxRunTime)
             {
-                mListener.Stop();
-                if (mCancellationTokenSource != null) mCancellationTokenSource.Cancel();
-                if (mStream != null) { mStream.Dispose(); mStream = null; }
-                if (mClient != null) { mClient.Close(); mClient = null; }
+                try { await Task.Delay(pMaxRunTime, mCancellationTokenSource.Token).ConfigureAwait(false); }
+                finally
+                {
+                    mListener.Stop();
+                    mCancellationTokenSource.Cancel();
+                }
             }
 
             public void Dispose()
             {
-                mListener.Stop();
+                try { mListener.Stop(); }
+                catch { }
+
+                if (mCancellationTokenSource != null)
+                {
+                    try { mCancellationTokenSource.Cancel(); }
+                    catch { }
+                }
+
+                if (mServerTask != null)
+                {
+                    try
+                    {
+                        mServerTask.Wait();
+                        mServerTask.Dispose();
+                    }
+                    catch { }
+                }
+
+                if (mTimeoutTask != null)
+                {
+                    try
+                    {
+                        mTimeoutTask.Wait();
+                        mTimeoutTask.Dispose();
+                    }
+                    catch { }
+                }
+
+                foreach (var lSession in mSessions) lSession.Dispose();
+
+                foreach (var lSessionTask in mSessionTasks)
+                {
+                    try
+                    {
+                        lSessionTask.Wait();
+                        lSessionTask.Dispose();
+                    }
+                    catch { }
+                }
 
                 if (mCancellationTokenSource != null)
                 {
                     try { mCancellationTokenSource.Dispose(); }
                     catch { }
-                    mCancellationTokenSource = null;
-                }
-
-                if (mStream != null)
-                {
-                    try { mStream.Dispose(); }
-                    catch { }
-                    mStream = null;
-                }
-
-                if (mClient != null)
-                {
-                    try { mClient.Close(); }
-                    catch { }
-                    mClient = null;
                 }
             }
 
-            private class cTask
+            public class cJob
             {
                 public enum eType { expectdata, expecttagged, expectclose, delay, senddata, sendtagged, close }
 
@@ -3167,14 +2653,14 @@ namespace testharness2
                 public readonly byte[] Data;
                 public readonly int Delay;
 
-                public cTask(eType pType)
+                public cJob(eType pType)
                 {
                     Type = pType; // expectclose, close
                     Data = null;
                     Delay = 0;
                 }
 
-                public cTask(eType pType, string pData)
+                public cJob(eType pType, string pData)
                 {
                     Type = pType; // expectdata, senddata
                     Data = new byte[pData.Length];
@@ -3182,18 +2668,235 @@ namespace testharness2
                     Delay = 0;
                 }
 
-                public cTask(eType pType, byte[] pData)
+                public cJob(eType pType, byte[] pData)
                 {
                     Type = pType; // expectdata, senddata
                     Data = pData;
                     Delay = 0;
                 }
 
-                public cTask(int pDelay)
+                public cJob(int pDelay)
                 {
                     Type = eType.delay; // expectclose, close
                     Data = null;
                     Delay = pDelay;
+                }
+
+                public override string ToString()
+                {
+                    StringBuilder lBuilder = new StringBuilder();
+
+                    lBuilder.Append(Type);
+
+                    if (Data != null)
+                    {
+                        lBuilder.Append(",");
+                        foreach (var lByte in Data) lBuilder.Append((char)lByte);
+                    }
+
+                    if (Delay > 0)
+                    {
+                        lBuilder.Append(",");
+                        lBuilder.Append(Delay);
+                    }
+
+                    return lBuilder.ToString();
+                }
+            }
+
+            public class cJobList : IReadOnlyCollection<cJob>
+            {
+                private List<cJob> mJobs = new List<cJob>();
+
+                public cJobList() { }
+
+                public void AddExpectData(string pData) => mJobs.Add(new cJob(cJob.eType.expectdata, pData));
+                public void AddExpectData(byte[] pData) => mJobs.Add(new cJob(cJob.eType.expectdata, pData));
+                public void AddExpectTagged(string pData) => mJobs.Add(new cJob(cJob.eType.expecttagged, pData));
+                public void AddExpectTagged(byte[] pData) => mJobs.Add(new cJob(cJob.eType.expecttagged, pData));
+                public void AddExpectClose() => mJobs.Add(new cJob(cJob.eType.expectclose));
+                public void AddDelay(int pDelay) => mJobs.Add(new cJob(pDelay));
+                public void AddSendData(string pData) => mJobs.Add(new cJob(cJob.eType.senddata, pData));
+                public void AddSendData(byte[] pData) => mJobs.Add(new cJob(cJob.eType.senddata, pData));
+                public void AddSendTagged(string pData) => mJobs.Add(new cJob(cJob.eType.sendtagged, pData));
+                public void AddClose() => mJobs.Add(new cJob(cJob.eType.close));
+
+                public int Count => mJobs.Count;
+                public IEnumerator<cJob> GetEnumerator() => mJobs.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => mJobs.GetEnumerator();
+
+                public cJob this[int i] => mJobs[i];
+            }
+
+            private class cSession : IDisposable
+            {
+                private readonly TcpClient mClient;
+                private readonly cJobList mJobs;
+                private readonly CancellationTokenSource mCancellationTokenSource;
+                private readonly NetworkStream mStream;
+
+                public cSession(TcpClient pClient, cJobList pJobs, CancellationTokenSource pCancellationTokenSource)
+                {
+                    mClient = pClient;
+                    mJobs = pJobs;
+                    mCancellationTokenSource = pCancellationTokenSource;
+                    mStream = pClient.GetStream();
+                }
+
+                public async Task RunAsync(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewRootMethod(nameof(cSession), nameof(RunAsync));
+
+                    {
+                        lContext.TraceVerbose("begin job list");
+                        foreach (var lJob in mJobs) lContext.TraceVerbose(" {0}", lJob);
+                        lContext.TraceVerbose("end job list");
+                    }
+
+                    try
+                    {
+                        int lJobNo = 0;
+                        int lByteInLine = 0;
+                        bool lReadTag = false;
+                        List<byte> lTagBuilder = new List<byte>();
+                        Stack<byte[]> lTagStack = new Stack<byte[]>();
+
+                        byte[] lBuffer = new byte[1000];
+                        int lBytesRead = 0;
+                        int lByteInBuffer = 0;
+
+                        cJob lJob = mJobs[lJobNo++];
+
+                        while (true)
+                        {
+                            lContext.TraceVerbose("{0} {1}", lJobNo, lJob.Type);
+
+                            if (lJob.Type == cJob.eType.close) break;
+
+                            if (lJob.Type == cJob.eType.delay)
+                            {
+                                await Task.Delay(lJob.Delay, mCancellationTokenSource.Token).ConfigureAwait(false);
+
+                                lJob = mJobs[lJobNo++];
+                                goto next_task;
+                            }
+
+                            if (lJob.Type == cJob.eType.senddata)
+                            {
+                                List<byte> lBytes = new List<byte>();
+
+                                foreach (var lByte in lJob.Data)
+                                {
+                                    if (lByte == 9) lBytes.AddRange(lTagStack.Peek());
+                                    else lBytes.Add(lByte);
+                                }
+
+                                byte[] lData = lBytes.ToArray();
+
+                                //lContext.TraceVerbose($"sending {new cBytes(lBytes)}");
+                                await mStream.WriteAsync(lData, 0, lData.Length, mCancellationTokenSource.Token).ConfigureAwait(false);
+
+                                lJob = mJobs[lJobNo++];
+                                goto next_task;
+                            }
+
+                            if (lJob.Type == cJob.eType.sendtagged)
+                            {
+                                byte[] lTag = lTagStack.Pop();
+                                //lContext.TraceVerbose($"sending {new cBytes(lTag)} {new cBytes(lTask.Data)}");
+                                await mStream.WriteAsync(lTag, 0, lTag.Length, mCancellationTokenSource.Token).ConfigureAwait(false);
+                                await mStream.WriteAsync(new byte[1] { 32 }, 0, 1, mCancellationTokenSource.Token).ConfigureAwait(false);
+                                await mStream.WriteAsync(lJob.Data, 0, lJob.Data.Length, mCancellationTokenSource.Token).ConfigureAwait(false);
+                                lJob = mJobs[lJobNo++];
+                                goto next_task;
+                            }
+
+                            if (lJob.Type == cJob.eType.expectclose)
+                            {
+                                lBytesRead = await mStream.ReadAsync(lBuffer, 0, 1000).ConfigureAwait(false);
+
+                                if (lBytesRead != 0)
+                                {
+                                    List<byte> lBytes = new List<byte>(lBytesRead);
+                                    for (int i = 0; i < lBytesRead; i++) lBytes.Add(lBuffer[i]);
+                                    throw new cTestsException($"expected close, got data", lContext);
+                                }
+
+                                break;
+                            }
+
+                            if (lJob.Type == cJob.eType.expecttagged && !lReadTag)
+                            {
+                                while (lByteInBuffer < lBytesRead)
+                                {
+                                    byte lByte = lBuffer[lByteInBuffer++];
+
+                                    if (lByte < 48 || lByte > 57)
+                                    {
+                                        if (lTagBuilder.Count == 0) throw new cTestsException("expected tag", lContext);
+                                        if (lByte != 32) throw new cTestsException("expected space to terminate tag", lContext);
+
+                                        lTagStack.Push(lTagBuilder.ToArray());
+                                        lTagBuilder.Clear();
+                                        lReadTag = true;
+
+                                        break;
+                                    }
+
+                                    lTagBuilder.Add(lByte);
+                                }
+                            }
+
+                            while (lByteInBuffer < lBytesRead)
+                            {
+                                // this is case sensitive
+                                if (lBuffer[lByteInBuffer++] != lJob.Data[lByteInLine++])
+                                    throw new cTestsException($"received bytes don't match expectation, job {lJobNo}, position {lByteInLine}, text {lJob}", lContext);
+
+                                if (lByteInLine == lJob.Data.Length)
+                                {
+                                    lJob = mJobs[lJobNo++];
+                                    lByteInLine = 0;
+                                    lReadTag = false;
+                                    goto next_task;
+                                }
+                            }
+
+                            lBytesRead = await mStream.ReadAsync(lBuffer, 0, 1000).ConfigureAwait(false);
+
+                            if (lBytesRead == 0) throw new cTestsException("connection closed", lContext);
+
+                            {
+                                List<byte> lBytes = new List<byte>(lBytesRead);
+                                for (int i = 0; i < lBytesRead; i++) lBytes.Add(lBuffer[i]);
+                                //lContext.TraceVerbose($"read {new cBytes(lBytes)}");
+                            }
+
+                            lByteInBuffer = 0;
+
+                            next_task:;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        mCancellationTokenSource.Cancel();
+                        throw;
+                    }
+                }
+
+                public void Dispose()
+                {
+                    if (mStream != null)
+                    {
+                        try { mStream.Dispose(); }
+                        catch { }
+                    }
+
+                    if (mClient != null)
+                    {
+                        try { mClient.Close(); }
+                        catch { }
+                    }
                 }
             }
         }
