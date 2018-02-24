@@ -37,6 +37,14 @@ namespace work.bacome.imapclient
             if (pTempFileCollection == null) throw new ArgumentNullException(nameof(pTempFileCollection));
             if (pMailMessage == null) throw new ArgumentNullException(nameof(pMailMessage));
 
+
+            ;?; // validate streams!
+
+            ;?; // set maximum for qp conversion
+
+            // (implies a new config including set max!)
+
+
             sConvertMailMessageResult lResult;
 
             if (pConfiguration == null)

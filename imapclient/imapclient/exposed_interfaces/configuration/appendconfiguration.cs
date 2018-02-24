@@ -3,45 +3,65 @@ using System.Threading;
 
 namespace work.bacome.imapclient
 {
-    /// <summary>
-    /// Contains an operation specific timeout, cancellation token, progress-setmaximum and progress-increment callbacks, and quoted-printable-encode batch-size configurations.
-    /// </summary>
-    /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
-    /// <seealso cref="cMailbox.Append(cAppendData, cAppendConfiguration)"/>
-    /// <seealso cref="cMailbox.Append(System.Collections.Generic.IEnumerable{cAppendData}, cAppendConfiguration)"/>
-    /// <seealso cref="cMailbox.Append(System.Net.Mail.MailMessage, cStorableFlags, DateTime?, System.Text.Encoding, cAppendConfiguration)"/>
-    /// <seealso cref="cMailbox.Append(System.Collections.Generic.IEnumerable{System.Net.Mail.MailMessage}, cStorableFlags, DateTime?, System.Text.Encoding, cAppendConfiguration)"/>
-    public class cAppendConfiguration : cQuotedPrintableEncodeConfiguration
+    public class cAppendConfiguration 
     {
-        /// <summary>
-        /// The progress-setmaximum callback for the operation. May be <see langword="null"/>. 
-        /// Invoked once after any required quoted-printable-encoding and before any sending to the server, the argument specifies how many bytes are going to be sent to the server.
-        /// </summary>
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
+        public readonly int Timeout;
+        public readonly CancellationToken CancellationToken;
         public readonly Action<long> SetMaximum;
+        public readonly Action<int> Increment;
 
-        /// <summary>
-        /// Initialises a new instance with the specified timeout and quoted-printable-encode batch-size configurations. Intended for use with synchronous APIs.
-        /// </summary>
-        /// <param name="pTimeout">May be <see cref="Timeout.Infinite"/>.</param>
-        /// <param name="pReadConfiguration">May be <see langword="null"/>.</param>
-        /// <param name="pWriteConfiguration">May be <see langword="null"/>.</param>
-        public cAppendConfiguration(int pTimeout, cBatchSizerConfiguration pReadConfiguration = null, cBatchSizerConfiguration pWriteConfiguration = null) : base(pTimeout, pReadConfiguration, pWriteConfiguration)
+        public cAppendConfiguration(int pTimeout) 
         {
+            if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
+            Timeout = pTimeout;
+            CancellationToken = CancellationToken.None;
             SetMaximum = null;
+            Increment = null;
         }
 
-        /// <summary>
-        /// Initialises a new instance with the specified cancellation token, progress-setmaximum and progress-increment callbacks and quoted-printable-encode batch-size configurations. Intended for use with asynchronous APIs.
-        /// </summary>
-        /// <param name="pCancellationToken">May be <see cref="CancellationToken.None"/>.</param>
-        /// <param name="pSetMaximum">May be <see langword="null"/>.</param>
-        /// <param name="pIncrement">May be <see langword="null"/>.</param>
-        /// <param name="pReadConfiguration">May be <see langword="null"/>.</param>
-        /// <param name="pWriteConfiguration">May be <see langword="null"/>.</param>
-        public cAppendConfiguration(CancellationToken pCancellationToken, Action<long> pSetMaximum, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration = null, cBatchSizerConfiguration pWriteConfiguration = null) : base(pCancellationToken, pIncrement, pReadConfiguration, pWriteConfiguration)
+        public cAppendConfiguration(CancellationToken pCancellationToken, Action<long> pSetMaximum, Action<int> pIncrement)
         {
+            Timeout = -1;
+            CancellationToken = pCancellationToken;
             SetMaximum = pSetMaximum;
+            Increment = pIncrement;
+        }
+    }
+
+    public class cAppendMailMessageConfiguration
+    {
+        public readonly int Timeout;
+        public readonly CancellationToken CancellationToken;
+        public readonly Action<long> AppendSetMaximum;
+        public readonly Action<int> AppendIncrement;
+        public readonly Action<long> QuotedPrintableEncodeSetMaximum;
+        public readonly Action<int> QuotedPrintableEncodeIncrement;
+        public readonly cBatchSizerConfiguration ReadConfiguration;
+        public readonly cBatchSizerConfiguration WriteConfiguration;
+
+        public cAppendMailMessageConfiguration(int pTimeout, cBatchSizerConfiguration pReadConfiguration = null, cBatchSizerConfiguration pWriteConfiguration = null)
+        {
+            if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
+            Timeout = pTimeout;
+            CancellationToken = CancellationToken.None;
+            AppendSetMaximum = null;
+            AppendIncrement = null;
+            QuotedPrintableEncodeSetMaximum = null;
+            QuotedPrintableEncodeIncrement = null;
+            ReadConfiguration = pReadConfiguration;
+            WriteConfiguration = pWriteConfiguration;
+        }
+
+        public cAppendMailMessageConfiguration(CancellationToken pCancellationToken, Action<long> pAppendSetMaximum, Action<int> pAppendIncrement, Action<long> pQuotedPrintableEncodeSetMaximum, Action<int> pQuotedPrintableEncodeIncrement, cBatchSizerConfiguration pReadConfiguration = null, cBatchSizerConfiguration pWriteConfiguration = null)
+        {
+            Timeout = -1;
+            CancellationToken = pCancellationToken;
+            AppendSetMaximum = pAppendSetMaximum;
+            AppendIncrement = pAppendIncrement;
+            QuotedPrintableEncodeSetMaximum = pQuotedPrintableEncodeSetMaximum;
+            QuotedPrintableEncodeIncrement = pQuotedPrintableEncodeIncrement;
+            ReadConfiguration = pReadConfiguration;
+            WriteConfiguration = pWriteConfiguration;
         }
     }
 }

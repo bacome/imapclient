@@ -872,14 +872,13 @@ namespace work.bacome.imapclient
                     Increment = pIncrement;
                 }
 
-                public bool AppendDataBinary => UTF8 || Binary;
-
                 // note that rfc 4469 has not been updated to allow binary literals in the text-literal
                 //  in particular, on Dovecot use of binary literals in a catenate text-literal causes issues in some areas
                 //   (notably the ;boundary="" parameter of the content-type gets mangled when it is on a separate line)
                 //   (but it seems to work ok otherwise)
+                //  so this property can not be used for generating command parts within a catenate clause
                 //
-                public bool CatPartBinary => UTF8; 
+                public bool AppendDataBinary => UTF8 || Binary;
             }
         }
     }

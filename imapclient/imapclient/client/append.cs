@@ -22,7 +22,7 @@ namespace work.bacome.imapclient
             return ZAppendAsync(pMailboxHandle, pMessages, pConfiguration, lContext);
         }
 
-        internal cAppendFeedback Append(iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, cAppendConfiguration pConfiguration)
+        internal cAppendFeedback Append(iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, cAppendMailMessageConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Append), 2);
             var lTask = ZAppendAsync(pMailboxHandle, pMailMessages, pFlags, pReceived, pConfiguration, lContext);
@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        internal Task<cAppendFeedback> AppendAsync(iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, cAppendConfiguration pConfiguration)
+        internal Task<cAppendFeedback> AppendAsync(iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, cAppendMailMessageConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(AppendAsync), 2);
             return ZAppendAsync(pMailboxHandle, pMailMessages, pFlags, pReceived, pConfiguration, lContext);
@@ -136,7 +136,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        private async Task<cAppendFeedback> ZAppendAsync(iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, cAppendConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private async Task<cAppendFeedback> ZAppendAsync(iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, cAppendMailMessageConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZAppendAsync), pMailboxHandle, pMailMessages, pFlags, pReceived, pConfiguration);
 
@@ -166,16 +166,69 @@ namespace work.bacome.imapclient
             }
         }
 
-        private async Task<cAppendFeedback> ZZAppendAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, Action<long> pSetMaximum, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, cTrace.cContext pParentContext)
+        private async Task<cAppendFeedback> ZZAppendAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, Action<long> pQuotedPrintableSetMaximum, Action<int> pQuotedPrintableIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, Action<long> pAppendSetMaximum, Action<int> pAppendIncrement, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZAppendAsync), pMC, pMailboxHandle, pFlags, pReceived, pReadConfiguration, pWriteConfiguration);
 
             var lSession = mSession;
             if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
-            using (var lTempFileCollection = new TempFileCollection())
+
+
+
+            // validate that the streams are all good
+            ;?; // should include checking that they are poisitionable includes
+
+            foreach (var lMailMessage in pMailMessages)
+            {
+
+
+                ;?; // this should be common with convert mail message 
+
+                // verify that the appenddata will be readable during the append ...
+                //  the problem is that anything that is a stream that needs to be served by this client will not work
+                //   we will attempt to read from the stream while sending the data => there will be a deadlock 
+                //    (the fetch will be queued on the command pipeline while the command pipeline is in the middle of sending the append
+                //      the append will wait for the results of the fetch, but the fetch can't be sent until the append has finished)
+                //
+                // the way this should be done is by connecting a separate client to the same account and using a message instance from the separate client
+                //  (this is the best/safest design as it will work with or without catenate)
+                //
+                // alternatively, read into a temporary file and then use the file as the source of the data (this will obviously never use catenate).
+
+                foreach (var lAlternateView in lMailMessage.AlternateViews)
+                    if (lAlternateView.ContentStream is cMessageDataStream lMessageDataStream && ReferenceEquals(lMessageDataStream.Client, this))
+                        throw new cMailMessageFormException(lMailMessage, kMailMessageFormExceptionMessage.MessageDataStreamClient);
+
+                foreach (var lAttachment in lMailMessage.Attachments)
+                    if (lAttachment.ContentStream is cMessageDataStream lMessageDataStream && ReferenceEquals(lMessageDataStream.Client, this))
+                        throw new cMailMessageFormException(lMailMessage, kMailMessageFormExceptionMessage.MessageDataStreamClient);
+
+
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+                using (var lTempFileCollection = new TempFileCollection())
             {
                 var lMessages = new cAppendDataList();
+
+                // set maximum for the quotedprintableencode 
+                //  count the number of things that might need to be converted, adding them up
+                //  (this includes the string text)
+                //  and call qpsetmax
+                ;?;
+
 
                 // convert the messages
                 foreach (var lMailMessage in pMailMessages)
