@@ -1,6 +1,5 @@
 ﻿using System;
 using System.CodeDom.Compiler;
-using System.Text;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
 
@@ -20,20 +19,6 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(AppendAsync), 1);
             return ZAppendAsync(pMailboxHandle, pMessages, pConfiguration, lContext);
-        }
-
-        internal cAppendFeedback Append(iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, cAppendMailMessageConfiguration pConfiguration)
-        {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Append), 2);
-            var lTask = ZAppendAsync(pMailboxHandle, pMailMessages, pFlags, pReceived, pConfiguration, lContext);
-            mSynchroniser.Wait(lTask, lContext);
-            return lTask.Result;
-        }
-
-        internal Task<cAppendFeedback> AppendAsync(iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, cAppendMailMessageConfiguration pConfiguration)
-        {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(AppendAsync), 2);
-            return ZAppendAsync(pMailboxHandle, pMailMessages, pFlags, pReceived, pConfiguration, lContext);
         }
 
         private async Task<cAppendFeedback> ZAppendAsync(iMailboxHandle pMailboxHandle, cAppendDataList pMessages, cAppendConfiguration pConfiguration, cTrace.cContext pParentContext)
@@ -136,39 +121,86 @@ namespace work.bacome.imapclient
             }
         }
 
+
+
+
+
+        internal cAppendFeedback Append(iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, cAppendMailMessageConfiguration pConfiguration)
+        {
+            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Append), 2);
+            var lTask = ZAppendAsync(pMailboxHandle, pMailMessages, pFlags, pReceived, pConfiguration, lContext);
+            mSynchroniser.Wait(lTask, lContext);
+            return lTask.Result;
+        }
+
+        internal Task<cAppendFeedback> AppendAsync(iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, cAppendMailMessageConfiguration pConfiguration)
+        {
+            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(AppendAsync), 2);
+            return ZAppendAsync(pMailboxHandle, pMailMessages, pFlags, pReceived, pConfiguration, lContext);
+        }
+
         private async Task<cAppendFeedback> ZAppendAsync(iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, cAppendMailMessageConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZAppendAsync), pMailboxHandle, pMailMessages, pFlags, pReceived, pConfiguration);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZAppendAsync), pMailboxHandle, pMailMessages, pFlags, pReceived);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
-            var lSession = mSession;
-            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
-
             if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
             if (pMailMessages == null) throw new ArgumentNullException(nameof(pMailMessages));
-
-            // special case
-            if (pMailMessages.Count == 0) return new cAppendFeedback();
 
             if (pConfiguration == null)
             {
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                    return await ZZAppendAsync(lMC, pMailboxHandle, pMailMessages, pFlags, pReceived, null, null, mQuotedPrintableEncodeReadWriteConfiguration, mQuotedPrintableEncodeReadWriteConfiguration, lContext).ConfigureAwait(false);
+                    return await ZZAppendAsync(lMC, pMailboxHandle, pMailMessages, null, null, mQuotedPrintableEncodeReadWriteConfiguration, mQuotedPrintableEncodeReadWriteConfiguration, pFlags, pReceived, null, null, lContext).ConfigureAwait(false);
                 }
             }
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                return await ZZAppendAsync(lMC, pMailboxHandle, pMailMessages, pFlags, pReceived, pConfiguration.SetMaximum, pConfiguration.Increment, pConfiguration.ReadConfiguration ?? mQuotedPrintableEncodeReadWriteConfiguration, pConfiguration.WriteConfiguration ?? mQuotedPrintableEncodeReadWriteConfiguration, lContext).ConfigureAwait(false);
+                return await ZZAppendAsync(lMC, pMailboxHandle, pMailMessages, pConfiguration.ConvertSetMaximum, pConfiguration.ConvertIncrement, pConfiguration.ReadConfiguration ?? mQuotedPrintableEncodeReadWriteConfiguration, pConfiguration.WriteConfiguration ?? mQuotedPrintableEncodeReadWriteConfiguration, pFlags, pReceived, pConfiguration.AppendSetMaximum, pConfiguration.AppendIncrement, lContext).ConfigureAwait(false);
             }
         }
 
-        private async Task<cAppendFeedback> ZZAppendAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, Action<long> pQuotedPrintableSetMaximum, Action<int> pQuotedPrintableIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, Action<long> pAppendSetMaximum, Action<int> pAppendIncrement, cTrace.cContext pParentContext)
+        private async Task<cAppendFeedback> ZZAppendAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, Action<long> pConvertSetMaximum, Action<int> pConvertIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, cStorableFlags pFlags, DateTime? pReceived, Action<long> pAppendSetMaximum, Action<int> pAppendIncrement, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZAppendAsync), pMC, pMailboxHandle, pFlags, pReceived, pReadConfiguration, pWriteConfiguration);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZAppendAsync), pMC, pMailboxHandle, pMailMessages, pReadConfiguration, pWriteConfiguration, pFlags, pReceived);
+
+            var lSession = mSession;
+            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
+
+            // special case
+            if (pMailMessages.Count == 0) return new cAppendFeedback();
+
+            long lToConvert = 0;
+            foreach (var lMailMessage in pMailMessages) lToConvert += ZConvertMailMessageValidate(lMailMessage, lContext);
+            mSynchroniser.InvokeActionLong(pConvertSetMaximum, lToConvert, lContext);
+
+            using (var lTempFileCollection = new TempFileCollection())
+            {
+                var lMessages = new cAppendDataList();
+
+                ;?; // up to here
+
+                lMessages.Add(zcon)
+
+
+                // foreach , convert
+
+                return await lSession.AppendAsync(pMC, pMailboxHandle, lMessages, pAppendSetMaximum, pAppendIncrement, lContext).ConfigureAwait(false);
+            }
+        }
+
+        /*
+
+
+            await ZZConvertMailMessageAsync().configureawait(false);
+
+
+
+
+
 
             var lSession = mSession;
             if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
@@ -262,6 +294,6 @@ namespace work.bacome.imapclient
                 // append
                 return await lSession.AppendAsync(pMC, pMailboxHandle, lMessages, pSetMaximum, pIncrement, lContext).ConfigureAwait(false);
             }
-        }
+        } */
     }
 }

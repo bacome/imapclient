@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
         public readonly cBatchSizerConfiguration WriteConfiguration;
 
         /// <summary>
-        /// Initialises a new instance with the specified timeout and quoted-printable-encode batch-size configurations. Intended for use with synchronous APIs.
+        /// Initialises a new instance with the specified timeout and batch-size configurations. Intended for use with synchronous APIs.
         /// </summary>
         /// <param name="pTimeout">May be <see cref="Timeout.Infinite"/>.</param>
         /// <param name="pReadConfiguration">May be <see langword="null"/>.</param>
@@ -37,7 +37,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises a new instance with the specified cancellation token, progress-increment callback and quoted-printable-encode batch-size configurations. Intended for use with asynchronous APIs.
+        /// Initialises a new instance with the specified cancellation token, progress-increment callback and batch-size configurations. Intended for use with asynchronous APIs.
         /// </summary>
         /// <param name="pCancellationToken">May be <see cref="CancellationToken.None"/>.</param>
         /// <param name="pIncrement">May be <see langword="null"/>.</param>

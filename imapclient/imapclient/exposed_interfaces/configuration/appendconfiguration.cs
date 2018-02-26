@@ -34,8 +34,8 @@ namespace work.bacome.imapclient
         public readonly CancellationToken CancellationToken;
         public readonly Action<long> AppendSetMaximum;
         public readonly Action<int> AppendIncrement;
-        public readonly Action<long> QuotedPrintableEncodeSetMaximum;
-        public readonly Action<int> QuotedPrintableEncodeIncrement;
+        public readonly Action<long> ConvertSetMaximum;
+        public readonly Action<int> ConvertIncrement;
         public readonly cBatchSizerConfiguration ReadConfiguration;
         public readonly cBatchSizerConfiguration WriteConfiguration;
 
@@ -46,20 +46,20 @@ namespace work.bacome.imapclient
             CancellationToken = CancellationToken.None;
             AppendSetMaximum = null;
             AppendIncrement = null;
-            QuotedPrintableEncodeSetMaximum = null;
-            QuotedPrintableEncodeIncrement = null;
+            ConvertSetMaximum = null;
+            ConvertIncrement = null;
             ReadConfiguration = pReadConfiguration;
             WriteConfiguration = pWriteConfiguration;
         }
 
-        public cAppendMailMessageConfiguration(CancellationToken pCancellationToken, Action<long> pAppendSetMaximum, Action<int> pAppendIncrement, Action<long> pQuotedPrintableEncodeSetMaximum, Action<int> pQuotedPrintableEncodeIncrement, cBatchSizerConfiguration pReadConfiguration = null, cBatchSizerConfiguration pWriteConfiguration = null)
+        public cAppendMailMessageConfiguration(CancellationToken pCancellationToken, Action<long> pAppendSetMaximum, Action<int> pAppendIncrement, Action<long> pConvertSetMaximum, Action<int> pConvertIncrement, cBatchSizerConfiguration pReadConfiguration = null, cBatchSizerConfiguration pWriteConfiguration = null)
         {
             Timeout = -1;
             CancellationToken = pCancellationToken;
             AppendSetMaximum = pAppendSetMaximum;
             AppendIncrement = pAppendIncrement;
-            QuotedPrintableEncodeSetMaximum = pQuotedPrintableEncodeSetMaximum;
-            QuotedPrintableEncodeIncrement = pQuotedPrintableEncodeIncrement;
+            ConvertSetMaximum = pConvertSetMaximum;
+            ConvertIncrement = pConvertIncrement;
             ReadConfiguration = pReadConfiguration;
             WriteConfiguration = pWriteConfiguration;
         }

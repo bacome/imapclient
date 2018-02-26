@@ -12,61 +12,135 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        private static readonly cBatchSizerConfiguration kConvertMailMessageMemoryStreamReadConfiguration = new cBatchSizerConfiguration(10000, 10000, 1, 10000); // 10k chunks
+        private static readonly cBatchSizerConfiguration kConvertMailMessageMemoryStreamReadWriteConfiguration = new cBatchSizerConfiguration(10000, 10000, 1, 10000); // 10k chunks
 
-        public cMultiPartAppendData ConvertMailMessage(TempFileCollection pTempFileCollection, MailMessage pMailMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, cQuotedPrintableEncodeConfiguration pConfiguration = null)
+        public cAppendData ConvertMailMessage(TempFileCollection pTempFileCollection, MailMessage pMailMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, cConvertMailMessageConfiguration pConfiguration = null)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ConvertMailMessage));
-            var lTask = ZConvertMailMessageAsync(pTempFileCollection, pMailMessage, pFlags, pReceived, pConfiguration, lContext);
+            var lTask = ZConvertMailMessagesAsync(pTempFileCollection, cMailMessageList.FromMessage(pMailMessage), pFlags, pReceived, pConfiguration, lContext);
+            mSynchroniser.Wait(lTask, lContext);
+            var lResult = lTask.Result;
+            if (lResult.Count != 1) throw new cInternalErrorException();
+            return lResult[0];
+        }
+
+        public async Task<cAppendData> ConvertMailMessageAsync(TempFileCollection pTempFileCollection, MailMessage pMailMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, cConvertMailMessageConfiguration pConfiguration = null)
+        {
+            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ConvertMailMessageAsync));
+            var lResult = await ZConvertMailMessagesAsync(pTempFileCollection, cMailMessageList.FromMessage(pMailMessage), pFlags, pReceived, pConfiguration, lContext).ConfigureAwait(false);
+            if (lResult.Count != 1) throw new cInternalErrorException();
+            return lResult[0];
+        }
+
+        public List<cAppendData> ConvertMailMessages(TempFileCollection pTempFileCollection, IEnumerable<MailMessage> pMailMessages, cStorableFlags pFlags = null, DateTime? pReceived = null, cConvertMailMessageConfiguration pConfiguration = null)
+        {
+            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ConvertMailMessages));
+            var lTask = ZConvertMailMessagesAsync(pTempFileCollection, cMailMessageList.FromMessages(pMailMessages), pFlags, pReceived, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        public Task<cMultiPartAppendData> ConvertMailMessageAsync(TempFileCollection pTempFileCollection, MailMessage pMailMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, cQuotedPrintableEncodeConfiguration pConfiguration = null)
+        public Task<List<cAppendData>> ConvertMailMessagesAsync(TempFileCollection pTempFileCollection, IEnumerable<MailMessage> pMailMessages, cStorableFlags pFlags = null, DateTime? pReceived = null, cConvertMailMessageConfiguration pConfiguration = null)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(QuotedPrintableEncodeAsync), 1);
-            return ZConvertMailMessageAsync(pTempFileCollection, pMailMessage, pFlags, pReceived, pConfiguration, lContext);
+            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ConvertMailMessagesAsync));
+            return ZConvertMailMessagesAsync(pTempFileCollection, cMailMessageList.FromMessages(pMailMessages), pFlags, pReceived, pConfiguration, lContext);
         }
 
-        private async Task<cMultiPartAppendData> ZConvertMailMessageAsync(TempFileCollection pTempFileCollection, MailMessage pMailMessage, cStorableFlags pFlags, DateTime? pReceived, cQuotedPrintableEncodeConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private async Task<List<cAppendData>> ZConvertMailMessagesAsync(TempFileCollection pTempFileCollection, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, cConvertMailMessageConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZConvertMailMessageAsync), pFlags, pReceived, pConfiguration);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZConvertMailMessagesAsync), pMailMessages, pFlags, pReceived);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             if (pTempFileCollection == null) throw new ArgumentNullException(nameof(pTempFileCollection));
-            if (pMailMessage == null) throw new ArgumentNullException(nameof(pMailMessage));
-
-
-            ;?; // validate streams!
-
-            ;?; // set maximum for qp conversion
-
-            // (implies a new config including set max!)
-
-
-            sConvertMailMessageResult lResult;
+            if (pMailMessages == null) throw new ArgumentNullException(nameof(pMailMessages));
 
             if (pConfiguration == null)
             {
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                    lResult = await ZZConvertMailMessageAsync(lMC, pTempFileCollection, pMailMessage, null, mQuotedPrintableEncodeReadWriteConfiguration, mQuotedPrintableEncodeReadWriteConfiguration, lContext).ConfigureAwait(false);
+                    return await ZZConvertMailMessagesAsync(lMC, pTempFileCollection, pMailMessages, null, null, mQuotedPrintableEncodeReadWriteConfiguration, mQuotedPrintableEncodeReadWriteConfiguration, pFlags, pReceived, lContext).ConfigureAwait(false);
                 }
             }
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                lResult = await ZZConvertMailMessageAsync(lMC, pTempFileCollection, pMailMessage, pConfiguration.Increment, pConfiguration.ReadConfiguration ?? mQuotedPrintableEncodeReadWriteConfiguration, pConfiguration.WriteConfiguration ?? mQuotedPrintableEncodeReadWriteConfiguration, lContext).ConfigureAwait(false);
+                return await ZZConvertMailMessagesAsync(lMC, pTempFileCollection, pMailMessages, pConfiguration.SetMaximum, pConfiguration.Increment, pConfiguration.ReadConfiguration ?? mQuotedPrintableEncodeReadWriteConfiguration, pConfiguration.WriteConfiguration ?? mQuotedPrintableEncodeReadWriteConfiguration, pFlags, pReceived, lContext).ConfigureAwait(false);
             }
-
-            return new cMultiPartAppendData(pFlags, pReceived, lResult.Parts.AsReadOnly(), lResult.Encoding);
         }
 
-        private async Task<sConvertMailMessageResult> ZZConvertMailMessageAsync(cMethodControl pMC, TempFileCollection pTempFileCollection, MailMessage pMailMessage, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, cTrace.cContext pParentContext)
+        private async Task<cAppendDataList> ZZConvertMailMessagesAsync(cMethodControl pMC, TempFileCollection pTempFileCollection, cMailMessageList pMailMessages, Action<long> pSetMaximum, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration,  cStorableFlags pFlags, DateTime? pReceived, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZConvertMailMessageAsync), pMC);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZConvertMailMessagesAsync), pMC, pMailMessages, pReadConfiguration, pWriteConfiguration, pFlags, pReceived);
+
+            long lToConvert = 0;
+            foreach (var lMailMessage in pMailMessages) lToConvert += ZConvertMailMessageValidate(lMailMessage, lContext);
+            mSynchroniser.InvokeActionLong(pSetMaximum, lToConvert, lContext);
+
+            var lMessages = new cAppendDataList();
+
+            foreach (var lMailMessage in pMailMessages)
+            {
+                var lResult = await ZConvertMailMessageAsync(pMC, pTempFileCollection, lMailMessage, pIncrement, pReadConfiguration, pWriteConfiguration, lContext).ConfigureAwait(false);
+                lMessages.Add(new cMultiPartAppendData(pFlags, pReceived, lResult.Parts.AsReadOnly(), lResult.Encoding));
+            }
+
+            return lMessages;
+        }
+
+        private int ZConvertMailMessageValidate(MailMessage pMailMessage, cTrace.cContext pParentContext)
+        {
+            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ZConvertMailMessageValidate));
+
+            long lToConvert = 0;
+
+
+            ;?
+
+            // TODO! testing of what the transfer encoding means
+            //  is it the type a direction to do the encoding or a statement that the encoding has been done
+            //  unknown certainly means that the library decides when used with body, so lets start with the assumption that it is a direction
+
+
+
+            ;?; // validate encoding in here also
+
+
+
+            // encoding 
+            //  while it is possible to specify an encoding when creating an address,
+            //   it is not possible to find out what the specified encoding was (MailAddress has no 'Encoding' property)
+            //   otherwise I'd check the address encodings also
+            //
+            if (!pMailMessage.SubjectEncoding.Equals(pMailMessage.HeadersEncoding)) throw new cMailMessageFormException(pMailMessage, "contains mixed encodings");
+
+
+
+            ;?; // do the stream validation here
+
+            foreach (var lMailMessage in pMailMessages)
+            {
+                foreach (var lAlternateView in lMailMessage.AlternateViews)
+                {
+                    lAlternateView.
+                    if ()
+                }
+
+                foreach (var lAttachment in lMailMessage.Attachments)
+                {
+                    ;?;
+                }
+
+                ;?;
+            }
+
+            return lToConvert;
+        }
+
+        private async Task<sConvertMailMessageResult> ZConvertMailMessageAsync(cMethodControl pMC, TempFileCollection pTempFileCollection, MailMessage pMailMessage, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZConvertMailMessageAsync), pMC, pReadConfiguration, pWriteConfiguration);
 
             var lParts = new List<cAppendDataPart>();
 
@@ -209,7 +283,8 @@ namespace work.bacome.imapclient
                 if (pMailMessage.BodyTransferEncoding == TransferEncoding.Base64) lBase64 = true;
                 else
                 {
-                    int lQuotedPrintableLength = await ZZQuotedPrintableEncodeAsync(pMC, lInput, kQuotedPrintableEncodeDefaultSourceType, eQuotedPrintableEncodeQuotingRule.EBCDIC, lOutput, pIncrement, pReadConfiguration, pWriteConfiguration, lContext).ConfigureAwait(false);
+                    // note: the increment and configuration are NOT used here as we know this is an in-memory transformation
+                    int lQuotedPrintableLength = await ZZQuotedPrintableEncodeAsync(pMC, lInput, kQuotedPrintableEncodeDefaultSourceType, eQuotedPrintableEncodeQuotingRule.EBCDIC, lOutput, null, kConvertMailMessageMemoryStreamReadWriteConfiguration, kConvertMailMessageMemoryStreamReadWriteConfiguration, lContext).ConfigureAwait(false);
 
                     if (pMailMessage.BodyTransferEncoding == TransferEncoding.QuotedPrintable) lBase64 = false;
                     else
@@ -232,7 +307,7 @@ namespace work.bacome.imapclient
                 {
                     pParts.Add(new cHeaderFieldAppendDataPart("content-transfer-encoding", "base64"));
 
-                    using (var lBase64Encoder = new cBase64Encoder(lInput, kConvertMailMessageMemoryStreamReadConfiguration))
+                    using (var lBase64Encoder = new cBase64Encoder(lInput, kConvertMailMessageMemoryStreamReadWriteConfiguration))
                     {
                         await lBase64Encoder.CopyToAsync(lOutput).ConfigureAwait(false);
                     }
