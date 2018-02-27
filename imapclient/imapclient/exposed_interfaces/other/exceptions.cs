@@ -43,12 +43,10 @@ namespace work.bacome.imapclient
 
     internal static class kMailMessageFormExceptionMessage
     {
-        public const string UnsupportedPropertyValue = "unsupported property value";
-        public const string UnsupportedCustomHeader = "unsupported custom header";
         public const string MixedEncodings = "mixed encodings";
-        public const string MessageDataStreamClient = "message data stream client";
         public const string StreamNotSeekable = "stream not seekable";
         public const string MessageDataStreamUnknownLength = "message data stream unknown length";
+        public const string ReplyToNotSupported = "reply-to not supported";
     }
 
     /// <summary>
@@ -495,30 +493,16 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown when an <see cref="cAppendData"/> instance references the <see cref="cIMAPClient"/> instance that the data is being appended through.
+    /// Thrown when supplied message data references the <see cref="cIMAPClient"/> instance that the data is being processed by.
     /// </summary>
     /// <remarks>
-    /// This situation will lead to a deadlock if the data needs to be served via a stream.
+    /// This situation can lead to an internal library deadlock if the data is being retrieved from the server at the same time as it is being sent to the server.
     /// Either use another <see cref="cIMAPClient"/> instance with the same <see cref="cIMAPClient.ConnectedAccountId"/> as the source of the data
-    /// or read and cache the data locally (e.g. in a file) before appending it.
+    /// or read and cache the data locally (e.g. in a file) before using it.
     /// </remarks>
-    public class cAppendDataClientException : cIMAPException
+    public class cMessageDataClientException : cIMAPException
     {
-        /// <summary>
-        /// The append data concerned.
-        /// </summary>
-        public readonly cAppendData AppendData;
-
-        internal cAppendDataClientException(cAppendData pAppendData) { AppendData = pAppendData; }
-
-        /// <inheritdoc/>
-        public override string ToString()
-        {
-            var lBuilder = new cListBuilder(nameof(cAppendDataClientException));
-            lBuilder.Append(AppendData);
-            lBuilder.Append(base.ToString());
-            return lBuilder.ToString();
-        }
+        internal cMessageDataClientException() { }
     }
 
     public class cMailAddressFormException : cIMAPException
@@ -553,20 +537,7 @@ namespace work.bacome.imapclient
 
     public class cMailMessageFormException : cIMAPException
     {
-        /// <summary>
-        /// The mail message concerned.
-        /// </summary>
-        public readonly MailMessage MailMessage;
-
-        internal cMailMessageFormException(MailMessage pMailMessage, string pMessage) : base(pMessage)
-        {
-            MailMessage = pMailMessage;
-        }
-
-        internal cMailMessageFormException(MailMessage pMailMessage, string pMessage, Exception pInnerException) : base(pMessage, pInnerException)
-        {
-            MailMessage = pMailMessage;
-        }
+        internal cMailMessageFormException(string pMessage) : base(pMessage) { }
     }
 
     public class cStreamRanOutOfDataException : cIMAPException

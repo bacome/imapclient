@@ -29,10 +29,27 @@ namespace work.bacome.imapclient
             }
         }
 
+        public cHeaderFieldMIMEParameter(string pAttribute, DateTime pDateTime)
+        {
+            if (pAttribute == null) throw new ArgumentNullException(nameof(pAttribute));
+            if (!cCharset.AttributeChar.ContainsAll(pAttribute)) throw new ArgumentOutOfRangeException(nameof(pAttribute));
+            mAttribute = new cBytes(pAttribute);
+            mValue = cTools.RFC822DateTimeString(pDateTime);
+        }
+
+
+        public cHeaderFieldMIMEParameter(string pAttribute, long pValue)
+        {
+            if (pAttribute == null) throw new ArgumentNullException(nameof(pAttribute));
+            if (!cCharset.AttributeChar.ContainsAll(pAttribute)) throw new ArgumentOutOfRangeException(nameof(pAttribute));
+            mAttribute = new cBytes(pAttribute);
+            mValue = pValue.ToString();
+        }
+
         internal override void GetBytes(cHeaderFieldBytes pBytes, eHeaderFieldValuePartContext pContext)
         {
-            // if the value is a short token
-            if (cCharset.RFC2045Token.ContainsAll(mValue) && 1 + mAttribute.Count + 1 + mValue.Length < 78)
+            // if the value is a non-zero-length short token
+            if (mValue.Length != 0 && cCharset.RFC2045Token.ContainsAll(mValue) && 1 + mAttribute.Count + 1 + mValue.Length < 78)
             {
                 var lWordBytes = new List<byte>();
                 lWordBytes.Add(cASCII.SEMICOLON);

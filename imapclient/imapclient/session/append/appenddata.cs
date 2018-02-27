@@ -382,21 +382,19 @@ namespace work.bacome.imapclient
                 {
                     var lParts = new List<cMultiPartLiteralPartBase>();
                     foreach (var lPart in mParts) lPart.AddPart(pBuilder, lParts);
-                    var lCommandPart = new cMultiPartLiteralCommandPart(pBuilder.CatPartBinary, lParts);
-
-                    fCapabilities lCapabilities;
-
-                    if (lCommandPart.Binary) lCapabilities = fCapabilities.binary;
-                    else lCapabilities = 0;
 
                     if (pBuilder.UTF8)
                     {
+                        var lCommandPart = new cMultiPartLiteralCommandPart(true, lParts);
                         pBuilder.Add(kAppendDataUTF8SpaceLParen, lCommandPart, cCommandPart.RParen);
-                        return fCapabilities.utf8accept | fCapabilities.utf8only | lCapabilities;
+                        return fCapabilities.utf8accept | fCapabilities.utf8only;
                     }
-
-                    pBuilder.Add(kTEXTSpace, lCommandPart);
-                    return lCapabilities;
+                    else
+                    {
+                        var lCommandPart = new cMultiPartLiteralCommandPart(false, lParts);
+                        pBuilder.Add(kTEXTSpace, lCommandPart);
+                        return 0;
+                    }
                 }
 
                 public override string ToString()

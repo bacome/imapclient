@@ -164,6 +164,7 @@ namespace work.bacome.imapclient
         public static string PunycodeBytesToString(IList<byte> pBytes)
         {
             // TODO (hard)
+            //  IDNToAscii, idntounicode, 
             return ASCIIBytesToString(pBytes);
         }
 
@@ -216,6 +217,40 @@ namespace work.bacome.imapclient
                 if (pNibble < 10) return (byte)(cASCII.ZERO + pNibble);
                 return (byte)(cASCII.A + pNibble - 10);
             }
+        }
+
+        public static string RFC822DateTimeString(DateTime pDateTime)
+        {
+            string lSign;
+            string lZone;
+
+            if (pDateTime.Kind == DateTimeKind.Local)
+            {
+                var lOffset = TimeZoneInfo.Local.GetUtcOffset(pDateTime);
+
+                if (lOffset < TimeSpan.Zero)
+                {
+                    lSign = "-";
+                    lOffset = -lOffset;
+                }
+                else lSign = "+";
+
+                lZone = lOffset.ToString("hhmm");
+            }
+            else if (pDateTime.Kind == DateTimeKind.Utc)
+            {
+                lSign = "+";
+                lZone = "0000";
+            }
+            else
+            {
+                lSign = "-";
+                lZone = "0000";
+            }
+
+            var lMonth = cRFCMonth.cName[pDateTime.Month - 1];
+
+            return string.Format("{0:dd} {1} {0:yyyy} {0:HH}:{0:mm}:{0:ss} {2}{3}", pDateTime, lMonth, lSign, lZone);
         }
     }
 }

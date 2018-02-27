@@ -1100,9 +1100,9 @@ namespace work.bacome.imapclient
 
         public cUID Append(cAppendData pMessage, cAppendConfiguration pConfiguration = null) => ZAppendResult(Client.Append(MailboxHandle, cAppendDataList.FromMessage(pMessage), pConfiguration));
         public async Task<cUID> AppendAsync(cAppendData pMessage, cAppendConfiguration pConfiguration = null) => ZAppendResult(await Client.AppendAsync(MailboxHandle, cAppendDataList.FromMessage(pMessage), pConfiguration).ConfigureAwait(false));
-        public cUID Append(MailMessage pMailMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, cAppendConfiguration pConfiguration = null) 
+        public cUID Append(MailMessage pMailMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, cAppendMailMessageConfiguration pConfiguration = null) 
             => ZAppendResult(Client.Append(MailboxHandle, cMailMessageList.FromMessage(pMailMessage), pFlags, pReceived, pConfiguration));
-        public async Task<cUID> AppendAsync(MailMessage pMailMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, cAppendConfiguration pConfiguration = null)
+        public async Task<cUID> AppendAsync(MailMessage pMailMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, cAppendMailMessageConfiguration pConfiguration = null)
             => ZAppendResult(await Client.AppendAsync(MailboxHandle, cMailMessageList.FromMessage(pMailMessage), pFlags, pReceived, pConfiguration).ConfigureAwait(false));
 
         private cUID ZAppendResult(cAppendFeedback pFeedback)
@@ -1119,9 +1119,9 @@ namespace work.bacome.imapclient
 
         public cAppendFeedback Append(IEnumerable<cAppendData> pMessages, cAppendConfiguration pConfiguration = null) => Client.Append(MailboxHandle, cAppendDataList.FromMessages(pMessages), pConfiguration);
         public Task<cAppendFeedback> AppendAsync(IEnumerable<cAppendData> pMessages, cAppendConfiguration pConfiguration = null) => Client.AppendAsync(MailboxHandle, cAppendDataList.FromMessages(pMessages), pConfiguration);
-        public cAppendFeedback Append(IEnumerable<MailMessage> pMailMessages, cStorableFlags pFlags = null, DateTime? pReceived = null, cAppendConfiguration pConfiguration = null) 
+        public cAppendFeedback Append(IEnumerable<MailMessage> pMailMessages, cStorableFlags pFlags = null, DateTime? pReceived = null, cAppendMailMessageConfiguration pConfiguration = null) 
             => Client.Append(MailboxHandle, cMailMessageList.FromMessages(pMailMessages), pFlags, pReceived, pConfiguration);
-        public Task<cAppendFeedback> AppendAsync(IEnumerable<MailMessage> pMailMessages, cStorableFlags pFlags = null, DateTime? pReceived = null, cAppendConfiguration pConfiguration = null)
+        public Task<cAppendFeedback> AppendAsync(IEnumerable<MailMessage> pMailMessages, cStorableFlags pFlags = null, DateTime? pReceived = null, cAppendMailMessageConfiguration pConfiguration = null)
             => Client.AppendAsync(MailboxHandle, cMailMessageList.FromMessages(pMailMessages), pFlags, pReceived, pConfiguration);
 
         /// <summary>

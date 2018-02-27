@@ -268,41 +268,7 @@ namespace work.bacome.imapclient
 
         public static implicit operator cHeaderFieldValuePart(string pString) => new cHeaderFieldTextValuePart(pString);
 
-        public static implicit operator cHeaderFieldValuePart(DateTime pDateTime)
-        {
-            string lSign;
-            string lZone;
-
-            if (pDateTime.Kind == DateTimeKind.Local)
-            {
-                var lOffset = TimeZoneInfo.Local.GetUtcOffset(pDateTime);
-
-                if (lOffset < TimeSpan.Zero)
-                {
-                    lSign = "-";
-                    lOffset = -lOffset;
-                }
-                else lSign = "+";
-
-                lZone = lOffset.ToString("hhmm");
-            }
-            else if (pDateTime.Kind == DateTimeKind.Utc)
-            {
-                lSign = "+";
-                lZone = "0000";
-            }
-            else
-            {
-                lSign = "-";
-                lZone = "0000";
-            }
-
-            var lMonth = cRFCMonth.cName[pDateTime.Month - 1];
-
-            string lDateTime = string.Format("{0:dd} {1} {0:yyyy} {0:HH}:{0:mm}:{0:ss} {2}{3}", pDateTime, lMonth, lSign, lZone);
-
-            return new cHeaderFieldTextValuePart(lDateTime);
-        }
+        public static implicit operator cHeaderFieldValuePart(DateTime pDateTime) => new cHeaderFieldTextValuePart(cTools.RFC822DateTimeString(pDateTime));
 
         public static implicit operator cHeaderFieldValuePart(DateTimeOffset pDateTimeOffset)
         {

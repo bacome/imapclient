@@ -53,19 +53,19 @@ namespace work.bacome.imapclient
                 {
                     case cMessageAppendData lWholeMessage:
 
-                        if (ReferenceEquals(lWholeMessage.Client, this)) throw new cAppendDataClientException(lMessage);
+                        if (ReferenceEquals(lWholeMessage.Client, this)) throw new cMessageDataClientException();
                         break;
 
                     case cMessagePartAppendData lMessagePart:
 
-                        if (ReferenceEquals(lMessagePart.Client, this)) throw new cAppendDataClientException(lMessage);
+                        if (ReferenceEquals(lMessagePart.Client, this)) throw new cMessageDataClientException();
                         break;
 
                     case cStreamAppendData lStream:
 
                         {
                             // if the stream where wrapped in another stream this check wouldn't work
-                            if (lStream.Stream is cMessageDataStream lMessageDataStream && ReferenceEquals(lMessageDataStream.Client, this)) throw new cAppendDataClientException(lMessage);
+                            if (lStream.Stream is cMessageDataStream lMessageDataStream && ReferenceEquals(lMessageDataStream.Client, this)) throw new cMessageDataClientException();
                             break;
                         }
 
@@ -77,24 +77,24 @@ namespace work.bacome.imapclient
                             {
                                 case cMessageAppendDataPart lWholeMessage:
 
-                                    if (ReferenceEquals(lWholeMessage.Client, this)) throw new cAppendDataClientException(lMessage);
+                                    if (ReferenceEquals(lWholeMessage.Client, this)) throw new cMessageDataClientException();
                                     break;
 
                                 case cMessagePartAppendDataPart lMessagePart:
 
-                                    if (ReferenceEquals(lMessagePart.Client, this)) throw new cAppendDataClientException(lMessage);
+                                    if (ReferenceEquals(lMessagePart.Client, this)) throw new cMessageDataClientException();
                                     break;
 
                                 case cUIDSectionAppendDataPart lSection:
 
-                                    if (ReferenceEquals(lSection.Client, this)) throw new cAppendDataClientException(lMessage);
+                                    if (ReferenceEquals(lSection.Client, this)) throw new cMessageDataClientException();
                                     break;
 
                                 case cStreamAppendDataPart lStream:
 
                                     {
                                         // if the stream where wrapped in another stream this check wouldn't work
-                                        if (lStream.Stream is cMessageDataStream lMessageDataStream && ReferenceEquals(lMessageDataStream.Client, this)) throw new cAppendDataClientException(lMessage);
+                                        if (lStream.Stream is cMessageDataStream lMessageDataStream && ReferenceEquals(lMessageDataStream.Client, this)) throw new cMessageDataClientException();
                                         break;
                                     }
                             }
@@ -120,10 +120,6 @@ namespace work.bacome.imapclient
                 return await lSession.AppendAsync(lMC, pMailboxHandle, pMessages, pConfiguration.SetMaximum, pConfiguration.Increment, lContext).ConfigureAwait(false);
             }
         }
-
-
-
-
 
         internal cAppendFeedback Append(iMailboxHandle pMailboxHandle, cMailMessageList pMailMessages, cStorableFlags pFlags, DateTime? pReceived, cAppendMailMessageConfiguration pConfiguration)
         {
@@ -173,21 +169,9 @@ namespace work.bacome.imapclient
             // special case
             if (pMailMessages.Count == 0) return new cAppendFeedback();
 
-            long lToConvert = 0;
-            foreach (var lMailMessage in pMailMessages) lToConvert += ZConvertMailMessageValidate(lMailMessage, lContext);
-            mSynchroniser.InvokeActionLong(pConvertSetMaximum, lToConvert, lContext);
-
             using (var lTempFileCollection = new TempFileCollection())
             {
-                var lMessages = new cAppendDataList();
-
-                ;?; // up to here
-
-                lMessages.Add(zcon)
-
-
-                // foreach , convert
-
+                var lMessages = await ZZConvertMailMessagesAsync(pMC, lTempFileCollection, pMailMessages, pConvertSetMaximum, pConvertIncrement, pReadConfiguration, pWriteConfiguration, pFlags, pReceived, lContext).ConfigureAwait(false);
                 return await lSession.AppendAsync(pMC, pMailboxHandle, lMessages, pAppendSetMaximum, pAppendIncrement, lContext).ConfigureAwait(false);
             }
         }
