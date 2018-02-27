@@ -16,7 +16,7 @@ namespace work.bacome.imapclient
     {
         private static readonly eQuotedPrintableEncodeSourceType kQuotedPrintableEncodeDefaultSourceType = Environment.NewLine == "\n" ? eQuotedPrintableEncodeSourceType.LFTerminatedLines : eQuotedPrintableEncodeSourceType.CRLFTerminatedLines;
 
-        public int QuotedPrintableEncode(Stream pSource, Stream pTarget = null, cQuotedPrintableEncodeConfiguration pConfiguration = null)
+        public long QuotedPrintableEncode(Stream pSource, Stream pTarget = null, cQuotedPrintableEncodeConfiguration pConfiguration = null)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(QuotedPrintableEncode), 1);
             var lTask = ZQuotedPrintableEncodeAsync(pSource, kQuotedPrintableEncodeDefaultSourceType, eQuotedPrintableEncodeQuotingRule.EBCDIC, pTarget, pConfiguration, lContext);
@@ -24,13 +24,13 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        public Task<int> QuotedPrintableEncodeAsync(Stream pSource, Stream pTarget, cQuotedPrintableEncodeConfiguration pConfiguration = null)
+        public Task<long> QuotedPrintableEncodeAsync(Stream pSource, Stream pTarget, cQuotedPrintableEncodeConfiguration pConfiguration = null)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(QuotedPrintableEncodeAsync), 1);
             return ZQuotedPrintableEncodeAsync(pSource, kQuotedPrintableEncodeDefaultSourceType, eQuotedPrintableEncodeQuotingRule.EBCDIC, pTarget, pConfiguration, lContext);
         }
 
-        public int QuotedPrintableEncode(Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget = null, cQuotedPrintableEncodeConfiguration pConfiguration = null)
+        public long QuotedPrintableEncode(Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget = null, cQuotedPrintableEncodeConfiguration pConfiguration = null)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(QuotedPrintableEncode), 2);
             var lTask = ZQuotedPrintableEncodeAsync(pSource, pSourceType, pQuotingRule, pTarget, pConfiguration, lContext);
@@ -38,13 +38,13 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        public Task<int> QuotedPrintableEncodeAsync(Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget = null, cQuotedPrintableEncodeConfiguration pConfiguration = null)
+        public Task<long> QuotedPrintableEncodeAsync(Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget = null, cQuotedPrintableEncodeConfiguration pConfiguration = null)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(QuotedPrintableEncodeAsync), 2);
             return ZQuotedPrintableEncodeAsync(pSource, pSourceType, pQuotingRule, pTarget, pConfiguration, lContext);
         }
 
-        private async Task<int> ZQuotedPrintableEncodeAsync(Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget, cQuotedPrintableEncodeConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private async Task<long> ZQuotedPrintableEncodeAsync(Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget, cQuotedPrintableEncodeConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZQuotedPrintableEncodeAsync), pSourceType, pQuotingRule, pConfiguration);
 
@@ -69,7 +69,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        private async Task<int> ZZQuotedPrintableEncodeAsync(cMethodControl pMC, Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, cTrace.cContext pParentContext)
+        private async Task<long> ZZQuotedPrintableEncodeAsync(cMethodControl pMC, Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZQuotedPrintableEncodeAsync), pMC, pSourceType, pQuotingRule, pReadConfiguration, pWriteConfiguration);
 
@@ -176,7 +176,7 @@ namespace work.bacome.imapclient
             private readonly Stopwatch mStopwatch = new Stopwatch();
             private int mWriteBufferInputByteCount = 0;
 
-            private int mBytesWritten = 0;
+            private long mBytesWritten = 0;
 
             public cQuotedPrintableTarget(cMethodControl pMC, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget, cCallbackSynchroniser pSynchroniser, Action<int> pIncrement, cTrace.cContext pContextForIncrement, cBatchSizerConfiguration pConfiguration)
             {
@@ -292,7 +292,7 @@ namespace work.bacome.imapclient
                 if (mBytesInWriteBuffer != 0) await ZWriteBufferAsync().ConfigureAwait(false);
             }
 
-            public int BytesWritten => mBytesWritten;
+            public long BytesWritten => mBytesWritten;
 
             private async Task ZSoftLineBreakAsync(bool pInHardLineBreak)
             {
@@ -494,7 +494,7 @@ namespace work.bacome.imapclient
                 ZQuotedPrintableEncodeTestRandomLines(pParentContext);
 
 
-                int lExpectedLength =
+                long lExpectedLength =
                     ZQuotedPrintableEncodeTest(
                         "poem",
                         new string[]
@@ -510,7 +510,7 @@ namespace work.bacome.imapclient
 
                 using (var lInput = new MemoryStream(Encoding.UTF8.GetBytes("All doggies go to heaven (or so I've been told).\r\nThey run and play along the streets of Gold.\r\nWhy is heaven such a doggie-delight?\r\nWhy, because there's not a single cat in sight!")))
                 {
-                    int lLength = mClient.QuotedPrintableEncode(lInput);
+                    long lLength = mClient.QuotedPrintableEncode(lInput);
                     if (lLength != lExpectedLength) throw new cTestsException($"dev/null: {lLength} vs {lExpectedLength}");
                 }
             }
@@ -604,9 +604,9 @@ namespace work.bacome.imapclient
                 var lLFTrueEBCDIC = ZQuotedPrintableEncodeTest(pTestName + ".lf.true.EBCDIC", pLines, eQuotedPrintableEncodeSourceType.LFTerminatedLines, true, eQuotedPrintableEncodeQuotingRule.EBCDIC, pParentContext);
             }
 
-            private static int ZQuotedPrintableEncodeTest(string pTestName, string[] pLines, eQuotedPrintableEncodeSourceType pSourceType, bool pTerminateLastLine, eQuotedPrintableEncodeQuotingRule pQuotingRule, cTrace.cContext pParentContext)
+            private static long ZQuotedPrintableEncodeTest(string pTestName, string[] pLines, eQuotedPrintableEncodeSourceType pSourceType, bool pTerminateLastLine, eQuotedPrintableEncodeQuotingRule pQuotingRule, cTrace.cContext pParentContext)
             {
-                int lBytesWritten;
+                long lBytesWritten;
 
                 StringBuilder lBuilder = new StringBuilder();
 

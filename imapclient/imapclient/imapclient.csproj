@@ -46,6 +46,7 @@
     <Compile Include="client\convertmailmessage.cs" />
     <Compile Include="client\decodedsizeinbytes.cs" />
     <Compile Include="client\quotedprintableencode.cs" />
+    <Compile Include="exposed_interfaces\appenddata\convertmailmessagedisposables.cs" />
     <Compile Include="exposed_interfaces\appenddata\headerfieldmimeparameter.cs" />
     <Compile Include="exposed_interfaces\appenddata\headerfieldvalueparts.cs" />
     <Compile Include="exposed_interfaces\appenddata\appenddata.cs" />

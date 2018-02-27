@@ -169,9 +169,9 @@ namespace work.bacome.imapclient
             // special case
             if (pMailMessages.Count == 0) return new cAppendFeedback();
 
-            using (var lTempFileCollection = new TempFileCollection())
+            using (var lDisposables = new cConvertMailMessageDisposables())
             {
-                var lMessages = await ZZConvertMailMessagesAsync(pMC, lTempFileCollection, pMailMessages, pConvertSetMaximum, pConvertIncrement, pReadConfiguration, pWriteConfiguration, pFlags, pReceived, lContext).ConfigureAwait(false);
+                var lMessages = await ZZConvertMailMessagesAsync(pMC, lDisposables, true, pMailMessages, pConvertSetMaximum, pConvertIncrement, pReadConfiguration, pWriteConfiguration, pFlags, pReceived, lContext).ConfigureAwait(false);
                 return await lSession.AppendAsync(pMC, pMailboxHandle, lMessages, pAppendSetMaximum, pAppendIncrement, lContext).ConfigureAwait(false);
             }
         }

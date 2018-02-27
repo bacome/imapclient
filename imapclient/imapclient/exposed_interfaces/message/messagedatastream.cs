@@ -15,6 +15,7 @@ namespace work.bacome.imapclient
 
         public readonly cIMAPClient Client;
         public readonly iMessageHandle MessageHandle;
+        public readonly cSinglePartBody Part;
         public readonly iMailboxHandle MailboxHandle;
         public readonly cUID UID;
         public readonly cSection Section;
@@ -39,6 +40,7 @@ namespace work.bacome.imapclient
 
             Client = pMessage.Client;
             MessageHandle = pMessage.MessageHandle;
+            Part = null;
 
             MailboxHandle = null;
             UID = null;
@@ -60,6 +62,7 @@ namespace work.bacome.imapclient
 
             Client = pAttachment.Client;
             MessageHandle = pAttachment.MessageHandle;
+            Part = pAttachment.Part;
 
             MailboxHandle = null;
             UID = null;
@@ -91,11 +94,10 @@ namespace work.bacome.imapclient
 
             Client = pMessage.Client;
             MessageHandle = pMessage.MessageHandle;
+            Part = pPart ?? throw new ArgumentNullException(nameof(pPart));
 
             MailboxHandle = null;
             UID = null;
-
-            if (pPart == null) throw new ArgumentNullException(nameof(pPart));
 
             Section = pPart.Section;
 
@@ -124,6 +126,7 @@ namespace work.bacome.imapclient
 
             Client = pMessage.Client;
             MessageHandle = pMessage.MessageHandle;
+            Part = null;
 
             MailboxHandle = null;
             UID = null;
@@ -147,6 +150,7 @@ namespace work.bacome.imapclient
 
             Client = pMailbox.Client;
             MessageHandle = null;
+            Part = null;
             MailboxHandle = pMailbox.MailboxHandle;
 
             UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
@@ -169,6 +173,7 @@ namespace work.bacome.imapclient
 
             Client = pMailbox.Client;
             MessageHandle = null;
+            Part = null;
             MailboxHandle = pMailbox.MailboxHandle;
 
             UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
@@ -182,10 +187,11 @@ namespace work.bacome.imapclient
             mLength = 0;
         }
 
-        public cMessageDataStream(cMessageDataStream pStream)
+        internal cMessageDataStream(cMessageDataStream pStream)
         {
             Client = pStream.Client;
             MessageHandle = pStream.MessageHandle;
+            Part = pStream.Part;
             MailboxHandle = pStream.MailboxHandle;
             UID = pStream.UID;
             Section = pStream.Section;
@@ -200,6 +206,7 @@ namespace work.bacome.imapclient
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
+            ;?; // part
             MailboxHandle = null;
             UID = null;
             Section = pSection;
@@ -214,6 +221,7 @@ namespace work.bacome.imapclient
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             MessageHandle = null;
+            Part = null;
             MailboxHandle = pMailboxHandle ?? throw new ArgumentNullException(nameof(pMailboxHandle));
             UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
             Section = pSection;

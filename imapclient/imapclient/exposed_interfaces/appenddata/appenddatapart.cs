@@ -37,6 +37,19 @@ namespace work.bacome.imapclient
             MessageHandle = pMessage.MessageHandle;
         }
 
+        internal cMessageAppendDataPart(cIMAPClient pClient, iMessageHandle pMessageHandle)
+        {
+            if (pClient == null) throw new ArgumentNullException(nameof(pClient));
+            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
+
+            // check that the source message is in a selected mailbox (in case we have to stream it)
+            //  (note that this is just a sanity check; the mailbox could become un-selected before we get a chance to get the message data which will cause a throw)
+            if (!pMessage.IsValid()) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.IsInvalid);
+
+            Client = pClient;
+            MessageHandle = pMessageHandle;
+        }
+
         internal override bool HasContent => true;
 
         public override string ToString() => $"{nameof(cMessageAppendDataPart)}({MessageHandle})";
