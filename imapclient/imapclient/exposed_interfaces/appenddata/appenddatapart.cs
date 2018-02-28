@@ -39,15 +39,8 @@ namespace work.bacome.imapclient
 
         internal cMessageAppendDataPart(cIMAPClient pClient, iMessageHandle pMessageHandle)
         {
-            if (pClient == null) throw new ArgumentNullException(nameof(pClient));
-            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
-
-            // check that the source message is in a selected mailbox (in case we have to stream it)
-            //  (note that this is just a sanity check; the mailbox could become un-selected before we get a chance to get the message data which will cause a throw)
-            if (!pMessage.IsValid()) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.IsInvalid);
-
-            Client = pClient;
-            MessageHandle = pMessageHandle;
+            Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
+            MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
         }
 
         internal override bool HasContent => true;
@@ -87,6 +80,13 @@ namespace work.bacome.imapclient
             Part = pAttachment.Part;
         }
 
+        internal cMessagePartAppendDataPart(cIMAPClient pClient, iMessageHandle pMessageHandle, cSinglePartBody pPart)
+        {
+            Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
+            MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
+            Part = pPart ?? throw new ArgumentNullException(nameof(pPart));
+        }
+
         internal override bool HasContent => Part.SizeInBytes != 0;
 
         public override string ToString() => $"{nameof(cMessagePartAppendDataPart)}({MessageHandle},{Part})";
@@ -114,6 +114,15 @@ namespace work.bacome.imapclient
             UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
 
+            Length = pLength;
+        }
+
+        internal cUIDSectionAppendDataPart(cIMAPClient pClient, iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, uint pLength)
+        {
+            Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
+            MailboxHandle = pMailboxHandle ?? throw new ArgumentNullException(nameof(pMailboxHandle));
+            UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
+            Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
             Length = pLength;
         }
 

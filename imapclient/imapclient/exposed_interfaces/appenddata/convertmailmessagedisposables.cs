@@ -7,7 +7,7 @@ namespace work.bacome.imapclient
     public sealed class cConvertMailMessageDisposables : IDisposable
     {
         private readonly List<string> mTempFileNames = new List<string>();
-        private readonly List<cMessageDataStream> mMessageDataStreams = new List<cMessageDataStream>();
+        private readonly List<Stream> mStreams = new List<Stream>();
 
         public cConvertMailMessageDisposables() { }
 
@@ -18,11 +18,18 @@ namespace work.bacome.imapclient
             return lTempFileName;
         }
 
-        internal cMessageDataStream CloneMessageDataStream(cMessageDataStream pStream)
+        internal cMessageDataStream GetMessageDataStream(cMessageDataStream pStream)
         {
             cMessageDataStream lMessageDataStream = new cMessageDataStream(pStream);
-            mMessageDataStreams.Add(lMessageDataStream);
+            mStreams.Add(lMessageDataStream);
             return lMessageDataStream;
+        }
+
+        internal MemoryStream GetMemoryStream(byte[] pBuffer)
+        {
+            MemoryStream lMemoryStream = new MemoryStream(pBuffer);
+            mStreams.Add(lMemoryStream);
+            return lMemoryStream;
         }
 
         public void Dispose()
@@ -33,9 +40,9 @@ namespace work.bacome.imapclient
                 catch { }
             }
 
-            foreach (var lMessageDataStream in mMessageDataStreams)
+            foreach (var lStream in mStreams)
             {
-                try { lMessageDataStream.Dispose(); }
+                try { lStream.Dispose(); }
                 catch { }
             }
         }

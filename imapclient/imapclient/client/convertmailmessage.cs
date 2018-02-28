@@ -13,6 +13,8 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
+        private enum eConvertMailMessageAppendDataPartType { cantbeconverted, message, messagepart, uidsection }
+
         private static readonly cBatchSizerConfiguration kConvertMailMessageMemoryStreamReadWriteConfiguration = new cBatchSizerConfiguration(10000, 10000, 1, 10000); // 10k chunks
 
         public cAppendData ConvertMailMessage(cConvertMailMessageDisposables pDisposables, MailMessage pMailMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, cConvertMailMessageConfiguration pConfiguration = null)
@@ -21,7 +23,7 @@ namespace work.bacome.imapclient
             var lTask = ZConvertMailMessagesAsync(pDisposables, cMailMessageList.FromMessage(pMailMessage), pFlags, pReceived, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
             var lResult = lTask.Result;
-            if (lResult.Count != 1) throw new cInternalErrorException();
+            if (lResult.Count != 1) throw new cInternalErrorException($"result count {lResult.Count}", lContext);
             return lResult[0];
         }
 
@@ -29,7 +31,7 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ConvertMailMessageAsync));
             var lResult = await ZConvertMailMessagesAsync(pDisposables, cMailMessageList.FromMessage(pMailMessage), pFlags, pReceived, pConfiguration, lContext).ConfigureAwait(false);
-            if (lResult.Count != 1) throw new cInternalErrorException();
+            if (lResult.Count != 1) throw new cInternalErrorException($"result count {lResult.Count}", lContext);
             return lResult[0];
         }
 
@@ -71,7 +73,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        private async Task<cAppendDataList> ZZConvertMailMessagesAsync(cMethodControl pMC, cConvertMailMessageDisposables pDisposables, bool pCheckClient, cMailMessageList pMailMessages, Action<long> pSetMaximum, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration,  cStorableFlags pFlags, DateTime? pReceived, cTrace.cContext pParentContext)
+        private async Task<cAppendDataList> ZZConvertMailMessagesAsync(cMethodControl pMC, cConvertMailMessageDisposables pDisposables, bool pCheckClient, cMailMessageList pMailMessages, Action<long> pSetMaximum, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, cStorableFlags pFlags, DateTime? pReceived, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZConvertMailMessagesAsync), pMC, pMailMessages, pReadConfiguration, pWriteConfiguration, pFlags, pReceived);
 
@@ -130,44 +132,52 @@ namespace work.bacome.imapclient
             return null;
         }
 
-        private long ZConvertMailMessageValidateData(AttachmentBase pData, bool pAlternateView, bool pCheckClient)
+        private long ZConvertMailMessageValidateData(AttachmentBase pData, bool pText, bool pCheckClient)
         {
+            // returns the length that needs to be converted to quoted printable
+
             if (pData.ContentStream is cMessageDataStream lMessageDataStream)
             {
                 if (pCheckClient && ReferenceEquals(lMessageDataStream.Client, this)) throw new cMessageDataClientException();
-
-                // this switch statement identifies cases where the data will not require a client-side encoding
-                //  (i.e. where the data can be streamed or catenated direct from the source to the target)
-                //
-                switch (lMessageDataStream.Decoding)
-                {
-                    case eDecodingRequired.none:
-
-                        if (pData.TransferEncoding == TransferEncoding.SevenBit || pData.TransferEncoding == TransferEncoding.EightBit) return 0;
-                        break;
-
-                    case eDecodingRequired.quotedprintable:
-
-                        if (pData.TransferEncoding == TransferEncoding.Unknown || pData.TransferEncoding == TransferEncoding.QuotedPrintable) return 0;
-                        break;
-
-                    case eDecodingRequired.base64:
-
-                        if (pData.TransferEncoding == TransferEncoding.Unknown || pData.TransferEncoding == TransferEncoding.Base64) return 0;
-                        break;
-                }
-
+                if (ZConvertMailMessageDataStreamToAppendDataPart(lMessageDataStream, pData.TransferEncoding).AppendDataPartType != eConvertMailMessageAppendDataPartType.cantbeconverted) return 0;
                 if (!lMessageDataStream.HasKnownLength) throw new cMailMessageFormException(kMailMessageFormExceptionMessage.MessageDataStreamUnknownLength);
-
-                // we will only quoted-printable encode when it has been explicitly requested OR it is text and the choice of encoding has been left up to us
-                //
-                if (pData.TransferEncoding == TransferEncoding.QuotedPrintable || (pData.TransferEncoding == TransferEncoding.Unknown && pAlternateView)) return lMessageDataStream.GetKnownLength();
-                else return 0;
+                if (pData.TransferEncoding == TransferEncoding.QuotedPrintable || (pData.TransferEncoding == TransferEncoding.Unknown && pText)) return lMessageDataStream.GetKnownLength();
+                return 0;
             }
 
             if (!pData.ContentStream.CanSeek) throw new cMailMessageFormException(kMailMessageFormExceptionMessage.StreamNotSeekable);
-            if (pData.TransferEncoding == TransferEncoding.QuotedPrintable || (pData.TransferEncoding == TransferEncoding.Unknown && pAlternateView)) return pData.ContentStream.Length;
-            else return 0;
+            if (pData.TransferEncoding == TransferEncoding.QuotedPrintable || (pData.TransferEncoding == TransferEncoding.Unknown && pText)) return pData.ContentStream.Length;
+            return 0;
+        }
+
+        private sConvertMailMessageDataStreamToAppendDataPartResult ZConvertMailMessageDataStreamToAppendDataPart(cMessageDataStream pMessageDataStream, TransferEncoding pTransferEncoding)
+        {
+            eConvertMailMessageAppendDataPartType lAppendDataPartType;
+
+            if (pMessageDataStream.MessageHandle != null && pMessageDataStream.Part == null && pMessageDataStream.Section == cSection.All) lAppendDataPartType = eConvertMailMessageAppendDataPartType.message;
+            else if (pMessageDataStream.MessageHandle != null && pMessageDataStream.Part != null) lAppendDataPartType = eConvertMailMessageAppendDataPartType.messagepart;
+            else if (pMessageDataStream.MailboxHandle != null && pMessageDataStream.Decoding == eDecodingRequired.none && pMessageDataStream.HasKnownLength) lAppendDataPartType = eConvertMailMessageAppendDataPartType.uidsection;
+            else return sConvertMailMessageDataStreamToAppendDataPartResult.CantBeConverted;
+
+            switch (pMessageDataStream.Decoding)
+            {
+                case eDecodingRequired.none:
+
+                    if (pTransferEncoding == TransferEncoding.SevenBit || pTransferEncoding == TransferEncoding.EightBit) return new sConvertMailMessageDataStreamToAppendDataPartResult(lAppendDataPartType, pTransferEncoding);
+                    return sConvertMailMessageDataStreamToAppendDataPartResult.CantBeConverted;
+
+                case eDecodingRequired.quotedprintable:
+
+                    if (pTransferEncoding == TransferEncoding.Unknown || pTransferEncoding == TransferEncoding.QuotedPrintable) return new sConvertMailMessageDataStreamToAppendDataPartResult(lAppendDataPartType, TransferEncoding.QuotedPrintable);
+                    return sConvertMailMessageDataStreamToAppendDataPartResult.CantBeConverted;
+
+                case eDecodingRequired.base64:
+
+                    if (pTransferEncoding == TransferEncoding.Unknown || pTransferEncoding == TransferEncoding.Base64) return new sConvertMailMessageDataStreamToAppendDataPartResult(lAppendDataPartType, TransferEncoding.Base64);
+                    return sConvertMailMessageDataStreamToAppendDataPartResult.CantBeConverted;
+            }
+
+            return sConvertMailMessageDataStreamToAppendDataPartResult.CantBeConverted;
         }
 
         private async Task<List<cAppendDataPart>> ZConvertMailMessageAsync(cMethodControl pMC, cConvertMailMessageDisposables pDisposables, MailMessage pMailMessage, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, cTrace.cContext pParentContext)
@@ -218,12 +228,12 @@ namespace work.bacome.imapclient
 
             // add mime headers
 
-            string lBoundaryBase = Guid.NewGuid().ToString();
+            var lBoundarySource = new cConvertMailMessageBoundarySource();
 
             lParts.Add(new cHeaderFieldAppendDataPart("mime-version", "1.0"));
             lParts.Add(new cHeaderFieldAppendDataPart("content-transfer-encoding", "7bit", "8bit"));
 
-            if (pMailMessage.Attachments.Count == 0) await ZConvertMailMessageViewsAsync(pMC, pDisposables, pMailMessage, pIncrement, pReadConfiguration, pWriteConfiguration, lParts, lBoundaryBase, lContext).ConfigureAwait(false);
+            if (pMailMessage.Attachments.Count == 0) await ZConvertMailMessageViewsAsync(pMC, pDisposables, pMailMessage, pIncrement, pReadConfiguration, pWriteConfiguration, lParts, lBoundarySource, lContext).ConfigureAwait(false);
             else
             {
                 lParts.Add(
@@ -232,7 +242,7 @@ namespace work.bacome.imapclient
                         new cHeaderFieldValuePart[]
                         {
                         "multipart/mixed",
-                        new cHeaderFieldMIMEParameter("boundary", ZConvertMailMessageBoundary(0, lBoundaryBase, out var lDelimiter, out var lCloseDelimiter))
+                        new cHeaderFieldMIMEParameter("boundary", lBoundarySource.Boundary(out var lDelimiter, out var lCloseDelimiter))
                         }));
 
 
@@ -243,7 +253,7 @@ namespace work.bacome.imapclient
                 lParts.Add(lDelimiter);
 
                 // views
-                await ZConvertMailMessageViewsAsync(pMC, pDisposables, pMailMessage, pIncrement, pReadConfiguration, pWriteConfiguration, lParts, lBoundaryBase, lContext).ConfigureAwait(false);
+                await ZConvertMailMessageViewsAsync(pMC, pDisposables, pMailMessage, pIncrement, pReadConfiguration, pWriteConfiguration, lParts, lBoundarySource, lContext).ConfigureAwait(false);
 
                 // attachments
                 foreach (var lAttachment in pMailMessage.Attachments)
@@ -261,7 +271,7 @@ namespace work.bacome.imapclient
                     if (lAttachment.ContentDisposition.ModificationDate != null) lContentDisposition.Add(new cHeaderFieldMIMEParameter("modification-date", lAttachment.ContentDisposition.ModificationDate));
                     if (lAttachment.ContentDisposition.ReadDate != null) lContentDisposition.Add(new cHeaderFieldMIMEParameter("read-date", lAttachment.ContentDisposition.ReadDate));
                     if (lAttachment.ContentDisposition.Size >= 0) lContentDisposition.Add(new cHeaderFieldMIMEParameter("size", lAttachment.ContentDisposition.Size));
-                    ZAddHeaderFieldMIMEParameters(lAttachment.ContentDisposition.Parameters, lContentDisposition, "filename", "creation-date", "modification-date", "read-date", "size");
+                    ZConvertMailMessageAddHeaderFieldMIMEParameters(lAttachment.ContentDisposition.Parameters, lContentDisposition, "filename", "creation-date", "modification-date", "read-date", "size");
 
                     lParts.Add(new cHeaderFieldAppendDataPart("content-disposition", lContentDisposition));
 
@@ -276,17 +286,9 @@ namespace work.bacome.imapclient
             return lParts;
         }
 
-        private string ZConvertMailMessageBoundary(int pPart, string pBoundaryBase, out cLiteralAppendDataPart rDelimiter, out cLiteralAppendDataPart rCloseDelimiter)
+        private async Task ZConvertMailMessageViewsAsync(cMethodControl pMC, cConvertMailMessageDisposables pDisposables, MailMessage pMailMessage, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, List<cAppendDataPart> pParts, cConvertMailMessageBoundarySource pBoundarySource, cTrace.cContext pParentContext)
         {
-            string lBoundary = $"=_{pPart}_{pBoundaryBase}";
-            rDelimiter = new cLiteralAppendDataPart("\r\n--" + lBoundary + "\r\n");
-            rCloseDelimiter = new cLiteralAppendDataPart("\r\n--" + lBoundary + "--\r\n");
-            return lBoundary;
-        }
-
-        private async Task ZConvertMailMessageViewsAsync(cMethodControl pMC, cConvertMailMessageDisposables pDisposables, MailMessage pMailMessage, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, List<cAppendDataPart> pParts, string pBoundaryBase, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZConvertMailMessageViewsAsync), pMC, pReadConfiguration, pWriteConfiguration, pBoundaryBase);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZConvertMailMessageViewsAsync), pMC, pReadConfiguration, pWriteConfiguration, pBoundarySource);
 
             if (pMailMessage.AlternateViews.Count > 0)
             {
@@ -296,7 +298,7 @@ namespace work.bacome.imapclient
                         new cHeaderFieldValuePart[]
                         {
                             "multipart/alternative",
-                            new cHeaderFieldMIMEParameter("boundary", ZConvertMailMessageBoundary(0, pBoundaryBase, out var lDelimiter, out var lCloseDelimiter))
+                            new cHeaderFieldMIMEParameter("boundary", pBoundarySource.Boundary(out var lDelimiter, out var lCloseDelimiter))
                         }));
 
                 // add blank line and preamble
@@ -306,7 +308,7 @@ namespace work.bacome.imapclient
                 pParts.Add(lDelimiter);
 
                 // add the body
-                await ZConvertMailMessageBodyAsync(pMC, pMailMessage, pIncrement, pReadConfiguration, pWriteConfiguration, pParts, lContext).ConfigureAwait(false);
+                await ZConvertMailMessageBodyAsync(pMC, pDisposables, pMailMessage, pParts, lContext).ConfigureAwait(false);
 
                 foreach (var lAlternateView in pMailMessage.AlternateViews)
                 {
@@ -325,7 +327,7 @@ namespace work.bacome.imapclient
                                 new cHeaderFieldValuePart[]
                                 {
                                     "multipart/related",
-                                    new cHeaderFieldMIMEParameter("boundary", ZConvertMailMessageBoundary(0, pBoundaryBase, out var lRelatedDelimiter, out var lRelatedCloseDelimiter))
+                                    new cHeaderFieldMIMEParameter("boundary", pBoundarySource.Boundary(out var lRelatedDelimiter, out var lRelatedCloseDelimiter))
                                 }));
 
                         // add blank line and preamble
@@ -352,74 +354,64 @@ namespace work.bacome.imapclient
                 // close-delimiter
                 pParts.Add(lCloseDelimiter);
             }
-            else await ZConvertMailMessageBodyAsync(pMC, pMailMessage, pIncrement, pReadConfiguration, pWriteConfiguration, pParts, lContext).ConfigureAwait(false);
+            else await ZConvertMailMessageBodyAsync(pMC, pDisposables, pMailMessage, pParts, lContext).ConfigureAwait(false);
         }
 
-        private async Task ZConvertMailMessageBodyAsync(cMethodControl pMC, MailMessage pMailMessage, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, List<cAppendDataPart> pParts, cTrace.cContext pParentContext)
+        private async Task ZConvertMailMessageBodyAsync(cMethodControl pMC, cConvertMailMessageDisposables pDisposables, MailMessage pMailMessage, List<cAppendDataPart> pParts, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZConvertMailMessageBodyAsync), pMC);
 
             Encoding lEncoding = pMailMessage.BodyEncoding ?? Encoding.ASCII;
 
-            string lContentType;
-            if (pMailMessage.IsBodyHtml) lContentType = "text/html";
-            else lContentType = "text/plain";
+            string lMediaType;
+            if (pMailMessage.IsBodyHtml) lMediaType = "text/html";
+            else lMediaType = "text/plain";
 
             pParts.Add(
                 new cHeaderFieldAppendDataPart(
                     "content-type",
                     new cHeaderFieldValuePart[]
                     {
-                        lContentType,
+                        lMediaType,
                         new cHeaderFieldMIMEParameter("charset", lEncoding.WebName)
                     }));
 
-            bool lBase64;
+            TransferEncoding lTransferEncoding;
+            cAppendDataPart lPart;
 
-            using (MemoryStream lInput = new MemoryStream(lEncoding.GetBytes(pMailMessage.Body)), lOutput = new MemoryStream())
+            if (pMailMessage.BodyTransferEncoding == TransferEncoding.SevenBit || pMailMessage.BodyTransferEncoding == TransferEncoding.EightBit)
             {
-                if (pMailMessage.BodyTransferEncoding == TransferEncoding.Base64) lBase64 = true;
-                else
-                {
-                    // note: the increment and configuration are NOT used here as we know this is an in-memory transformation
-                    long lQuotedPrintableLength = await ZZQuotedPrintableEncodeAsync(pMC, lInput, kQuotedPrintableEncodeDefaultSourceType, eQuotedPrintableEncodeQuotingRule.EBCDIC, lOutput, null, kConvertMailMessageMemoryStreamReadWriteConfiguration, kConvertMailMessageMemoryStreamReadWriteConfiguration, lContext).ConfigureAwait(false);
-
-                    if (pMailMessage.BodyTransferEncoding == TransferEncoding.QuotedPrintable) lBase64 = false;
-                    else
-                    {
-                        var lBase64Length = cBase64Encoder.EncodedLength(lInput.Length);
-
-                        if (lBase64Length < lQuotedPrintableLength)
-                        {
-                            lBase64 = true;
-
-                            lInput.Position = 0;
-                            lOutput.Position = 0;
-                            lOutput.SetLength(lBase64Length);
-                        }
-                        else lBase64 = false;
-                    }
-                }
-
-                if (lBase64)
-                {
-                    pParts.Add(new cHeaderFieldAppendDataPart("content-transfer-encoding", "base64"));
-
-                    using (var lBase64Encoder = new cBase64Encoder(lInput, kConvertMailMessageMemoryStreamReadWriteConfiguration))
-                    {
-                        await lBase64Encoder.CopyToAsync(lOutput).ConfigureAwait(false);
-                    }
-                }
-                else pParts.Add(new cHeaderFieldAppendDataPart("content-transfer-encoding", "quoted-printable"));
-
-                pParts.Add(cAppendDataPart.CRLF);
-                pParts.Add(new cLiteralAppendDataPart(new cBytes(lOutput.ToArray())));
+                lTransferEncoding = pMailMessage.BodyTransferEncoding;
+                lPart = new cLiteralAppendDataPart(lEncoding.GetBytes(pMailMessage.Body));
             }
+            else if (pMailMessage.BodyTransferEncoding == TransferEncoding.QuotedPrintable || pMailMessage.BodyTransferEncoding == TransferEncoding.Unknown)
+            {
+                var lSource = pDisposables.GetMemoryStream(lEncoding.GetBytes(pMailMessage.Body));
+                var lResult = await ZConvertMailMessageQuotedPrintableEncodeAsync(pMC, pDisposables, lSource, true, null, kConvertMailMessageMemoryStreamReadWriteConfiguration, kConvertMailMessageMemoryStreamReadWriteConfiguration, lContext).ConfigureAwait(false);
+
+                if (pMailMessage.BodyTransferEncoding == TransferEncoding.Unknown)
+                {
+                    if (lResult.TempFileLength <= cBase64Encoder.EncodedLength(lSource.Length)) lTransferEncoding = TransferEncoding.QuotedPrintable;
+                    else lTransferEncoding = TransferEncoding.Base64;
+                }
+                else lTransferEncoding = TransferEncoding.QuotedPrintable;
+
+                if (lTransferEncoding == TransferEncoding.QuotedPrintable) lPart = new cFileAppendDataPart(lResult.TempFileName);
+                else lPart = new cStreamAppendDataPart(lSource, true);
+            }
+            else if (pMailMessage.BodyTransferEncoding == TransferEncoding.Base64)
+            {
+                lTransferEncoding = TransferEncoding.Base64;
+                lPart = new cStreamAppendDataPart(pDisposables.GetMemoryStream(lEncoding.GetBytes(pMailMessage.Body)), true);
+            }
+            else throw new cInternalErrorException($"bodytransferencoding {pMailMessage.BodyTransferEncoding}", lContext);
+
+            ZConvertMailMessageAddPart(lTransferEncoding, lPart, pParts, lContext);
         }
 
-        private async Task ZConvertMailMessageConvertDataAsync(cMethodControl pMC, cConvertMailMessageDisposables pDisposables, AttachmentBase pData, bool pAlternateView, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, List<cAppendDataPart> pParts, cTrace.cContext pParentContext)
+        private async Task ZConvertMailMessageConvertDataAsync(cMethodControl pMC, cConvertMailMessageDisposables pDisposables, AttachmentBase pData, bool pText, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, List<cAppendDataPart> pParts, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZConvertMailMessageConvertDataAsync), pMC, pAlternateView, pReadConfiguration, pWriteConfiguration);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZConvertMailMessageConvertDataAsync), pMC, pText, pReadConfiguration, pWriteConfiguration);
 
             if (pData.ContentId != null) pParts.Add(new cHeaderFieldAppendDataPart("content-id", pData.ContentId));
 
@@ -429,176 +421,94 @@ namespace work.bacome.imapclient
 
             if (pData.ContentType.CharSet != null) lContentType.Add(new cHeaderFieldMIMEParameter("charset", pData.ContentType.CharSet));
             if (pData.ContentType.Name != null) lContentType.Add(new cHeaderFieldMIMEParameter("name", pData.ContentType.Name));
-            ZAddHeaderFieldMIMEParameters(pData.ContentType.Parameters, lContentType, "charset", "name");
+            ZConvertMailMessageAddHeaderFieldMIMEParameters(pData.ContentType.Parameters, lContentType, "charset", "name");
 
             pParts.Add(new cHeaderFieldAppendDataPart("content-type", lContentType));
 
+            TransferEncoding lTransferEncoding;
+            cAppendDataPart lPart;
+
             if (pData.ContentStream is cMessageDataStream lMessageDataStream)
             {
+                var lResult = ZConvertMailMessageDataStreamToAppendDataPart(lMessageDataStream, pData.TransferEncoding);
 
-
-
-
-                switch (lMessageDataStream.Decoding)
+                if (lResult.AppendDataPartType == eConvertMailMessageAppendDataPartType.cantbeconverted)
                 {
-                    case eDecodingRequired.none:
-
-                        if (pData.TransferEncoding == TransferEncoding.SevenBit || pData.TransferEncoding == TransferEncoding.EightBit)
-                        {
-                            return 0;
-                        }
-
-                        break;
-
-                    case eDecodingRequired.quotedprintable:
-
-                        if (pData.TransferEncoding == TransferEncoding.Unknown || pData.TransferEncoding == TransferEncoding.QuotedPrintable)
-                        {
-                            return 0;
-                        }
-
-                        break;
-
-                    case eDecodingRequired.base64:
-
-                        if (pData.TransferEncoding == TransferEncoding.Unknown || pData.TransferEncoding == TransferEncoding.Base64)
-                        {
-                            return 0;
-                        }
-
-                        break;
-                }
-
-                if (pData.TransferEncoding == TransferEncoding.SevenBit)
-                {
-                    pParts.Add(new cHeaderFieldAppendDataPart("content-transfer-encoding", "7bit"));
-                    pParts.Add(cAppendDataPart.CRLF);
-
-                    ZConvertMailMessageAddCatOrStream(pDisposables, lMessageDataStream, pParts);
-
-                    if (lMessageDataStream.Decoding == eDecodingRequired.none && )
+                    if (pData.TransferEncoding == TransferEncoding.SevenBit || pData.TransferEncoding == TransferEncoding.EightBit)
                     {
-                        // catenate
+                        lTransferEncoding = pData.TransferEncoding;
+                        lPart = new cStreamAppendDataPart(pDisposables.GetMessageDataStream(lMessageDataStream));
                     }
-                    else pParts.Add(pDisposables.CloneMessageDataStream(lMessageDataStream));
-
-                    return;
-                }
-
-                if (pData.TransferEncoding == TransferEncoding.EightBit)
-                {
-                    pParts.Add(new cHeaderFieldAppendDataPart("content-transfer-encoding", "8bit"));
-                    pParts.Add(cAppendDataPart.CRLF);
-
-                    ;?; ditto
-
-                    pParts.Add(pDisposables.CloneMessageDataStream(lMessageDataStream));
-                    return;
-                }
-
-                if ()
-
-
-                if (pData.TransferEncoding == TransferEncoding.QuotedPrintable || (pData.TransferEncoding == TransferEncoding.Unknown && pAlternateView))
-                {
-                    sConvertMailMessageQuotedPrintableEncodeResult lResult;
-
-                    using (var lSource = new cMessageDataStream(lMessageDataStream))
+                    else if (pData.TransferEncoding == TransferEncoding.QuotedPrintable || (pData.TransferEncoding == TransferEncoding.Unknown && pText))
                     {
-                        lResult = await ZConvertMailMessageQuotedPrintableEncodeAsync(pMC, pDisposables, lSource, pAlternateView, pIncrement, pReadConfiguration, pWriteConfiguration, lContext).ConfigureAwait(false);
+                        var lEncodeResult = await ZConvertMailMessageQuotedPrintableEncodeAsync(pMC, pDisposables, pDisposables.GetMessageDataStream(lMessageDataStream), pText, pIncrement, pReadConfiguration, pWriteConfiguration, lContext).ConfigureAwait(false);
+
+                        if (pData.TransferEncoding == TransferEncoding.Unknown)
+                        {
+                            if (lEncodeResult.TempFileLength <= cBase64Encoder.EncodedLength(lMessageDataStream.GetKnownLength())) lTransferEncoding = TransferEncoding.QuotedPrintable;
+                            else lTransferEncoding = TransferEncoding.Base64;
+                        }
+                        else lTransferEncoding = TransferEncoding.QuotedPrintable;
+
+                        if (lTransferEncoding == TransferEncoding.QuotedPrintable) lPart = new cFileAppendDataPart(lEncodeResult.TempFileName);
+                        else lPart = new cStreamAppendDataPart(pDisposables.GetMessageDataStream(lMessageDataStream), true);
                     }
-
-                    bool lQuotedPrintable;
-                    if (pData.TransferEncoding == TransferEncoding.Unknown) lQuotedPrintable = lResult.TempFileLength <= cBase64Encoder.EncodedLength(lMessageDataStream.GetKnownLength());
-                    else lQuotedPrintable = true;
-
-                    if (lQuotedPrintable)
+                    else if (pData.TransferEncoding == TransferEncoding.Base64)
                     {
-                        pParts.Add(new cHeaderFieldAppendDataPart("content-transfer-encoding", "quoted-printable"));
-                        pParts.Add(cAppendDataPart.CRLF);
-                        pParts.Add(new cFileAppendDataPart(lResult.TempFileName));
-                        return;
+                        lTransferEncoding = TransferEncoding.Base64;
+                        lPart = new cStreamAppendDataPart(pDisposables.GetMessageDataStream(lMessageDataStream), true);
                     }
+                    else throw new cInternalErrorException($"cantbeconverted transferencoding {pData.TransferEncoding}", lContext);
                 }
-
-                pParts.Add(new cHeaderFieldAppendDataPart("content-transfer-encoding", "base64"));
-                pParts.Add(cAppendDataPart.CRLF);
-                pParts.Add(new cStreamAppendDataPart(pDisposables.CloneMessageDataStream(lMessageDataStream), true));
-                return;
-            }
-
-            if (pData.TransferEncoding == TransferEncoding.SevenBit)
-            {
-                pParts.Add(new cHeaderFieldAppendDataPart("content-transfer-encoding", "7bit"));
-                pParts.Add(cAppendDataPart.CRLF);
-                pParts.Add(pData.ContentStream);
-                return;
-            }
-
-            if (pData.TransferEncoding == TransferEncoding.EightBit)
-            {
-                pParts.Add(new cHeaderFieldAppendDataPart("content-transfer-encoding", "8bit"));
-                pParts.Add(cAppendDataPart.CRLF);
-                pParts.Add(pData.ContentStream);
-                return;
-            }
-
-            if (pData.TransferEncoding == TransferEncoding.QuotedPrintable || (pData.TransferEncoding == TransferEncoding.Unknown && pAlternateView))
-            {
-                pData.ContentStream.Position = 0;
-                var lResult = await ZConvertMailMessageQuotedPrintableEncodeAsync(pMC, pDisposables, pData.ContentStream, pAlternateView, pIncrement, pReadConfiguration, pWriteConfiguration, lContext).ConfigureAwait(false);
-
-                bool lQuotedPrintable;
-                if (pData.TransferEncoding == TransferEncoding.Unknown) lQuotedPrintable = lResult.TempFileLength <= cBase64Encoder.EncodedLength(pData.ContentStream.Length);
-                else lQuotedPrintable = true;
-
-                if (lQuotedPrintable)
+                else
                 {
-                    pParts.Add(new cHeaderFieldAppendDataPart("content-transfer-encoding", "quoted-printable"));
-                    pParts.Add(cAppendDataPart.CRLF);
-                    pParts.Add(new cFileAppendDataPart(lResult.TempFileName));
-                    return;
+                    lTransferEncoding = lResult.TransferEncoding;
+
+                    if (lResult.AppendDataPartType == eConvertMailMessageAppendDataPartType.message) lPart = new cMessageAppendDataPart(lMessageDataStream.Client, lMessageDataStream.MessageHandle);
+                    else if (lResult.AppendDataPartType == eConvertMailMessageAppendDataPartType.messagepart) lPart = new cMessagePartAppendDataPart(lMessageDataStream.Client, lMessageDataStream.MessageHandle, lMessageDataStream.Part);
+                    else if (lResult.AppendDataPartType == eConvertMailMessageAppendDataPartType.uidsection) lPart = new cUIDSectionAppendDataPart(lMessageDataStream.Client, lMessageDataStream.MailboxHandle, lMessageDataStream.UID, lMessageDataStream.Section, lMessageDataStream.GetKnownLength());
+                    else throw new cInternalErrorException($"messagedatastream appenddataparttype {lResult.AppendDataPartType}", lContext);
                 }
             }
+            else
+            {
+                if (pData.TransferEncoding == TransferEncoding.SevenBit || pData.TransferEncoding == TransferEncoding.EightBit)
+                {
+                    lTransferEncoding = pData.TransferEncoding;
+                    lPart = new cStreamAppendDataPart(pData.ContentStream);
+                }
+                else if (pData.TransferEncoding == TransferEncoding.QuotedPrintable || (pData.TransferEncoding == TransferEncoding.Unknown && pText))
+                {
+                    pData.ContentStream.Position = 0;
+                    var lResult = await ZConvertMailMessageQuotedPrintableEncodeAsync(pMC, pDisposables, pData.ContentStream, pText, pIncrement, pReadConfiguration, pWriteConfiguration, lContext).ConfigureAwait(false);
 
-            pParts.Add(new cHeaderFieldAppendDataPart("content-transfer-encoding", "base64"));
-            pParts.Add(cAppendDataPart.CRLF);
-            pParts.Add(new cStreamAppendDataPart(pData.ContentStream, true));
-            return;
+                    if (pData.TransferEncoding == TransferEncoding.Unknown)
+                    {
+                        if (lResult.TempFileLength <= cBase64Encoder.EncodedLength(pData.ContentStream.Length)) lTransferEncoding = TransferEncoding.QuotedPrintable;
+                        else lTransferEncoding = TransferEncoding.Base64;
+                    }
+                    else lTransferEncoding = TransferEncoding.QuotedPrintable;
+
+                    if (lTransferEncoding == TransferEncoding.QuotedPrintable) lPart = new cFileAppendDataPart(lResult.TempFileName);
+                    else lPart = new cStreamAppendDataPart(pData.ContentStream, true);
+                }
+                else if (pData.TransferEncoding == TransferEncoding.Base64)
+                {
+                    lTransferEncoding = TransferEncoding.Base64;
+                    lPart = new cStreamAppendDataPart(pData.ContentStream, true);
+                }
+                else throw new cInternalErrorException($"normal stream transferencoding {pData.TransferEncoding}", lContext);
+            }
+
+            ZConvertMailMessageAddPart(lTransferEncoding, lPart, pParts, lContext);
         }
 
-        private void ZConvertMailMessageAddCatOrStream(cConvertMailMessageDisposables pDisposables, cMessageDataStream pMessageDataStream, List<cAppendDataPart> pParts)
+        private async Task<sConvertMailMessageQuotedPrintableEncodeResult> ZConvertMailMessageQuotedPrintableEncodeAsync(cMethodControl pMC, cConvertMailMessageDisposables pDisposables, Stream pSource, bool pText, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, cTrace.cContext pParentContext)
         {
-            ;?; // note that if the decoding matches the encoding then the decoding has to be removed from the stream included in the appenddata
-
-            if (pMessageDataStream.MessageHandle != null && pMessageDataStream.Part == null && pMessageDataStream.Section == cSection.All)
-            {
-                pParts.Add(new cMessageAppendDataPart(pMessageDataStream.Client, pMessageDataStream.MessageHandle));
-                return;
-            }
-
-            ;?;
-            if (pMessageDataStream.MessageHandle != null && pMessageDataStream.Part != null)
-            {
-                pParts.Add(new cMessagePartAppendDataPart(pMessageDataStream.Client, pMessageDataStream.MessageHandle, pMessageDataStream.part));
-                return;
-            }
-
-            if (pMessageDataStream.MailboxHandle != null && pMessageDataStream.HasKnownLength && (pMessageDataStream.Section.TextPart == eSectionTextPart.all || pMessageDataStream.Section.TextPart == eSectionTextPart.text || pMessageDataStream.Section.TextPart == eSectionTextPart.header))
-            {
-                pParts.Add(new cUIDSectionAppendDataPart(pMessageDataStream.Client, pMessageDataStream.MailboxHandle, pMessageDataStream.UID, pMessageDataStream.Section, pMessageDataStream.GetKnownLength());
-                return;
-            }
-
-        }
-
-
-        private async Task<sConvertMailMessageQuotedPrintableEncodeResult> ZConvertMailMessageQuotedPrintableEncodeAsync(cMethodControl pMC, cConvertMailMessageDisposables pDisposables, Stream pSource, bool pAlternateView, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZConvertMailMessageQuotedPrintableEncodeAsync), pMC, pAlternateView, pReadConfiguration, pWriteConfiguration);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZConvertMailMessageQuotedPrintableEncodeAsync), pMC, pText, pReadConfiguration, pWriteConfiguration);
 
             eQuotedPrintableEncodeSourceType lSourceType;
-            if (pAlternateView) lSourceType = kQuotedPrintableEncodeDefaultSourceType;
+            if (pText) lSourceType = kQuotedPrintableEncodeDefaultSourceType;
             else lSourceType = eQuotedPrintableEncodeSourceType.Binary;
 
             string lTempFileName = pDisposables.GetTempFileName();
@@ -612,7 +522,7 @@ namespace work.bacome.imapclient
             return new sConvertMailMessageQuotedPrintableEncodeResult(lTempFileName, lTempFileLength);
         }
 
-        private void ZAddHeaderFieldMIMEParameters(StringDictionary pParameters, List<cHeaderFieldValuePart> pParts, params string[] pIgnoreKeys)
+        private void ZConvertMailMessageAddHeaderFieldMIMEParameters(StringDictionary pParameters, List<cHeaderFieldValuePart> pParts, params string[] pIgnoreKeys)
         {
             foreach (DictionaryEntry lEntry in pParameters)
             {
@@ -627,6 +537,37 @@ namespace work.bacome.imapclient
             }
         }
 
+        private void ZConvertMailMessageAddPart(TransferEncoding pTransferEncoding, cAppendDataPart pPart, List<cAppendDataPart> pParts, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZConvertMailMessageAddPart), pTransferEncoding, pPart);
+
+            string lTransferEncodingString;
+
+            if (pTransferEncoding == TransferEncoding.SevenBit) lTransferEncodingString = "7bit";
+            else if (pTransferEncoding == TransferEncoding.EightBit) lTransferEncodingString = "8bit";
+            else if (pTransferEncoding == TransferEncoding.QuotedPrintable) lTransferEncodingString = "quoted-printable";
+            else if (pTransferEncoding == TransferEncoding.Base64) lTransferEncodingString = "base64";
+            else throw new cInternalErrorException($"transferencoding {pTransferEncoding}", lContext);
+
+            pParts.Add(new cHeaderFieldAppendDataPart("content-transfer-encoding", lTransferEncodingString));
+            pParts.Add(cAppendDataPart.CRLF);
+            pParts.Add(pPart);
+        }
+
+        private struct sConvertMailMessageDataStreamToAppendDataPartResult
+        {
+            public static readonly sConvertMailMessageDataStreamToAppendDataPartResult CantBeConverted = new sConvertMailMessageDataStreamToAppendDataPartResult();
+
+            public readonly eConvertMailMessageAppendDataPartType AppendDataPartType;
+            public readonly TransferEncoding TransferEncoding;
+
+            public sConvertMailMessageDataStreamToAppendDataPartResult(eConvertMailMessageAppendDataPartType pAppendDataPartType, TransferEncoding pTransferEncoding)
+            {
+                AppendDataPartType = pAppendDataPartType;
+                TransferEncoding = pTransferEncoding;
+            }
+        }
+
         private struct sConvertMailMessageQuotedPrintableEncodeResult
         {
             public readonly string TempFileName;
@@ -637,6 +578,27 @@ namespace work.bacome.imapclient
                 TempFileName = pTempFileName;
                 TempFileLength = pTempFileLength;
             }
+        }
+
+        private class cConvertMailMessageBoundarySource
+        {
+            private readonly string mUnique;
+            private int mPart = 0;
+
+            public cConvertMailMessageBoundarySource()
+            {
+                mUnique = Guid.NewGuid().ToString();
+            }
+
+            public string Boundary(out cLiteralAppendDataPart rDelimiter, out cLiteralAppendDataPart rCloseDelimiter)
+            {
+                string lBoundary = $"=_{mPart++}_{mUnique}";
+                rDelimiter = new cLiteralAppendDataPart("\r\n--" + lBoundary + "\r\n");
+                rCloseDelimiter = new cLiteralAppendDataPart("\r\n--" + lBoundary + "--\r\n");
+                return lBoundary;
+            }
+
+            public override string ToString() => $"{nameof(cConvertMailMessageBoundarySource)}({mUnique},{mPart})";
         }
     }
 }

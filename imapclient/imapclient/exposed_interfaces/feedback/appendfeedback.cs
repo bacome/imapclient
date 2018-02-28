@@ -116,7 +116,7 @@ namespace work.bacome.imapclient
 
                     default:
 
-                        throw new cInternalErrorException();
+                        throw new cInternalErrorException($"{nameof(cAppendFeedback)}.ctor,{lItem.Type}");
                 }
             }
 

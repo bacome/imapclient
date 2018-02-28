@@ -137,8 +137,16 @@ namespace work.bacome.imapclient
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
             TargetBufferSize = pTargetBufferSize;
 
-            HasKnownLength = false;
-            mLength = 0;
+            if (pSection == cSection.All && pDecoding == eDecodingRequired.none)
+            {
+                HasKnownLength = true;
+                mLength = MessageHandle.Size ?? 0;
+            }
+            else
+            {
+                HasKnownLength = false;
+                mLength = 0;
+            }
         }
 
         public cMessageDataStream(cMailbox pMailbox, cUID pUID, cSection pSection, uint pLength, int pTargetBufferSize = DefaultTargetBufferSize)
@@ -206,7 +214,7 @@ namespace work.bacome.imapclient
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
-            ;?; // part
+            Part = null;
             MailboxHandle = null;
             UID = null;
             Section = pSection;
@@ -249,7 +257,7 @@ namespace work.bacome.imapclient
                 return MessageHandle.Size.Value;
             }
 
-            throw new cInternalErrorException();
+            throw new cInternalErrorException($"{nameof(cMessageDataStream)}.{nameof(GetKnownLength)}");
         }
 
         public int CurrentBufferSize => mBuffer?.CurrentSize ?? 0;

@@ -401,7 +401,7 @@ namespace work.bacome.imapclient
             get
             {
                 if (MailboxHandle.LSubFlags == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.lsub);
-                if (MailboxHandle.LSubFlags == null) throw new cInternalErrorException();
+                if (MailboxHandle.LSubFlags == null) throw new cInternalErrorException($"{nameof(cMailbox)}.{nameof(IsSubscribed)}");
                 return MailboxHandle.LSubFlags.Subscribed;
             }
         }
@@ -1107,12 +1107,13 @@ namespace work.bacome.imapclient
 
         private cUID ZAppendResult(cAppendFeedback pFeedback)
         {
-            if (pFeedback.Count != 1) throw new cInternalErrorException();
+            if (pFeedback.Count != 1) throw new cInternalErrorException($"{nameof(cMailbox)}.{nameof(ZAppendResult)} count {pFeedback.Count}");
             var lFeedbackItem = pFeedback[0];
             if (pFeedback.SucceededCount == 1) return lFeedbackItem.UID;
             if (lFeedbackItem.Exception != null) throw lFeedbackItem.Exception;
+            if (lFeedbackItem.Type == eAppendFeedbackType.notattempted) throw new OperationCanceledException(); // this is an assumption
             var lResult = lFeedbackItem.Result;
-            if (lResult == null) throw new cInternalErrorException();
+            if (lResult == null) throw new cInternalErrorException($"{nameof(cMailbox)}.{nameof(ZAppendResult)} result null");
             if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lFeedbackItem.TryIgnoring);
             throw new cProtocolErrorException(lResult, lFeedbackItem.TryIgnoring);
         }

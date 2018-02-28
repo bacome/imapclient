@@ -183,7 +183,8 @@ namespace work.bacome.imapclient
     /// </summary>
     public class cInternalErrorException : cIMAPException
     {
-        internal cInternalErrorException() { }
+        //internal cInternalErrorException() { }
+        internal cInternalErrorException(string pMessage) : base(pMessage) { }
         internal cInternalErrorException(cTrace.cContext pContext) => pContext.TraceError(nameof(cInternalErrorException));
         internal cInternalErrorException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cInternalErrorException), pMessage);
         internal cInternalErrorException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cInternalErrorException), pMessage, pInner);

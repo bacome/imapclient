@@ -28,10 +28,10 @@ namespace work.bacome.imapclient
                 if (pMessages.Count == 0) throw new ArgumentOutOfRangeException(nameof(pMessages));
 
                 // convert the messages to a form that we can use
-                cSessionAppendDataList lMessages = await ZAppendGetDataAsync(pMessages).ConfigureAwait(false);
+                cSessionAppendDataList lMessages = await ZAppendGetDataAsync(pMessages, lContext).ConfigureAwait(false);
 
                 // sanity check
-                if (lMessages.Count != pMessages.Count) throw new cInternalErrorException();
+                if (lMessages.Count != pMessages.Count) throw new cInternalErrorException("too many messages", lContext);
 
                 // initialise any progress system that might be in place
                 if (pSetMaximum != null)
@@ -84,12 +84,12 @@ namespace work.bacome.imapclient
 
                         default:
 
-                            throw new cInternalErrorException();
+                            throw new cInternalErrorException($"switch/default {lResult}", lContext);
                     }
                 }
 
                 // sanity check
-                if (lFeedbackItems.Count > pMessages.Count) throw new cInternalErrorException();
+                if (lFeedbackItems.Count > pMessages.Count) throw new cInternalErrorException("too much feedback", lContext);
 
                 // add feedback for any appends we didn't attempt
                 for (int i = lFeedbackItems.Count; i < pMessages.Count; i++) lFeedbackItems.Add(new cAppendFeedbackItem(false));
@@ -98,8 +98,10 @@ namespace work.bacome.imapclient
                 return new cAppendFeedback(lFeedbackItems);
             }
 
-            private async Task<cSessionAppendDataList> ZAppendGetDataAsync(cAppendDataList pMessages)
+            private async Task<cSessionAppendDataList> ZAppendGetDataAsync(cAppendDataList pMessages, cTrace.cContext pParentContext)
             {
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZAppendGetDataAsync), pMessages);
+
                 cSessionAppendDataList lMessages = new cSessionAppendDataList();
 
                 foreach (var lMessage in pMessages)
@@ -334,7 +336,7 @@ namespace work.bacome.imapclient
 
                                         default:
 
-                                            throw new cInternalErrorException();
+                                            throw new cInternalErrorException($"multipart switch/default {lPart}", lContext);
                                     }
                                 }
 
@@ -350,7 +352,7 @@ namespace work.bacome.imapclient
 
                         default:
 
-                            throw new cInternalErrorException();
+                            throw new cInternalErrorException($"message switch/default {lMessage}", lContext);
                     }
                 }
 

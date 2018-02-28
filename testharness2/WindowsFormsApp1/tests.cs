@@ -1,6 +1,9 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Net.Mail;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -2354,116 +2357,267 @@ namespace testharness2
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestAppendNoCatenateNoBinaryNoUTF8));
 
-            using (cServer lServer = new cServer(lContext, nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)))
-            using (cIMAPClient lClient1 = lServer.NewClient(1))
-            using (cIMAPClient lClient2 = lServer.NewClient(2))
+            using (var lTempFileCollection = new TempFileCollection())
             {
-                lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 LITERAL+] this is the text\r\n");
-                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
-                lServer.AddSendData("* LIST () nil \"\"\r\n");
-                lServer.AddSendTagged("OK LIST command completed\r\n");
+                using (cServer lServer = new cServer(lContext, nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)))
+                using (cIMAPClient lClient1 = lServer.NewClient(1))
+                using (cIMAPClient lClient2 = lServer.NewClient(2))
+                {
+                    lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 LITERAL+] this is the text\r\n");
+                    lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                    lServer.AddSendData("* LIST () nil \"\"\r\n");
+                    lServer.AddSendTagged("OK LIST command completed\r\n");
 
-                // select inbox
-                lServer.AddExpectTagged("EXAMINE INBOX\r\n");
-                lServer.AddSendData("* 1 EXISTS\r\n");
-                lServer.AddSendData("* 1 RECENT\r\n");
-                lServer.AddSendData("* OK [UNSEEN 1] Message 1 is first unseen\r\n");
-                lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
-                lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
-                lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
-                lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
-                lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
+                    // select inbox
+                    lServer.AddExpectTagged("EXAMINE INBOX\r\n");
+                    lServer.AddSendData("* 1 EXISTS\r\n");
+                    lServer.AddSendData("* 1 RECENT\r\n");
+                    lServer.AddSendData("* OK [UNSEEN 1] Message 1 is first unseen\r\n");
+                    lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+                    lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+                    lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+                    lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
+                    lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
 
-                // the second client connects
-                var lServer2 = lServer.NewJobList();
-                lServer2.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 LITERAL+] this is the text\r\n");
-                lServer2.AddExpectTagged("LIST \"\" \"\"\r\n");
-                lServer2.AddSendData("* LIST () nil \"\"\r\n");
-                lServer2.AddSendTagged("OK LIST command completed\r\n");
+                    // the second client connects
+                    var lServer2 = lServer.NewJobList();
+                    lServer2.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 LITERAL+] this is the text\r\n");
+                    lServer2.AddExpectTagged("LIST \"\" \"\"\r\n");
+                    lServer2.AddSendData("* LIST () nil \"\"\r\n");
+                    lServer2.AddSendTagged("OK LIST command completed\r\n");
 
-                // the second client requests the message details from the first client
-                lServer.AddExpectTagged("FETCH 1 (FLAGS INTERNALDATE RFC822.SIZE)\r\n");
-                lServer.AddSendData("* 1 FETCH (FLAGS (\\seen) INTERNALDATE \"22-feb-2018 14:48:49 +1300\" RFC822.SIZE 226)\r\n");
-                lServer.AddSendTagged("OK FETCH completed\r\n");
+                    // the second client requests the message details from the first client
+                    lServer.AddExpectTagged("FETCH 1 (FLAGS INTERNALDATE RFC822.SIZE)\r\n");
+                    lServer.AddSendData("* 1 FETCH (FLAGS (\\seen) INTERNALDATE \"22-feb-2018 14:48:49 +1300\" RFC822.SIZE 226)\r\n");
+                    lServer.AddSendTagged("OK FETCH completed\r\n");
 
 
-                // the second client requests the message text from the first client
-                lServer.AddExpectTagged("FETCH 1 BODY.PEEK[]<0.1000>\r\n");
-                //                                              12345678901234567 8 90123456789012345678901234567890123456789 012345678 9 0 1 2 34567890123 4 5678901234567890123456789 0 1 2 345678 9 01234567890 1 23456789012345678901234567890 1 2 3 45678901234567890123456789012345678901 2 3 4 567890 1 2345678901234 5 6
-                lServer.AddSendData("* 1 FETCH (BODY[] {226}\r\nmime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--\r\n)\r\n");
-                lServer.AddSendTagged("OK FETCH completed\r\n");
+                    // the second client requests the message text from the first client
+                    lServer.AddExpectTagged("FETCH 1 BODY.PEEK[]<0.1000>\r\n");
+                    //                                              12345678901234567 8 90123456789012345678901234567890123456789 012345678 9 0 1 2 34567890123 4 5678901234567890123456789 0 1 2 345678 9 01234567890 1 23456789012345678901234567890 1 2 3 45678901234567890123456789012345678901 2 3 4 567890 1 2345678901234 5 6
+                    lServer.AddSendData("* 1 FETCH (BODY[] {226}\r\nmime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--\r\n)\r\n");
+                    lServer.AddSendTagged("OK FETCH completed\r\n");
 
-                // the second client appends; no rfc 4315 response
-                lServer2.AddExpectTagged("APPEND INBOX (\\seen) \"22-FEB-2018 14:48:49 +1300\" {226+}\r\nmime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--\r\n\r\n");
-                lServer2.AddSendTagged("OK APPENDed\r\n");
+                    // the second client appends; no rfc 4315 response
+                    lServer2.AddExpectTagged("APPEND INBOX (\\seen) \"22-FEB-2018 14:48:49 +1300\" {226+}\r\nmime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--\r\n\r\n");
+                    lServer2.AddSendTagged("OK APPENDed\r\n");
 
-                // the second client requests the message text from the first client again (message data is not cached)
-                lServer.AddExpectTagged("FETCH 1 BODY.PEEK[]<0.1000>\r\n");
-                //                                              12345678901234567 8 90123456789012345678901234567890123456789 012345678 9 0 1 2 34567890123 4 5678901234567890123456789 0 1 2 345678 9 01234567890 1 23456789012345678901234567890 1 2 3 45678901234567890123456789012345678901 2 3 4 567890 1 2345678901234 5 6
-                lServer.AddSendData("* 1 FETCH (BODY[] {226}\r\nmime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--\r\n)\r\n");
-                lServer.AddSendTagged("OK FETCH completed\r\n");
+                    // the second client requests the message text from the first client again (message data is not cached)
+                    lServer.AddExpectTagged("FETCH 1 BODY.PEEK[]<0.1000>\r\n");
+                    //                                              12345678901234567 8 90123456789012345678901234567890123456789 012345678 9 0 1 2 34567890123 4 5678901234567890123456789 0 1 2 345678 9 01234567890 1 23456789012345678901234567890 1 2 3 45678901234567890123456789012345678901 2 3 4 567890 1 2345678901234 5 6
+                    lServer.AddSendData("* 1 FETCH (BODY[] {226}\r\nmime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--\r\n)\r\n");
+                    lServer.AddSendTagged("OK FETCH completed\r\n");
 
-                // the second client appends; rfc 4315 response
-                lServer2.AddExpectTagged("APPEND INBOX (\\seen) \"22-FEB-2018 14:48:49 +1300\" {226+}\r\nmime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--\r\n\r\n");
-                lServer2.AddSendTagged("OK [APPENDUID 2 1] APPENDed\r\n");
+                    // the second client appends; rfc 4315 response
+                    lServer2.AddExpectTagged("APPEND INBOX (\\seen) \"22-FEB-2018 14:48:49 +1300\" {226+}\r\nmime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--\r\n\r\n");
+                    lServer2.AddSendTagged("OK [APPENDUID 2 1] APPENDed\r\n");
 
-                // the second client requests the body structure from the first client
-                lServer.AddExpectTagged("FETCH 1 BODYSTRUCTURE\r\n");
-                lServer.AddSendData("* 1 FETCH (RFC822.SIZE 226 BODYSTRUCTURE ((\"text\" \"plain\" NIL NIL NIL \"7bit\" 5 0 NIL NIL NIL NIL)(\"message\" \"rfc822\" NIL NIL NIL \"7bit\" 46 (\"thu, 22 feb 2018 15:49:50 +1300\" NIL NIL NIL NIL NIL NIL NIL NIL NIL) (\"text\" \"plain\" NIL NIL NIL \"7bit\" 5 0 NIL NIL NIL NIL) 2) \"mixed\" (\"boundary\" \"boundary\")))\r\n");
-                lServer.AddSendTagged("OK FETCH completed\r\n");
+                    // the second client requests the body structure from the first client
+                    lServer.AddExpectTagged("FETCH 1 BODYSTRUCTURE\r\n");
+                    lServer.AddSendData("* 1 FETCH (RFC822.SIZE 226 BODYSTRUCTURE ((\"text\" \"plain\" NIL NIL NIL \"7bit\" 5 0 NIL NIL NIL NIL)(\"message\" \"rfc822\" NIL NIL NIL \"7bit\" 46 (\"thu, 22 feb 2018 15:49:50 +1300\" NIL NIL NIL NIL NIL NIL NIL NIL NIL) (\"text\" \"plain\" NIL NIL NIL \"7bit\" 5 0 NIL NIL NIL NIL) 2) \"mixed\" (\"boundary\" \"boundary\")))\r\n");
+                    lServer.AddSendTagged("OK FETCH completed\r\n");
 
-                // the second client requests the encapsulated message text from the first client
-                lServer.AddExpectTagged("FETCH 1 BODY.PEEK[2]<0.1000>\r\n");
-                //                                             1234567890123456789012345678901234567 8 9 0 123456
-                lServer.AddSendData("* 1 FETCH (BODY[2] {46}\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello)\r\n");
-                lServer.AddSendTagged("OK FETCH completed\r\n");
+                    // the second client requests the encapsulated message text from the first client
+                    lServer.AddExpectTagged("FETCH 1 BODY.PEEK[2]<0.1000>\r\n");
+                    //                                             1234567890123456789012345678901234567 8 9 0 123456
+                    lServer.AddSendData("* 1 FETCH (BODY[2] {46}\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello)\r\n");
+                    lServer.AddSendTagged("OK FETCH completed\r\n");
 
-                // the second client appends the encapsulated message
-                lServer2.AddExpectTagged("APPEND INBOX \"22-FEB-2018 14:48:49 +1300\" {46+}\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n");
-                lServer2.AddSendTagged("OK [APPENDUID 2 3] APPENDed\r\n");
+                    // the second client appends the encapsulated message
+                    lServer2.AddExpectTagged("APPEND INBOX \"22-FEB-2018 14:48:49 +1300\" {46+}\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n");
+                    lServer2.AddSendTagged("OK [APPENDUID 2 3] APPENDed\r\n");
 
-                // the second client disconnects
-                lServer2.AddExpectTagged("LOGOUT\r\n");
-                lServer2.AddSendData("* BYE logging out\r\n");
-                lServer2.AddSendTagged("OK logged out\r\n");
-                lServer2.AddExpectClose();
+                    // the second client appends a literal message
+                    lServer2.AddExpectTagged("APPEND INBOX {46+}\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n");
+                    lServer2.AddSendTagged("OK [APPENDUID 2 4] APPENDed\r\n");
 
-                // the first client disconnects
-                lServer.AddExpectTagged("LOGOUT\r\n");
-                lServer.AddSendData("* BYE logging out\r\n");
-                lServer.AddSendTagged("OK logged out\r\n");
-                lServer.AddExpectClose();
+                    // the second client appends a file message with different options
+                    lServer2.AddExpectTagged("APPEND INBOX {48+}\r\ndate: thu, 22 feb 2018 15:49:52 +1300\r\n\r\nhello\r\n\r\n");
+                    lServer2.AddSendTagged("OK [APPENDUID 2 5] APPENDed\r\n");
+                    lServer2.AddExpectTagged("APPEND INBOX (\\Draft) {48+}\r\ndate: thu, 22 feb 2018 15:49:52 +1300\r\n\r\nhello\r\n\r\n");
+                    lServer2.AddSendTagged("OK [APPENDUID 2 6] APPENDed\r\n");
+                    lServer2.AddExpectTagged("APPEND INBOX (\\Flagged) \"28-FEB-2018 13:40:50 +1300\" {48+}\r\ndate: thu, 22 feb 2018 15:49:52 +1300\r\n\r\nhello\r\n\r\n");
+                    lServer2.AddSendTagged("OK [APPENDUID 2 7] APPENDed\r\n");
+                    lServer2.AddExpectTagged("APPEND INBOX \"28-FEB-2018 13:40:51 +0000\" {48+}\r\ndate: thu, 22 feb 2018 15:49:52 +1300\r\n\r\nhello\r\n\r\n");
+                    lServer2.AddSendTagged("OK [APPENDUID 2 8] APPENDed\r\n");
+                    lServer2.AddExpectTagged("APPEND INBOX \"28-FEB-2018 13:40:52 -0000\" {48+}\r\ndate: thu, 22 feb 2018 15:49:52 +1300\r\n\r\nhello\r\n\r\n");
+                    lServer2.AddSendTagged("OK [APPENDUID 2 9] APPENDed\r\n");
 
-                lClient1.SetNoCredentials();
-                lClient1.IdleConfiguration = null;
-                lClient1.FetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000, 1000, 1000);
+                    // from a stream
+                    lServer2.AddExpectTagged("APPEND INBOX {48+}\r\ndate: thu, 22 feb 2018 15:49:52 +1300\r\n\r\nhello\r\n\r\n");
+                    lServer2.AddSendTagged("OK [APPENDUID 2 10] APPENDed\r\n");
 
-                lClient2.Credentials = lClient1.Credentials;
-                lClient2.IdleConfiguration = null;
+                    // client emulates multi-append
+                    lServer2.AddExpectTagged("APPEND INBOX {46+}\r\ndate: thu, 22 feb 2018 15:49:51 +1300\r\n\r\nhello\r\n");
+                    lServer2.AddExpectTagged("APPEND INBOX {48+}\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n\r\n");
+                    lServer2.AddSendTagged("OK [APPENDUID 2 12] APPENDed\r\n");
+                    lServer2.AddSendTagged("OK [APPENDUID 2 11] APPENDed\r\n");
 
-                lClient1.Connect();
-                lClient1.Inbox.Select();
-                var lMessage = lClient1.Inbox.Messages()[0];
+                    // fail/ success
+                    lServer2.AddExpectTagged("APPEND INBOX {46+}\r\ndate: thu, 22 feb 2018 15:49:51 +1300\r\n\r\nhello\r\n");
+                    lServer2.AddExpectTagged("APPEND INBOX {48+}\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n\r\n");
+                    lServer2.AddSendTagged("OK [APPENDUID 2 13] APPENDed\r\n");
+                    lServer2.AddSendTagged("NO I don't like the look of that message\r\n");
 
-                lClient2.Connect();
+                    // multi-part
+                    
+                    // the second client requests the message text from the first client
+                    lServer.AddExpectTagged("FETCH 1 BODY.PEEK[]<0.1000>\r\n");
+                    lServer.AddSendData("* 1 FETCH (BODY[] {226}\r\nmime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--\r\n)\r\n");
+                    lServer.AddSendTagged("OK FETCH completed\r\n");
 
-                cUID lUID;
+                    // the second client requests the encapsulated message text from the first client
+                    lServer.AddExpectTagged("FETCH 1 BODY.PEEK[2]<0.1000>\r\n");
+                    lServer.AddSendData("* 1 FETCH (BODY[2] {46}\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello)\r\n");
+                    lServer.AddSendTagged("OK FETCH completed\r\n");
 
-                lUID = lClient2.Inbox.Append(lMessage);
-                if (lUID != null) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.1");
+                    ;?;
+                    // the second client appends; rfc 4315 response
+                    lServer2.AddExpectTagged("APPEND INBOX {226+}\r\nmime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--\r\n\r\n");
+                    lServer2.AddSendTagged("OK [APPENDUID 2 14] APPENDed\r\n");
 
-                lUID = lClient2.Inbox.Append(lMessage);
-                if (lUID != new cUID(2, 1)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.2");
 
-                var lBS = lMessage.BodyStructure as cMultiPartBody;
-                lUID = lClient2.Inbox.Append(new cMessagePartAppendData(lMessage, lBS.Parts[1] as cMessageBodyPart));
-                if (lUID != new cUID(2, 3)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.3");
 
-                lClient2.Disconnect();
+                    // the second client disconnects
+                    lServer2.AddExpectTagged("LOGOUT\r\n");
+                    lServer2.AddSendData("* BYE logging out\r\n");
+                    lServer2.AddSendTagged("OK logged out\r\n");
+                    lServer2.AddExpectClose();
 
-                lClient1.Disconnect();
+                    // the first client disconnects
+                    lServer.AddExpectTagged("LOGOUT\r\n");
+                    lServer.AddSendData("* BYE logging out\r\n");
+                    lServer.AddSendTagged("OK logged out\r\n");
+                    lServer.AddExpectClose();
 
-                lServer.ThrowAnyErrors();
+                    lClient1.SetNoCredentials();
+                    lClient1.IdleConfiguration = null;
+                    lClient1.FetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000, 1000, 1000);
+
+                    lClient2.Credentials = lClient1.Credentials;
+                    lClient2.IdleConfiguration = null;
+
+                    lClient1.Connect();
+                    lClient1.Inbox.Select();
+                    var lMessage = lClient1.Inbox.Messages()[0];
+
+                    lClient2.Connect();
+
+                    cUID lUID;
+
+                    // append whole message with no rfc 4315 feedback
+                    lUID = lClient2.Inbox.Append(lMessage);
+                    if (lUID != null) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.1");
+
+                    // append whole message with rfc 4315 feedback
+                    lUID = lClient2.Inbox.Append(lMessage);
+                    if (lUID != new cUID(2, 1)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.2");
+
+                    // append message part with rfc 4315 feedback
+                    var lBS = lMessage.BodyStructure as cMultiPartBody;
+                    lUID = lClient2.Inbox.Append(new cMessagePartAppendData(lMessage, lBS.Parts[1] as cMessageBodyPart));
+                    if (lUID != new cUID(2, 3)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.3");
+
+                    // append literal message
+                    lUID = lClient2.Inbox.Append("date: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello");
+                    if (lUID != new cUID(2, 4)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.4");
+
+                    // append from file
+
+                    var lTempFileName = Path.GetTempFileName();
+                    lTempFileCollection.AddFile(lTempFileName, false);
+                    File.WriteAllLines(lTempFileName, new string[] { "date: thu, 22 feb 2018 15:49:52 +1300", "", "hello" });
+
+                    // default flags, no received date
+                    lUID = lClient2.Inbox.Append(new cFileAppendData(lTempFileName));
+                    if (lUID != new cUID(2, 5)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.5");
+
+                    // default flags, no received date
+                    lClient2.DefaultAppendFlags = cStorableFlags.Draft;
+                    lUID = lClient2.Inbox.Append(new cFileAppendData(lTempFileName));
+                    if (lUID != new cUID(2, 6)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.6");
+
+                    // override flags and a date
+                    lUID = lClient2.Inbox.Append(new cFileAppendData(lTempFileName, cStorableFlags.Flagged, new DateTime(2018, 02, 28, 13, 40, 50, DateTimeKind.Local)));
+                    if (lUID != new cUID(2, 7)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.7");
+
+                    // no flags and a gmt date
+                    lUID = lClient2.Inbox.Append(new cFileAppendData(lTempFileName, cStorableFlags.Empty, new DateTime(2018, 02, 28, 13, 40, 51, DateTimeKind.Utc)));
+                    if (lUID != new cUID(2, 8)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.8");
+
+                    // no flags and an unspecified date kind
+                    lUID = lClient2.Inbox.Append(new cFileAppendData(lTempFileName, cStorableFlags.Empty, new DateTime(2018, 02, 28, 13, 40, 52, DateTimeKind.Unspecified)));
+                    if (lUID != new cUID(2, 9)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.9");
+
+                    // append from a stream
+                    lClient2.DefaultAppendFlags = null;
+
+                    using (var lStream = new FileStream(lTempFileName, FileMode.Open, FileAccess.Read))
+                    {
+                        lUID = lClient2.Inbox.Append(lStream);
+                        if (lUID != new cUID(2, 10)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.10");
+                    }
+
+                    cAppendFeedback lFeedback;
+
+                    // success/ success
+                    lFeedback = lClient2.Inbox.Append(new cAppendData[] { "date: thu, 22 feb 2018 15:49:51 +1300\r\n\r\nhello", new cFileAppendData(lTempFileName) });
+                    if (lFeedback.Count != 2) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.11.1");
+                    if (lFeedback.SucceededCount != 2) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.11.2");
+                    if (lFeedback[0].UID != new cUID(2, 11)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.11.3");
+                    if (lFeedback[1].UID != new cUID(2, 12)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.11.4");
+
+                    // fail/ success
+                    lFeedback = lClient2.Inbox.Append(new cAppendData[] { "date: thu, 22 feb 2018 15:49:51 +1300\r\n\r\nhello", new cFileAppendData(lTempFileName) });
+                    if (lFeedback.Count != 2) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.12.1");
+                    if (lFeedback.SucceededCount != 1) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.12.2");
+                    if (lFeedback[0].UID != null) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.12.3");
+                    if (lFeedback[1].UID != new cUID(2, 13)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.12.4");
+
+                    var lParts = new List<cAppendDataPart>();
+
+                    // literals and message and message part and file and stream
+                    lParts.Add(new cHeaderFieldAppendDataPart("mime-version", "1.0"));
+                    lParts.Add(new cHeaderFieldAppendDataPart("content-type", new cHeaderFieldValuePart[] { "multipart/mixed", new cHeaderFieldMIMEParameter("boundary", "boundary2") }));
+
+                    // text
+                    lParts.Add("\r\n--boundary2\r\n");
+                    lParts.Add(new cHeaderFieldAppendDataPart("content-type", "text/plain"));
+                    lParts.Add("\r\n");
+                    lParts.Add("hello");
+
+                    // message
+                    lParts.Add("\r\n--boundary2\r\n");
+                    lParts.Add(new cHeaderFieldAppendDataPart("content-type", "message/rfc822"));
+                    lParts.Add("\r\n");
+                    lParts.Add(new cMessageAppendDataPart(lMessage);
+
+                    // message part
+                    lParts.Add("\r\n--boundary2\r\n");
+                    lParts.Add(new cHeaderFieldAppendDataPart("content-type", "message/rfc822"));
+                    lParts.Add("\r\n");
+                    lParts.Add(new cMessagePartAppendDataPart(lMessage, lBS.Parts[1] as cMessageBodyPart));
+
+                    // file
+                    lParts.Add("\r\n--boundary2\r\n");
+                    lParts.Add(new cHeaderFieldAppendDataPart("content-type", "message/rfc822"));
+                    lParts.Add("\r\n");
+                    lParts.Add(new cFileAppendDataPart(lTempFileName));
+
+                    // end
+                    lParts.Add("\r\n--boundary2--\r\n");
+
+                    lUID = lClient2.Inbox.Append(lParts);
+                    if (lUID != new cUID(2, 14)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.14");
+
+
+
+                    lClient2.Disconnect();
+
+                    lClient1.Disconnect();
+
+                    lServer.ThrowAnyErrors();
+                }
             }
         }
 

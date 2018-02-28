@@ -501,7 +501,7 @@ namespace work.bacome.imapclient
 
                             default:
 
-                                throw new cInternalErrorException();
+                                throw new cInternalErrorException($"{nameof(cHeaderFieldTextValuePart)}.{nameof(GetBytes)}");
                         }
 
                         pBytes.AddNonEncodedWord(lLeadingWSP, Encoding.UTF8.GetBytes(lNonEncodedWordChars.ToArray()), lNonEncodedWordChars.Count);

@@ -296,7 +296,7 @@ namespace work.bacome.imapclient
 
                                 default:
 
-                                    throw new cInternalErrorException();
+                                    throw new cInternalErrorException($"{nameof(cCommandDetailsBuilder)}.{nameof(ZFilterParts)} relativity {lRelativity.Relativity}");
                             }
 
                         case cFilterUIDIn lUIDIn:
@@ -563,7 +563,7 @@ namespace work.bacome.imapclient
 
                         default:
 
-                            throw new cInternalErrorException();
+                            throw new cInternalErrorException($"{nameof(cCommandDetailsBuilder)}.{nameof(Add)} textpart {pSection.TextPart}");
                     }
 
                     mParts.Add(cCommandPart.RBracket, kCommandPartLessThan, new cTextCommandPart(pOrigin), cCommandPart.Dot, new cTextCommandPart(pLength), kCommandPartGreaterThan);

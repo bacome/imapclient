@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
                         else
                         {
                             lLiteral = mCurrentCommand.GetCurrentPart() as cLiteralCommandPartBase;
-                            if (lLiteral == null) throw new cInternalErrorException();
+                            if (lLiteral == null) throw new cInternalErrorException("literal null", lContext);
                         }
                     }
 
@@ -134,7 +134,7 @@ namespace work.bacome.imapclient
 
                                 lLiteral = lPart as cLiteralCommandPartBase;
 
-                                if (lLiteral == null) throw new cInternalErrorException();
+                                if (lLiteral == null) throw new cInternalErrorException("literal null", lContext);
 
                                 bool lSynchronising;
 
@@ -192,7 +192,7 @@ namespace work.bacome.imapclient
 
                                     default:
 
-                                        throw new cInternalErrorException();
+                                        throw new cInternalErrorException($"multipart part {lPart}", lContext);
                                 }
                             }
 
@@ -200,7 +200,7 @@ namespace work.bacome.imapclient
 
                         default:
 
-                            throw new cInternalErrorException();
+                            throw new cInternalErrorException($"literal {pLiteral}", lContext);
                     }
                 }
 
