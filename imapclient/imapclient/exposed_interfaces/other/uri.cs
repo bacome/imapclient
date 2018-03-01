@@ -58,6 +58,8 @@ namespace work.bacome.imapclient
         public string MechanismName => mURLParts?.MechanismName;
         /**<summary>Gets the 'host' part of the URI. May be <see langword="null"/>.</summary>*/
         public string Host => mParts.Host;
+        /**<summary>Gets the decoded 'host' part of the URI. May be <see langword="null"/>.</summary>*/
+        public string DisplayHost => mParts.DisplayHost;
         /**<summary>Gets the 'port' part of the URI. May be <see langword="null"/>.</summary>*/
         public string PortString => mParts.Port;
         /**<summary>Gets the <see cref="cURL.Port"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/

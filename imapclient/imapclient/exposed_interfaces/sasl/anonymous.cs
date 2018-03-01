@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Mail;
 using System.Text;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -17,9 +18,9 @@ namespace work.bacome.imapclient
 
         private const string kName = "ANONYMOUS";
 
-        private readonly string mTrace;
+        private readonly cBytes mTrace;
 
-        private cSASLAnonymous(string pTrace, eTLSRequirement pTLSRequirement, bool pPrechecked) : base(kName, pTLSRequirement)
+        private cSASLAnonymous(cBytes pTrace, eTLSRequirement pTLSRequirement) : base(kName, pTLSRequirement)
         {
             mTrace = pTrace;
         }
@@ -32,15 +33,15 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cSASLAnonymous" select="remarks"/>
         public cSASLAnonymous(string pTrace, eTLSRequirement pTLSRequirement) : base(kName, pTLSRequirement)
         {
-            if (!ZIsValid(pTrace)) throw new ArgumentOutOfRangeException(nameof(pTrace));
-            mTrace = pTrace;
+            if (!ZIsValid(pTrace, out var lTrace)) throw new ArgumentOutOfRangeException(nameof(pTrace));
+            mTrace = lTrace;
         }
 
         internal static bool TryConstruct(string pTrace, eTLSRequirement pTLSRequirement, out cSASLAnonymous rAnonymous)
         {
-            if (ZIsValid(pTrace))
+            if (ZIsValid(pTrace, out var lTrace))
             {
-                rAnonymous = new cSASLAnonymous(pTrace, pTLSRequirement, true);
+                rAnonymous = new cSASLAnonymous(lTrace, pTLSRequirement);
                 return true;
             }
 
@@ -48,21 +49,35 @@ namespace work.bacome.imapclient
             return false;
         }
 
-        private static bool ZIsValid(string pTrace)
+        private static bool ZIsValid(string pTrace, out cBytes rTrace)
         {
-            if (string.IsNullOrEmpty(pTrace)) return false;
+            if (string.IsNullOrEmpty(pTrace)) { rTrace = null; return false; }
 
-            if (pTrace.IndexOf('@') == -1) return pTrace.Length < 256;
+            // note that the stringprep required by the RFC is not done: TODO
+            //  the character count restriction in the RFC is not really enforced here as surrogate pairs should count as 1 character: TODO
 
-            // TODO: replace this with local-part @ domain type checking
+            if (pTrace.IndexOf('@') == -1)
+            {
+                if (pTrace.Length < 256) { rTrace = null; return false; }
+                rTrace = new cBytes(Encoding.UTF8.GetBytes(pTrace));
+                return true;
+            }
 
             try
             {
                 var lAddress = new MailAddress(pTrace);
+
+                if (!cHeaderFieldValuePart.TryAsAddrSpec(lAddress.User, lAddress.Host, out var lPart)) { rTrace = null; return false; }
+
+                cHeaderFieldBytes lBytes = new cHeaderFieldBytes();
+                lPart.GetBytes(lBytes, eHeaderFieldValuePartContext.unstructured);
+
+                rTrace = new cBytes(lBytes.Bytes);
                 return true;
             }
             catch
             {
+                rTrace = null;
                 return false;
             }
         }
@@ -73,9 +88,9 @@ namespace work.bacome.imapclient
         private class cAuth : cSASLAuthentication
         {
             private bool mDone = false;
-            private readonly string mTrace;
+            private readonly cBytes mTrace;
 
-            public cAuth(string pTrace) { mTrace = pTrace; }
+            public cAuth(cBytes pTrace) { mTrace = pTrace; }
 
             public override IList<byte> GetResponse(IList<byte> pChallenge)
             {
@@ -83,7 +98,7 @@ namespace work.bacome.imapclient
                 mDone = true;
 
                 if (pChallenge != null && pChallenge.Count != 0) throw new ArgumentOutOfRangeException("non zero length challenge");
-                return Encoding.UTF8.GetBytes(mTrace);
+                return mTrace;
             }
 
             public override cSASLSecurity GetSecurity() => null;

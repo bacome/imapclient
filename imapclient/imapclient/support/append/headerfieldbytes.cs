@@ -31,6 +31,15 @@ namespace work.bacome.imapclient
         private bool mCurrentLineHasEncodedWords = false;
         private eWordType mLastWordType = eWordType.special; // the colon
 
+        public cHeaderFieldBytes()
+        {
+            mUTF8Allowed = true;
+            Encoding = Encoding.UTF8;
+            CharsetNameBytes = new cBytes(cTools.CharsetNameBytes(Encoding));
+            mCurrentLineByteCount = 0;
+            mCurrentLineCharCount = 0;
+        }
+
         public cHeaderFieldBytes(string pFieldName, Encoding pEncoding)
         {
             if (pFieldName == null) throw new ArgumentNullException(nameof(pFieldName));
@@ -119,94 +128,6 @@ namespace work.bacome.imapclient
             mCurrentLineCharCount += pWordCharCount;
             mLastWordType = eWordType.nothingspecial;
         }
-
-        /*
-        public void AddNonEncodedWord(string pWord)
-        {
-            if (pWord.Length == 0) throw new ArgumentOutOfRangeException(nameof(pWord));
-
-            int lLeadingSpaces;
-            if (mLastWordType == eWordType.special) lLeadingSpaces = 0;
-            else lLeadingSpaces = 1;
-
-            var lWordBytes = Encoding.UTF8.GetBytes(pWord);
-
-            bool lFold;
-
-            if (mCurrentLineHasEncodedWords)
-            {
-                if (mCurrentLineByteCount + lLeadingSpaces + lWordBytes.Length > 76) lFold = true;
-                else lFold = false;
-            }
-            else
-            {
-                if (mCurrentLineCharCount + lLeadingSpaces + pWord.Length > 78) lFold = true;
-                else lFold = false;
-            }
-
-            if (lFold)
-            {
-                mBytes.AddRange(kCRLFSPACE);
-                mCurrentLineByteCount = 1;
-                mCurrentLineCharCount = 1;
-                mCurrentLineHasEncodedWords = false;
-            }
-            else if (mLastWordType != eWordType.special)
-            {
-                mBytes.Add(cASCII.SPACE);
-                mCurrentLineByteCount++;
-                mCurrentLineCharCount++;
-            }
-
-            mBytes.AddRange(lWordBytes);
-            mCurrentLineByteCount += lWordBytes.Length;
-            mCurrentLineCharCount += pWord.Length;
-            mLastWordType = eWordType.nothingspecial;
-        }
-
-        public void AddNonEncodedWord(IList<char> pLeadingWSP, List<char> pWordChars)
-        {
-            if (pLeadingWSP == null) throw new ArgumentNullException(nameof(pLeadingWSP));
-            if (pWordChars.Count == 0) throw new ArgumentOutOfRangeException(nameof(pWordChars));
-
-            IList<char> lLeadingWSP;
-            if (pLeadingWSP.Count == 0 && mLastWordType != eWordType.special) lLeadingWSP = SingleSpace;
-            else lLeadingWSP = pLeadingWSP;
-
-            var lWordBytes = Encoding.UTF8.GetBytes(pWordChars.ToArray());
-
-            bool lFold;
-
-            if (mCurrentLineHasEncodedWords)
-            {
-                if (mCurrentLineByteCount + lLeadingWSP.Count + lWordBytes.Length > 76) lFold = true;
-                else lFold = false;
-            }
-            else
-            {
-                if (mCurrentLineCharCount + lLeadingWSP.Count + pWordChars.Count > 78) lFold = true;
-                else lFold = false;
-            }
-
-            if (lFold)
-            {
-                mBytes.AddRange(kCRLF);
-                mCurrentLineByteCount = 0;
-                mCurrentLineCharCount = 0;
-                mCurrentLineHasEncodedWords = false;
-                if (lLeadingWSP.Count == 0) lLeadingWSP = SingleSpace;
-            }
-
-            foreach (char lChar in lLeadingWSP) mBytes.Add((byte)lChar);
-            mCurrentLineByteCount += lLeadingWSP.Count;
-            mCurrentLineCharCount += lLeadingWSP.Count;
-
-            mBytes.AddRange(lWordBytes);
-            mCurrentLineByteCount += lWordBytes.Length;
-            mCurrentLineCharCount += pWordChars.Count;
-            mLastWordType = eWordType.nothingspecial;
-        }
-        */
 
         public void AddEncodedWords(List<char> pLeadingWSP, List<char> pWordChars, eHeaderFieldValuePartContext pContext)
         {

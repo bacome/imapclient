@@ -111,10 +111,8 @@ namespace work.bacome.imapclient
                 public void InstallTLS(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(InstallTLS));
-
                     if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
                     if (mState != eState.connected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
-
                     mConnection.InstallTLS(lContext);
                 }
 

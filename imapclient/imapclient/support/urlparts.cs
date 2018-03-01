@@ -8,7 +8,6 @@ namespace work.bacome.imapclient
     internal class cURLParts : IEquatable<cURLParts>
     {
         // IMAP URL (rfc 5092, 5593)
-        //  Note: TODO  punycode displayhost
             
         private static readonly cBytes kIMAPColonSlashSlash = new cBytes("imap://");
         private static readonly cBytes kSlashSlash = new cBytes("//");
@@ -46,6 +45,7 @@ namespace work.bacome.imapclient
         private string _UserId = null;
         private string _MechanismName = null;
         private string _Host = null;
+        private string _DisplayHost = null;
         private int _Port = 143;
         private string _MailboxPath = null;
         private uint? _UIDValidity = null;
@@ -91,9 +91,12 @@ namespace work.bacome.imapclient
             private set
             {
                 _Host = value;
+                _DisplayHost = cIMAPClient.IDNMapping.GetUnicode(value);
                 mParts |= fParts.host;
             }
         }
+
+        public string DisplayHost => _DisplayHost;
 
         public int Port
         {

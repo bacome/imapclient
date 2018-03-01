@@ -107,7 +107,7 @@
     <Compile Include="exposed_interfaces\other\strings.cs" />
     <Compile Include="exposed_interfaces\connection\accountid.cs" />
     <Compile Include="exposed_interfaces\connection\capabilities.cs" />
-    <Compile Include="exposed_interfaces\connection\credentials.cs" />
+    <Compile Include="exposed_interfaces\connection\authenticationparameters.cs" />
     <Compile Include="exposed_interfaces\connection\login.cs" />
     <Compile Include="exposed_interfaces\connection\server.cs" />
     <Compile Include="exposed_interfaces\enums\tlsrequirement.cs" />

@@ -8,7 +8,7 @@ namespace work.bacome.imapclient
     /// <remarks>
     /// The IMAP LOGIN command limits userids and passwords to ASCII characters excluding the NUL character.
     /// </remarks>
-    /// <seealso cref="cCredentials.Login"/>
+    /// <seealso cref="cAuthenticationParameters.Login"/>
     public class cLogin
     {
         /**<summary>The userid to use.</summary>*/

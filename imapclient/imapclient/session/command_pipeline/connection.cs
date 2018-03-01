@@ -25,8 +25,8 @@ namespace work.bacome.imapclient
                     private readonly cBatchSizer mWriteSizer;
                     private readonly Stopwatch mStopwatch = new Stopwatch();
 
-                    // host
-                    private string mHost = null;
+                    // ascii host
+                    private string mASCIIHost = null;
 
                     // network connections
                     private TcpClient mTCPClient = null;
@@ -63,7 +63,7 @@ namespace work.bacome.imapclient
                         if (pServer == null) throw new ArgumentNullException(nameof(pServer));
 
                         mState = eState.connecting;
-                        mHost = pServer.Host;
+                        mASCIIHost = IDNMapping.GetAscii(pServer.Host);
 
                         try
                         {
@@ -76,7 +76,7 @@ namespace work.bacome.imapclient
 
                             lContext.TraceVerbose("connecting tcpclient");
 
-                            await mTCPClient.ConnectAsync(pServer.Host, pServer.Port).ConfigureAwait(false);
+                            await mTCPClient.ConnectAsync(mASCIIHost, pServer.Port).ConfigureAwait(false);
 
                             NetworkStream lStream = mTCPClient.GetStream();
 
@@ -91,7 +91,7 @@ namespace work.bacome.imapclient
 
                                 lContext.TraceVerbose("authenticating as client");
 
-                                await mSSLStream.AuthenticateAsClientAsync(pServer.Host).ConfigureAwait(false);
+                                await mSSLStream.AuthenticateAsClientAsync(mASCIIHost).ConfigureAwait(false);
 
                                 mStream = mSSLStream;
                             }
@@ -120,7 +120,7 @@ namespace work.bacome.imapclient
                         lContext.TraceInformation("installing tls");
 
                         mSSLStream = new SslStream(mStream);
-                        mSSLStream.AuthenticateAsClient(mHost);
+                        mSSLStream.AuthenticateAsClientAsync(mASCIIHost);
                         mStream = mSSLStream;
                     }
 

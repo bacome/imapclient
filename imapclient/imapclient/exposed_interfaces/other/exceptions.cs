@@ -217,6 +217,11 @@ namespace work.bacome.imapclient
         }
     }
 
+    public class cUnexpectedPreAuthenticatedConnectionException : cIMAPException
+    {
+        internal cUnexpectedPreAuthenticatedConnectionException(cTrace.cContext pContext) => pContext.TraceError(nameof(cUnexpectedPreAuthenticatedConnectionException));
+    }
+
     /// <summary>
     /// Thrown to indicate that a <see cref="cIMAPClient.Connect"/> failure came with a <see cref="cIMAPClient.HomeServerReferral"/>.
     /// </summary>
@@ -246,7 +251,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown to indicate that <see cref="cIMAPClient.Connect"/> failure is due to the server rejecting the <see cref="cIMAPClient.Credentials"/>.
+    /// Thrown to indicate that <see cref="cIMAPClient.Connect"/> failure is due to the server rejecting the credentials in <see cref="cIMAPClient.AuthenticationParameters"/>.
     /// </summary>
     /// <seealso cref="cIMAPClient.Connect"/>
     public class cCredentialsException : cIMAPException

@@ -161,13 +161,6 @@ namespace work.bacome.imapclient
         public static bool IsValidDelimiter(char pDelimiter) => pDelimiter <= cChar.DEL && pDelimiter != cChar.NUL && pDelimiter != cChar.CR && pDelimiter != cChar.LF;
         public static bool IsValidDelimiter(byte pDelimiter) => pDelimiter <= cASCII.DEL && pDelimiter != cASCII.NUL && pDelimiter != cASCII.CR && pDelimiter != cASCII.LF;
 
-        public static string PunycodeBytesToString(IList<byte> pBytes)
-        {
-            // TODO (hard)
-            //  IDNToAscii, idntounicode, 
-            return ASCIIBytesToString(pBytes);
-        }
-
         public static bool TryCharsetBytesToString(string pCharset, IList<byte> pBytes, out string rString)
         {
             // the null handling here is for RFC 2231 format where the charset and the value are optional

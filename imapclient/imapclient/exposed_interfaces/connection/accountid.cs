@@ -4,21 +4,6 @@ using work.bacome.imapclient.apidocumentation;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents the type of an IMAP account.
-    /// </summary>
-    /// <seealso cref="cAccountId"/>
-    /// <seealso cref="cCredentials"/>
-    public enum eAccountType
-    {
-        /** <summary>The library has no idea about the type of the account.</summary>"*/
-        unknown,
-        /** <summary>The account is an anonymous one.</summary>"*/
-        anonymous,
-        /** <summary>The account has a userid.</summary>"*/
-        userid
-    }
-
-    /// <summary>
     /// Represents an IMAP account.
     /// </summary>
     /// <seealso cref="cIMAPClient.ConnectedAccountId"/>
@@ -27,57 +12,25 @@ namespace work.bacome.imapclient
         /// <summary>
         /// The host that contains the account.
         /// </summary>
-        public readonly string Host;
+        public readonly string UnicodeHost;
 
-        /// <summary> 
-        /// The type of the account.
+
+        /* <summary>
+        /// The identifier of the credentials used to access the account.
         /// </summary>
         /// <remarks>
-        /// If the connection was IMAP PREAUTHed then this will be <see cref="eAccountType.unknown"/>.
-        /// </remarks>
-        public readonly eAccountType Type;
+        /// For plain 
+        /// </remarks> */
 
-        /// <summary>
-        /// The account's userid. May be <see langword="null"/>.
-        /// </summary>
-        public readonly string UserId;
+        public readonly object CredentialId;
 
-        internal cAccountId(string pHost, eAccountType pType)
+        internal cAccountId(string pHost, object pCredentialId)
         {
-            if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));
-            if (pType == eAccountType.userid) throw new ArgumentOutOfRangeException(nameof(pType));
+            if (pHost == null) throw new ArgumentNullException(nameof(pHost));
+            string lASCIIHost = cIMAPClient.IDNMapping.GetAscii(pHost);
+            UnicodeHost = cIMAPClient.IDNMapping.GetUnicode(lASCIIHost);
 
-            Host = pHost;
-            Type = pType;
-            UserId = null;
-        }
-
-        internal cAccountId(string pHost, string pUserId)
-        {
-            if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));
-            if (string.IsNullOrEmpty(pUserId)) throw new ArgumentOutOfRangeException(nameof(pUserId));
-
-            Host = pHost;
-            Type = eAccountType.userid;
-            UserId = pUserId;
-        }
-
-        internal cAccountId(string pHost, eAccountType pType, string pUserId)
-        {
-            if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));
-
-            if (pType == eAccountType.userid)
-            {
-                if (string.IsNullOrEmpty(pUserId)) throw new ArgumentOutOfRangeException(nameof(pUserId));
-            }
-            else
-            {
-                if (pUserId != null) throw new ArgumentOutOfRangeException(nameof(pUserId));
-            }
-
-            Host = pHost;
-            Type = pType;
-            UserId = pUserId;
+            CredentialId = pCredentialId ?? throw new ArgumentNullException(nameof(pCredentialId));
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
@@ -92,15 +45,14 @@ namespace work.bacome.imapclient
             unchecked
             {
                 int lHash = 17;
-                lHash = lHash * 23 + Host.GetHashCode();
-                lHash = lHash * 23 + Type.GetHashCode();
-                if (UserId != null) lHash = lHash * 23 + UserId.GetHashCode();
+                lHash = lHash * 23 + UnicodeHost.GetHashCode();
+                lHash = lHash * 23 + CredentialId.GetHashCode();
                 return lHash;
             }
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cAccountId)}({Host},{Type},{UserId})";
+        public override string ToString() => $"{nameof(cAccountId)}({UnicodeHost},{CredentialId})";
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
         public static bool operator ==(cAccountId pA, cAccountId pB)
@@ -108,7 +60,7 @@ namespace work.bacome.imapclient
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
             if (ReferenceEquals(pB, null)) return false;
-            return pA.Host == pB.Host && pA.Type == pB.Type && pA.UserId == pB.UserId;
+            return pA.UnicodeHost == pB.UnicodeHost && pA.CredentialId.Equals(pB.CredentialId);
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>

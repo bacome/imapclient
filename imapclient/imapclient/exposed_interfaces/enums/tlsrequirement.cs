@@ -5,8 +5,7 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Represents a TLS requirement.
     /// </summary>
-    /// <seealso cref="cIMAPClient.SetPlainCredentials(string, string, eTLSRequirement, bool)"/>
-    /// <seealso cref="cIMAPClient.SetAnonymousCredentials(string, eTLSRequirement, bool)"/>
+    /// <seealso cref="cIMAPClient.SetPlainAuthenticationParameters(string, string, eTLSRequirement, bool)"/>
     /// <seealso cref="cLogin"/>
     /// <seealso cref="cSASLPlain"/>
     /// <seealso cref="cSASLAnonymous"/>

@@ -69,17 +69,14 @@ namespace work.bacome.imapclient
     public class cEmailAddress : cAddress
     {
         /// <summary>
-        /// The raw form of the address (local-part@domain-name), with an un-decoded domain-name.
+        /// The raw form of the address (local-part@domain), with an un-decoded domain.
         /// </summary>
         public readonly string Address;
 
         /// <summary>
-        /// The display form of the address (local-part@domain-name), with any punycode (RFC 3492) domain-name decoded.
+        /// The display form of the address (local-part@domain), with any punycode (RFC 3492) domain decoded.
         /// </summary>
-        /// <remarks>
-        /// <note type="note">Punycode decoding is not currently implemented so this contains the same value as <see cref="Address"/>.</note>
-        /// </remarks>
-        public readonly string DisplayAddress; // host name should be converted from punycode (rfc 3492) [currently not implemented] // TODO
+        public readonly string DisplayAddress;
 
         internal cEmailAddress(cCulturedString pDisplayName, string pAddress, string pDisplayAddress) : base(pDisplayName)
         {

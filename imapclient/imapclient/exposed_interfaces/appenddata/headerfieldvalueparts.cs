@@ -78,15 +78,16 @@ namespace work.bacome.imapclient
             lParts.Add(lLocalPart);
             lParts.Add(At);
 
-            // TODO: punycode
-            if (TryAsDotAtom(pDomain, out var lDomainPart))
+            string lDomain = cIMAPClient.IDNMapping.GetAscii(pDomain);
+
+            if (TryAsDotAtom(lDomain, out var lDomainPart))
             {
                 lParts.Add(lDomainPart);
                 rPart = new cHeaderFieldValueParts(lParts);
                 return true;
             }
 
-            if (ZIsNoFoldLiteral(pDomain, out var lDText))
+            if (ZIsNoFoldLiteral(lDomain, out var lDText))
             {
                 lParts.Add(LBRACKET);
                 lParts.Add(new cHeaderFieldWordValuePart(lDText));

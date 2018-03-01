@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Text;
 using System.Threading;
 using work.bacome.imapclient.apidocumentation;
@@ -45,7 +46,7 @@ namespace work.bacome.imapclient
     /// </para>
     /// <para>
     /// To connect to a server use <see cref="Connect"/>.
-    /// Before calling <see cref="Connect"/> set <see cref="Server"/> and <see cref="Credentials"/> at a minimum.
+    /// Before calling <see cref="Connect"/> set <see cref="Server"/> and <see cref="AuthenticationParameters"/> at a minimum.
     /// Also consider setting <see cref="MailboxCacheDataItems"/>.
     /// </para>
     /// <para>This class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
@@ -106,6 +107,9 @@ namespace work.bacome.imapclient
 
         private static readonly cTrace mTrace = new cTrace(TraceSourceName);
 
+        // for converting host
+        public static readonly IdnMapping IDNMapping = new IdnMapping();
+
         // mechanics
         private bool mDisposed = false;
         private readonly string mInstanceName;
@@ -122,7 +126,7 @@ namespace work.bacome.imapclient
         private int mTimeout = -1;
         private fCapabilities mIgnoreCapabilities = 0;
         private cServer mServer = null;
-        private cCredentials mCredentials = null;
+        private cAuthenticationParameters mAuthenticationParameters = null;
         private bool mMailboxReferrals = false;
         private fMailboxCacheDataItems mMailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.uidnext | fMailboxCacheDataItems.uidvalidity | fMailboxCacheDataItems.unseencount;
         private cBatchSizerConfiguration mNetworkWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
@@ -469,64 +473,37 @@ namespace work.bacome.imapclient
         public void SetServer(string pHost, int pPort, bool pSSL) => Server = new cServer(pHost, pPort, pSSL);
 
         /// <summary>
-        /// Gets and sets the credentials to be used by <see cref="Connect"/>.
+        /// Gets and sets the authentication parameters to be used by <see cref="Connect"/>.
         /// </summary>
         /// <remarks>
         /// Must be set before calling <see cref="Connect"/>. 
         /// May only be set while <see cref="IsUnconnected"/>.
         /// </remarks>
-        /// <seealso cref="SetNoCredentials"/>
-        /// <seealso cref="SetAnonymousCredentials(string, eTLSRequirement, bool)"/>
-        /// <seealso cref="SetPlainCredentials(string, string, eTLSRequirement, bool)"/>
-        public cCredentials Credentials
+        /// <seealso cref="SetPlainAuthenticationParameters(string, string, eTLSRequirement, bool)"/>
+        public cAuthenticationParameters AuthenticationParameters
         {
-            get => mCredentials;
+            get => mAuthenticationParameters;
 
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
-                mCredentials = value;
+                mAuthenticationParameters = value;
             }
         }
 
         /// <summary>
-        /// Sets <see cref="Credentials"/> to no credentials. 
-        /// </summary>
-        /// <remarks>
-        /// May only be called while <see cref="IsUnconnected"/>.
-        /// Useful to retrieve the property values set during <see cref="Connect"/> without actually connecting.
-        /// Also useful when there is external authentication.
-        /// </remarks>
-        /// <seealso cref="Connect"/>
-        public void SetNoCredentials() => Credentials = cCredentials.None;
-
-        /// <summary>
-        /// Sets <see cref="Credentials"/> to anonymous credentials. 
-        /// </summary>
-        /// <param name="pTrace">The trace information to be sent to the server.</param>
-        /// <param name="pTLSRequirement">The TLS requirement for the credentials to be used.</param>
-        /// <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Indicates whether the SASL ANONYMOUS mechanism should be tried even if it isn't advertised.</param>
-        /// <remarks>
-        /// May only be called while <see cref="IsUnconnected"/>.
-        /// The credentials may fall back to IMAP LOGIN if SASL ANONYMOUS isn't available.
-        /// This method will throw if <paramref name="pTrace"/> can be used in neither <see cref="cLogin.Password"/> nor <see cref="cSASLAnonymous"/>.
-        /// </remarks>
-        public void SetAnonymousCredentials(string pTrace, eTLSRequirement pTLSRequirement = eTLSRequirement.indifferent, bool pTryAuthenticateEvenIfAnonymousIsntAdvertised = false) => Credentials = cCredentials.Anonymous(pTrace, pTLSRequirement, pTryAuthenticateEvenIfAnonymousIsntAdvertised);
-
-        /// <summary>
-        /// Sets <see cref="Credentials"/> to plain credentials.
+        /// Sets <see cref="AuthenticationParameters"/> to use a userid and password combination to authenticate.
         /// </summary>
         /// <param name="pUserId"></param>
         /// <param name="pPassword"></param>
-        /// <param name="pTLSRequirement">The TLS requirement for the credentials to be used.</param>
+        /// <param name="pTLSRequirement">The TLS requirement for the userid and password to be used.</param>
         /// <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Indicates whether the SASL PLAIN mechanism should be tried even if it isn't advertised.</param>
         /// <remarks>
         /// May only be called while <see cref="IsUnconnected"/>.
-        /// The credentials may fall back to IMAP LOGIN if SASL PLAIN isn't available.
         /// This method will throw if the userid and password can be used in neither <see cref="cLogin"/> nor <see cref="cSASLPlain"/>.
         /// </remarks>
-        public void SetPlainCredentials(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false) => Credentials = cCredentials.Plain(pUserId, pPassword, pTLSRequirement, pTryAuthenticateEvenIfPlainIsntAdvertised);
+        public void SetPlainAuthenticationParameters(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false) => AuthenticationParameters = cAuthenticationParameters.Plain(pUserId, pPassword, pTLSRequirement, pTryAuthenticateEvenIfPlainIsntAdvertised);
 
         // not tested yet
         //public void SetXOAuth2Credentials(string pUserId, string pAccessToken, bool pTryAuthenticateEvenIfXOAuth2IsntAdvertised = false) => Credentials = cCredentials.XOAuth2(pUserId, pAccessToken, pTryAuthenticateEvenIfXOAuth2IsntAdvertised);

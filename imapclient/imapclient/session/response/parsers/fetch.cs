@@ -358,8 +358,10 @@ namespace work.bacome.imapclient
                             //  at this stage if UTF8 were to appear in the mailbox then we would just accept it
 
                             string lMailbox = cTools.UTF8BytesToString(lMailboxBytes);
-                            string lAddress = lMailbox + "@" + cTools.ASCIIBytesToString(lHostBytes);
-                            string lDisplayAddress = lMailbox + "@" + cTools.PunycodeBytesToString(lHostBytes);
+                            string lHost = cTools.UTF8BytesToString(lHostBytes);
+                            string lDisplayHost = IDNMapping.GetUnicode(lHost);
+                            string lAddress = lMailbox + "@" + lHost;
+                            string lDisplayAddress = lMailbox + "@" + lDisplayHost;
 
                             cCulturedString lDisplayName;
                             if (lNameBytes == null) lDisplayName = new cCulturedString("<" + lDisplayAddress + ">");

@@ -147,7 +147,7 @@ namespace testharness2
                 {
                     mClient.SetServer(txtHost.Text.Trim(), int.Parse(txtPort.Text), chkSSL.Checked);
 
-                    if (rdoCredNone.Checked) mClient.SetNoCredentials();
+                    if (rdoCredNone.Checked) mClient.SetNoAuthenticationParameters();
                     else
                     {
                         eTLSRequirement lTLSRequirement;

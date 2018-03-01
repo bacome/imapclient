@@ -29,6 +29,7 @@ namespace work.bacome.imapclient
         private string _Scheme = null;
         private string _UserInfo = null;
         private string _Host = null;
+        private string _DisplayHost = null;
         private string _Port = null;
         private string _Path = null;
         private string _Query = null;
@@ -65,9 +66,12 @@ namespace work.bacome.imapclient
             private set
             {
                 _Host = value;
+                _DisplayHost = cIMAPClient.IDNMapping.GetUnicode(value);
                 mParts |= fParts.host;
             }
         }
+
+        public string DisplayHost => _DisplayHost;
 
         public string Port
         {

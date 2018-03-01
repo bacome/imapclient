@@ -8,9 +8,9 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task ConnectAsync(cMethodControl pMC, cServer pServer, cTrace.cContext pParentContext)
+            public async Task ConnectAsync(cMethodControl pMC, cServer pServer, object pPreAuthenticatedCredentialId, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ConnectAsync), pMC, pServer);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ConnectAsync), pMC, pServer, pPreAuthenticatedCredentialId);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
 
@@ -44,7 +44,9 @@ namespace work.bacome.imapclient
                 // preauth
 
                 ZSetHomeServerReferral(lGreeting.ResponseText, lContext);
-                ZSetConnectedAccountId(new cAccountId(pServer.Host, eAccountType.unknown), lContext);
+
+                if (pPreAuthenticatedCredentialId == null) throw new cUnexpectedPreAuthenticatedConnectionException(lContext);
+                else ZSetConnectedAccountId(new cAccountId(pServer.Host, pPreAuthenticatedCredentialId), lContext);
             }
         } 
     }

@@ -82,7 +82,7 @@ namespace work.bacome.imapclient
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cServer)}({Host}:{Port},{nameof(SSL)}={SSL})";
+        public override string ToString() => $"{nameof(cServer)}({Host},{Port},{SSL})";
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
         public static bool operator ==(cServer pA, cServer pB)

@@ -94,7 +94,7 @@ namespace testharness2
                 lServer.AddSendData("* BYE [ALERT] this is the text\r\n");
                 lServer.AddExpectClose();
 
-                lClient.SetPlainCredentials("fred", "angus");
+                lClient.SetPlainAuthenticationParameters("fred", "angus");
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
                 lExpecter.Expect(eResponseTextContext.greetingbye, eResponseTextCode.alert, "this is the text");
@@ -123,7 +123,7 @@ namespace testharness2
                 lServer.AddSendData("* BYE this is the text\r\n");
                 lServer.AddExpectClose();
 
-                lClient.SetPlainCredentials("fred", "angus");
+                lClient.SetPlainAuthenticationParameters("fred", "angus");
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
                 lExpecter.Expect(eResponseTextContext.greetingbye, eResponseTextCode.none, "this is the text");
@@ -152,7 +152,7 @@ namespace testharness2
                 lServer.AddSendData("* BYE [REFERRAL IMAP://user;AUTH=*@SERVER2/] Server not accepting connections.Try SERVER2\r\n");
                 lServer.AddExpectClose();
 
-                lClient.SetPlainCredentials("fred", "angus");
+                lClient.SetPlainAuthenticationParameters("fred", "angus");
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
                 lExpecter.Expect(eResponseTextContext.greetingbye, eResponseTextCode.referral, "Server not accepting connections.Try SERVER2");
@@ -192,7 +192,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddExpectClose();
 
-                lClient.SetPlainCredentials("fred", "angus");
+                lClient.SetPlainAuthenticationParameters("fred", "angus");
 
                 cIdDictionary lIdDictionary = new cIdDictionary(false);
                 lIdDictionary.Name = "fred";
@@ -242,7 +242,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddExpectClose();
 
-                lClient.SetPlainCredentials("fred", "angus");
+                lClient.SetPlainAuthenticationParameters("fred", "angus");
 
                 cIdDictionary lIdDictionary = new cIdDictionary();
                 lIdDictionary.Name = "fr€d";
@@ -309,7 +309,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddExpectClose();
 
-                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
 
                 cIdDictionary lIdDictionary = new cIdDictionary(false);
                 lIdDictionary.Name = "fr€d";
@@ -368,7 +368,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddExpectClose();
 
-                lClient.SetPlainCredentials("fred", "angus");
+                lClient.SetPlainAuthenticationParameters("fred", "angus");
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
                 lExpecter.Expect(eResponseTextContext.greetingpreauth, eResponseTextCode.none, "this is the text");
@@ -407,7 +407,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainCredentials("fred", "angus");
+                lClient.SetPlainAuthenticationParameters("fred", "angus");
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
                 lExpecter.Expect(eResponseTextContext.greetingpreauth, eResponseTextCode.other, "this is the text");
@@ -436,7 +436,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainCredentials("fred", "angus");
+                lClient.SetPlainAuthenticationParameters("fred", "angus");
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
                 lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
@@ -474,7 +474,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
                 lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
@@ -514,7 +514,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
                 lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
@@ -560,7 +560,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
                 lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
@@ -600,7 +600,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
                 lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
@@ -644,7 +644,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
                 lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
@@ -703,7 +703,7 @@ namespace testharness2
 
                 lServer.AddExpectClose();
 
-                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
                 lClient.IdleConfiguration = new cIdleConfiguration(2000, 10000);
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
@@ -765,7 +765,7 @@ namespace testharness2
 
                 lServer.AddExpectClose();
 
-                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
 
 
                 try { lClient.Connect(); }
@@ -851,7 +851,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddExpectClose();
 
-                lClient.SetPlainCredentials(pUserId, pPassword, eTLSRequirement.indifferent);
+                lClient.SetPlainAuthenticationParameters(pUserId, pPassword, eTLSRequirement.indifferent);
 
                 lClient.Connect();
                 lClient.Disconnect();
@@ -900,7 +900,7 @@ namespace testharness2
                 lServer.AddExpectClose();
 
 
-                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
                 lClient.IdleConfiguration = new cIdleConfiguration(2000, 1200000, 7000);
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
@@ -1173,7 +1173,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
 
                 lClient.Connect();
                 lClient.Disconnect();
@@ -1347,7 +1347,7 @@ namespace testharness2
                 lServer.AddExpectClose();
 
 
-                lClient.SetNoCredentials();
+                lClient.AuthenticationParameters = new cAuthenticationParameters(new object());
                 lClient.IdleConfiguration = null;
 
                 cMessageFlags lFlags;
@@ -1587,7 +1587,7 @@ namespace testharness2
                 lServer.AddExpectClose();
 
 
-                lClient.SetNoCredentials();
+                lClient.AuthenticationParameters = new cAuthenticationParameters(new object());
                 lClient.IdleConfiguration = null;
 
                 cMessageFlags lFlags;
@@ -1770,7 +1770,7 @@ namespace testharness2
                 lServer.AddExpectClose();
 
 
-                lClient.SetNoCredentials();
+                lClient.AuthenticationParameters = new cAuthenticationParameters(new object());
                 lClient.IdleConfiguration = null;
 
                 cMessageFlags lFlags;
@@ -1883,7 +1883,7 @@ namespace testharness2
                 lServer.AddExpectClose();
 
 
-                lClient.SetNoCredentials();
+                lClient.AuthenticationParameters = new cAuthenticationParameters(new object());
                 lClient.IdleConfiguration = null;
 
                 lClient.Connect();
@@ -2005,7 +2005,7 @@ namespace testharness2
 
 
 
-                lClient.SetNoCredentials();
+                lClient.AuthenticationParameters = new cAuthenticationParameters(new object());
 
                 lClient.Connect();
 
@@ -2140,7 +2140,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddExpectClose();
 
-                lClient.SetNoCredentials();
+                lClient.AuthenticationParameters = new cAuthenticationParameters(new object());
                 lClient.IdleConfiguration = null;
 
                 lClient.Connect();
@@ -2231,7 +2231,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddExpectClose();
 
-                lClient.SetNoCredentials();
+                lClient.AuthenticationParameters = new cAuthenticationParameters(new object());
                 lClient.IdleConfiguration = null;
 
                 Task<List<cMessage>> lTask1;
@@ -2294,7 +2294,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
 
                 bool lFailed = false;
                 try { lClient.Connect(); }
@@ -2340,7 +2340,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
                 lClient.NetworkWriteConfiguration = new cBatchSizerConfiguration(1, 1, 10000, 1);
 
 
@@ -2490,11 +2490,11 @@ namespace testharness2
                     lServer.AddSendTagged("OK logged out\r\n");
                     lServer.AddExpectClose();
 
-                    lClient1.SetNoCredentials();
+                    lClient1.AuthenticationParameters = new cAuthenticationParameters(new object());
                     lClient1.IdleConfiguration = null;
                     lClient1.FetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000, 1000, 1000);
 
-                    lClient2.Credentials = lClient1.Credentials;
+                    lClient2.AuthenticationParameters = lClient1.AuthenticationParameters;
                     lClient2.IdleConfiguration = null;
 
                     lClient1.Connect();
@@ -2590,7 +2590,7 @@ namespace testharness2
                     lParts.Add("\r\n--boundary2\r\n");
                     lParts.Add(new cHeaderFieldAppendDataPart("content-type", "message/rfc822"));
                     lParts.Add("\r\n");
-                    lParts.Add(new cMessageAppendDataPart(lMessage);
+                    lParts.Add(new cMessageAppendDataPart(lMessage));
 
                     // message part
                     lParts.Add("\r\n--boundary2\r\n");
@@ -2645,7 +2645,7 @@ namespace testharness2
                 lServer.AddExpectClose();
 
                 lClient.SetServer("localhost");
-                lClient.SetNoCredentials();
+                lClient.AuthenticationParameters = new cAuthenticationParameters(new object());
                 lClient.IdleConfiguration = null;
 
                 lClient.Connect();
