@@ -58,7 +58,7 @@ namespace work.bacome.imapclient
         public string MechanismName => mURLParts?.MechanismName;
         /**<summary>Gets the 'host' part of the URI. May be <see langword="null"/>.</summary>*/
         public string Host => mParts.Host;
-        /**<summary>Gets the decoded 'host' part of the URI. May be <see langword="null"/>.</summary>*/
+        /**<summary>Gets the punycode decoded 'host' part of the URI. May be <see langword="null"/>.</summary>*/
         public string DisplayHost => mParts.DisplayHost;
         /**<summary>Gets the 'port' part of the URI. May be <see langword="null"/>.</summary>*/
         public string PortString => mParts.Port;
@@ -250,6 +250,13 @@ namespace work.bacome.imapclient
 
             if (lURI.MustUseAnonymous || lURI.UserId != null || lURI.MechanismName != null || lURI.Host != "SERVER2" || lURI.Port != 143)
                 throw new cTestsException("unexpected properties in test 17");
+
+            // 18
+
+            if (!TryParse("imap://xn--frd-l50a.com", out lURI)) throw new cTestsException("should have succeeded 18", lContext);
+
+            if (!lURI.MustUseAnonymous || lURI.UserId != null || lURI.MechanismName != null || lURI.DisplayHost != "fr€d.com" || lURI.Port != 143)
+                throw new cTestsException("unexpected properties in test 18");
 
 
             // relative URIs

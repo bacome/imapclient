@@ -21,15 +21,10 @@ namespace work.bacome.imapclient
         /// </remarks>
         public static readonly cAuthenticationParameters None = new cAuthenticationParameters();
 
-        public static readonly object AnonymousCredentialsId = new object();
-
-        public readonly object PreAuthenticatedCredentialId;
-        public readonly object AuthenticatedCredentialId;
-
         /// <summary>
-        /// The arguments to use with the IMAP LOGIN command during <see cref="cIMAPClient.Connect"/>. May be <see langword="null"/>.
+        /// The credential id to use if the connection is pre-authenticated. May be <see langword="null"/> in which case a pre-authenticated connection will be disconnected.
         /// </summary>
-        public readonly cLogin Login;
+        public readonly object PreAuthenticatedCredentialId;
 
         /// <summary>
         /// The set of SASL objects that can used used during <see cref="cIMAPClient.Connect"/>. May be <see langword="null"/> or empty.
@@ -42,46 +37,33 @@ namespace work.bacome.imapclient
         /// <seealso cref="cCapabilities.AuthenticationMechanisms"/>
         public readonly bool TryAllSASLs;
 
-        private cAuthenticationParameters()
-        {
-            PreAuthenticatedCredentialId = null;
-            AuthenticatedCredentialId = null;
-            Login = null;
-            SASLs = null;
-            TryAllSASLs = false;
-        }
-
-        public cAuthenticationParameters(object pPreAuthenticatedCredentialId)
-        {
-            PreAuthenticatedCredentialId = pPreAuthenticatedCredentialId ?? throw new ArgumentNullException(nameof(pPreAuthenticatedCredentialId));
-            AuthenticatedCredentialId = null;
-            Login = null;
-            SASLs = null;
-            TryAllSASLs = false;
-        }
-
-        /*
         /// <summary>
-        /// Initialises a new instance with the specified credential identifiers, <see cref="cLogin"/> and <see cref="cSASL"/> objects.
+        /// The arguments to use with the IMAP LOGIN command during <see cref="cIMAPClient.Connect"/>. May be <see langword="null"/>.
         /// </summary>
-        /// <param name="pUserId">The server account name that the <paramref name="pLogin"/> and <paramref name="pSASLs"/> give access to.</param>
-        /// <param name="pLogin"></param>
+        public readonly cLogin Login;
+
+        /// <summary>
+        /// Initialises a new instance with the specified pre-authenticated credential id, <see cref="cSASL"/> objects and behaviour, and <see cref="cLogin"/> arguments.
+        /// </summary>
+        /// <param name="pPreAuthenticatedCredentialId"></param>
         /// <param name="pSASLs"></param>
-        /// <param name="pTryAllSASLs">Indicates whether all <paramref name="pSASLs"/> should be tried even if the server doesn't advertise the associated authentication mechanism.</param> */
-
-        public cAuthenticationParameters(object pAuthenticatedCredentialId, cLogin pLogin, IEnumerable<cSASL> pSASLs, bool pTryAllSASLs = false, object pPreAuthenticatedCredentialId = null)
+        /// <param name="pTryAllSASLs"></param>
+        /// <param name="pLogin"></param>
+        public cAuthenticationParameters(object pPreAuthenticatedCredentialId = null, IEnumerable<cSASL> pSASLs = null, bool pTryAllSASLs = false, cLogin pLogin = null)
         {
-            AuthenticatedCredentialId = pAuthenticatedCredentialId ?? throw new ArgumentNullException(nameof(pAuthenticatedCredentialId));
+            PreAuthenticatedCredentialId = pPreAuthenticatedCredentialId;
 
-            Login = pLogin;
-
-            var lSASLs = new List<cSASL>(from s in pSASLs where s != null select s);
-
-            if (lSASLs.Count == 0) SASLs = null;
-            else SASLs = lSASLs.AsReadOnly();
+            if (pSASLs == null) SASLs = null;
+            else
+            {
+                var lSASLs = new List<cSASL>(from s in pSASLs where s != null select s);
+                if (lSASLs.Count == 0) SASLs = null;
+                else SASLs = lSASLs.AsReadOnly();
+            }
 
             TryAllSASLs = pTryAllSASLs;
-            PreAuthenticatedCredentialId = pPreAuthenticatedCredentialId;
+
+            Login = pLogin;
         }
     
         /// <summary>
@@ -98,10 +80,10 @@ namespace work.bacome.imapclient
         {
             if (string.IsNullOrEmpty(pTrace)) throw new ArgumentOutOfRangeException(nameof(pTrace));
 
-            cLogin.TryConstruct("anonymous", pTrace, pTLSRequirement, out var lLogin);
+            cLogin.TryConstruct(cLogin.Anonymous, pTrace, pTLSRequirement, out var lLogin);
             cSASLAnonymous.TryConstruct(pTrace, pTLSRequirement, out var lSASL);
             if (lLogin == null && lSASL == null) throw new ArgumentOutOfRangeException(nameof(pTrace));
-            return new cAuthenticationParameters(AnonymousCredentialsId, lLogin, new cSASL[] { lSASL }, pTryAuthenticateEvenIfAnonymousIsntAdvertised);
+            return new cAuthenticationParameters(null, new cSASL[] { lSASL }, pTryAuthenticateEvenIfAnonymousIsntAdvertised, lLogin);
         }
 
         /// <summary>
@@ -124,7 +106,7 @@ namespace work.bacome.imapclient
             cSASLPlain.TryConstruct(pUserId, pPassword, pTLSRequirement, out var lSASL);
             if (lLogin == null && lSASL == null) throw new ArgumentOutOfRangeException(); // argument_s_outofrange
 
-            return new cAuthenticationParameters(pUserId, lLogin, new cSASL[] { lSASL }, pTryAuthenticateEvenIfPlainIsntAdvertised);
+            return new cAuthenticationParameters(null, new cSASL[] { lSASL }, pTryAuthenticateEvenIfPlainIsntAdvertised, lLogin);
         }
 
         /* not tested yet
@@ -164,13 +146,14 @@ namespace work.bacome.imapclient
             lAP = Anonymous("fred@fred@fred.com");
             if (lAP.Login == null || lAP.SASLs != null) throw new cTestsException("unexpected anon result");
 
-            lAP = Anonymous("fred€fred.com");
+            lAP = Anonymous("\"fr€d blogs\" @ fred.com");
             if (lAP.Login != null || lAP.SASLs.Count != 1) throw new cTestsException("unexpected anon result");
-            if (cTools.UTF8BytesToString(lAP.SASLs[0].GetAuthentication().GetResponse(new byte[0])) != "\"fred€\"@fred.com") throw new cTestsException("unexpected anon result");
+            string lResult = cTools.UTF8BytesToString(lAP.SASLs[0].GetAuthentication().GetResponse(new byte[0]));
+            if (lResult != "\"fr€d blogs\"@fred.com") throw new cTestsException("unexpected anon result");
 
             lAP = Anonymous("fred@fr€d.com");
             if (lAP.Login != null || lAP.SASLs.Count != 1) throw new cTestsException("unexpected anon result");
-            if (cTools.ASCIIBytesToString(lAP.SASLs[0].GetAuthentication().GetResponse(new byte[0])) != "fred@xn--frd-l50a.com") throw new cTestsException("unexpected anon result");
+            if (cTools.UTF8BytesToString(lAP.SASLs[0].GetAuthentication().GetResponse(new byte[0])) != "fred@fr€d.com") throw new cTestsException("unexpected anon result");
 
             lAP = Anonymous("123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890");
             if (lAP.Login == null || lAP.SASLs != null) throw new cTestsException("unexpected anon result");

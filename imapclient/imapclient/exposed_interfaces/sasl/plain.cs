@@ -56,6 +56,11 @@ namespace work.bacome.imapclient
         /// <inheritdoc/>
         public override cSASLAuthentication GetAuthentication() => new cAuth(mAuthenticationId, mPassword);
 
+        /// <summary>
+        /// Gets the authentication id.
+        /// </summary>
+        public override object CredentialId => mAuthenticationId;
+
         private class cAuth : cSASLAuthentication
         {
             private bool mDone = false;

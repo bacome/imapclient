@@ -937,17 +937,21 @@ namespace testharness2
             }
         }
 
-        private class cTestAuth1Creds : cCredentials
+        private class cTestAuth1AuthenticationParameters : cAuthenticationParameters
         {
-            public cTestAuth1Creds(bool pTryAllSASLs) : base("fred", null, new cSASL[] { new cSASLPlain("fred", "angus", eTLSRequirement.indifferent), new cSASLAnonymous("fr€d", eTLSRequirement.indifferent) }, pTryAllSASLs) { }
+            public cTestAuth1AuthenticationParameters(object pPreAuthCredId, bool pTryAllSASLs) :
+                base(pPreAuthCredId, new cSASL[] { new cSASLPlain("fred", "angus", eTLSRequirement.indifferent), new cSASLAnonymous("fr€d", eTLSRequirement.indifferent) }, pTryAllSASLs, new cLogin("fred", "angus", eTLSRequirement.indifferent)) { }
         }
 
         private static void ZTestAuth1(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestAuth1));
 
-            cTestAuth1Creds lCredsFalse = new cTestAuth1Creds(false);
-            cTestAuth1Creds lCredsTrue = new cTestAuth1Creds(true);
+            var lPreAuthCredId = new object();
+
+            var lCredsNoPreAuthDontTryAll = new cTestAuth1AuthenticationParameters(null, false);
+            var lCredsNoPreAuthTryAll = new cTestAuth1AuthenticationParameters(null, true);
+            var lCredsPreAuthTryAll = new cTestAuth1AuthenticationParameters(lPreAuthCredId, true);
 
             bool lFailed;
 
@@ -956,13 +960,13 @@ namespace testharness2
             using (cServer lServer = new cServer(lContext, nameof(ZTestAuth1) + "1"))
             using (cIMAPClient lClient = lServer.NewClient())
             {
-                lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] this is the text\r\n");
+                lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE LOGINDISABLED] this is the text\r\n");
                 lServer.AddExpectTagged("LOGOUT\r\n");
                 lServer.AddSendData("* BYE logging out\r\n");
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.Credentials = lCredsFalse;
+                lClient.AuthenticationParameters = lCredsNoPreAuthDontTryAll;
 
                 lFailed = false;
                 try { lClient.Connect(); }
@@ -972,6 +976,7 @@ namespace testharness2
                 lServer.ThrowAnyErrors();
             }
 
+            cAccountId lAnon = new cAccountId("localhost", cSASLAnonymous.AnonymousCredentialId);
 
             // 2 - just anon advertised
             //
@@ -995,9 +1000,12 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.Credentials = lCredsFalse;
+                lClient.AuthenticationParameters = lCredsNoPreAuthDontTryAll;
 
                 lClient.Connect();
+
+                if (lClient.ConnectedAccountId != lAnon) throw new cTestsException($"{nameof(ZTestAuth1)}.2");
+
                 lClient.Disconnect();
 
                 lServer.ThrowAnyErrors();
@@ -1032,9 +1040,12 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.Credentials = lCredsFalse;
+                lClient.AuthenticationParameters = lCredsNoPreAuthDontTryAll;
 
                 lClient.Connect();
+
+                if (lClient.ConnectedAccountId != lAnon) throw new cTestsException($"{nameof(ZTestAuth1)}.3");
+
                 lClient.Disconnect();
 
                 lServer.ThrowAnyErrors();
@@ -1067,14 +1078,58 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.Credentials = lCredsTrue;
+                lClient.AuthenticationParameters = lCredsNoPreAuthTryAll;
 
                 lClient.Connect();
+
+                if (lClient.ConnectedAccountId != lAnon) throw new cTestsException($"{nameof(ZTestAuth1)}.4");
+
                 lClient.Disconnect();
 
                 lServer.ThrowAnyErrors();
             }
 
+
+
+            // 4.1 - mechanisms not advertised but force try on (pre-auth)
+            //
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAuth1) + "4"))
+            using (cIMAPClient lClient = lServer.NewClient())
+            {
+                lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] this is the text\r\n");
+
+                lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
+                lServer.AddSendData("+ \r\n");
+                lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
+                lServer.AddSendTagged("NO why not try anonymous\r\n");
+
+                lServer.AddExpectTagged("AUTHENTICATE ANONYMOUS\r\n");
+                lServer.AddSendData("+ \r\n");
+                lServer.AddExpectData("ZnLigqxk\r\n");
+                lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] logged in\r\n");
+
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.AuthenticationParameters = lCredsPreAuthTryAll;
+
+                lClient.Connect();
+
+                if (lClient.ConnectedAccountId != lAnon) throw new cTestsException($"{nameof(ZTestAuth1)}.4.1");
+
+                lClient.Disconnect();
+
+                lServer.ThrowAnyErrors();
+            }
+
+
+            cAccountId lFred = new cAccountId("localhost", "fred");
 
             // 5 - mechanisms not advertised but force try on and plain succeeds
             //
@@ -1097,18 +1152,171 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.Credentials = lCredsTrue;
+                lClient.AuthenticationParameters = lCredsNoPreAuthTryAll;
 
                 lClient.Connect();
+
+                if (lClient.ConnectedAccountId != lFred) throw new cTestsException($"{nameof(ZTestAuth1)}.5");
+
                 lClient.Disconnect();
 
                 lServer.ThrowAnyErrors();
             }
 
+            // 6 - mechanisms not advertised but force try on and login succeeds
+            //
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAuth1) + "5"))
+            using (cIMAPClient lClient = lServer.NewClient())
+            {
+                lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] this is the text\r\n");
 
+                lServer.AddExpectTagged("AUTHENTICATE PLAIN\r\n");
+                lServer.AddSendData("+ \r\n");
+                lServer.AddExpectData("AGZyZWQAYW5ndXM=\r\n");
+                lServer.AddSendTagged("NO why not try anonymous\r\n");
 
+                lServer.AddExpectTagged("AUTHENTICATE ANONYMOUS\r\n");
+                lServer.AddSendData("+ \r\n");
+                lServer.AddExpectData("ZnLigqxk\r\n");
+                lServer.AddSendTagged("NO why not try login\r\n");
 
+                lServer.AddExpectTagged("LOGIN {4+}\r\nfred {5+}\r\nangus\r\n");
+                lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] logged in\r\n");
 
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.AuthenticationParameters = lCredsNoPreAuthTryAll;
+
+                lClient.Connect();
+
+                if (lClient.ConnectedAccountId != lFred) throw new cTestsException($"{nameof(ZTestAuth1)}.5");
+
+                lClient.Disconnect();
+
+                lServer.ThrowAnyErrors();
+            }
+
+            cAccountId lAnon2 = new cAccountId("localhost", cLogin.Anonymous);
+
+            // 7 - anon not advertised 
+            //
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAuth1) + "6"))
+            using (cIMAPClient lClient = lServer.NewClient())
+            {
+                lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] this is the text\r\n");
+
+                lServer.AddExpectTagged("LOGIN {9+}\r\nanonymous {4+}\r\nfred\r\n");
+                lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] logged in\r\n");
+
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.AuthenticationParameters = cAuthenticationParameters.Anonymous("fred");
+
+                lClient.Connect();
+
+                if (lClient.ConnectedAccountId != lAnon2) throw new cTestsException($"{nameof(ZTestAuth1)}.7");
+
+                lClient.Disconnect();
+
+                lServer.ThrowAnyErrors();
+            }
+
+            // 8 - anon advertised 
+            //
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAuth1) + "6"))
+            using (cIMAPClient lClient = lServer.NewClient())
+            {
+                lServer.AddSendData("* OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE AUTH=ANONYMOUS AUTH=PLAIN XSOMEOTHERFEATURE] this is the text\r\n");
+
+                lServer.AddExpectTagged("AUTHENTICATE ANONYMOUS\r\n");
+                lServer.AddSendData("+ \r\n");
+                lServer.AddExpectData("ZnLigqxk\r\n");
+                lServer.AddSendTagged("OK [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] logged in\r\n");
+
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.AuthenticationParameters = cAuthenticationParameters.Anonymous("fred");
+
+                lClient.Connect();
+
+                if (lClient.ConnectedAccountId != lAnon) throw new cTestsException($"{nameof(ZTestAuth1)}.8");
+
+                lClient.Disconnect();
+
+                lServer.ThrowAnyErrors();
+            }
+
+            cAccountId lPreAuth = new cAccountId("localhost", lPreAuthCredId);
+
+            // 9 - pre-auth, expected 
+            //
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAuth1) + "6"))
+            using (cIMAPClient lClient = lServer.NewClient())
+            {
+                lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1] this is the text\r\n");
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () \"/\" \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.AuthenticationParameters = lCredsPreAuthTryAll;
+
+                lClient.Connect();
+
+                if (lClient.ConnectedAccountId != lPreAuth) throw new cTestsException($"{nameof(ZTestAuth1)}.9");
+
+                lClient.Disconnect();
+
+                lServer.ThrowAnyErrors();
+            }
+
+            // 10 - pre-auth, unexpected 
+            //
+            using (cServer lServer = new cServer(lContext, nameof(ZTestAuth1) + "6"))
+            using (cIMAPClient lClient = lServer.NewClient())
+            {
+                lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1] this is the text\r\n");
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddClose();
+
+                lClient.AuthenticationParameters = lCredsNoPreAuthTryAll;
+
+                lFailed = false;
+                try { lClient.Connect(); }
+                catch (cUnexpectedPreAuthenticatedConnectionException) { lFailed = true; }
+
+                if (!lFailed) throw new cTestsException($"{nameof(ZTestAuth1)}.10");
+
+                lServer.ThrowAnyErrors();
+            }
 
 
 
@@ -2459,6 +2667,7 @@ namespace testharness2
                     lServer2.AddSendTagged("OK [APPENDUID 2 13] APPENDed\r\n");
                     lServer2.AddSendTagged("NO I don't like the look of that message\r\n");
 
+                    /*
                     // multi-part
                     
                     // the second client requests the message text from the first client
@@ -2475,7 +2684,7 @@ namespace testharness2
                     // the second client appends; rfc 4315 response
                     lServer2.AddExpectTagged("APPEND INBOX {226+}\r\nmime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--\r\n\r\n");
                     lServer2.AddSendTagged("OK [APPENDUID 2 14] APPENDed\r\n");
-
+                    */
 
 
                     // the second client disconnects
@@ -2574,6 +2783,7 @@ namespace testharness2
                     if (lFeedback[0].UID != null) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.12.3");
                     if (lFeedback[1].UID != new cUID(2, 13)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.12.4");
 
+                    /*
                     var lParts = new List<cAppendDataPart>();
 
                     // literals and message and message part and file and stream
@@ -2609,7 +2819,7 @@ namespace testharness2
 
                     lUID = lClient2.Inbox.Append(lParts);
                     if (lUID != new cUID(2, 14)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.14");
-
+                    */
 
 
                     lClient2.Disconnect();

@@ -1111,7 +1111,7 @@ namespace work.bacome.imapclient
             var lFeedbackItem = pFeedback[0];
             if (pFeedback.SucceededCount == 1) return lFeedbackItem.UID;
             if (lFeedbackItem.Exception != null) throw lFeedbackItem.Exception;
-            if (lFeedbackItem.Type == eAppendFeedbackType.notattempted) throw new OperationCanceledException(); // this is an assumption
+            //if (lFeedbackItem.Type == eAppendFeedbackType.notattempted) should never happen: if so this would result in the internal error exception below
             var lResult = lFeedbackItem.Result;
             if (lResult == null) throw new cInternalErrorException($"{nameof(cMailbox)}.{nameof(ZAppendResult)} result null");
             if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lFeedbackItem.TryIgnoring);

@@ -24,9 +24,9 @@ namespace work.bacome.imapclient
                 }
             }
 
-            public async Task<cAuthenticateFailureDetails> AuthenticateAsync(cMethodControl pMC, cAccountId pAccountId, cSASL pSASL, cTrace.cContext pParentContext)
+            public async Task<cAuthenticateFailureDetails> AuthenticateAsync(cMethodControl pMC, string pHost, cSASL pSASL, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(AuthenticateAsync), pMC, pAccountId, pSASL.MechanismName);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(AuthenticateAsync), pMC, pHost, pSASL.MechanismName);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.notauthenticated) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnauthenticated);
@@ -70,7 +70,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("authenticate success");
-                        ZAuthenticated(lCapabilities, lHook, lResult.ResponseText, pAccountId, lContext);
+                        ZAuthenticated(lCapabilities, lHook, lResult.ResponseText, new cAccountId(pHost, pSASL.CredentialId), lContext);
                         return null;
                     }
 

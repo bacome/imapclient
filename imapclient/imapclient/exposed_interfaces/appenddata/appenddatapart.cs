@@ -347,6 +347,9 @@ namespace work.bacome.imapclient
 
         private string ZRemoveQuotes(string pPossiblyQuotedString)
         {
+            ;?; // this needs to be more sophisticed ... it needs to remove the in-quoted string quoting "\" characters also
+            //   and I'll need a test case for it in the test harness to confirm it is working
+
             if (pPossiblyQuotedString == null) return null;
             if (pPossiblyQuotedString.Length < 2) return pPossiblyQuotedString;
             if (pPossiblyQuotedString[0] != '"' || pPossiblyQuotedString[pPossiblyQuotedString.Length - 1] != '"') return pPossiblyQuotedString;
@@ -661,16 +664,18 @@ namespace work.bacome.imapclient
             ZTestDateTimeOffset("3", new DateTimeOffset(2018, 02, 07, 01, 02, 03, new TimeSpan(3, 0, 0)), "x:07 FEB 2018 01:02:03 +0300\r\n");
 
 
-            ZTestAddress("1", new MailAddress("user@host"), "x:user@host\r\n");
-            ZTestAddress("2", new MailAddress("\"display name\" <user@host>"), "x:display name<user@host>\r\n");
-            ZTestAddress("3", new MailAddress("\"display name\" user@host"), "x:display name<user@host>\r\n");
-            ZTestAddress("4", new MailAddress("display name <user@host>"), "x:display name<user@host>\r\n");
-            ZTestAddress("5", new MailAddress("fr€d <user@host>"), "x:=?utf-8?b?ZnLigqxk?=<user@host>\r\n");
-            ZTestAddress("6", new MailAddress("\"user name\"@host"), "x:\"user name\"@host\r\n");
-            ZTestAddress("7", new MailAddress("user...name..@host"), "x:\"user...name..\"@host\r\n");
-            ZTestAddress("8", new MailAddress("<user@[my domain]>"), null); // illegal according to rfc 5322 (dtext does not include space)
-            ZTestAddress("9", new MailAddress("(comment)\"display name\"(comment)<(comment)user(comment)@(comment)domain(comment)>(comment)"), "x:display name<user@domain>\r\n");
-            ZTestAddress("10", new MailAddress("<user@[my_domain]>"), "x:user@[my_domain]\r\n");
+            ZTestAddress("1", new MailAddress("user@host"), false, "x:user@host\r\n");
+            ZTestAddress("2", new MailAddress("\"display name\" <user@host>"), false, "x:display name<user@host>\r\n");
+            ZTestAddress("3", new MailAddress("\"display name\" user@host"), false, "x:display name<user@host>\r\n");
+            ZTestAddress("4", new MailAddress("display name <user@host>"), false, "x:display name<user@host>\r\n");
+            ZTestAddress("5", new MailAddress("fr€d <user@host>"), false, "x:=?utf-8?b?ZnLigqxk?=<user@host>\r\n");
+            ZTestAddress("6", new MailAddress("\"user name\"@host"), false, "x:\"user name\"@host\r\n");
+            ZTestAddress("7", new MailAddress("user...name..@host"), false, "x:\"user...name..\"@host\r\n");
+            ZTestAddress("8", new MailAddress("<user@[my domain]>"), false, null); // illegal according to rfc 5322 (dtext does not include space)
+            ZTestAddress("9", new MailAddress("(comment)\"display name\"(comment)<(comment)user(comment)@(comment)domain(comment)>(comment)"), false, "x:display name<user@domain>\r\n");
+            ZTestAddress("10", new MailAddress("<user@[my_domain]>"), false, "x:user@[my_domain]\r\n");
+            ZTestAddress("11", new MailAddress("user@fr€d.com"), false, "x:user@xn--frd-l50a.com\r\n");
+            ZTestAddress("12", new MailAddress("user@fr€d.com"), true, "x:user@fr€d.com\r\n");
 
             //                                                                       123456789012345678901234567890123456789012345678901234567890123456789012345678
             ZTestAddresses(
@@ -807,7 +812,7 @@ namespace work.bacome.imapclient
             if (lString != pExpected) throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.mime.{pTestName} : {lString}");
         }
 
-        private static void ZTestAddress(string pTestName, MailAddress pAddress, string pExpected)
+        private static void ZTestAddress(string pTestName, MailAddress pAddress, bool pUTF8, string pExpected)
         {
             cHeaderFieldAppendDataPart lPart;
 
@@ -820,7 +825,10 @@ namespace work.bacome.imapclient
                 throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.Address({pTestName}.f)");
             }
 
-            var lString = cTools.ASCIIBytesToString(lPart.GetBytes(Encoding.UTF8));
+            string lString;
+            if (pUTF8) lString = cTools.UTF8BytesToString(lPart.GetBytes(null));
+            else lString = cTools.UTF8BytesToString(lPart.GetBytes(Encoding.UTF8));
+
             if (lString != pExpected) throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.Address({pTestName}: {lString})");
         }
 

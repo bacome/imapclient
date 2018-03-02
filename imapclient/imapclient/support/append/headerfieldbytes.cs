@@ -31,15 +31,6 @@ namespace work.bacome.imapclient
         private bool mCurrentLineHasEncodedWords = false;
         private eWordType mLastWordType = eWordType.special; // the colon
 
-        public cHeaderFieldBytes()
-        {
-            mUTF8Allowed = true;
-            Encoding = Encoding.UTF8;
-            CharsetNameBytes = new cBytes(cTools.CharsetNameBytes(Encoding));
-            mCurrentLineByteCount = 0;
-            mCurrentLineCharCount = 0;
-        }
-
         public cHeaderFieldBytes(string pFieldName, Encoding pEncoding)
         {
             if (pFieldName == null) throw new ArgumentNullException(nameof(pFieldName));

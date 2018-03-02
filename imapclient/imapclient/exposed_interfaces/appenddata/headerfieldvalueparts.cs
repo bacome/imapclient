@@ -65,39 +65,22 @@ namespace work.bacome.imapclient
             if (pDomain == null) { rPart = null; return false; }
             if (pDomain.Length == 0) { rPart = null; return false; }
 
-            List<cHeaderFieldValuePart> lParts = new List<cHeaderFieldValuePart>();
-
             cHeaderFieldValuePart lLocalPart;
 
-            if (!TryAsDotAtom(pLocalPart, out lLocalPart) && !TryAsQuotedString(pLocalPart, out lLocalPart))
+            if ((!TryAsDotAtom(pLocalPart, out lLocalPart) && !TryAsQuotedString(pLocalPart, out lLocalPart)) || !ZTryAsDomain(pDomain, out var lDomainPart))
             {
                 rPart = null;
                 return false;
             }
 
+            List<cHeaderFieldValuePart> lParts = new List<cHeaderFieldValuePart>();
+
             lParts.Add(lLocalPart);
             lParts.Add(At);
+            lParts.Add(lDomainPart);
 
-            string lDomain = cIMAPClient.IDNMapping.GetAscii(pDomain);
-
-            if (TryAsDotAtom(lDomain, out var lDomainPart))
-            {
-                lParts.Add(lDomainPart);
-                rPart = new cHeaderFieldValueParts(lParts);
-                return true;
-            }
-
-            if (ZIsNoFoldLiteral(lDomain, out var lDText))
-            {
-                lParts.Add(LBRACKET);
-                lParts.Add(new cHeaderFieldWordValuePart(lDText));
-                lParts.Add(RBRACKET);
-                rPart = new cHeaderFieldValueParts(lParts);
-                return true;
-            }
-
-            rPart = null;
-            return false;
+            rPart = new cHeaderFieldValueParts(lParts);
+            return true;
         }
 
         public static bool TryAsNameAddr(string pDisplayName, string pLocalPart, string pDomain, out cHeaderFieldValuePart rPart)
@@ -134,6 +117,9 @@ namespace work.bacome.imapclient
 
         public static bool TryAsMsgId(string pIdLeft, string pIdRight, out cHeaderFieldValuePart rPart)
         {
+            // not sure if this should try to utf8 safe the right part or not
+            //  at this stage it will not
+
             if (TryAsDotAtom(pIdLeft, out _) && (TryAsDotAtom(pIdRight, out _) || ZIsNoFoldLiteral(pIdRight, out _)))
             {
                 rPart = new cHeaderFieldWordValuePart("<" + pIdLeft + "@" + pIdRight + ">");
@@ -144,6 +130,69 @@ namespace work.bacome.imapclient
                 rPart = null;
                 return false;
             }
+
+            /*
+
+            if (!TryAsDotAtom(pIdLeft, out _)) { rPart = null; return false; }
+
+            string lIdRight;
+
+            if (TryAsDotAtom(pIdRight, out _))
+            {
+                lIdRight = cIMAPClient.IDNMapping.GetAscii(pIdRight);
+                if (lIdRight != pIdRight && !TryAsDotAtom(lIdRight, out _)) lIdRight = pIdRight;
+                rPart = new cHeaderFieldWordValuePart("<" + pIdLeft + "@" + lIdRight + ">");
+                return true;
+            }
+
+            if (ZIsNoFoldLiteral(pIdRight, out _))
+            {
+                rPart = new cHeaderFieldWordValuePart("<" + pIdLeft + "@" + pIdRight + ">");
+                return true;
+            }
+
+            rPart = null;
+            return false; */
+        }
+
+        private static bool ZTryAsDomain(string pDomain, out cHeaderFieldValuePart rPart)
+        {
+            if (pDomain == null) { rPart = null; return false; }
+
+            if (TryAsDotAtom(pDomain, out var lUTF8AllowedDomain))
+            {
+                string lASCIIDomain = cIMAPClient.IDNMapping.GetAscii(pDomain);
+
+                if (lASCIIDomain == pDomain) 
+                {
+                    rPart = new cHeaderFieldDomainValuePart(lUTF8AllowedDomain, lUTF8AllowedDomain);
+                    return true;
+                }
+
+                if (TryAsDotAtom(lASCIIDomain, out var lUTF8NotAllowedDomain))
+                {
+                    rPart = new cHeaderFieldDomainValuePart(lUTF8AllowedDomain, lUTF8NotAllowedDomain);
+                    return true;
+                }
+
+                rPart = null;
+                return false;
+            }
+
+            if (ZIsNoFoldLiteral(pDomain, out var lDText))
+            {
+                List<cHeaderFieldValuePart> lParts = new List<cHeaderFieldValuePart>();
+
+                lParts.Add(LBRACKET);
+                lParts.Add(new cHeaderFieldWordValuePart(lDText));
+                lParts.Add(RBRACKET);
+
+                rPart = new cHeaderFieldValueParts(lParts);
+                return true;
+            }
+
+            rPart = null;
+            return false;
         }
 
         private static bool ZIsNoFoldLiteral(string pNoFoldLiteral, out string rDText)
@@ -265,6 +314,26 @@ namespace work.bacome.imapclient
                 foreach (var lPart in mParts) lBuilder.Append(lPart);
                 return lBuilder.ToString();
             }
+        }
+
+        private class cHeaderFieldDomainValuePart : cHeaderFieldValuePart
+        {
+            private readonly cHeaderFieldValuePart mUTF8AllowedDomain;
+            private readonly cHeaderFieldValuePart mUTF8NotAllowedDomain;
+
+            public cHeaderFieldDomainValuePart(cHeaderFieldValuePart pUTF8AllowedDomain, cHeaderFieldValuePart pUTF8NotAllowedDomain)
+            {
+                mUTF8AllowedDomain = pUTF8AllowedDomain;
+                mUTF8NotAllowedDomain = pUTF8NotAllowedDomain;
+            }
+
+            internal override void GetBytes(cHeaderFieldBytes pBytes, eHeaderFieldValuePartContext pContext)
+            {
+                if (pBytes.UTF8Allowed) mUTF8AllowedDomain.GetBytes(pBytes, pContext);
+                else mUTF8NotAllowedDomain.GetBytes(pBytes, pContext);
+            }
+
+            public override string ToString() => $"{nameof(cHeaderFieldDomainValuePart)}({mUTF8AllowedDomain},{mUTF8NotAllowedDomain})";
         }
 
         public static implicit operator cHeaderFieldValuePart(string pString) => new cHeaderFieldTextValuePart(pString);

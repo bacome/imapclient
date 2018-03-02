@@ -42,6 +42,11 @@ namespace work.bacome.imapclient
         /// Any <see cref="cSASLSecurity"/> object obtained will be disposed when the underlying network connection closes.
         /// </remarks>
         public abstract cSASLAuthentication GetAuthentication();
+
+        /// <summary>
+        /// Gets an object that identifies the credentials.
+        /// </summary>
+        public abstract object CredentialId { get; }
     }
 
     /// <summary>

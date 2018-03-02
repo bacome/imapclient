@@ -91,6 +91,7 @@ namespace work.bacome.imapclient
             private set
             {
                 _Host = value;
+                ;?; // nup
                 _DisplayHost = cIMAPClient.IDNMapping.GetUnicode(value);
                 mParts |= fParts.host;
             }
@@ -938,6 +939,19 @@ namespace work.bacome.imapclient
 
             if (!LTryParse("imap://joe@example.com/INBOX/;uid=20/;section=1.2;urlauth=submit+fred:internal:91354a473744909de610943775f92038", out lParts)) throw new cTestsException("4467.4");
             if (lParts.IsHomeServerReferral || lParts.IsMailboxReferral || lParts.IsAuthorisable || !lParts.IsAuthorised) throw new cTestsException("4467.4.1");
+
+
+
+            if (!LTryParse("imap://fr%E2%82%aCd@xn--frd-l50a.com/INBOX/;uid=20/;section=1.2", out lParts)) throw new cTestsException("IDN.1");
+            if (lParts.UserId != "fr€d") throw new cTestsException("IDN.1.1");
+            if (lParts.Host != "xn--frd-l50a.com") throw new cTestsException("IDN.1.2");
+            if (lParts.DisplayHost != "fr€d.com") throw new cTestsException("IDN.1.3");
+
+            if (!LTryParse("imap://fr%E2%82%aCd@fr%E2%82%aCd.com/INBOX/;uid=20/;section=1.2", out lParts)) throw new cTestsException("IDN.2");
+            if (lParts.UserId != "fr€d") throw new cTestsException("IDN.2.1");
+            if (lParts.Host != "fr€d.com") throw new cTestsException("IDN.2.2");
+            if (lParts.DisplayHost != "fr€d.com") throw new cTestsException("IDN.2.3");
+
 
             // expiry
             //  TODO

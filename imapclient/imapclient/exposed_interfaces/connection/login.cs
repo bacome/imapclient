@@ -11,6 +11,8 @@ namespace work.bacome.imapclient
     /// <seealso cref="cAuthenticationParameters.Login"/>
     public class cLogin
     {
+        public const string Anonymous = "anonymous";
+
         /**<summary>The userid to use.</summary>*/
         public readonly string UserId;
         /**<summary>The password to use.</summary>*/

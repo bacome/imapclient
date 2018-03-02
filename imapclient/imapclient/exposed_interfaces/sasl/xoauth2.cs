@@ -26,6 +26,8 @@ namespace work.bacome.imapclient
 
         public override cSASLAuthentication GetAuthentication() => new cAuth(mUserId, mAccessToken);
 
+        public override object CredentialId => mUserId;
+
         private class cAuth : cSASLAuthentication
         {
             private enum eState { unchallenged, challenged, errorreceived }

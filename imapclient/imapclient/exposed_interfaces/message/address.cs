@@ -5,17 +5,21 @@ using System.Collections.ObjectModel;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents an email address.
+    /// Represents an address on an email; either an individual <see cref="cEmailAddress"/> or a <see cref="cGroupAddress"/>.
     /// </summary>
     /// <seealso cref="cAddresses"/>
     public abstract class cAddress
     {
         /// <summary>
-        /// The display name for the address.
+        /// A display name for the address. 
+        /// For an <see cref="cEmailAddress"/> without a display name, this is the <see cref="cEmailAddress.DisplayAddress"/>.
         /// </summary>
         public readonly cCulturedString DisplayName;
 
-        internal cAddress(cCulturedString pDisplayName) { DisplayName = pDisplayName; }
+        internal cAddress(cCulturedString pDisplayName)
+        {
+            DisplayName = pDisplayName ?? throw new ArgumentNullException(nameof(pDisplayName));
+        }
     }
 
     /// <summary>
@@ -69,19 +73,25 @@ namespace work.bacome.imapclient
     public class cEmailAddress : cAddress
     {
         /// <summary>
-        /// The raw form of the address (local-part@domain), with an un-decoded domain.
+        /// The display name for the address, may be <see langword="null"/>.
+        /// </summary>
+        new public readonly cCulturedString DisplayName;
+
+        /// <summary>
+        /// The address (local-part@domain) with the domain as sent.
         /// </summary>
         public readonly string Address;
 
         /// <summary>
-        /// The display form of the address (local-part@domain), with any punycode (RFC 3492) domain decoded.
+        /// The address (local-part@domain) with a punycode decoded domain.
         /// </summary>
         public readonly string DisplayAddress;
 
-        internal cEmailAddress(cCulturedString pDisplayName, string pAddress, string pDisplayAddress) : base(pDisplayName)
+        internal cEmailAddress(cCulturedString pDisplayName, string pAddress, string pDisplayAddress) : base(pDisplayName ?? new cCulturedString(pDisplayAddress))
         {
-            Address = pAddress;
-            DisplayAddress = pDisplayAddress;
+            DisplayName = pDisplayName;
+            Address = pAddress ?? throw new ArgumentNullException(nameof(pAddress));
+            DisplayAddress = pDisplayAddress ?? throw new ArgumentNullException(nameof(pDisplayAddress));
         }
 
         /// <inheritdoc />
@@ -95,7 +105,7 @@ namespace work.bacome.imapclient
     public class cGroupAddress : cAddress
     {
         /// <summary>
-        /// The collection of group members (may be empty).
+        /// The collection of group members. May be empty.
         /// </summary>
         public readonly ReadOnlyCollection<cEmailAddress> Addresses;
 

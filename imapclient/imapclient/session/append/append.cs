@@ -77,11 +77,6 @@ namespace work.bacome.imapclient
                             for (int i = 0; i < lFailedException.Count; i++) lFeedbackItems.Add(new cAppendFeedbackItem(lFailedException.Exception));
                             break;
 
-                        case cAppendCancelled lCancelled:
-
-                            for (int i = 0; i < lCancelled.Count; i++) lFeedbackItems.Add(new cAppendFeedbackItem(false));
-                            break;
-
                         default:
 
                             throw new cInternalErrorException($"switch/default {lResult}", lContext);
@@ -405,7 +400,7 @@ namespace work.bacome.imapclient
                     }
                     catch (OperationCanceledException)
                     {
-                        pResults.Add(new cAppendCancelled(pMessages.Count));
+                        pResults.Add(new cAppendFailedWithException(pMessages.Count, new OperationCanceledException()));
                         lAllAppendedOK = false;
                     }
                     catch (AggregateException e)

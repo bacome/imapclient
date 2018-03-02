@@ -359,12 +359,13 @@ namespace work.bacome.imapclient
 
                             string lMailbox = cTools.UTF8BytesToString(lMailboxBytes);
                             string lHost = cTools.UTF8BytesToString(lHostBytes);
+                            ;?; // nup
                             string lDisplayHost = IDNMapping.GetUnicode(lHost);
                             string lAddress = lMailbox + "@" + lHost;
                             string lDisplayAddress = lMailbox + "@" + lDisplayHost;
 
                             cCulturedString lDisplayName;
-                            if (lNameBytes == null) lDisplayName = new cCulturedString("<" + lDisplayAddress + ">");
+                            if (lNameBytes == null) lDisplayName = null;
                             else lDisplayName = new cCulturedString(lNameBytes);
 
                             var lEmailAddress = new cEmailAddress(lDisplayName, lAddress, lDisplayAddress);
@@ -1107,11 +1108,11 @@ namespace work.bacome.imapclient
                     if (lData.Envelope.ReplyTo.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.7");
                     if (lData.Envelope.To.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.8.1");
                     lEmailAddress = lData.Envelope.To[0] as cEmailAddress;
-                    if (lEmailAddress.DisplayName != "<imap@cac.washington.edu>" || lEmailAddress.Address != "imap@cac.washington.edu") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.8.2");
+                    if (lData.Envelope.To[0].DisplayName != "imap@cac.washington.edu" ||  lEmailAddress.DisplayName != null || lEmailAddress.Address != "imap@cac.washington.edu") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.8.2");
 
                     if (lData.Envelope.CC.Count != 2) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.9.1");
                     lEmailAddress = lData.Envelope.CC[0] as cEmailAddress;
-                    if (lEmailAddress.DisplayName != "<minutes@CNRI.Reston.VA.US>" || lEmailAddress.Address != "minutes@CNRI.Reston.VA.US") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.9.2");
+                    if (lEmailAddress.DisplayName != null || lEmailAddress.Address != "minutes@CNRI.Reston.VA.US") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.9.2");
                     lEmailAddress = lData.Envelope.CC[1] as cEmailAddress;
                     if (lEmailAddress.DisplayName != "John Klensin" || lEmailAddress.Address != "KLENSIN@MIT.EDU") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.9.3");
 
@@ -1145,7 +1146,31 @@ namespace work.bacome.imapclient
                     if (lData.Envelope.InReplyTo == null || lData.Envelope.InReplyTo.MsgIds.Count != 1 || lData.Envelope.InReplyTo.MsgIds[0] != "01KF8JCEOCBS0045PS@xxx.yyy.com") throw new cTestsException($"{nameof(cResponseDataFetch)}.1a.3");
 
 
+                    lCursor = new cBytesCursor(
+                            @"12 FETCH (FLAGS (\Seen) INTERNALDATE ""17-Jul-1996 02:44:25 -0700"" " +
+                            @"RFC822.SIZE 4286 ENVELOPE (""Wed, 17 Jul 1996 02:23:25 -0700 (PDT)"" " +
+                            @"""IMAP4rev1 WG mtg summary and minutes"" " +
+                            @"((NIL NIL ""gray"" ""xn--frd-l50a.com"")) " +
+                            @"((""Terry Gray"" NIL ""gray"" ""cac.washington.edu"")) " +
+                            @"((""Terry Gray"" NIL ""gray"" ""cac.washington.edu"")) " +
+                            @"((NIL NIL ""imap"" ""cac.washington.edu"")) " +
+                            @"((NIL NIL ""minutes"" ""CNRI.Reston.VA.US"")" +
+                            @"(""John Klensin"" NIL ""KLENSIN"" ""MIT.EDU"")) NIL ""<\""01KF8JCEOCBS0045PS\""@xxx.yyy.com>"" " +
+                            @"""<B27397-0100000@cac.washington.edu>"") " +
+                            @"BODY (""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"") NIL NIL ""7BIT"" 3028 92))");
 
+                    if (!lRDPF.Process(lCursor, out lRD, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.1b.1");
+                    lData = lRD as cResponseDataFetch;
+                    if (lData == null) throw new cTestsException($"{nameof(cResponseDataFetch)}.1b.2");
+
+                    if (lData.Envelope.From[0].DisplayName != "gray@fr€d.com") throw new cTestsException($"{nameof(cResponseDataFetch)}.1b.3");
+                    if (lData.Envelope.Sender[0].DisplayName != "Terry Gray") throw new cTestsException($"{nameof(cResponseDataFetch)}.1b.4");
+
+                    var lAddress = lData.Envelope.From[0] as cEmailAddress;
+                    if (lAddress.DisplayName != null || lAddress.Address != "gray@xn--frd-l50a.com" || lAddress.DisplayAddress != "gray@fr€d.com") throw new cTestsException($"{nameof(cResponseDataFetch)}.1b.5");
+
+                    lAddress = lData.Envelope.Sender[0] as cEmailAddress;
+                    if (lAddress.DisplayName != "Terry Gray" || lAddress.Address != "gray@cac.washington.edu" || lAddress.DisplayAddress != "gray@cac.washington.edu") throw new cTestsException($"{nameof(cResponseDataFetch)}.1b.6");
 
 
                     cBody lBody;

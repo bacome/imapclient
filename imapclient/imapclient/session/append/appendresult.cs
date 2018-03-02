@@ -8,7 +8,7 @@ namespace work.bacome.imapclient
         {
             private abstract class cAppendResult
             {
-                public static readonly cAppendCancelled Cancelled = new cAppendCancelled(1);
+                public static readonly cAppendFailedWithException Cancelled = new cAppendFailedWithException(new OperationCanceledException());
             }
 
             private class cAppendSucceeded : cAppendResult
@@ -74,19 +74,6 @@ namespace work.bacome.imapclient
                 }
 
                 public override string ToString() => $"{nameof(cAppendFailedWithResult)}({Count},{Exception})";
-            }
-
-            private class cAppendCancelled : cAppendResult
-            {
-                public readonly int Count;
-
-                public cAppendCancelled(int pCount)
-                {
-                    if (pCount < 1) throw new ArgumentOutOfRangeException(nameof(pCount));
-                    Count = pCount;
-                }
-
-                public override string ToString() => $"{nameof(cAppendCancelled)}({Count})";
             }
         }
     }

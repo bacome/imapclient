@@ -16,11 +16,13 @@ namespace work.bacome.imapclient
     {
         // rfc4505
 
+        public static readonly object AnonymousCredentialId = new object();
+
         private const string kName = "ANONYMOUS";
 
-        private readonly cBytes mTrace;
+        private readonly string mTrace;
 
-        private cSASLAnonymous(cBytes pTrace, eTLSRequirement pTLSRequirement) : base(kName, pTLSRequirement)
+        private cSASLAnonymous(string pTrace, eTLSRequirement pTLSRequirement, bool pValidated) : base(kName, pTLSRequirement)
         {
             mTrace = pTrace;
         }
@@ -33,15 +35,14 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cSASLAnonymous" select="remarks"/>
         public cSASLAnonymous(string pTrace, eTLSRequirement pTLSRequirement) : base(kName, pTLSRequirement)
         {
-            if (!ZIsValid(pTrace, out var lTrace)) throw new ArgumentOutOfRangeException(nameof(pTrace));
-            mTrace = lTrace;
+            if (!ZIsValid(pTrace, out mTrace)) throw new ArgumentOutOfRangeException(nameof(pTrace));
         }
 
         internal static bool TryConstruct(string pTrace, eTLSRequirement pTLSRequirement, out cSASLAnonymous rAnonymous)
         {
             if (ZIsValid(pTrace, out var lTrace))
             {
-                rAnonymous = new cSASLAnonymous(lTrace, pTLSRequirement);
+                rAnonymous = new cSASLAnonymous(lTrace, pTLSRequirement, true);
                 return true;
             }
 
@@ -49,7 +50,7 @@ namespace work.bacome.imapclient
             return false;
         }
 
-        private static bool ZIsValid(string pTrace, out cBytes rTrace)
+        private static bool ZIsValid(string pTrace, out string rTrace)
         {
             if (string.IsNullOrEmpty(pTrace)) { rTrace = null; return false; }
 
@@ -58,21 +59,20 @@ namespace work.bacome.imapclient
 
             if (pTrace.IndexOf('@') == -1)
             {
-                if (pTrace.Length < 256) { rTrace = null; return false; }
-                rTrace = new cBytes(Encoding.UTF8.GetBytes(pTrace));
-                return true;
+                if (pTrace.Length < 256)
+                {
+                    rTrace = pTrace;
+                    return true;
+                }
+
+                rTrace = null;
+                return false;
             }
 
             try
             {
                 var lAddress = new MailAddress(pTrace);
-
-                if (!cHeaderFieldValuePart.TryAsAddrSpec(lAddress.User, lAddress.Host, out var lPart)) { rTrace = null; return false; }
-
-                cHeaderFieldBytes lBytes = new cHeaderFieldBytes();
-                lPart.GetBytes(lBytes, eHeaderFieldValuePartContext.unstructured);
-
-                rTrace = new cBytes(lBytes.Bytes);
+                rTrace = lAddress.User + "@" + lAddress.Host;
                 return true;
             }
             catch
@@ -82,15 +82,20 @@ namespace work.bacome.imapclient
             }
         }
 
-        /// <inheritdoc cref="cSASL.GetAuthentication" select="summary"/>
+        /// <inheritdoc cref="cSASL.GetAuthentication"/>
         public override cSASLAuthentication GetAuthentication() => new cAuth(mTrace);
+
+        /// <summary>
+        /// Gets <see cref="AnonymousCredentialId"/>.
+        /// </summary>
+        public override object CredentialId => AnonymousCredentialId;
 
         private class cAuth : cSASLAuthentication
         {
             private bool mDone = false;
-            private readonly cBytes mTrace;
+            private readonly string mTrace;
 
-            public cAuth(cBytes pTrace) { mTrace = pTrace; }
+            public cAuth(string pTrace) { mTrace = pTrace; }
 
             public override IList<byte> GetResponse(IList<byte> pChallenge)
             {
@@ -98,7 +103,7 @@ namespace work.bacome.imapclient
                 mDone = true;
 
                 if (pChallenge != null && pChallenge.Count != 0) throw new ArgumentOutOfRangeException("non zero length challenge");
-                return mTrace;
+                return Encoding.UTF8.GetBytes(mTrace);
             }
 
             public override cSASLSecurity GetSecurity() => null;

@@ -7,7 +7,6 @@ namespace work.bacome.imapclient
     internal class cURIParts : IEquatable<cURIParts>
     {
         // rfc 3986, 6874
-        //  TODO: display host conversion using punycode
             
         private static readonly cBytes kSlashSlash = new cBytes("//");
 
@@ -66,6 +65,7 @@ namespace work.bacome.imapclient
             private set
             {
                 _Host = value;
+                ;?; // nup
                 _DisplayHost = cIMAPClient.IDNMapping.GetUnicode(value);
                 mParts |= fParts.host;
             }
@@ -421,6 +421,11 @@ namespace work.bacome.imapclient
             if (!LTryParse("http://www.ics.uci.edu/pub/ietf/uri/historical.html#WARNING", out lParts)) throw new cTestsException("URI.16");
             if (!lParts.ZHasParts(fParts.scheme | fParts.host | fParts.pathroot | fParts.path | fParts.fragment)) throw new cTestsException("URI.16.1");
             if (lParts.Scheme != "http" || lParts.Host != "www.ics.uci.edu" || lParts.Path != "pub/ietf/uri/historical.html" || lParts.Fragment != "WARNING") throw new cTestsException("URI.16.2");
+
+
+            // 17 - IDN
+            if (!LTryParse("IMAP://fr%E2%82%aCd@xn--frd-l50a.com:123456789123456", out lParts)) throw new cTestsException("should have succeeded 17", lContext);
+            if (!lParts.ZHasParts(fParts.scheme | fParts.userinfo | fParts.host | fParts.port) || lParts.UserInfo != "fr€d" || lParts.Host != "xn--frd-l50a.com" || lParts.DisplayHost != "fr€d.com" || lParts.Port != "123456789123456") throw new cTestsException("unexpected state 8", lContext);
 
 
             // relative URIs

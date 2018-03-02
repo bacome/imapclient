@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -32,7 +33,12 @@ namespace work.bacome.imapclient
             return new string(lChars.ToArray());
         }
 
-        public static string IdRight() => Environment.MachineName;
+        public static string IdRight()
+        {
+            // meant to be a DNS safe value
+            if (cCharset.AText.ContainsAll(Environment.MachineName)) return Environment.MachineName;
+            throw new InvalidOperationException("machinename not valid atom");
+        }
 
         public static string MsgId() => "<" + IdLeft() + "@" + IdRight() + ">";
 

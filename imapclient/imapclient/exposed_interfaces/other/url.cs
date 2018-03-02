@@ -45,7 +45,7 @@ namespace work.bacome.imapclient
         public string MechanismName => mParts.MechanismName;
         /**<summary>Gets the 'host' part of the URL. May be <see langword="null"/>.</summary>*/
         public string Host => mParts.Host;
-        /**<summary>Gets the decoded 'host' part of the URL. May be <see langword="null"/>.</summary>*/
+        /**<summary>Gets the punycode decoded 'host' part of the URL. May be <see langword="null"/>.</summary>*/
         public string DisplayHost => mParts.DisplayHost;
         /**<summary>Gets the 'port' part of the URL. Will be 143 if the port isn't specified in the URL.</summary>*/
         public int Port => mParts.Port;

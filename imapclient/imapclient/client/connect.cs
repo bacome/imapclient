@@ -177,8 +177,6 @@ namespace work.bacome.imapclient
                         bool lTriedCredentials = false;
                         Exception lAuthenticateException = null;
 
-                        var lAccountId = new cAccountId(lServer.Host, lAuthenticationParameters.AuthenticatedCredentialId);
-
                         bool lTLSInstalled = lSession.TLSInstalled;
 
                         if (lAuthenticationParameters.SASLs != null)
@@ -192,7 +190,7 @@ namespace work.bacome.imapclient
                                     {
                                         lTriedCredentials = true;
 
-                                        var lAuthenticateResult = await lSession.AuthenticateAsync(lMC, lAccountId, lSASL, lContext).ConfigureAwait(false);
+                                        var lAuthenticateResult = await lSession.AuthenticateAsync(lMC, lServer.Host, lSASL, lContext).ConfigureAwait(false);
 
                                         if (lAuthenticateResult != null)
                                         {
@@ -213,7 +211,7 @@ namespace work.bacome.imapclient
                             else
                             {
                                 lTriedCredentials = true;
-                                lAuthenticateException = await lSession.LoginAsync(lMC, lAccountId, lAuthenticationParameters.Login, lContext).ConfigureAwait(false);
+                                lAuthenticateException = await lSession.LoginAsync(lMC, lServer.Host, lAuthenticationParameters.Login, lContext).ConfigureAwait(false);
                             }
                         }
 

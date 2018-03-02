@@ -78,7 +78,7 @@ namespace work.bacome.imapclient
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZConvertMailMessagesAsync), pMC, pMailMessages, pReadConfiguration, pWriteConfiguration, pFlags, pReceived);
 
             long lToConvert = 0;
-            foreach (var lMailMessage in pMailMessages) lToConvert += ZConvertMailMessageValidate(lMailMessage, pCheckClient, lContext);
+            foreach (var lMailMessage in pMailMessages) lToConvert += await ZConvertMailMessageValidateAsync(lMailMessage, pCheckClient, lContext).ConfigureAwait(false);
             mSynchroniser.InvokeActionLong(pSetMaximum, lToConvert, lContext);
 
             var lMessages = new cAppendDataList();
@@ -92,9 +92,9 @@ namespace work.bacome.imapclient
             return lMessages;
         }
 
-        private long ZConvertMailMessageValidate(MailMessage pMailMessage, bool pCheckClient, cTrace.cContext pParentContext)
+        private async Task<long> ZConvertMailMessageValidateAsync(MailMessage pMailMessage, bool pCheckClient, cTrace.cContext pParentContext)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ZConvertMailMessageValidate));
+            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ZConvertMailMessageValidateAsync));
 
             long lToConvert = 0;
 
@@ -115,11 +115,11 @@ namespace work.bacome.imapclient
 
             foreach (var lAlternateView in pMailMessage.AlternateViews)
             {
-                lToConvert += ZConvertMailMessageValidateData(lAlternateView, true, pCheckClient);
-                foreach (var lLinkedResource in lAlternateView.LinkedResources) lToConvert += ZConvertMailMessageValidateData(lLinkedResource, false, pCheckClient);
+                lToConvert += await ZConvertMailMessageValidateDataAsync(lAlternateView, true, pCheckClient).ConfigureAwait(false);
+                foreach (var lLinkedResource in lAlternateView.LinkedResources) lToConvert += await ZConvertMailMessageValidateDataAsync(lLinkedResource, false, pCheckClient).ConfigureAwait(false);
             }
 
-            foreach (var lAttachment in pMailMessage.Attachments) lToConvert += ZConvertMailMessageValidateData(lAttachment, false, pCheckClient);
+            foreach (var lAttachment in pMailMessage.Attachments) lToConvert += await ZConvertMailMessageValidateDataAsync(lAttachment, false, pCheckClient).ConfigureAwait(false);
 
             return lToConvert;
         }
@@ -132,7 +132,7 @@ namespace work.bacome.imapclient
             return null;
         }
 
-        private long ZConvertMailMessageValidateData(AttachmentBase pData, bool pText, bool pCheckClient)
+        private async Task<long> ZConvertMailMessageValidateDataAsync(AttachmentBase pData, bool pText, bool pCheckClient)
         {
             // returns the length that needs to be converted to quoted printable
 
@@ -141,7 +141,7 @@ namespace work.bacome.imapclient
                 if (pCheckClient && ReferenceEquals(lMessageDataStream.Client, this)) throw new cMessageDataClientException();
                 if (ZConvertMailMessageDataStreamToAppendDataPart(lMessageDataStream, pData.TransferEncoding).AppendDataPartType != eConvertMailMessageAppendDataPartType.cantbeconverted) return 0;
                 if (!lMessageDataStream.HasKnownLength) throw new cMailMessageFormException(kMailMessageFormExceptionMessage.MessageDataStreamUnknownLength);
-                if (pData.TransferEncoding == TransferEncoding.QuotedPrintable || (pData.TransferEncoding == TransferEncoding.Unknown && pText)) return lMessageDataStream.GetKnownLength();
+                if (pData.TransferEncoding == TransferEncoding.QuotedPrintable || (pData.TransferEncoding == TransferEncoding.Unknown && pText)) return await lMessageDataStream.GetKnownLengthAsync().ConfigureAwait(false);
                 return 0;
             }
 
@@ -445,7 +445,8 @@ namespace work.bacome.imapclient
 
                         if (pData.TransferEncoding == TransferEncoding.Unknown)
                         {
-                            if (lEncodeResult.TempFileLength <= cBase64Encoder.EncodedLength(lMessageDataStream.GetKnownLength())) lTransferEncoding = TransferEncoding.QuotedPrintable;
+                            long lKnownLength = await lMessageDataStream.GetKnownLengthAsync().ConfigureAwait(false);
+                            if (lEncodeResult.TempFileLength <= cBase64Encoder.EncodedLength(lKnownLength)) lTransferEncoding = TransferEncoding.QuotedPrintable;
                             else lTransferEncoding = TransferEncoding.Base64;
                         }
                         else lTransferEncoding = TransferEncoding.QuotedPrintable;

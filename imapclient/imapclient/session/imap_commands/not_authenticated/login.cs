@@ -10,9 +10,9 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kLoginCommandPartLogin = new cTextCommandPart("LOGIN ");
 
-            public async Task<Exception> LoginAsync(cMethodControl pMC, cAccountId pAccountId, cLogin pLogin, cTrace.cContext pParentContext)
+            public async Task<Exception> LoginAsync(cMethodControl pMC, string pHost, cLogin pLogin, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(LoginAsync), pMC, pAccountId);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(LoginAsync), pMC, pHost);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.notauthenticated) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnauthenticated);
@@ -33,7 +33,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("login success");
-                        ZAuthenticated(lCapabilities, lHook, lResult.ResponseText, pAccountId, lContext);
+                        ZAuthenticated(lCapabilities, lHook, lResult.ResponseText, new cAccountId(pHost, pLogin.UserId), lContext);
                         return null;
                     }
 

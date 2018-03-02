@@ -260,6 +260,26 @@ namespace work.bacome.imapclient
             throw new cInternalErrorException($"{nameof(cMessageDataStream)}.{nameof(GetKnownLength)}");
         }
 
+        public async Task<uint> GetKnownLengthAsync()
+        {
+            if (!HasKnownLength) throw new InvalidOperationException();
+
+            if (mLength > 0) return mLength;
+
+            if (MessageHandle != null && Section == cSection.All && Decoding == eDecodingRequired.none)
+            {
+                if (!await Client.FetchAsync(MessageHandle, fMessageCacheAttributes.size).ConfigureAwait(false))
+                {
+                    if (MessageHandle.Expunged) throw new cMessageExpungedException(MessageHandle);
+                    throw new cRequestedDataNotReturnedException(MessageHandle);
+                }
+
+                return MessageHandle.Size.Value;
+            }
+
+            throw new cInternalErrorException($"{nameof(cMessageDataStream)}.{nameof(GetKnownLengthAsync)}");
+        }
+
         public int CurrentBufferSize => mBuffer?.CurrentSize ?? 0;
 
         public override bool CanRead => !mDisposed;
