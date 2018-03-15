@@ -18,7 +18,7 @@ namespace work.bacome.imapclient
             cModifiedUTF7._Tests(cTrace.cContext.None);
             cBase64._Tests(cTrace.cContext.None);
             cSession._Tests(cTrace.cContext.None);
-            cAuthenticationParameters._Tests(cTrace.cContext.None);
+            cIMAPAuthenticationParameters._Tests(cTrace.cContext.None);
             cURI._Tests(lContext);
             cURLParts._Tests(lContext);
             cURIParts._Tests(lContext);
