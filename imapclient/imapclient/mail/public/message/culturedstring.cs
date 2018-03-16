@@ -10,7 +10,7 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Represents a string that may include language information as per RFC 2231.
     /// </summary>
-    public class cCulturedString
+    public class cCulturedString : IEquatable<cCulturedString>
     {
         private static readonly cBytes kSpace = new cBytes(" ");
         private static readonly cBytes kCRLFSPACE = new cBytes("\r\n ");
@@ -98,7 +98,7 @@ namespace work.bacome.mailclient
             }
 
             if (lBytes.Count > 0) lParts.Add(new cCulturedStringPart(cTools.UTF8BytesToString(lBytes), null));
-            Parts = new ReadOnlyCollection<cCulturedStringPart>(lParts);
+            Parts = lParts.AsReadOnly();
         }
 
         internal cCulturedString(string pString)
@@ -107,6 +107,23 @@ namespace work.bacome.mailclient
             List<cCulturedStringPart> lParts = new List<cCulturedStringPart>();
             lParts.Add(new cCulturedStringPart(pString, null));
             Parts = new ReadOnlyCollection<cCulturedStringPart>(lParts);
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cCulturedString pObject) => this == pObject;
+
+        /// <inheritdoc />
+        public override bool Equals(object pObject) => this == pObject as cCulturedString;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int lHash = 17;
+                foreach (var lPart in Parts) lHash = lHash * 23 + lPart.GetHashCode();
+                return lHash;
+            }
         }
 
         /**<summary>Returns the string data sans the language information.</summary>*/
@@ -118,6 +135,21 @@ namespace work.bacome.mailclient
             foreach (var lPart in Parts) lBuilder.Append(lPart.String);
             return lBuilder.ToString();
         }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
+        public static bool operator ==(cCulturedString pA, cCulturedString pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+
+            if (pA.Parts.Count != pB.Parts.Count) return false;
+            for (int i = 0; i < pA.Parts.Count; i++) if (pA.Parts[i] != pB.Parts[i]) return false;
+            return true;
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
+        public static bool operator !=(cCulturedString pA, cCulturedString pB) => !(pA == pB);
 
         /// <inheritdoc cref="ToString"/>
         public static implicit operator string(cCulturedString pString) => pString?.ToString();
@@ -161,7 +193,7 @@ namespace work.bacome.mailclient
     /// Represents part of a string that may include language information as per RFC 2231.
     /// </summary>
     /// <seealso cref="cCulturedString"/>
-    public class cCulturedStringPart
+    public class cCulturedStringPart : IEquatable<cCulturedStringPart>
     {
         /// <summary>
         /// The text of the part (after RFC 2231 decoding). 
@@ -179,7 +211,37 @@ namespace work.bacome.mailclient
             LanguageTag = pLanguageTag;
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cCulturedStringPart pObject) => this == pObject;
+
+        /// <inheritdoc />
+        public override bool Equals(object pObject) => this == pObject as cCulturedStringPart;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int lHash = 17;
+                lHash = lHash * 23 + String.GetHashCode();
+                if (LanguageTag != null) lHash = lHash * 23 + LanguageTag.GetHashCode();
+                return lHash;
+            }
+        }
+
         /// <inheritdoc/>
         public override string ToString() => $"{nameof(cCulturedStringPart)}({String},{LanguageTag})";
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
+        public static bool operator ==(cCulturedStringPart pA, cCulturedStringPart pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+            return pA.String == pB.String && pA.LanguageTag == pB.LanguageTag;
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
+        public static bool operator !=(cCulturedStringPart pA, cCulturedStringPart pB) => !(pA == pB);
     }
 }

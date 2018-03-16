@@ -72,16 +72,31 @@ namespace work.bacome.mailclient
         }
     }
 
-    public class cMailAddressFormException : cMailException
+    public class cAddressFormException : cMailException
     {
         /// <summary>
-        /// The mail address concerned.
+        /// The mail address concerned. May be <see langword="null"/>.
         /// </summary>
         public readonly MailAddress MailAddress;
 
-        internal cMailAddressFormException(MailAddress pMailAddress)
+        /// <summary>
+        /// The address concerned. May be <see langword="null"/>.
+        /// </summary>
+        public readonly cAddress Address;
+
+        internal cAddressFormException(MailAddress pMailAddress)
         {
             MailAddress = pMailAddress;
+        }
+
+        internal cAddressFormException(cEmailAddress pEmailAddress)
+        {
+            Address = pEmailAddress;
+        }
+
+        internal cAddressFormException(cGroupAddress pGroupAddress)
+        {
+            Address = pGroupAddress;
         }
     }
 

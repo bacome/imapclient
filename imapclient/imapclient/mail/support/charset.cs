@@ -664,6 +664,27 @@ namespace work.bacome.mailclient.support
             public override bool Contains(char pChar) => pChar > ' ' && pChar != ':' && pChar < cChar.DEL;
         }
 
+        private class cWSPVChar : cCharset
+        {
+            public override bool Contains(byte pByte)
+            {
+                if (pByte > cASCII.DEL) return true; // allows utf8 to pass through (unvalidated)
+                if (pByte == cASCII.TAB) return true;
+                if (pByte < cASCII.SPACE) return false;
+                if (pByte < cASCII.DEL) return true;
+                return false;
+            }
+
+            public override bool Contains(char pChar)
+            {
+                if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
+                if (pChar == '\t') return true;
+                if (pChar < ' ') return false;
+                if (pChar < cChar.DEL) return true;
+                return false;
+            }
+        }
+
         private class cVSChar : cCharset
         {
             public override bool Contains(byte pByte) => pByte >= cASCII.SPACE && pByte < cASCII.DEL;
@@ -797,6 +818,8 @@ namespace work.bacome.mailclient.support
         public static readonly cCharset ObsDText = new cObsDText();
         /**<summary>Represents the characters used in RFC 5322 'ftext'.</summary>*/
         public static readonly cCharset FText = new cFText();
+        /**<summary>Represents the characters used in RFC 5234 WSP and RFC 6532 'VCHAR'.</summary>*/
+        public static readonly cCharset WSPVChar = new cWSPVChar();
         /**<summary>Represents the characters used in RFC 6749 'VSCHAR'.</summary>*/
         public static readonly cCharset VSChar = new cVSChar();
         /**<summary>Represents the characters used in RFC 2045 'token'.</summary>*/

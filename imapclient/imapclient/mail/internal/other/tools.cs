@@ -277,6 +277,7 @@ namespace work.bacome.mailclient
         {
             // if the domain is already unicode, this will normalise it
             //  (note that calling IdnMapping.GetUnicode on a string with unicode in it will throw)
+            if (pHost == null) return null;
             var lASCII = kIDNMapping.GetAscii(pHost);
             return kIDNMapping.GetUnicode(lASCII);
         }
@@ -322,12 +323,52 @@ namespace work.bacome.mailclient
             return lFWSStage == 0;
         }
 
-        public static bool IsValidDotAtom(string pText)
+        public static bool IsDotAtom(string pText)
         {
             if (pText == null) return false;
             var lAtoms = pText.Split('.');
             foreach (var lAtom in lAtoms) if (lAtom.Length == 0 || !cCharset.AText.ContainsAll(lAtom)) return false;
             return true;
+        }
+
+        public static bool IsDomainLiteral(string pText, out string rDText)
+        {
+            if (pText == null) { rDText = null; return false; }
+            cBytesCursor lCursor = new cBytesCursor(pText);
+            lCursor.SkipRFC822CFWS();
+            if (!lCursor.SkipByte(cASCII.LBRACKET)) { rDText = null; return false; }
+            lCursor.SkipRFC822FWS();
+            if (!lCursor.GetToken(cCharset.DText, null, null, out rDText)) return false;
+            lCursor.SkipRFC822FWS();
+            if (!lCursor.SkipByte(cASCII.RBRACKET)) return false;
+            lCursor.SkipRFC822CFWS();
+            return lCursor.Position.AtEnd;
+        }
+
+        public static bool IsDomain(string pText) => IsDomainLiteral(pText, out _) || IsDotAtom(pText);
+
+        public static List<cEmailAddress> ToEmailAddresses(IEnumerable<MailAddress> pMailAddresses)
+        {
+            ;?;
+        }
+
+        public static string Enquote(string pText)
+        {
+            if (pText == null) return null;
+
+            var lBuilder = new StringBuilder();
+
+            lBuilder.Append('"');
+
+            foreach (char lChar in pText)
+            {
+                if (lChar == '"' || lChar == '\\') lBuilder.Append('\\');
+                lBuilder.Append(lChar);
+            }
+
+            lBuilder.Append('"');
+
+            return lBuilder.ToString();
         }
     }
 }

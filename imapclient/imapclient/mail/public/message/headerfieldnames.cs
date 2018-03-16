@@ -142,7 +142,11 @@ namespace work.bacome.mailclient
         /// Returns a new instance containing a copy of the specified list.
         /// </summary>
         /// <param name="pNames"></param>
-        public static implicit operator cHeaderFieldNames(cHeaderFieldNameList pNames) => new cHeaderFieldNames(pNames);
+        public static implicit operator cHeaderFieldNames(cHeaderFieldNameList pNames)
+        {
+            if (pNames == null) return null;
+            return new cHeaderFieldNames(pNames);
+        }
 
         internal static bool TryConstruct(IEnumerable<string> pNames, out cHeaderFieldNames rNames)
         {

@@ -20,6 +20,8 @@ namespace work.bacome.mailclient
             if (!cTools.IsValidHeaderFieldText(pText)) throw new ArgumentOutOfRangeException(nameof(pText));
         }
 
+        internal bool HasContent => !string.IsNullOrWhiteSpace(mText);
+
         internal override void AddTo(cHeaderFieldBytes pBytes, eHeaderFieldTextContext pContext) => pBytes.AddEncodableText(mText, pContext);
 
         public override string ToString() => $"{nameof(cHeaderFieldText)}({mText})";
@@ -73,22 +75,24 @@ namespace work.bacome.mailclient
             if (pParts == null) throw new ArgumentNullException(nameof(pParts));
 
             var lParts = new List<cHeaderFieldCommentOrText>();
-            bool lAllComments = true;
+            bool lHasContent = false;
 
             foreach (var lPart in pParts)
             {
                 if (lPart == null) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
-                if (lPart is cHeaderFieldText) lAllComments = false;
+                if (lPart is cHeaderFieldText lText && lText.HasContent) lHasContent = true;
                 lParts.Add(lPart);
             }
 
-            if (lAllComments) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.HasNoContent);
+            if (!lHasContent) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.HasNoContent);
 
             mParts = lParts.AsReadOnly();
         }
 
         public cHeaderFieldPhrase(string pText)
         {
+            if (pText == null) throw new ArgumentNullException(nameof(pText));
+            if (string.IsNullOrWhiteSpace(pText)) throw new ArgumentOutOfRangeException(nameof(pText));
             var lParts = new List<cHeaderFieldCommentOrText>();
             lParts.Add(new cHeaderFieldText(pText));
             mParts = lParts.AsReadOnly();

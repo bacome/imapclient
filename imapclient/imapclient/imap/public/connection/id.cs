@@ -205,7 +205,11 @@ namespace work.bacome.imapclient
         /// <param name="pDictionary"></param>
         /// <returns></returns>
         /// <inheritdoc cref="cIMAPClientIdUTF8" select="remarks"/>
-        public static implicit operator cIMAPClientIdUTF8(cIMAPIdDictionary pDictionary) => new cIMAPClientIdUTF8(pDictionary);
+        public static implicit operator cIMAPClientIdUTF8(cIMAPIdDictionary pDictionary)
+        {
+            if (pDictionary == null) return null;
+            return new cIMAPClientIdUTF8(pDictionary);
+        }
     }
 
     /// <inheritdoc cref="cIMAPClientIdUTF8" select="summary|remarks"/>
@@ -233,7 +237,11 @@ namespace work.bacome.imapclient
         /// <param name="pDictionary"></param>
         /// <returns></returns>
         /// <inheritdoc cref="cIMAPClientIdUTF8" select="remarks"/>
-        public static implicit operator cIMAPClientId(cIMAPIdDictionary pDictionary) => new cIMAPClientId(pDictionary);
+        public static implicit operator cIMAPClientId(cIMAPIdDictionary pDictionary)
+        {
+            if (pDictionary == null) return null;
+            return new cIMAPClientId(pDictionary);
+        }
     }
 
     /// <summary>

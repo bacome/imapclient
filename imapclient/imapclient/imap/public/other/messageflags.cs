@@ -243,7 +243,11 @@ namespace work.bacome.imapclient
         /// Returns a new instance containing a copy of the specified list.
         /// </summary>
         /// <param name="pFlags"></param>
-        public static implicit operator cStorableFlags(cStorableFlagList pFlags) => new cStorableFlags(pFlags);
+        public static implicit operator cStorableFlags(cStorableFlagList pFlags)
+        {
+            if (pFlags == null) return null;
+            return new cStorableFlags(pFlags);
+        }
     }
 
     /// <summary>
@@ -286,7 +290,11 @@ namespace work.bacome.imapclient
         /// Returns a new instance containing a copy of the specified list.
         /// </summary>
         /// <param name="pFlags"></param>
-        public static implicit operator cFetchableFlags(cFetchableFlagList pFlags) => new cFetchableFlags(pFlags);
+        public static implicit operator cFetchableFlags(cFetchableFlagList pFlags)
+        {
+            if (pFlags == null) return null;
+            return new cFetchableFlags(pFlags);
+        }
 
         internal static bool TryConstruct(IEnumerable<string> pFlags, out cFetchableFlags rFlags)
         {

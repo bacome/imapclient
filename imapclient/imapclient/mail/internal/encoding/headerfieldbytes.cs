@@ -203,7 +203,7 @@ namespace work.bacome.mailclient
         {
             var lContainsNonASCII = ZContainsNonASCII(pText);
             if (lContainsNonASCII && !mUTF8Headers) return false;
-            if (!cTools.IsValidDotAtom(pText)) return false;
+            if (!cTools.IsDotAtom(pText)) return false;
             ZAddNonEncodedWord(kNoWSP, Encoding.UTF8.GetBytes(pText), pText.Length);
             if (lContainsNonASCII) mUsedUTF8 = true;
             return true;
@@ -211,32 +211,10 @@ namespace work.bacome.mailclient
 
         public bool TryAddQuotedString(string pText)
         {
-            bool lContainsNonASCII = false;
-            var lBuilder = new StringBuilder();
-
-            lBuilder.Append('"');
-
-            foreach (char lChar in pText)
-            {
-                if (lChar == '\t') lBuilder.Append(lChar);
-                else
-                {
-                    if (lChar < ' ' || lChar == cChar.DEL) return false;
-
-                    if (lChar > cChar.DEL)
-                    {
-                        if (!mUTF8Headers) return false;
-                        lContainsNonASCII = true;
-                    }
-
-                    if (lChar == '"' || lChar == '\\') lBuilder.Append('\\');
-                    lBuilder.Append(lChar);
-                }
-            }
-
-            lBuilder.Append('"');
-
-            ZAddFoldableText(lBuilder.ToString());
+            var lContainsNonASCII = ZContainsNonASCII(pText);
+            if (lContainsNonASCII && !mUTF8Headers) return false;
+            if (!cCharset.WSPVChar.ContainsAll(pText)) return false;
+            ZAddFoldableText(cTools.Enquote(pText));
             if (lContainsNonASCII) mUsedUTF8 = true;
             return true;
         }

@@ -296,11 +296,6 @@ namespace work.bacome.imapclient
                     cCulturedString lGroupDisplayName = null;
                     List<cEmailAddress> lGroupAddresses = null;
 
-                    bool lFirst = true;
-
-                    string lSortString = null; // rfc5256
-                    string lDisplaySortString = null; // rfc5957
-
                     while (true)
                     {
                         // extract an address
@@ -339,23 +334,6 @@ namespace work.bacome.imapclient
                                 if (lGroupAddresses != null) { rAddresses = null; return false; } // start of group while in a group
                                 lGroupDisplayName = new cCulturedString(lMailboxBytes);
                                 lGroupAddresses = new List<cEmailAddress>();
-
-                                if (lFirst)
-                                {
-                                    lSortString = lGroupDisplayName;
-
-                                    if (lNameBytes != null)
-                                    {
-                                        lDisplaySortString = new cCulturedString(lNameBytes);
-                                        if (lDisplaySortString.Length != 0) lFirst = false;
-                                    }
-
-                                    if (lFirst)
-                                    {
-                                        lDisplaySortString = lGroupDisplayName;
-                                        lFirst = false;
-                                    }
-                                }
                             }
                         }
                         else
@@ -365,15 +343,12 @@ namespace work.bacome.imapclient
 
                             string lMailbox = cTools.UTF8BytesToString(lMailboxBytes);
                             string lHost = cTools.UTF8BytesToString(lHostBytes);
-                            //string lDisplayHost = cTools.GetDisplayHost(lHost);
-                            //string lAddress = lMailbox + "@" + lHost;
-                            //string lDisplayAddress = lMailbox + "@" + lDisplayHost;
 
                             cCulturedString lDisplayName;
                             if (lNameBytes == null) lDisplayName = null;
                             else lDisplayName = new cCulturedString(lNameBytes);
 
-                            var lEmailAddress = new cEmailAddress(lDisplayName, lMailbox, lHost);
+                            var lEmailAddress = new cEmailAddress(lMailbox, lHost, lDisplayName);
 
                             if (lGroupAddresses != null) lGroupAddresses.Add(lEmailAddress);
                             else lAddresses.Add(lEmailAddress);
@@ -402,7 +377,7 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.SkipByte(cASCII.RPAREN)) { rAddresses = null; return false; }
 
-                    rAddresses = new cAddresses(lSortString, lDisplaySortString, lAddresses);
+                    rAddresses = new cAddresses(lAddresses);
 
                     return true;
                 }
