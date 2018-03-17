@@ -19,17 +19,20 @@ namespace work.bacome.mailclient
         {
             mUTF8Headers = pUTF8Headers;
             mEncoding = pEncoding ?? throw new ArgumentNullException(nameof(pEncoding));
-            mCharsetNameBytes = new cBytes(cTools.CharsetNameBytes(pEncoding));
+            mCharsetNameBytes = new cBytes(cTools.GetCharsetNameBytes(pEncoding));
         }
 
-        public cLiteralMessageDataPart UnstructuredValue(string pFieldName, string pFieldValue)
+        public cLiteralMessageDataPart UnstructuredValue(string pFieldName, string pText)
         {
             var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
-            if (pFieldValue == null) throw new ArgumentNullException(nameof(pFieldValue));
-            if (!cTools.IsValidHeaderFieldText(pFieldValue)) throw new ArgumentOutOfRangeException(nameof(pFieldValue));
-            lBytes.AddEncodableText(pFieldValue, eHeaderFieldTextContext.unstructured);
+            if (pText == null) throw new ArgumentNullException(nameof(pText));
+            if (!cCharset.WSPVChar.ContainsAll(pText)) throw new ArgumentOutOfRangeException(nameof(pText));
+            if (!lBytes.TryAddEncodableText(pText, eHeaderFieldTextContext.unstructured)) throw new ArgumentOutOfRangeException(nameof(pText));
             lBytes.AddNewLine();
             return new cLiteralMessageDataPart(lBytes.Bytes, lBytes.Format);
+
+            if (!cTools.IsValidHeaderFieldText(pFieldValue)) throw new ArgumentOutOfRangeException(nameof(pFieldValue));
+            lBytes.AddEncodableText(pFieldValue, eHeaderFieldTextContext.unstructured);
         }
 
         public cLiteralMessageDataPart PhraseValue(string pFieldName, params string[] pPhrases) => PhraseValue(pFieldName, pPhrases as IEnumerable<string>);
@@ -41,6 +44,8 @@ namespace work.bacome.mailclient
             if (pPhrases == null) throw new ArgumentNullException(nameof(pPhrases));
 
             bool lFirst = false;
+
+            ;?; // note that a phrase must include some content and may be normalised
 
             foreach (var lPhrase in pPhrases)
             {

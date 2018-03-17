@@ -10,7 +10,7 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Represents a string that may include language information as per RFC 2231.
     /// </summary>
-    public class cCulturedString : IEquatable<cCulturedString>
+    public class cCulturedString
     {
         private static readonly cBytes kSpace = new cBytes(" ");
         private static readonly cBytes kCRLFSPACE = new cBytes("\r\n ");
@@ -109,6 +109,7 @@ namespace work.bacome.mailclient
             Parts = new ReadOnlyCollection<cCulturedStringPart>(lParts);
         }
 
+        /* TODO: remove
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public bool Equals(cCulturedString pObject) => this == pObject;
 
@@ -124,7 +125,7 @@ namespace work.bacome.mailclient
                 foreach (var lPart in Parts) lHash = lHash * 23 + lPart.GetHashCode();
                 return lHash;
             }
-        }
+        } */
 
         /**<summary>Returns the string data sans the language information.</summary>*/
         public override string ToString()
@@ -136,6 +137,7 @@ namespace work.bacome.mailclient
             return lBuilder.ToString();
         }
 
+        /*
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cCulturedString pA, cCulturedString pB)
         {
@@ -149,7 +151,7 @@ namespace work.bacome.mailclient
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
-        public static bool operator !=(cCulturedString pA, cCulturedString pB) => !(pA == pB);
+        public static bool operator !=(cCulturedString pA, cCulturedString pB) => !(pA == pB); */
 
         /// <inheritdoc cref="ToString"/>
         public static implicit operator string(cCulturedString pString) => pString?.ToString();
@@ -193,7 +195,7 @@ namespace work.bacome.mailclient
     /// Represents part of a string that may include language information as per RFC 2231.
     /// </summary>
     /// <seealso cref="cCulturedString"/>
-    public class cCulturedStringPart : IEquatable<cCulturedStringPart>
+    public class cCulturedStringPart // TODO: remove : IEquatable<cCulturedStringPart>
     {
         /// <summary>
         /// The text of the part (after RFC 2231 decoding). 
@@ -211,6 +213,7 @@ namespace work.bacome.mailclient
             LanguageTag = pLanguageTag;
         }
 
+        /*
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public bool Equals(cCulturedStringPart pObject) => this == pObject;
 
@@ -227,11 +230,12 @@ namespace work.bacome.mailclient
                 if (LanguageTag != null) lHash = lHash * 23 + LanguageTag.GetHashCode();
                 return lHash;
             }
-        }
+        } */
 
         /// <inheritdoc/>
         public override string ToString() => $"{nameof(cCulturedStringPart)}({String},{LanguageTag})";
 
+        /*
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cCulturedStringPart pA, cCulturedStringPart pB)
         {
@@ -242,6 +246,6 @@ namespace work.bacome.mailclient
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
-        public static bool operator !=(cCulturedStringPart pA, cCulturedStringPart pB) => !(pA == pB);
+        public static bool operator !=(cCulturedStringPart pA, cCulturedStringPart pB) => !(pA == pB); */
     }
 }

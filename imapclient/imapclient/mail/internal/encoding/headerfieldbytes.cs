@@ -51,8 +51,13 @@ namespace work.bacome.mailclient
             mCurrentLineCharCount = mCurrentLineByteCount;
         }
 
-        public void AddEncodableText(string pText, eHeaderFieldTextContext pContext)
+        public bool TryAddEncodableText(string pText, eHeaderFieldTextContext pContext)
         {
+            ;?; // the objective is to retain all the white space as passed in
+            ;?;  // the restriction is that no lines can be generated that are just white space
+            ;?;   // and no lines with encoded words longer than 76 chars can be generated
+            ;?;   // and no lines longer than 998 chars can be generated
+
             char lChar;
             List<char> lLeadingWSP = new List<char>();
             List<char> lWordChars = new List<char>();
@@ -107,37 +112,45 @@ namespace work.bacome.mailclient
                         lPosition++;
                     }
 
+                    ;?; // note that this removes WSP
+
                     // nothing left on this line
                     if (lWordChars.Count == 0) break;
 
-                    var lContainsNonASCII = ZContainsNonASCII(lWordChars);
+                    var lContainsNonASCII = cTools.ContainsNonASCII(lWordChars);
+
+
+                    ;?; // note that this removes WSP
 
                     // process the white space and word
                     //
                     if (ZLooksLikeAnEncodedWord(lWordChars) || (!mUTF8Headers && lContainsNonASCII))
                     {
                         if (lEncodedWordWordChars.Count == 0) lEncodedWordLeadingWSP.AddRange(lLeadingWSP);
-                        if (lEncodedWordWordChars.Count > 0 || mLastWordType == eWordType.encodedword) lEncodedWordWordChars.Add(' ');
+                        if (lEncodedWordWordChars.Count > 0 || mLastWordType == eWordType.encodedword) lEncodedWordWordChars.AddRange(lLeadingWSP);
                         lEncodedWordWordChars.AddRange(lWordChars);
                     }
                     else
                     {
                         if (lContainsNonASCII) mUsedUTF8 = true;
 
+                        ;?;
+
                         if (lEncodedWordWordChars.Count > 0)
                         {
+                            ;?; // chekc that this retains the leading wsp (folding if required)
                             ZAddEncodedWords(lEncodedWordLeadingWSP, lEncodedWordWordChars, pContext);
                             lEncodedWordLeadingWSP.Clear();
                             lEncodedWordWordChars.Clear();
                         }
 
-                        List<char> lNonEncodedWordChars;
+                        char[] lNonEncodedWordChars;
 
                         switch (pContext)
                         {
                             case eHeaderFieldTextContext.unstructured:
 
-                                lNonEncodedWordChars = lWordChars;
+                                lNonEncodedWordChars = lWordChars.ToArray();
                                 break;
 
                             case eHeaderFieldTextContext.comment:
@@ -154,21 +167,8 @@ namespace work.bacome.mailclient
 
                             case eHeaderFieldTextContext.phrase:
 
-                                if (cCharset.AText.ContainsAll(lWordChars)) lNonEncodedWordChars = lWordChars;
-                                else
-                                {
-                                    lNonEncodedWordChars = new List<char>();
-
-                                    lNonEncodedWordChars.Add('"');
-
-                                    foreach (var lWordChar in lWordChars)
-                                    {
-                                        if (lWordChar == '"' || lWordChar == '\\') lNonEncodedWordChars.Add('\\');
-                                        lNonEncodedWordChars.Add(lWordChar);
-                                    }
-
-                                    lNonEncodedWordChars.Add('"');
-                                }
+                                if (cCharset.AText.ContainsAll(lWordChars)) lNonEncodedWordChars = lWordChars.ToArray;
+                                else lNonEncodedWordChars = cTools.Enquote(lWordChars).ToCharArray();
 
                                 break;
 
@@ -177,7 +177,7 @@ namespace work.bacome.mailclient
                                 throw new cInternalErrorException($"{nameof(cHeaderFieldBytes)}.{nameof(AddEncodableText)}");
                         }
 
-                        ZAddNonEncodedWord(lLeadingWSP, Encoding.UTF8.GetBytes(lNonEncodedWordChars.ToArray()), lNonEncodedWordChars.Count);
+                        ZAddNonEncodedWord(lLeadingWSP, Encoding.UTF8.GetBytes(lNonEncodedWordChars), lNonEncodedWordChars.Length);
                     }
                 }
 
@@ -201,9 +201,10 @@ namespace work.bacome.mailclient
 
         public bool TryAddDotAtom(string pText)
         {
-            var lContainsNonASCII = ZContainsNonASCII(pText);
+            var lContainsNonASCII = cTools.ContainsNonASCII(pText);
             if (lContainsNonASCII && !mUTF8Headers) return false;
             if (!cTools.IsDotAtom(pText)) return false;
+            ;?; // needs to be try now
             ZAddNonEncodedWord(kNoWSP, Encoding.UTF8.GetBytes(pText), pText.Length);
             if (lContainsNonASCII) mUsedUTF8 = true;
             return true;
@@ -211,9 +212,10 @@ namespace work.bacome.mailclient
 
         public bool TryAddQuotedString(string pText)
         {
-            var lContainsNonASCII = ZContainsNonASCII(pText);
+            var lContainsNonASCII = cTools.ContainsNonASCII(pText);
             if (lContainsNonASCII && !mUTF8Headers) return false;
             if (!cCharset.WSPVChar.ContainsAll(pText)) return false;
+            ;?; // needs to be try now
             ZAddFoldableText(cTools.Enquote(pText));
             if (lContainsNonASCII) mUsedUTF8 = true;
             return true;
@@ -221,8 +223,9 @@ namespace work.bacome.mailclient
 
         public bool TryAddFoldableText(string pText)
         {
-            var lContainsNonASCII = ZContainsNonASCII(pText);
+            var lContainsNonASCII = cTools.ContainsNonASCII(pText);
             if (lContainsNonASCII && !mUTF8Headers) return false;
+            ;?; // needs to be try now
             ZAddFoldableText(pText);
             if (lContainsNonASCII) mUsedUTF8 = true;
             return true;
@@ -272,12 +275,6 @@ namespace work.bacome.mailclient
 
         public cBytes Bytes => new cBytes(mBytes);
         public fMessageDataFormat Format => mUsedUTF8 ? fMessageDataFormat.utf8headers : 0;
-
-        private bool ZContainsNonASCII(IEnumerable<char> pChars)
-        {
-            foreach (var lChar in pChars) if (lChar > cChar.DEL) return true;
-            return false;
-        }
 
         private bool ZLooksLikeAnEncodedWord(List<char> pWordChars)
         {
@@ -331,6 +328,7 @@ namespace work.bacome.mailclient
 
         private void ZAddNonEncodedWord(IList<char> pLeadingWSP, IList<byte> pWordBytes, int pWordCharCount)
         {
+            ;?; // needs to be try
             if (pLeadingWSP == null) throw new ArgumentNullException(nameof(pLeadingWSP));
             if (pWordBytes.Count == 0) throw new ArgumentOutOfRangeException(nameof(pWordBytes));
             if (pWordCharCount <= 0) throw new ArgumentOutOfRangeException(nameof(pWordCharCount));
@@ -373,6 +371,7 @@ namespace work.bacome.mailclient
 
         private void ZAddEncodedWords(List<char> pLeadingWSP, List<char> pWordChars, eHeaderFieldTextContext pContext)
         {
+            ;?; // needs to be try
             if (pLeadingWSP == null) throw new ArgumentNullException(nameof(pLeadingWSP));
             if (pWordChars == null) throw new ArgumentNullException(nameof(pWordChars));
             if (pWordChars.Count == 0) throw new ArgumentOutOfRangeException(nameof(pWordChars));
@@ -468,6 +467,8 @@ namespace work.bacome.mailclient
 
         private void ZAddEncodedWord(IList<char> pLeadingWSP, byte pEncoding, List<byte> pEncodedText)
         {
+            ;?; // needs to be try and to retain wsp
+
             if (mCurrentLineByteCount + pLeadingWSP.Count + 7 + mCharsetNameBytes.Count + pEncodedText.Count > 76)
             {
                 mBytes.AddRange(kCRLFSPACE);

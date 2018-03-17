@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net.Mail;
 using System.Text;
 using work.bacome.mailclient.support;
 
@@ -194,7 +195,7 @@ namespace work.bacome.mailclient
             return pException;
         }
 
-        public static List<byte> CharsetNameBytes(Encoding pEncoding)
+        public static List<byte> GetCharsetNameBytes(Encoding pEncoding)
         {
             if (pEncoding == null) throw new ArgumentNullException(nameof(pEncoding));
             List<byte> lResult = new List<byte>();
@@ -216,7 +217,7 @@ namespace work.bacome.mailclient
             }
         }
 
-        public static string RFC822DateTimeString(DateTime pDateTime)
+        public static string GetRFC822DateTimeString(DateTime pDateTime)
         {
             string lSign;
             string lZone;
@@ -250,7 +251,7 @@ namespace work.bacome.mailclient
             return string.Format("{0:dd} {1} {0:yyyy} {0:HH}:{0:mm}:{0:ss} {2}{3}", pDateTime, lMonth, lSign, lZone);
         }
 
-        public static string RFC822DateTimeString(DateTimeOffset pDateTimeOffset)
+        public static string GetRFC822DateTimeString(DateTimeOffset pDateTimeOffset)
         {
             string lSign;
             string lZone;
@@ -282,45 +283,17 @@ namespace work.bacome.mailclient
             return kIDNMapping.GetUnicode(lASCII);
         }
 
-        public static bool IsValidHeaderFieldText(string pText)
+        public static string NormalisePhraseText(string pText)
         {
-            if (pText == null) return false;
+            if (pText == null) return null;
+            if (string.IsNullOrWhiteSpace(pText)) return null;
+            string lText = pText.Trim();
 
-            int lFWSStage = 0;
 
-            foreach (char lChar in pText)
-            {
-                switch (lFWSStage)
-                {
-                    case 0:
 
-                        if (lChar == '\r')
-                        {
-                            lFWSStage = 1;
-                            break;
-                        }
-
-                        if (lChar == '\t') break;
-
-                        if (lChar < ' ' || lChar == cChar.DEL) return false;
-
-                        break;
-
-                    case 1:
-
-                        if (lChar != '\n') return false;
-                        lFWSStage = 2;
-                        break;
-
-                    case 2:
-
-                        if (lChar != '\t' && lChar != ' ') return false;
-                        lFWSStage = 0;
-                        break;
-                }
-            }
-
-            return lFWSStage == 0;
+            ;?; // must be validheadertext first
+            ;?; // trim() and convert all runs of wsp to single space
+            ;?; //  empty string is not valid
         }
 
         public static bool IsDotAtom(string pText)
@@ -347,20 +320,36 @@ namespace work.bacome.mailclient
 
         public static bool IsDomain(string pText) => IsDomainLiteral(pText, out _) || IsDotAtom(pText);
 
-        public static List<cEmailAddress> ToEmailAddresses(IEnumerable<MailAddress> pMailAddresses)
+        public static List<cEmailAddress> MailAddressesToEmailAddresses(IEnumerable<MailAddress> pMailAddresses)
         {
-            ;?;
+            if (pMailAddresses == null) throw new ArgumentNullException(nameof(pMailAddresses));
+
+            var lEmailAddresses = new List<cEmailAddress>();
+
+            foreach (var lMailAddress in pMailAddresses)
+            {
+                if (lMailAddress == null) throw new ArgumentOutOfRangeException(nameof(pMailAddresses), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
+                lEmailAddresses.Add(lMailAddress);
+            }
+
+            return lEmailAddresses;
         }
 
-        public static string Enquote(string pText)
+        public static bool ContainsNonASCII(IEnumerable<char> pChars)
         {
-            if (pText == null) return null;
+            foreach (var lChar in pChars) if (lChar > cChar.DEL) return true;
+            return false;
+        }
+
+        public static string Enquote(IEnumerable<char> pChars)
+        {
+            if (pChars == null) return null;
 
             var lBuilder = new StringBuilder();
 
             lBuilder.Append('"');
 
-            foreach (char lChar in pText)
+            foreach (char lChar in pChars)
             {
                 if (lChar == '"' || lChar == '\\') lBuilder.Append('\\');
                 lBuilder.Append(lChar);

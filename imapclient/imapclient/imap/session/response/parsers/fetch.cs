@@ -322,6 +322,7 @@ namespace work.bacome.imapclient
                             {
                                 // group finish
 
+                                ;?; // don't fail
                                 if (lGroupAddresses == null) { rAddresses = null; return false; } // end of group without a start of group
                                 lAddresses.Add(new cGroupAddress(lGroupDisplayName, lGroupAddresses));
                                 lGroupDisplayName = null;

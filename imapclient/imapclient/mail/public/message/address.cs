@@ -13,6 +13,13 @@ namespace work.bacome.mailclient
     /// </summary>
     public abstract class cAddress : IEquatable<cAddress>
     {
+        ;?; // raw display name and string display name
+
+
+        // note that the string is the "phrase ised" string from the culturedstring cTools.ToPhrase() removes wsp beginning and end and converts embedded to one space
+
+            // and all comparisons are to the phrase -ised string
+
         /// <summary>
         /// The display name for the address, may be <see langword="null"/>.
         /// </summary>

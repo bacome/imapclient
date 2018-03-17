@@ -62,7 +62,7 @@ namespace work.bacome.mailclient
 
             // if the value is a short quoted-string
 
-            bool lValueContainsNonASCII = ZStringContainsNonASCII(mValue);
+            bool lValueContainsNonASCII = cTools.ContainsNonASCII(mValue);
 
             if (pBytes.UTF8Allowed || !lValueContainsNonASCII)
             {
@@ -185,12 +185,6 @@ namespace work.bacome.mailclient
 
                 if (lFromTextElement < lValue.LengthInTextElements) pBytes.AddNonEncodedWord(cHeaderFieldBytes.NoWSP, lLastSection, lLastSection.Count);
             }
-        }
-
-        private bool ZStringContainsNonASCII(string pString)
-        {
-            foreach (var lChar in pString) if (lChar > cASCII.DEL) return true;
-            return false;
         }
 
         private List<byte> ZQuotedString(string pString, out int rQuotingCharCount)

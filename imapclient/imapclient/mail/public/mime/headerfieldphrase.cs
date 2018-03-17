@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
 {
     public abstract class cHeaderFieldCommentOrText
     {
         internal cHeaderFieldCommentOrText() { }
-        internal abstract void AddTo(cHeaderFieldBytes pBytes, eHeaderFieldTextContext pContext);
+        internal abstract bool TryAddEncodableText(cHeaderFieldBytes pBytes, eHeaderFieldTextContext pContext);
     }
 
     public class cHeaderFieldText : cHeaderFieldCommentOrText
@@ -17,12 +18,12 @@ namespace work.bacome.mailclient
         public cHeaderFieldText(string pText)
         {
             mText = pText ?? throw new ArgumentNullException(nameof(pText));
-            if (!cTools.IsValidHeaderFieldText(pText)) throw new ArgumentOutOfRangeException(nameof(pText));
+            if (!cCharset.WSPVChar.ContainsAll(pText)) throw new ArgumentOutOfRangeException(nameof(pText));
         }
 
         internal bool HasContent => !string.IsNullOrWhiteSpace(mText);
 
-        internal override void AddTo(cHeaderFieldBytes pBytes, eHeaderFieldTextContext pContext) => pBytes.AddEncodableText(mText, pContext);
+        internal override bool TryAddEncodableText(cHeaderFieldBytes pBytes, eHeaderFieldTextContext pContext) => pBytes.TryAddEncodableText(mText, pContext);
 
         public override string ToString() => $"{nameof(cHeaderFieldText)}({mText})";
     }
@@ -51,11 +52,12 @@ namespace work.bacome.mailclient
             mParts = lParts.AsReadOnly();
         }
 
-        internal override void AddTo(cHeaderFieldBytes pBytes, eHeaderFieldTextContext pContext)
+        internal override bool TryAddEncodableText(cHeaderFieldBytes pBytes, eHeaderFieldTextContext pContext)
         {
             pBytes.AddSpecial(cASCII.LPAREN);
-            foreach (var lPart in mParts) lPart.AddTo(pBytes, eHeaderFieldTextContext.comment);
+            foreach (var lPart in mParts) if (!lPart.TryAddEncodableText(pBytes, eHeaderFieldTextContext.comment)) return false;
             pBytes.AddSpecial(cASCII.RPAREN);
+            return true;
         }
 
         public override string ToString()
@@ -98,9 +100,10 @@ namespace work.bacome.mailclient
             mParts = lParts.AsReadOnly();
         }
 
-        internal void AddTo(cHeaderFieldBytes pBytes)
+        internal bool TryAddEncodableText(cHeaderFieldBytes pBytes)
         {
-            foreach (var lPart in mParts) lPart.AddTo(pBytes, eHeaderFieldTextContext.phrase);
+            foreach (var lPart in mParts) if (!lPart.TryAddEncodableText(pBytes, eHeaderFieldTextContext.phrase)) return false;
+            return true;
         }
 
         public override string ToString()
