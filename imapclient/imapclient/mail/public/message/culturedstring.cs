@@ -38,6 +38,8 @@ namespace work.bacome.mailclient
             cByteList lBytes = new cByteList();
             cBytes lPendingWSP = null;
 
+            ;?; // note that ANY amount of WSP between encoded words is ignored
+
             while (!lCursor.Position.AtEnd)
             {
                 var lBookmark = lCursor.Position;
@@ -76,7 +78,7 @@ namespace work.bacome.mailclient
                     if (lBytes.Count > 0)
                     {
                         lParts.Add(new cCulturedStringPart(cTools.UTF8BytesToString(lBytes), null));
-                        lBytes = new cByteList();
+                        lBytes.Clear();
                     }
 
                     lParts.Add(new cCulturedStringPart(lString, lLanguageTag));
@@ -181,6 +183,7 @@ namespace work.bacome.mailclient
 
             if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= b")) != "a b") throw new cTestsException($"{nameof(cCulturedString)}.6");
             if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= =?ISO-8859-1?Q?b?=")) != "ab") throw new cTestsException($"{nameof(cCulturedString)}.7");
+            if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?=  =?ISO-8859-1?Q?b?=")) != "ab") throw new cTestsException($"{nameof(cCulturedString)}.7.1");
             if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a_b?=")) != "a b") throw new cTestsException($"{nameof(cCulturedString)}.8");
             if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= =?ISO-8859-2?Q?_b?=")) != "a b") throw new cTestsException($"{nameof(cCulturedString)}.9");
 
