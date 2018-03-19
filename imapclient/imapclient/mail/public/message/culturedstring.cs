@@ -12,10 +12,12 @@ namespace work.bacome.mailclient
     /// </summary>
     public class cCulturedString
     {
+        /*
         private static readonly cBytes kSpace = new cBytes(" ");
         private static readonly cBytes kCRLFSPACE = new cBytes("\r\n ");
         private static readonly cBytes kTab = new cBytes("\t");
         private static readonly cBytes kCRLFTAB = new cBytes("\r\n\t");
+        */
 
         /// <summary>
         /// The parts of the string. May be <see langword="null"/>.
@@ -39,6 +41,7 @@ namespace work.bacome.mailclient
             cBytes lPendingWSP = null;
 
             ;?; // note that ANY amount of WSP between encoded words is ignored
+            => // use cursor services 
 
             while (!lCursor.Position.AtEnd)
             {

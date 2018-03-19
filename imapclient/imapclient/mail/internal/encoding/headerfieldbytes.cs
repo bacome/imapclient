@@ -7,14 +7,12 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
 {
-    internal enum eHeaderFieldTextContext { unstructured, comment, phrase }
+    internal enum eHeaderFieldTextContext { structured, unstructured, comment, phrase }
 
     internal class cHeaderFieldBytes
     {
         private static readonly ReadOnlyCollection<char> kNoWSP = new ReadOnlyCollection<char>(new List<char>(new char[] { }));
-        private static readonly ReadOnlyCollection<char> kSingleWSP = new ReadOnlyCollection<char>(new List<char>(new char[] { ' ' }));
-
-        private enum eWordType { special, encodedword, nothingspecial }
+        //private static readonly ReadOnlyCollection<char> kSingleWSP = new ReadOnlyCollection<char>(new List<char>(new char[] { ' ' }));
 
         private static readonly cBytes kEQUALSQUESTIONMARK = new cBytes("=?");
         private static readonly cBytes kQUESTIONMARKEQUALS = new cBytes("?=");
@@ -29,9 +27,9 @@ namespace work.bacome.mailclient
 
         private int mCurrentLineByteCount;
         private int mCurrentLineCharCount;
-
+        private bool mCurrentLineHasNonWSP = true;
         private bool mCurrentLineHasEncodedWords = false;
-        private eWordType mLastWordType = eWordType.special; // the colon
+        private bool mCanAddText = true;
 
         private bool mUsedUTF8 = false;
 
@@ -51,15 +49,26 @@ namespace work.bacome.mailclient
             mCurrentLineCharCount = mCurrentLineByteCount;
         }
 
-        public bool TryAddEncodableText(string pText, eHeaderFieldTextContext pContext)
+        public bool TryAddText(string pText, eHeaderFieldTextContext pContext)
         {
-            // note that the input must be wspvschar only
+            // the restrictions are;
+            //  no lines can be generated that are just white space
+            //  no lines with encoded words longer than 76 bytes can be generated
+            //  no lines longer than 998 bytes can be generated
+            //
+            // desired is no lines longer than 78 chars ... as this is for display purposes, white space at the end of a line is deliberately allowed to go over this limit
+            //
+            // allowed is;
+            //  folding
+            //  use of encoded words in unstructured, comment and phrase
+            //  use of quoted-string in phrase
 
-            ;?; // the objective is to retain all the white space as passed in
-            ;?;  // the restriction is that no lines can be generated that are just white space
-            ;?;   // and no lines with encoded words longer than 76 chars can be generated
-            ;?;   // and no lines longer than 998 bytes can be generated
+            // note that ptext should normally be trimmed, trailing spaces are particularly problematic
 
+            // addspecial must be called between calls to this
+            //  the unsolvable problem is that if one call ends with enc-word WSP and the next call starts with an enc-word then the WSP will be lost
+
+            if (pText == null) throw new ArgumentNullException(nameof(pText));
             if (!cCharset.WSPVChar.ContainsAll(pText)) return false;
 
             char lChar;
@@ -67,6 +76,7 @@ namespace work.bacome.mailclient
             List<char> lWordChars = new List<char>();
             List<char> lEncodedWordLeadingWSP = new List<char>();
             List<char> lEncodedWordWordChars = new List<char>();
+            List<char> lTemp = new List<char>();
 
             // loop through the words
 
@@ -74,145 +84,170 @@ namespace work.bacome.mailclient
 
             while (lPosition < pText.Length)
             {
-                // extract leading white space (if any)
-
                 lLeadingWSP.Clear();
-
-                while (lPosition < pText.Length)
-                {
-                    lChar = pText[lPosition];
-
-                    if (lChar != '\t' && lChar != ' ') break;
-
-                    lLeadingWSP.Add(lChar);
-                    lPosition++;
-                }
-
-                // extract word (if there is one)
-
                 lWordChars.Clear();
 
-                while (lPosition < pText.Length)
+                if (pContext == eHeaderFieldTextContext.phrase)
                 {
-                    lChar = pText[lPosition];
+                    // phrases are a list of atoms and quoted-strings
+                    //  when the phrase is reassembled each atom/qs has a single space inserted between (the actually present WSP (leading, separating and trailing) is not significant)
+                    //   so to convert an arbitrary string to a phrase is different to converting the same string to unstructured or comment (as in unstructured and comment the white space is significant)
+                    //    note the special handling a single trailing space (it is included in the last word)
 
-                    if (lChar == '\t' || lChar == ' ') break;
+                    // extract separator
+                    //
+                    if (lPosition > 0) lLeadingWSP.Add(' ');
 
-                    lWordChars.Add(lChar);
-                    lPosition++;
+                    bool lFoundNonSpace = false;
+
+                    // extract non-separator
+                    //
+                    do
+                    {
+                        lChar = pText[lPosition++];
+
+                        if (lChar == ' ' && lPosition < pText.Length)
+                        {
+                            if (lFoundNonSpace) break;
+                        }
+                        else lFoundNonSpace = true;
+
+                        lWordChars.Add(lChar);
+                    }
+                    while (lPosition < pText.Length);
+                }
+                else
+                {
+                    // extract leading WSP (if any)
+                    //
+                    while (lPosition < pText.Length)
+                    {
+                        lChar = pText[lPosition];
+
+                        if (lChar != '\t' && lChar != ' ') break;
+
+                        lLeadingWSP.Add(lChar);
+                        lPosition++;
+                    }
+
+                    // extract word (if any)
+                    //
+                    while (lPosition < pText.Length)
+                    {
+                        lChar = pText[lPosition];
+
+                        if (lChar == '\t' || lChar == ' ') break;
+
+                        lWordChars.Add(lChar);
+                        lPosition++;
+                    }
                 }
 
                 var lContainsNonASCII = cTools.ContainsNonASCII(lWordChars);
 
-                // process the white space and word
-                //
-                if (ZLooksLikeAnEncodedWord(lWordChars) || (!mUTF8Headers && lContainsNonASCII))
+                if (pContext == eHeaderFieldTextContext.structured)
                 {
-                    // if the previous word was encoded then the leading wsp has to be included in the encoded word, otherwise it will be lost
-                    //  if the previous word was encoded then it has to be separated from ...
-                    ...; // implies that adjacent phrase components have to be coalessed before passing to this as 
-
-                    if (lEncodedWordWordChars.Count > 0 || mLastWordType == eWordType.encodedword) lEncodedWordWordChars.AddRange(lLeadingWSP);
+                    if (lContainsNonASCII && !mUTF8Headers) return false;
+                }
+                else if (ZLooksLikeAnEncodedWord(lWordChars) || (lContainsNonASCII && !mUTF8Headers))
+                {
+                    if (lEncodedWordWordChars.Count > 0) lEncodedWordWordChars.AddRange(lLeadingWSP);
                     else lEncodedWordLeadingWSP.AddRange(lLeadingWSP);
 
                     lEncodedWordWordChars.AddRange(lWordChars);
+                    continue;
                 }
-                else
+                
+                if (lContainsNonASCII) mUsedUTF8 = true;
+
+                if (lEncodedWordWordChars.Count > 0)
                 {
-                    if (lContainsNonASCII) mUsedUTF8 = true;
-
-                    ;?;
-
-                    if (lEncodedWordWordChars.Count > 0)
-                    {
-                        ;?; // chekc that this retains the leading wsp (folding if required)
-                        ZAddEncodedWords(lEncodedWordLeadingWSP, lEncodedWordWordChars, pContext);
-                        lEncodedWordLeadingWSP.Clear();
-                        lEncodedWordWordChars.Clear();
-                    }
-
-                    char[] lNonEncodedWordChars;
-
-                    switch (pContext)
-                    {
-                        case eHeaderFieldTextContext.unstructured:
-
-                            lNonEncodedWordChars = lWordChars.ToArray();
-                            break;
-
-                        case eHeaderFieldTextContext.comment:
-
-                            lNonEncodedWordChars = new List<char>();
-
-                            foreach (var lWordChar in lWordChars)
-                            {
-                                if (lWordChar == '(' || lWordChar == ')' || lWordChar == '\\') lNonEncodedWordChars.Add('\\');
-                                lNonEncodedWordChars.Add(lWordChar);
-                            }
-
-                            break;
-
-                        case eHeaderFieldTextContext.phrase:
-
-                            if (cCharset.AText.ContainsAll(lWordChars)) lNonEncodedWordChars = lWordChars.ToArray;
-                            else lNonEncodedWordChars = cTools.Enquote(lWordChars).ToCharArray();
-
-                            break;
-
-                        default:
-
-                            throw new cInternalErrorException($"{nameof(cHeaderFieldBytes)}.{nameof(AddEncodableText)}");
-                    }
-
-                    ZAddNonEncodedWord(lLeadingWSP, Encoding.UTF8.GetBytes(lNonEncodedWordChars), lNonEncodedWordChars.Length);
+                    if (!ZTryAddEncodedWords(lEncodedWordLeadingWSP, lEncodedWordWordChars, pContext)) return false;
+                    lEncodedWordLeadingWSP.Clear();
+                    lEncodedWordWordChars.Clear();
                 }
+
+                char[] lNonEncodedWordChars;
+
+                if (pContext == eHeaderFieldTextContext.phrase)
+                {
+                    if (cCharset.AText.ContainsAll(lWordChars)) lNonEncodedWordChars = lWordChars.ToArray();
+                    else lNonEncodedWordChars = cTools.Enquote(lWordChars).ToCharArray();
+                }
+                else if (pContext == eHeaderFieldTextContext.comment)
+                {
+                    lTemp.Clear();
+
+                    foreach (var lWordChar in lWordChars)
+                    {
+                        if (lWordChar == '(' || lWordChar == ')' || lWordChar == '\\') lTemp.Add('\\');
+                        lTemp.Add(lWordChar);
+                    }
+
+                    lNonEncodedWordChars = lTemp.ToArray();
+                }
+                else lNonEncodedWordChars = lWordChars.ToArray();
+
+                if (!ZTryAddNonEncodedWord(lLeadingWSP, Encoding.UTF8.GetBytes(lNonEncodedWordChars), lNonEncodedWordChars.Length)) return false;
             }
 
             // output the cached encoded word chars if any
             //
-            if (lEncodedWordWordChars.Count > 0)
-            {
-                ZAddEncodedWords(lEncodedWordLeadingWSP, lEncodedWordWordChars, pContext);
-                lEncodedWordLeadingWSP.Clear();
-                lEncodedWordWordChars.Clear();
-            }
+            if (lEncodedWordWordChars.Count > 0 && !ZTryAddEncodedWords(lEncodedWordLeadingWSP, lEncodedWordWordChars, pContext)) return false;
 
-
-        }
-
-        public bool TryAddDotAtom(string pText)
-        {
-            var lContainsNonASCII = cTools.ContainsNonASCII(pText);
-            if (lContainsNonASCII && !mUTF8Headers) return false;
-            if (!cTools.IsDotAtom(pText)) return false;
-            ;?; // needs to be try now
-            ZAddNonEncodedWord(kNoWSP, Encoding.UTF8.GetBytes(pText), pText.Length);
-            if (lContainsNonASCII) mUsedUTF8 = true;
+            // done
+            mCanAddText = false;
             return true;
         }
+
+        /*
+        public bool TryAddDotAtom(string pText)
+        {
+            if (pText == null) throw new ArgumentNullException(nameof(pText));
+            if (!cTools.IsDotAtom(pText)) return false;
+
+            var lContainsNonASCII = cTools.ContainsNonASCII(pText);
+            if (lContainsNonASCII && !mUTF8Headers) return false;
+
+            ;?;
+            if (!ZTryAddNonEncodedWord(kNoWSP, Encoding.UTF8.GetBytes(pText), pText.Length)) return false;
+            if (lContainsNonASCII) mUsedUTF8 = true;
+
+            return true;
+        } 
 
         public bool TryAddQuotedString(string pText)
         {
+            if (pText == null) throw new ArgumentNullException(nameof(pText));
+            if (!cCharset.WSPVChar.ContainsAll(pText)) return false;
+
             var lContainsNonASCII = cTools.ContainsNonASCII(pText);
             if (lContainsNonASCII && !mUTF8Headers) return false;
-            if (!cCharset.WSPVChar.ContainsAll(pText)) return false;
+
             if (!ZTryAddFoldableText(cTools.Enquote(pText))) return false;
             if (lContainsNonASCII) mUsedUTF8 = true;
-            return true;
-        }
 
-        public bool TryAddFoldableText(string pText)
+            return true;
+        } 
+
+        public bool TryAddNonEncodableText(string pText)
         {
+            if (pText == null) throw new ArgumentNullException(nameof(pText));
+            if (!cCharset.WSPVChar.ContainsAll(pText)) return false;
+
             var lContainsNonASCII = cTools.ContainsNonASCII(pText);
             if (lContainsNonASCII && !mUTF8Headers) return false;
-            if (!cCharset.WSPVChar.ContainsAll(pText)) return false;
-            if (!ZTryAddFoldableText(pText)) return false;
+
+            if (!ZTryAddNonEncodableText(pText)) return false;
             if (lContainsNonASCII) mUsedUTF8 = true;
+
             return true;
-        }
+        } */
 
         public void AddSpecial(byte pByte)
         {
+            if (!cCharset.Specials.Contains(pByte)) throw new ArgumentOutOfRangeException(nameof(pByte));
+
             bool lFold;
 
             if (mCurrentLineHasEncodedWords)
@@ -237,23 +272,22 @@ namespace work.bacome.mailclient
             mBytes.Add(pByte);
             mCurrentLineByteCount++;
             mCurrentLineCharCount++;
-            mLastWordType = eWordType.special;
+            mCurrentLineHasNonWSP = true;
+            mCanAddText = true;
         }
 
-        public void AddNewLine()
+        public bool TryGetBytes(out cBytes rBytes, out )
         {
-            if (mCurrentLineByteCount > 0)
-            {
-                mBytes.AddRange(kCRLF);
-                mCurrentLineByteCount = 0;
-                mCurrentLineCharCount = 0;
-                mCurrentLineHasEncodedWords = false;
-            }
+            if (mcur)
+
+
+            ;?; // must check that the last line isn't completely spaces. (
+            ;?; //  must do this before adding any CRLF => this should be a common
+
+            // add the new line before passing out
+            new cBytes(mBytes);
         }
 
-        //public bool LastWordWasAnEncodedWord => ;
-
-        public cBytes Bytes => new cBytes(mBytes);
         public fMessageDataFormat Format => mUsedUTF8 ? fMessageDataFormat.utf8headers : 0;
 
         private bool ZLooksLikeAnEncodedWord(List<char> pWordChars)
@@ -263,152 +297,183 @@ namespace work.bacome.mailclient
             return false;
         }
 
-        private void ZAddFoldableText(string pText)
+        private bool ZTryAddNonEncodedWord(List<char> pLeadingWSP, IList<byte> pWordBytes, int pWordCharCount)
         {
-            char lChar;
-            List<char> lLeadingWSP = new List<char>();
-            List<char> lWordChars = new List<char>();
+            List<char> lLeadingWSP;
 
-            int lPosition = 0;
-
-            while (lPosition < pText.Length)
+            // fold if possible and required
+            if (pLeadingWSP.Count > 0 && mCurrentLineHasNonWSP)
             {
-                // extract leading white space
-
-                lLeadingWSP.Clear();
-
-                while (lPosition < pText.Length)
+                if (mCurrentLineHasEncodedWords)
                 {
-                    lChar = pText[lPosition];
-
-                    if (lChar != '\t' && lChar != ' ') break;
-
-                    lLeadingWSP.Add(lChar);
-                    lPosition++;
+                    if (mCurrentLineByteCount + pLeadingWSP.Count + pWordBytes.Count > 76) lLeadingWSP = ZFold(pLeadingWSP, 76);
+                    else lLeadingWSP = pLeadingWSP;
                 }
-
-                // extract word
-
-                lWordChars.Clear();
-
-                while (lPosition < pText.Length)
+                else
                 {
-                    lChar = pText[lPosition];
-
-                    if (lChar == '\t' || lChar == ' ') break;
-
-                    lWordChars.Add(lChar);
-                    lPosition++;
+                    if (mCurrentLineCharCount + pLeadingWSP.Count + pWordCharCount > 78) lLeadingWSP = ZFold(pLeadingWSP, 998);
+                    else lLeadingWSP = pLeadingWSP;
                 }
-
-                // add the wsp and word
-                ZAddNonEncodedWord(lLeadingWSP, Encoding.UTF8.GetBytes(lWordChars.ToArray()), lWordChars.Count);
             }
-        }
-
-        private bool ZTryAddNonEncodedWord(IList<char> pLeadingWSP, IList<byte> pWordBytes, int pWordCharCount)
-        {
-            ;?; // needs to be try
-            if (pLeadingWSP == null) throw new ArgumentNullException(nameof(pLeadingWSP));
-            if (pWordBytes.Count == 0) throw new ArgumentOutOfRangeException(nameof(pWordBytes));
-            if (pWordCharCount <= 0) throw new ArgumentOutOfRangeException(nameof(pWordCharCount));
-
-            IList<char> lLeadingWSP;
-            if (pLeadingWSP.Count == 0 && mLastWordType != eWordType.special) lLeadingWSP = kSingleWSP;
             else lLeadingWSP = pLeadingWSP;
 
-            bool lFold;
-
+            // check if adding the text will violate the restrictions
+            //
             if (mCurrentLineHasEncodedWords)
             {
-                if (mCurrentLineByteCount + lLeadingWSP.Count + pWordBytes.Count > 76) lFold = true;
-                else lFold = false;
+                if (mCurrentLineByteCount + lLeadingWSP.Count + pWordBytes.Count > 76) return false;
             }
             else
             {
-                if (mCurrentLineCharCount + lLeadingWSP.Count + pWordCharCount > 78) lFold = true;
-                else lFold = false;
+                if (mCurrentLineByteCount + lLeadingWSP.Count + pWordBytes.Count > 998) return false;
             }
 
-            if (lFold)
-            {
-                mBytes.AddRange(kCRLF);
-                mCurrentLineByteCount = 0;
-                mCurrentLineCharCount = 0;
-                mCurrentLineHasEncodedWords = false;
-                if (lLeadingWSP.Count == 0) lLeadingWSP = kSingleWSP;
-            }
-
+            // add the white space
             foreach (char lChar in lLeadingWSP) mBytes.Add((byte)lChar);
             mCurrentLineByteCount += lLeadingWSP.Count;
             mCurrentLineCharCount += lLeadingWSP.Count;
 
+            // add non-wsp
             mBytes.AddRange(pWordBytes);
             mCurrentLineByteCount += pWordBytes.Count;
             mCurrentLineCharCount += pWordCharCount;
-            mLastWordType = eWordType.nothingspecial;
+
+            // update the flag
+            if (pWordBytes.Count > 0) mCurrentLineHasNonWSP = true;
+
+            // done
+            return true;
         }
 
-        private void ZAddEncodedWords(List<char> pLeadingWSP, List<char> pWordChars, eHeaderFieldTextContext pContext)
+        private bool ZTryAddEncodedWords(List<char> pLeadingWSP, List<char> pWordChars, eHeaderFieldTextContext pContext)
         {
-            ;?; // needs to be try
-            if (pLeadingWSP == null) throw new ArgumentNullException(nameof(pLeadingWSP));
-            if (pWordChars == null) throw new ArgumentNullException(nameof(pWordChars));
-            if (pWordChars.Count == 0) throw new ArgumentOutOfRangeException(nameof(pWordChars));
-
+            byte lEncoding;
+            List<byte> lEncodedText;
             IList<char> lLeadingWSP;
-            if (pLeadingWSP.Count == 0 && mLastWordType != eWordType.special) lLeadingWSP = kSingleWSP;
+
+            var lWordString = new string(pWordChars.ToArray());
+
+            // encode the entire word
+            ZEncodeWord(pContext, lWordString, out lEncoding, out lEncodedText);
+
+            // fold if possible and required
+            if (pLeadingWSP.Count > 0 && mCurrentLineHasNonWSP)
+            {
+                if (mCurrentLineByteCount + pLeadingWSP.Count + 7 + mCharsetNameBytes.Count + lEncodedText.Count > 76)
+                {
+                    if (mCurrentLineHasEncodedWords) lLeadingWSP = ZFold(pLeadingWSP, 76);
+                    else lLeadingWSP = ZFold(pLeadingWSP, 998);
+                }
+                else lLeadingWSP = pLeadingWSP;
+            }
             else lLeadingWSP = pLeadingWSP;
 
-            StringInfo lString = new StringInfo(new string(pWordChars.ToArray()));
-
-            int lMaxEncodedByteCount = 75 - 7 - mCharsetNameBytes.Count;
-
-            List<byte> lResult = new List<byte>();
-
-            int lFromTextElement = 0;
-            int lTextElementCount = 1;
-
-            int lLastTextElementCount = 0;
-            byte lLastEncoding = cASCII.NUL;
-            List<byte> lLastEncodedText = null;
-
-            while (lFromTextElement + lTextElementCount <= lString.LengthInTextElements)
+            // see if can add the entire word
+            if (mCurrentLineByteCount + lLeadingWSP.Count + 7 + mCharsetNameBytes.Count + lEncodedText.Count < 77)
             {
-                var lBytes = mEncoding.GetBytes(lString.SubstringByTextElements(lFromTextElement, lTextElementCount));
-
-                var lQEncodedText = ZQEncode(lBytes, pContext);
-                var lBEncodedText = cBase64.Encode(lBytes);
-
-                if (lTextElementCount == 1 || lQEncodedText.Count <= lMaxEncodedByteCount || lBEncodedText.Count <= lMaxEncodedByteCount)
-                {
-                    lLastTextElementCount = lTextElementCount;
-
-                    if (lQEncodedText.Count < lBEncodedText.Count)
-                    {
-                        lLastEncoding = cASCII.q;
-                        lLastEncodedText = lQEncodedText;
-                    }
-                    else
-                    {
-                        lLastEncoding = cASCII.b;
-                        lLastEncodedText = lBEncodedText;
-                    }
-                }
-
-                if (lQEncodedText.Count > lMaxEncodedByteCount && lBEncodedText.Count > lMaxEncodedByteCount)
-                {
-                    ZAddEncodedWord(lLeadingWSP, lLastEncoding, lLastEncodedText);
-                    lFromTextElement = lFromTextElement + lLastTextElementCount;
-                    lTextElementCount = 1;
-                    lLeadingWSP = kNoWSP;
-                }
-                else lTextElementCount++;
+                ZAddEncodedWord(lLeadingWSP, lEncoding, lEncodedText, lLeadingWSP.Count + pWordChars.Count);
+                return true;
             }
 
-            if (lFromTextElement < lString.LengthInTextElements) ZAddEncodedWord(lLeadingWSP, lLastEncoding, lLastEncodedText);
+            StringInfo lWordStringInfo = new StringInfo(lWordString);
 
-            mLastWordType = eWordType.encodedword;
+            // see if can add it at all
+
+            ZEncodeWord(pContext, lWordStringInfo.SubstringByTextElements(0, 1), out lEncoding, out lEncodedText);
+            if (mCurrentLineByteCount + lLeadingWSP.Count + 7 + mCharsetNameBytes.Count + lEncodedText.Count > 76) return false;
+
+            // add it in chunks
+
+            int lLastTextElementCount = 1;
+            byte lLastEncoding = lEncoding;
+            List<byte> lLastEncodedText = lEncodedText;
+            int lLastCharCount = lLeadingWSP.Count + 1;
+
+            int lFromTextElement = 0;
+            int lTextElementCount = 2;
+
+            while (lFromTextElement + lTextElementCount <= lWordStringInfo.LengthInTextElements)
+            {
+                ZEncodeWord(pContext, lWordStringInfo.SubstringByTextElements(lFromTextElement, lTextElementCount), out lEncoding, out lEncodedText);
+
+                if (mCurrentLineByteCount + lLeadingWSP.Count + 7 + mCharsetNameBytes.Count + lEncodedText.Count > 76)
+                {
+                    // add the previous good chunk
+                    ZAddEncodedWord(lLeadingWSP, lLastEncoding, lLastEncodedText, lLastCharCount);
+
+                    // add CRLFspace
+                    mBytes.AddRange(kCRLFSPACE);
+                    mCurrentLineByteCount = 1;
+                    mCurrentLineCharCount = 1;
+
+                    // start the next chunk
+                    lLeadingWSP = kNoWSP;
+
+                    lLastTextElementCount = 1;
+                    ZEncodeWord(pContext, lWordStringInfo.SubstringByTextElements(lFromTextElement, 1), out lLastEncoding, out lLastEncodedText);
+                    lLastCharCount = 1;
+
+                    lFromTextElement = lFromTextElement + lLastTextElementCount;
+                    lTextElementCount = 2;
+                }
+                else
+                {
+                    lLastTextElementCount = lTextElementCount;
+                    lLastEncoding = lEncoding;
+                    lLastEncodedText = lEncodedText;
+                    lLastCharCount++;
+
+                    lTextElementCount++;
+                }
+            }
+
+            // add the final chunk
+            ZAddEncodedWord(lLeadingWSP, lLastEncoding, lLastEncodedText, lLastCharCount);
+
+            // done
+            return true;
+        }
+
+        private List<char> ZFold(List<char> pLeadingWSP, int pLimit)
+        {
+            int lWSPCharsOnThisLine = Math.Max(pLimit - mCurrentLineByteCount, pLeadingWSP.Count - 1);
+
+            List<char> lRemainingWSP;
+
+            if (lWSPCharsOnThisLine == 0) lRemainingWSP = pLeadingWSP;
+            else
+            {
+                for (int i = 0; i < lWSPCharsOnThisLine; i++) mBytes.Add((byte)pLeadingWSP[i]);
+                lRemainingWSP = new List<char>();
+                for (int i = lWSPCharsOnThisLine; i < pLeadingWSP.Count; i++) lRemainingWSP.Add(pLeadingWSP[i]);
+            }
+
+            mBytes.AddRange(kCRLF);
+            mCurrentLineByteCount = 0;
+            mCurrentLineCharCount = 0;
+            mCurrentLineHasNonWSP = false;
+            mCurrentLineHasEncodedWords = false;
+
+            return lRemainingWSP;
+        }
+
+        private void ZEncodeWord(eHeaderFieldTextContext pContext, string pString, out byte rEncoding, out List<byte> rEncodedText)
+        {
+            var lBytes = mEncoding.GetBytes(pString);
+
+            var lQEncodedText = ZQEncode(lBytes, pContext);
+            var lBEncodedText = cBase64.Encode(lBytes);
+
+            if (lQEncodedText.Count < lBEncodedText.Count)
+            {
+                rEncoding = cASCII.q;
+                rEncodedText = lQEncodedText;
+            }
+            else
+            {
+                rEncoding = cASCII.b;
+                rEncodedText = lBEncodedText;
+            }
         }
 
         private List<byte> ZQEncode(byte[] pBytes, eHeaderFieldTextContext pContext)
@@ -445,20 +510,9 @@ namespace work.bacome.mailclient
             return lResult;
         }
 
-        private void ZAddEncodedWord(IList<char> pLeadingWSP, byte pEncoding, List<byte> pEncodedText)
+        private void ZAddEncodedWord(IList<char> pLeadingWSP, byte pEncoding, List<byte> pEncodedText, int pCharCount)
         {
-            ;?; // needs to be try and to retain wsp
-
-            if (mCurrentLineByteCount + pLeadingWSP.Count + 7 + mCharsetNameBytes.Count + pEncodedText.Count > 76)
-            {
-                mBytes.AddRange(kCRLFSPACE);
-                mCurrentLineByteCount = 1;
-            }
-            else
-            {
-                foreach (char lChar in pLeadingWSP) mBytes.Add((byte)lChar);
-                mCurrentLineByteCount += pLeadingWSP.Count;
-            }
+            foreach (char lChar in pLeadingWSP) mBytes.Add((byte)lChar);
 
             mBytes.AddRange(kEQUALSQUESTIONMARK);
             mBytes.AddRange(mCharsetNameBytes);
@@ -468,7 +522,9 @@ namespace work.bacome.mailclient
             mBytes.AddRange(pEncodedText);
             mBytes.AddRange(kQUESTIONMARKEQUALS);
 
-            mCurrentLineByteCount = mCurrentLineByteCount + 7 + mCharsetNameBytes.Count + pEncodedText.Count;
+            mCurrentLineByteCount = mCurrentLineByteCount + pLeadingWSP.Count + 7 + mCharsetNameBytes.Count + pEncodedText.Count;
+            mCurrentLineCharCount = mCurrentLineCharCount + pCharCount;
+            mCurrentLineHasNonWSP = true;
             mCurrentLineHasEncodedWords = true;
         }
     }

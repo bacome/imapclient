@@ -283,52 +283,6 @@ namespace work.bacome.mailclient
             return kIDNMapping.GetUnicode(lASCII);
         }
 
-        public static string NormalisePhraseText(string pText)
-        {
-            // trims and removes runs of WSP
-            // returns null instead of empty string (empty string is not a valid phrase)
-            // note that this is used to clean up displaynames from the IMAP address structure;
-            //  if comments and or FWS were passed through by IMAP then a different routine would be required to remove them
-            //   however the IMAP spec implies that they are removed
-            //   TODO: test this
-
-            if (pText == null) return null;
-
-            char lChar;
-            StringBuilder lOutput = new StringBuilder();
-
-            int lPosition = 0;
-            bool lFirst = true;
-
-            while (lPosition < pText.Length)
-            {
-                // skip white space
-                while (lPosition < pText.Length)
-                {
-                    lChar = pText[lPosition];
-                    if (lChar != '\t' && lChar != ' ') break;
-                    lPosition++;
-                }
-
-                if (lPosition == pText.Length) break;
-
-                if (lFirst) lFirst = false;
-                else lOutput.Append(' ');
-
-                // add word
-                while (lPosition < pText.Length)
-                {
-                    lChar = pText[lPosition];
-                    if (lChar == '\t' || lChar == ' ') break;
-                    lOutput.Append(lChar);
-                    lPosition++;
-                }
-            }
-
-            if (lOutput.Length == 0) return null;
-            return lOutput.ToString();
-        }
-
         public static bool IsDotAtom(string pText)
         {
             if (pText == null) return false;

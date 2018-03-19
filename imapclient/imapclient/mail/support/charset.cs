@@ -10,21 +10,21 @@ namespace work.bacome.mailclient.support
     {
         internal cCharset() { }
 
-        private const string cListWildcards = "%*";
-        private const string cQuotedSpecials = "\"\\";
-        private const string cAtomSpecialsSome = "(){ "; // 'atom_specials' also includes CTL, ListWildCards, QuotedSpecials and RespSpecials
-        private const string cUnreservedSome = "-._~";
-        private const string cACharSome = "!$'()*+,&=";
-        private const string cSubDelims = "!$&'()*+,;=";
-        private const string cTSpecials = "()<>@,;:\\\"/[]?=";
+        private const string kcListWildcards = "%*";
+        private const string kcQuotedSpecials = "\"\\";
+        private const string kcAtomSpecialsSome = "(){ "; // 'atom_specials' also includes CTL, ListWildCards, QuotedSpecials and RespSpecials
+        private const string kcUnreservedSome = "-._~";
+        private const string kcACharSome = "!$'()*+,&=";
+        private const string kcSubDelims = "!$&'()*+,;=";
+        private const string kcTSpecials = "()<>@,;:\\\"/[]?=";
 
-        private static readonly cBytes aListWildcards = new cBytes(cListWildcards);
-        private static readonly cBytes aQuotedSpecials = new cBytes(cQuotedSpecials);
-        private static readonly cBytes aAtomSpecialsSome = new cBytes(cAtomSpecialsSome);
-        private static readonly cBytes aUnreservedSome = new cBytes(cUnreservedSome);
-        private static readonly cBytes aACharSome = new cBytes(cACharSome);
-        private static readonly cBytes aSubDelims = new cBytes(cSubDelims);
-        private static readonly cBytes aTSpecials = new cBytes(cTSpecials);
+        private static readonly cBytes kaListWildcards = new cBytes(kcListWildcards);
+        private static readonly cBytes kaQuotedSpecials = new cBytes(kcQuotedSpecials);
+        private static readonly cBytes kaAtomSpecialsSome = new cBytes(kcAtomSpecialsSome);
+        private static readonly cBytes kaUnreservedSome = new cBytes(kcUnreservedSome);
+        private static readonly cBytes kaACharSome = new cBytes(kcACharSome);
+        private static readonly cBytes kaSubDelims = new cBytes(kcSubDelims);
+        private static readonly cBytes kaTSpecials = new cBytes(kcTSpecials);
 
         private static bool ZIsCTL(byte pByte) => pByte < cASCII.SPACE || pByte > cASCII.TILDA;
         private static bool ZIsCTL(char pChar) => pChar < ' ' || pChar > '~';
@@ -65,7 +65,7 @@ namespace work.bacome.mailclient.support
         {
             if (ZIsAlpha(pByte)) return true;
             if (ZIsDigit(pByte)) return true;
-            if (ZIsOneOf(pByte, aUnreservedSome)) return true;
+            if (ZIsOneOf(pByte, kaUnreservedSome)) return true;
             return false;
         }
 
@@ -73,7 +73,7 @@ namespace work.bacome.mailclient.support
         {
             if (ZIsAlpha(pChar)) return true;
             if (ZIsDigit(pChar)) return true;
-            if (ZIsOneOf(pChar, cUnreservedSome)) return true;
+            if (ZIsOneOf(pChar, kcUnreservedSome)) return true;
             return false;
         }
 
@@ -134,14 +134,14 @@ namespace work.bacome.mailclient.support
 
         private class cScheme : cCharset
         {
-            private const string cSchemeSome = "+-.";
-            private static readonly cBytes aSchemeSome = new cBytes(cSchemeSome);
+            private const string kcSchemeSome = "+-.";
+            private static readonly cBytes kaSchemeSome = new cBytes(kcSchemeSome);
 
             public override bool Contains(byte pByte)
             {
                 if (ZIsAlpha(pByte)) return true;
                 if (ZIsDigit(pByte)) return true;
-                if (ZIsOneOf(pByte, aSchemeSome)) return true;
+                if (ZIsOneOf(pByte, kaSchemeSome)) return true;
                 return false;
             }
 
@@ -149,7 +149,7 @@ namespace work.bacome.mailclient.support
             {
                 if (ZIsAlpha(pChar)) return true;
                 if (ZIsDigit(pChar)) return true;
-                if (ZIsOneOf(pChar, cSchemeSome)) return true;
+                if (ZIsOneOf(pChar, kcSchemeSome)) return true;
                 return false;
             }
         }
@@ -159,7 +159,7 @@ namespace work.bacome.mailclient.support
             public override bool Contains(byte pByte)
             {
                 if (ZIsUnreserved(pByte)) return true;
-                if (ZIsOneOf(pByte, aSubDelims)) return true;
+                if (ZIsOneOf(pByte, kaSubDelims)) return true;
                 if (pByte == cASCII.COLON) return true;
                 return false;
             }
@@ -167,7 +167,7 @@ namespace work.bacome.mailclient.support
             public override bool Contains(char pChar)
             {
                 if (ZIsUnreserved(pChar)) return true;
-                if (ZIsOneOf(pChar, cSubDelims)) return true;
+                if (ZIsOneOf(pChar, kcSubDelims)) return true;
                 if (pChar == ':') return true;
                 return false;
             }
@@ -175,26 +175,26 @@ namespace work.bacome.mailclient.support
 
         private class cAtom : cCharset
         {
-            private const string cRespSpecials = "]";
-            private static readonly cBytes aRespSpecials = new cBytes(cRespSpecials);
+            private const string kcRespSpecials = "]";
+            private static readonly cBytes kaRespSpecials = new cBytes(kcRespSpecials);
 
             public override bool Contains(byte pByte)
             {
                 if (ZIsCTL(pByte)) return false;
-                if (ZIsOneOf(pByte, aAtomSpecialsSome)) return false;
-                if (ZIsOneOf(pByte, aListWildcards)) return false;
-                if (ZIsOneOf(pByte, aQuotedSpecials)) return false;
-                if (ZIsOneOf(pByte, aRespSpecials)) return false;
+                if (ZIsOneOf(pByte, kaAtomSpecialsSome)) return false;
+                if (ZIsOneOf(pByte, kaListWildcards)) return false;
+                if (ZIsOneOf(pByte, kaQuotedSpecials)) return false;
+                if (ZIsOneOf(pByte, kaRespSpecials)) return false;
                 return true;
             }
 
             public override bool Contains(char pChar)
             {
                 if (ZIsCTL(pChar)) return false;
-                if (ZIsOneOf(pChar, cAtomSpecialsSome)) return false;
-                if (ZIsOneOf(pChar, cListWildcards)) return false;
-                if (ZIsOneOf(pChar, cQuotedSpecials)) return false;
-                if (ZIsOneOf(pChar, cRespSpecials)) return false;
+                if (ZIsOneOf(pChar, kcAtomSpecialsSome)) return false;
+                if (ZIsOneOf(pChar, kcListWildcards)) return false;
+                if (ZIsOneOf(pChar, kcQuotedSpecials)) return false;
+                if (ZIsOneOf(pChar, kcRespSpecials)) return false;
                 return true;
             }
         }
@@ -204,18 +204,18 @@ namespace work.bacome.mailclient.support
             public override bool Contains(byte pByte)
             {
                 if (ZIsCTL(pByte)) return false;
-                if (ZIsOneOf(pByte, aAtomSpecialsSome)) return false;
-                if (ZIsOneOf(pByte, aListWildcards)) return false;
-                if (ZIsOneOf(pByte, aQuotedSpecials)) return false;
+                if (ZIsOneOf(pByte, kaAtomSpecialsSome)) return false;
+                if (ZIsOneOf(pByte, kaListWildcards)) return false;
+                if (ZIsOneOf(pByte, kaQuotedSpecials)) return false;
                 return true;
             }
 
             public override bool Contains(char pChar)
             {
                 if (ZIsCTL(pChar)) return false;
-                if (ZIsOneOf(pChar, cAtomSpecialsSome)) return false;
-                if (ZIsOneOf(pChar, cListWildcards)) return false;
-                if (ZIsOneOf(pChar, cQuotedSpecials)) return false;
+                if (ZIsOneOf(pChar, kcAtomSpecialsSome)) return false;
+                if (ZIsOneOf(pChar, kcListWildcards)) return false;
+                if (ZIsOneOf(pChar, kcQuotedSpecials)) return false;
                 return true;
             }
         }
@@ -242,16 +242,16 @@ namespace work.bacome.mailclient.support
             public override bool Contains(byte pByte)
             {
                 if (ZIsCTL(pByte)) return false;
-                if (ZIsOneOf(pByte, aAtomSpecialsSome)) return false;
-                if (ZIsOneOf(pByte, aQuotedSpecials)) return false;
+                if (ZIsOneOf(pByte, kaAtomSpecialsSome)) return false;
+                if (ZIsOneOf(pByte, kaQuotedSpecials)) return false;
                 return true;
             }
 
             public override bool Contains(char pChar)
             {
                 if (ZIsCTL(pChar)) return false;
-                if (ZIsOneOf(pChar, cAtomSpecialsSome)) return false;
-                if (ZIsOneOf(pChar, cQuotedSpecials)) return false;
+                if (ZIsOneOf(pChar, kcAtomSpecialsSome)) return false;
+                if (ZIsOneOf(pChar, kcQuotedSpecials)) return false;
                 return true;
             }
         }
@@ -261,58 +261,58 @@ namespace work.bacome.mailclient.support
             public override bool Contains(byte pByte)
             {
                 if (ZIsUnreserved(pByte)) return true;
-                if (ZIsOneOf(pByte, aACharSome)) return true;
+                if (ZIsOneOf(pByte, kaACharSome)) return true;
                 return false;
             }
 
             public override bool Contains(char pChar)
             {
                 if (ZIsUnreserved(pChar)) return true;
-                if (ZIsOneOf(pChar, cACharSome)) return true;
+                if (ZIsOneOf(pChar, kcACharSome)) return true;
                 return false;
             }
         }
 
         private class cBChar : cCharset
         {
-            private const string cBCharSome = ":@/";
-            private static readonly cBytes aBCharSome = new cBytes(cBCharSome);
+            private const string kcBCharSome = ":@/";
+            private static readonly cBytes kaBCharSome = new cBytes(kcBCharSome);
 
             public override bool Contains(byte pByte)
             {
                 if (ZIsUnreserved(pByte)) return true;
-                if (ZIsOneOf(pByte, aACharSome)) return true;
-                if (ZIsOneOf(pByte, aBCharSome)) return true;
+                if (ZIsOneOf(pByte, kaACharSome)) return true;
+                if (ZIsOneOf(pByte, kaBCharSome)) return true;
                 return false;
             }
 
             public override bool Contains(char pChar)
             {
                 if (ZIsUnreserved(pChar)) return true;
-                if (ZIsOneOf(pChar, cACharSome)) return true;
-                if (ZIsOneOf(pChar, cBCharSome)) return true;
+                if (ZIsOneOf(pChar, kcACharSome)) return true;
+                if (ZIsOneOf(pChar, kcBCharSome)) return true;
                 return false;
             }
         }
 
         private class cPathSegment : cCharset
         {
-            private const string cPathSegmentSome = ":@";
-            private static readonly cBytes aPathSegmentSome = new cBytes(cPathSegmentSome);
+            private const string kcPathSegmentSome = ":@";
+            private static readonly cBytes kaPathSegmentSome = new cBytes(kcPathSegmentSome);
 
             public override bool Contains(byte pByte)
             {
                 if (ZIsUnreserved(pByte)) return true;
-                if (ZIsOneOf(pByte, aSubDelims)) return true;
-                if (ZIsOneOf(pByte, aPathSegmentSome)) return true;
+                if (ZIsOneOf(pByte, kaSubDelims)) return true;
+                if (ZIsOneOf(pByte, kaPathSegmentSome)) return true;
                 return false;
             }
 
             public override bool Contains(char pChar)
             {
                 if (ZIsUnreserved(pChar)) return true;
-                if (ZIsOneOf(pChar, cSubDelims)) return true;
-                if (ZIsOneOf(pChar, cPathSegmentSome)) return true;
+                if (ZIsOneOf(pChar, kcSubDelims)) return true;
+                if (ZIsOneOf(pChar, kcPathSegmentSome)) return true;
                 return false;
             }
         }
@@ -322,7 +322,7 @@ namespace work.bacome.mailclient.support
             public override bool Contains(byte pByte)
             {
                 if (ZIsUnreserved(pByte)) return true;
-                if (ZIsOneOf(pByte, aSubDelims)) return true;
+                if (ZIsOneOf(pByte, kaSubDelims)) return true;
                 if (pByte == cASCII.AT) return true;
                 return false;
             }
@@ -330,7 +330,7 @@ namespace work.bacome.mailclient.support
             public override bool Contains(char pChar)
             {
                 if (ZIsUnreserved(pChar)) return true;
-                if (ZIsOneOf(pChar, cSubDelims)) return true;
+                if (ZIsOneOf(pChar, kcSubDelims)) return true;
                 if (pChar == '@') return true;
                 return false;
             }
@@ -338,44 +338,44 @@ namespace work.bacome.mailclient.support
 
         private class cPath : cCharset
         {
-            private const string cPathSome = ":@/";
-            private static readonly cBytes aPathSome = new cBytes(cPathSome);
+            private const string kcPathSome = ":@/";
+            private static readonly cBytes kaPathSome = new cBytes(kcPathSome);
 
             public override bool Contains(byte pByte)
             {
                 if (ZIsUnreserved(pByte)) return true;
-                if (ZIsOneOf(pByte, aSubDelims)) return true;
-                if (ZIsOneOf(pByte, aPathSome)) return true;
+                if (ZIsOneOf(pByte, kaSubDelims)) return true;
+                if (ZIsOneOf(pByte, kaPathSome)) return true;
                 return false;
             }
 
             public override bool Contains(char pChar)
             {
                 if (ZIsUnreserved(pChar)) return true;
-                if (ZIsOneOf(pChar, cSubDelims)) return true;
-                if (ZIsOneOf(pChar, cPathSome)) return true;
+                if (ZIsOneOf(pChar, kcSubDelims)) return true;
+                if (ZIsOneOf(pChar, kcPathSome)) return true;
                 return false;
             }
         }
 
         private class cAfterPath : cCharset
         {
-            private const string cAfterPathSome = ":@/?";
-            private static readonly cBytes aAfterPathSome = new cBytes(cAfterPathSome);
+            private const string kcAfterPathSome = ":@/?";
+            private static readonly cBytes kaAfterPathSome = new cBytes(kcAfterPathSome);
 
             public override bool Contains(byte pByte)
             {
                 if (ZIsUnreserved(pByte)) return true;
-                if (ZIsOneOf(pByte, aSubDelims)) return true;
-                if (ZIsOneOf(pByte, aAfterPathSome)) return true;
+                if (ZIsOneOf(pByte, kaSubDelims)) return true;
+                if (ZIsOneOf(pByte, kaAfterPathSome)) return true;
                 return false;
             }
 
             public override bool Contains(char pChar)
             {
                 if (ZIsUnreserved(pChar)) return true;
-                if (ZIsOneOf(pChar, cSubDelims)) return true;
-                if (ZIsOneOf(pChar, cAfterPathSome)) return true;
+                if (ZIsOneOf(pChar, kcSubDelims)) return true;
+                if (ZIsOneOf(pChar, kcAfterPathSome)) return true;
                 return false;
             }
         }
@@ -385,14 +385,14 @@ namespace work.bacome.mailclient.support
             public override bool Contains(byte pByte)
             {
                 if (ZIsUnreserved(pByte)) return true;
-                if (ZIsOneOf(pByte, aSubDelims)) return true;
+                if (ZIsOneOf(pByte, kaSubDelims)) return true;
                 return false;
             }
 
             public override bool Contains(char pChar)
             {
                 if (ZIsUnreserved(pChar)) return true;
-                if (ZIsOneOf(pChar, cSubDelims)) return true;
+                if (ZIsOneOf(pChar, kcSubDelims)) return true;
                 return false;
             }
         }
@@ -402,7 +402,7 @@ namespace work.bacome.mailclient.support
             public override bool Contains(byte pByte)
             {
                 if (ZIsUnreserved(pByte)) return true;
-                if (ZIsOneOf(pByte, aSubDelims)) return true;
+                if (ZIsOneOf(pByte, kaSubDelims)) return true;
                 if (pByte == cASCII.COLON) return true;
                 return false;
             }
@@ -410,7 +410,7 @@ namespace work.bacome.mailclient.support
             public override bool Contains(char pChar)
             {
                 if (ZIsUnreserved(pChar)) return true;
-                if (ZIsOneOf(pChar, cSubDelims)) return true;
+                if (ZIsOneOf(pChar, kcSubDelims)) return true;
                 if (pChar == ':') return true;
                 return false;
             }
@@ -418,14 +418,14 @@ namespace work.bacome.mailclient.support
 
         private class cUAuthMechanism : cCharset
         {
-            private const string cUAuthMechanismSome = "-.";
-            private static readonly cBytes aUAuthMechanismSome = new cBytes(cUAuthMechanismSome);
+            private const string kcUAuthMechanismSome = "-.";
+            private static readonly cBytes kaUAuthMechanismSome = new cBytes(kcUAuthMechanismSome);
 
             public override bool Contains(byte pByte)
             {
                 if (ZIsAlpha(pByte)) return true;
                 if (ZIsDigit(pByte)) return true;
-                if (ZIsOneOf(pByte, aUAuthMechanismSome)) return true;
+                if (ZIsOneOf(pByte, kaUAuthMechanismSome)) return true;
                 return false;
             }
 
@@ -433,7 +433,7 @@ namespace work.bacome.mailclient.support
             {
                 if (ZIsAlpha(pChar)) return true;
                 if (ZIsDigit(pChar)) return true;
-                if (ZIsOneOf(pChar, cUAuthMechanismSome)) return true;
+                if (ZIsOneOf(pChar, kcUAuthMechanismSome)) return true;
                 return false;
             }
         }
@@ -465,14 +465,14 @@ namespace work.bacome.mailclient.support
         {
             // rfc 2978
 
-            private const string cCharsetNameSome = "!#$%&'+-^_`{}~";
-            private static readonly cBytes aCharsetNameSome = new cBytes(cCharsetNameSome);
+            private const string kcCharsetNameSome = "!#$%&'+-^_`{}~";
+            private static readonly cBytes kaCharsetNameSome = new cBytes(kcCharsetNameSome);
 
             public override bool Contains(byte pByte)
             {
                 if (ZIsAlpha(pByte)) return true;
                 if (ZIsDigit(pByte)) return true;
-                if (ZIsOneOf(pByte, aCharsetNameSome)) return true;
+                if (ZIsOneOf(pByte, kaCharsetNameSome)) return true;
                 return false;
             }
 
@@ -480,7 +480,7 @@ namespace work.bacome.mailclient.support
             {
                 if (ZIsAlpha(pChar)) return true;
                 if (ZIsDigit(pChar)) return true;
-                if (ZIsOneOf(pChar, cCharsetNameSome)) return true;
+                if (ZIsOneOf(pChar, kcCharsetNameSome)) return true;
                 return false;
             }
         }
@@ -489,14 +489,14 @@ namespace work.bacome.mailclient.support
         {
             // rfc 2978 modified for rfc 2231
 
-            private const string cCharsetNameSome = "!#$%&+-^_`{}~"; // note: excludes "'" which is actually a legal character in a charset name
-            private static readonly cBytes aCharsetNameSome = new cBytes(cCharsetNameSome);
+            private const string kcCharsetNameSome = "!#$%&+-^_`{}~"; // note: excludes "'" which is actually a legal character in a charset name
+            private static readonly cBytes kaCharsetNameSome = new cBytes(kcCharsetNameSome);
 
             public override bool Contains(byte pByte)
             {
                 if (ZIsAlpha(pByte)) return true;
                 if (ZIsDigit(pByte)) return true;
-                if (ZIsOneOf(pByte, aCharsetNameSome)) return true;
+                if (ZIsOneOf(pByte, kaCharsetNameSome)) return true;
                 return false;
             }
 
@@ -504,7 +504,7 @@ namespace work.bacome.mailclient.support
             {
                 if (ZIsAlpha(pChar)) return true;
                 if (ZIsDigit(pChar)) return true;
-                if (ZIsOneOf(pChar, cCharsetNameSome)) return true;
+                if (ZIsOneOf(pChar, kcCharsetNameSome)) return true;
                 return false;
             }
         }
@@ -559,35 +559,35 @@ namespace work.bacome.mailclient.support
 
         private class cObsCText : cCharset
         {
-            private const string cCTextDisallowed = "\0\t\n\r ()\\";
-            private static readonly cBytes aCTextDisallowed = new cBytes(cCTextDisallowed);
+            private const string kcCTextDisallowed = "\0\t\n\r ()\\";
+            private static readonly cBytes kaCTextDisallowed = new cBytes(kcCTextDisallowed);
 
             public override bool Contains(byte pByte)
             {
                 if (pByte > cASCII.DEL) return true; // allows utf8 to pass through (unvalidated)
-                if (ZIsOneOf(pByte, aCTextDisallowed)) return false;
+                if (ZIsOneOf(pByte, kaCTextDisallowed)) return false;
                 return true;
             }
 
             public override bool Contains(char pChar)
             {
                 if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
-                if (ZIsOneOf(pChar, cCTextDisallowed)) return false;
+                if (ZIsOneOf(pChar, kcCTextDisallowed)) return false;
                 return true;
             }
         }
 
         private class cAText : cCharset
         {
-            private const string cATextSome = "!#$%&'*+-/=?^_`{|}~";
-            private static readonly cBytes aATextSome = new cBytes(cATextSome);
+            private const string kcATextSome = "!#$%&'*+-/=?^_`{|}~";
+            private static readonly cBytes kaATextSome = new cBytes(kcATextSome);
 
             public override bool Contains(byte pByte)
             {
                 if (pByte > cASCII.DEL) return true; // allows utf8 to pass through (unvalidated)
                 if (ZIsAlpha(pByte)) return true;
                 if (ZIsDigit(pByte)) return true;
-                if (ZIsOneOf(pByte, aATextSome)) return true;
+                if (ZIsOneOf(pByte, kaATextSome)) return true;
                 return false;
             }
 
@@ -596,27 +596,27 @@ namespace work.bacome.mailclient.support
                 if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
                 if (ZIsAlpha(pChar)) return true;
                 if (ZIsDigit(pChar)) return true;
-                if (ZIsOneOf(pChar, cATextSome)) return true;
+                if (ZIsOneOf(pChar, kcATextSome)) return true;
                 return false;
             }
         }
 
         private class cObsQText : cCharset
         {
-            private const string cQTextDisallowed = "\0\t\n\r \"\\";
-            private static readonly cBytes aQTextDisallowed = new cBytes(cQTextDisallowed);
+            private const string kcQTextDisallowed = "\0\t\n\r \"\\";
+            private static readonly cBytes kaQTextDisallowed = new cBytes(kcQTextDisallowed);
 
             public override bool Contains(byte pByte)
             {
                 if (pByte > cASCII.DEL) return true; // allows utf8 to pass through (unvalidated)
-                if (ZIsOneOf(pByte, aQTextDisallowed)) return false;
+                if (ZIsOneOf(pByte, kaQTextDisallowed)) return false;
                 return true;
             }
 
             public override bool Contains(char pChar)
             {
                 if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
-                if (ZIsOneOf(pChar, cQTextDisallowed)) return false;
+                if (ZIsOneOf(pChar, kcQTextDisallowed)) return false;
                 return true;
             }
         }
@@ -640,20 +640,20 @@ namespace work.bacome.mailclient.support
 
         private class cObsDText : cCharset
         {
-            private const string cDTextDisallowed = "\0\t\n\r [\\]";
-            private static readonly cBytes aDTextDisallowed = new cBytes(cDTextDisallowed);
+            private const string kcDTextDisallowed = "\0\t\n\r [\\]";
+            private static readonly cBytes kaDTextDisallowed = new cBytes(kcDTextDisallowed);
 
             public override bool Contains(byte pByte)
             {
                 if (pByte > cASCII.DEL) return true; // allows utf8 to pass through (unvalidated)
-                if (ZIsOneOf(pByte, aDTextDisallowed)) return false;
+                if (ZIsOneOf(pByte, kaDTextDisallowed)) return false;
                 return true;
             }
 
             public override bool Contains(char pChar)
             {
                 if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
-                if (ZIsOneOf(pChar, cDTextDisallowed)) return false;
+                if (ZIsOneOf(pChar, kcDTextDisallowed)) return false;
                 return true;
             }
         }
@@ -697,7 +697,7 @@ namespace work.bacome.mailclient.support
             {
                 if (pByte <= cASCII.SPACE) return false;
                 if (pByte >= cASCII.DEL) return false;
-                if (ZIsOneOf(pByte, aTSpecials)) return false;
+                if (ZIsOneOf(pByte, kaTSpecials)) return false;
                 return true;
             }
 
@@ -705,21 +705,21 @@ namespace work.bacome.mailclient.support
             {
                 if (pChar <= ' ') return false;
                 if (pChar >= cChar.DEL) return false;
-                if (ZIsOneOf(pChar, cTSpecials)) return false;
+                if (ZIsOneOf(pChar, kcTSpecials)) return false;
                 return true;
             }
         }
 
         private class cRFC2047Token : cCharset
         {
-            private const string cESpecials = "()<>@,;:\\\"/[]?.=";
-            private static readonly cBytes aESpecials = new cBytes(cESpecials);
+            private const string kcESpecials = "()<>@,;:\\\"/[]?.=";
+            private static readonly cBytes kaESpecials = new cBytes(kcESpecials);
 
             public override bool Contains(byte pByte)
             {
                 if (pByte <= cASCII.SPACE) return false;
                 if (pByte >= cASCII.DEL) return false;
-                if (ZIsOneOf(pByte, aESpecials)) return false;
+                if (ZIsOneOf(pByte, kaESpecials)) return false;
                 return true;
             }
 
@@ -727,22 +727,22 @@ namespace work.bacome.mailclient.support
             {
                 if (pChar <= ' ') return false;
                 if (pChar >= cChar.DEL) return false;
-                if (ZIsOneOf(pChar, cESpecials)) return false;
+                if (ZIsOneOf(pChar, kcESpecials)) return false;
                 return true;
             }
         }
 
         private class cAttributeChar : cCharset
         {
-            private const string cNotSome = "*'%";
-            private static readonly cBytes aNotSome = new cBytes(cNotSome);
+            private const string kcNotSome = "*'%";
+            private static readonly cBytes kaNotSome = new cBytes(kcNotSome);
 
             public override bool Contains(byte pByte)
             {
                 if (pByte <= cASCII.SPACE) return false;
                 if (pByte >= cASCII.DEL) return false;
-                if (ZIsOneOf(pByte, aTSpecials)) return false;
-                if (ZIsOneOf(pByte, aNotSome)) return false;
+                if (ZIsOneOf(pByte, kaTSpecials)) return false;
+                if (ZIsOneOf(pByte, kaNotSome)) return false;
                 return true;
             }
 
@@ -750,11 +750,20 @@ namespace work.bacome.mailclient.support
             {
                 if (pChar <= ' ') return false;
                 if (pChar >= cChar.DEL) return false;
-                if (ZIsOneOf(pChar, cTSpecials)) return false;
-                if (ZIsOneOf(pChar, cNotSome)) return false;
+                if (ZIsOneOf(pChar, kcTSpecials)) return false;
+                if (ZIsOneOf(pChar, kcNotSome)) return false;
                 return true;
             }
         }
+
+        private class cSpecials : cCharset
+        {
+            private const string kcSpecials = "()<>[]:;@\\,.\"";
+            private static readonly cBytes kaSpecials = new cBytes(kcSpecials);
+
+            public override bool Contains(byte pByte) => ZIsOneOf(pByte, kaSpecials);
+            public override bool Contains(char pChar) => ZIsOneOf(pChar, kcSpecials);
+        } 
 
         // instances
 
@@ -828,5 +837,7 @@ namespace work.bacome.mailclient.support
         public static readonly cCharset RFC2047Token = new cRFC2047Token();
         /**<summary>Represents the characters used in RFC 2231 'attribute-char'.</summary>*/
         public static readonly cCharset AttributeChar = new cAttributeChar();
+        /**<summary>Represents the characters used in RFC 5322 'specials'.</summary>*/
+        public static readonly cCharset Specials = new cSpecials();
     }
 }

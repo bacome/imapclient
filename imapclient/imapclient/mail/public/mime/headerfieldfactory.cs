@@ -164,6 +164,7 @@ namespace work.bacome.mailclient
         {
             var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
             if (pMsgId == null) throw new ArgumentNullException(nameof(pMsgId));
+            ;?; // NO! sb add msgid
             if (!lBytes.TryAddFoldableText(pMsgId.MessageId)) throw new ArgumentOutOfRangeException();
             lBytes.AddNewLine();
             return new cLiteralMessageDataPart(lBytes.Bytes, lBytes.Format);
@@ -226,6 +227,7 @@ namespace work.bacome.mailclient
             if (ZIsDomainLiteral(pAddress.Host, out var lDText))
             {
                 pBytes.AddSpecial(cASCII.LBRACKET);
+                // add text/ structured
                 if (!pBytes.TryAddFoldableText(lDText)) throw new cMailAddressFormException(pAddress);
                 pBytes.AddSpecial(cASCII.RBRACKET);
             }

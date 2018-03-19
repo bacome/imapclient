@@ -18,12 +18,11 @@ namespace work.bacome.mailclient
         {
             IdLeft = pIdLeft ?? throw new ArgumentNullException(nameof(pIdLeft));
             IdRight = pIdRight ?? throw new ArgumentNullException(nameof(pIdRight));
-            if (!cTools.IsValidDotAtom(pIdLeft)) throw new ArgumentOutOfRangeException(nameof(pIdLeft));
-            if (!cTools.IsValidDotAtom(pIdRight) && !ZIsNoFoldLiteral(pIdRight)) throw new ArgumentOutOfRangeException(nameof(pIdRight));
+            if (!cTools.IsDotAtom(pIdLeft)) throw new ArgumentOutOfRangeException(nameof(pIdLeft));
+            if (!cTools.IsDotAtom(pIdRight) && !ZIsNoFoldLiteral(pIdRight)) throw new ArgumentOutOfRangeException(nameof(pIdRight));
         }
 
         public string MessageId => $"<{IdLeft}@{IdRight}>";
-
 
         private bool ZIsNoFoldLiteral(string pString)
         {
