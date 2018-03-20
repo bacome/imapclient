@@ -638,6 +638,24 @@ namespace work.bacome.mailclient.support
             }
         }
 
+        private class cWSPDText : cCharset
+        {
+            public override bool Contains(byte pByte)
+            {
+                if (pByte > cASCII.DEL) return true; // allows utf8 to pass through (unvalidated)
+                if (pByte == cASCII.TAB) return true;
+                if (pByte <= cASCII.SPACE || pByte == cASCII.LBRACKET || pByte == cASCII.BACKSL || pByte == cASCII.RBRACKET || pByte == cASCII.DEL) return false;
+                return true;
+            }
+
+            public override bool Contains(char pChar)
+            {
+                if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
+                if (pChar <= ' ' || pChar == '[' || pChar == '\\' || pChar == ']' || pChar == cChar.DEL) return false;
+                return true;
+            }
+        }
+
         private class cObsDText : cCharset
         {
             private const string kcDTextDisallowed = "\0\t\n\r [\\]";
@@ -823,6 +841,8 @@ namespace work.bacome.mailclient.support
         public static readonly cCharset ObsQText = new cObsQText();
         /**<summary>Represents the characters used in RFC 6532 'dtext'.</summary>*/
         public static readonly cCharset DText = new cDText();
+        /**<summary>Represents the characters used in RFC 5234 WSP and RFC 6532 'dtext'.</summary>*/
+        public static readonly cCharset WSPDText = new cWSPDText();
         /**<summary>Represents the characters used in RFC 6532 'obs-dtext'.</summary>*/
         public static readonly cCharset ObsDText = new cObsDText();
         /**<summary>Represents the characters used in RFC 5322 'ftext'.</summary>*/

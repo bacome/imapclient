@@ -13,13 +13,6 @@ namespace work.bacome.mailclient
     /// </summary>
     public abstract class cAddress : IEquatable<cAddress>
     {
-        ;?; // raw display name and string display name
-
-
-        // note that the string is the "phrase ised" string from the culturedstring cTools.ToPhrase() removes wsp beginning and end and converts embedded to one space
-
-            // and all comparisons are to the phrase -ised string
-
         /// <summary>
         /// The display name for the address, may be <see langword="null"/>.
         /// </summary>
@@ -184,7 +177,7 @@ namespace work.bacome.mailclient
             LocalPart = pLocalPart ?? throw new ArgumentNullException(nameof(pLocalPart));
             Domain = pDomain ?? throw new ArgumentNullException(nameof(pDomain));
             if (cTools.IsDotAtom(pLocalPart)) mQuotedLocalPart = pLocalPart;
-            else mQuotedLocalPart = ZAddQuoting(pLocalPart);
+            else mQuotedLocalPart = cTools.Enquote(pLocalPart);
         }
 
         public cEmailAddress(string pLocalPart, string pDomain, string pDisplayName = null) : base(ZDisplayName(pDisplayName))
@@ -194,35 +187,34 @@ namespace work.bacome.mailclient
             Domain = pDomain ?? throw new ArgumentNullException(nameof(pDomain));
             if (!cTools.IsDomain(pDomain)) throw new ArgumentOutOfRangeException(nameof(pDomain));
             if (cTools.IsDotAtom(pLocalPart)) mQuotedLocalPart = pLocalPart;
-            else mQuotedLocalPart = ZAddQuoting(pLocalPart);
+            else mQuotedLocalPart = cTools.Enquote(pLocalPart);
         }
 
-        public cEmailAddress(MailAddress pMailAddress) : base(ZDisplayName(pMailAddress))
+        public cEmailAddress(MailAddress pAddress) : base(ZDisplayName(pAddress))
         {
-            if (pMailAddress == null) throw new ArgumentNullException(nameof(pMailAddress));
-            if (pMailAddress.User == null) throw new cAddressFormException(pMailAddress);
-            LocalPart = ZRemoveQuoting(pMailAddress.User);
-            if (!cCharset.WSPVChar.ContainsAll(LocalPart)) throw new cAddressFormException(pMailAddress);
-            if (pMailAddress.Host == null) throw new cAddressFormException(pMailAddress);
-            if (!cTools.IsDomain(pMailAddress.Host)) throw new cAddressFormException(pMailAddress);
-            Domain = pMailAddress.Host;
+            if (pAddress == null) throw new ArgumentNullException(nameof(pAddress));
+            if (pAddress.User == null) throw new cAddressFormException(pAddress);
+            LocalPart = ZRemoveQuoting(pAddress.User);
+            if (!cCharset.WSPVChar.ContainsAll(LocalPart)) throw new cAddressFormException(pAddress);
+            if (pAddress.Host == null) throw new cAddressFormException(pAddress);
+            if (!cTools.IsDomain(pAddress.Host)) throw new cAddressFormException(pAddress);
+            Domain = pAddress.Host;
             if (cTools.IsDotAtom(LocalPart)) mQuotedLocalPart = LocalPart;
-            else mQuotedLocalPart = ZAddQuoting(LocalPart);
+            else mQuotedLocalPart = cTools.Enquote(LocalPart);
         }
 
         private static cCulturedString ZDisplayName(string pDisplayName)
         {
-            if (string.IsNullOrWhiteSpace(pDisplayName)) return null;
-            if (!cTools.IsValidHeaderFieldText(pDisplayName)) throw new ArgumentOutOfRangeException(nameof(pDisplayName));
+            if (pDisplayName == null) return null;
+            if (!cCharset.WSPVChar.ContainsAll(pDisplayName)) throw new ArgumentOutOfRangeException(nameof(pDisplayName));
             return new cCulturedString(pDisplayName);
         }
 
-        private static cCulturedString ZDisplayName(MailAddress pMailAddress)
+        private static cCulturedString ZDisplayName(MailAddress pAddress)
         {
-            if (pMailAddress == null) throw new ArgumentNullException(nameof(pMailAddress));
-            if (string.IsNullOrWhiteSpace(pMailAddress.DisplayName)) return null;
-            if (!cTools.IsValidHeaderFieldText(pMailAddress.DisplayName)) throw new cAddressFormException(pMailAddress);
-            return new cCulturedString(pMailAddress.DisplayName);
+            if (pAddress == null) throw new ArgumentNullException(nameof(pAddress));
+            if (!cCharset.WSPVChar.ContainsAll(pAddress.DisplayName)) throw new cAddressFormException(pAddress);
+            return new cCulturedString(pAddress.DisplayName);
         }
 
         private string ZRemoveQuoting(string pString)
@@ -262,11 +254,6 @@ namespace work.bacome.mailclient
             if (lInQuotedString || lDidNothing) return pString;
 
             return lBuilder.ToString();
-        }
-
-        private string ZAddQuoting(string pString)
-        {
-
         }
 
         public override string DisplayText
@@ -317,16 +304,16 @@ namespace work.bacome.mailclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
         public static bool operator !=(cEmailAddress pA, cEmailAddress pB) => !(pA == pB);
 
-        public static implicit operator MailAddress(cEmailAddress pEmailAddress)
+        public static implicit operator MailAddress(cEmailAddress pAddress)
         {
-            if (pEmailAddress == null) return null;
-            return new MailAddress(pEmailAddress.Address, pEmailAddress.DisplayName);
+            if (pAddress == null) return null;
+            return new MailAddress(pAddress.Address, pAddress.DisplayName?.ToString());
         }
 
-        public static implicit operator cEmailAddress(MailAddress pMailAddress)
+        public static implicit operator cEmailAddress(MailAddress pAddress)
         {
-            if (pMailAddress == null) return null;
-            return new cEmailAddress(pMailAddress);
+            if (pAddress == null) return null;
+            return new cEmailAddress(pAddress);
         }
     }
 
@@ -341,44 +328,40 @@ namespace work.bacome.mailclient
         /// </summary>
         public readonly ReadOnlyCollection<cEmailAddress> EmailAddresses;
 
-        internal cGroupAddress(cCulturedString pDisplayName, List<cEmailAddress> pEmailAddresses) : base(pDisplayName)
+        internal cGroupAddress(cCulturedString pDisplayName, List<cEmailAddress> pAddresses) : base(pDisplayName)
         {
             if (pDisplayName == null) throw new ArgumentNullException(nameof(pDisplayName));
-            if (pEmailAddresses == null) throw new ArgumentNullException(nameof(pEmailAddresses));
-            EmailAddresses = pEmailAddresses.AsReadOnly();
+            if (pAddresses == null) throw new ArgumentNullException(nameof(pAddresses));
+            EmailAddresses = pAddresses.AsReadOnly();
+            ;?; // need to sort the addresses => emailaddress needs to be comparable
         }
 
-        public cGroupAddress(string pDisplayName, IEnumerable<cEmailAddress> pEmailAddresses) : base(ZDisplayName(pDisplayName))
+        public cGroupAddress(string pDisplayName, IEnumerable<cEmailAddress> pAddresses) : base(ZDisplayName(pDisplayName))
         {
             var lEmailAddresses = new List<cEmailAddress>();
 
-            foreach (var lEmailAddress in pEmailAddresses)
+            foreach (var lAddress in pAddresses)
             {
-                if (lEmailAddress == null) throw new ArgumentOutOfRangeException(nameof(pEmailAddresses), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
-                lEmailAddresses.Add(lEmailAddress);
+                if (lAddress == null) throw new ArgumentOutOfRangeException(nameof(pAddresses), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
+                lEmailAddresses.Add(lAddress);
             }
 
+            ;?; // need to sort the addresses => emailaddress needs to be comparable
             EmailAddresses = lEmailAddresses.AsReadOnly();
         }
-
-        public cGroupAddress(string pDisplayName, params cEmailAddress[] pEmailAddresses) : this(pDisplayName, pEmailAddresses as IEnumerable<cEmailAddress>) { }
-
-        public cGroupAddress(string pDisplayName, params MailAddress[] pMailAddresses) : this(pDisplayName, cTools. (pAddresses)) { }
-
-        public cGroupAddress(string pDisplayName, IEnumerable<MailAddress> pAddresses) : this(pDisplayName, ZEmailAddresses(pAddresses)) { }
 
         private static cCulturedString ZDisplayName(string pDisplayName)
         {
             if (pDisplayName == null) throw new ArgumentNullException(nameof(pDisplayName));
-            if (string.IsNullOrWhiteSpace(pDisplayName)) throw new ArgumentOutOfRangeException(nameof(pDisplayName));
-            if (!cTools.IsValidHeaderFieldText(pDisplayName)) throw new ArgumentOutOfRangeException(nameof(pDisplayName));
+            if (!cCharset.WSPVChar.ContainsAll(pDisplayName)) throw new ArgumentOutOfRangeException(nameof(pDisplayName));
             return new cCulturedString(pDisplayName);
         }
 
-        private static List<cEmailAddress> ZEmailAddresses(IEnumerable<MailAddress> pAddresses)
-        {
-            ;?;
-        }
+        public cGroupAddress(string pDisplayName, params cEmailAddress[] pAddresses) : this(pDisplayName, pAddresses as IEnumerable<cEmailAddress>) { }
+
+        public cGroupAddress(string pDisplayName, params MailAddress[] pAddresses) : this(pDisplayName, cTools.MailAddressesToEmailAddresses(pAddresses)) { }
+
+        public cGroupAddress(string pDisplayName, IEnumerable<MailAddress> pAddresses) : this(pDisplayName, cTools.MailAddressesToEmailAddresses(pAddresses)) { }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public bool Equals(cGroupAddress pObject) => this == pObject;
@@ -396,6 +379,8 @@ namespace work.bacome.mailclient
             {
                 int lHash = 17;
                 lHash = lHash * 23 + DisplayName.GetHashCode();
+
+                ;?; // the order isn't important
                 foreach (var lAddress in Addresses) lHash = lHash * 23 + lAddress.GetHashCode();
                 return lHash;
             }
@@ -417,8 +402,12 @@ namespace work.bacome.mailclient
             if (ReferenceEquals(pA, null)) return false;
             if (ReferenceEquals(pB, null)) return false;
 
-            if (pA.DisplayName != pB.DisplayName) return false;
+            if (pA.DisplayName?.ToString() != pB.DisplayName?.ToString()) return false;
+
+
             if (pA.Addresses.Count != pB.Addresses.Count) return false;
+
+            ;?; // the order isn't important
             for (int i = 0; i < pA.Addresses.Count; i++) if (pA.Addresses[i] != pB.Addresses[i]) return false;
             return true;
         }

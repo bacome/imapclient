@@ -7,17 +7,18 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
 {
-    internal enum eHeaderFieldTextContext { structured, unstructured, comment, phrase }
+    internal enum eHeaderFieldTextContext { unstructured, comment, phrase, structured }
 
     internal class cHeaderFieldBytes
     {
         private static readonly ReadOnlyCollection<char> kNoWSP = new ReadOnlyCollection<char>(new List<char>(new char[] { }));
-        //private static readonly ReadOnlyCollection<char> kSingleWSP = new ReadOnlyCollection<char>(new List<char>(new char[] { ' ' }));
+        private static readonly ReadOnlyCollection<char> kSingleWSP = new ReadOnlyCollection<char>(new List<char>(new char[] { ' ' }));
 
         private static readonly cBytes kEQUALSQUESTIONMARK = new cBytes("=?");
         private static readonly cBytes kQUESTIONMARKEQUALS = new cBytes("?=");
         private static readonly cBytes kCRLF = new cBytes("\r\n");
         private static readonly cBytes kCRLFSPACE = new cBytes("\r\n ");
+        private static readonly cBytes kDQUOTEDQUOTE = new cBytes("\"\"");
 
         private readonly bool mUTF8Headers;
         private readonly Encoding mEncoding;
@@ -29,7 +30,7 @@ namespace work.bacome.mailclient
         private int mCurrentLineCharCount;
         private bool mCurrentLineHasNonWSP = true;
         private bool mCurrentLineHasEncodedWords = false;
-        private bool mCanAddText = true;
+        private bool mComplete = false;
 
         private bool mUsedUTF8 = false;
 
@@ -49,27 +50,45 @@ namespace work.bacome.mailclient
             mCurrentLineCharCount = mCurrentLineByteCount;
         }
 
-        public bool TryAddText(string pText, eHeaderFieldTextContext pContext)
+        public bool TryAdd(string pText, eHeaderFieldTextContext pContext)
         {
-            // the restrictions are;
+            // the restrictions on the output are;
             //  no lines can be generated that are just white space
-            //  no lines with encoded words longer than 76 bytes can be generated
+            //  lines with encoded words in them cannot be longer than 76 bytes
             //  no lines longer than 998 bytes can be generated
             //
-            // desired is no lines longer than 78 chars ... as this is for display purposes, white space at the end of a line is deliberately allowed to go over this limit
+            // desired is no output lines longer than 78 chars 
             //
-            // allowed is;
-            //  folding
+            // allowed transformations of the input are;
+            //  folding, including adding a single space at the beginning of the text so a fold can be inserted there
             //  use of encoded words in unstructured, comment and phrase
             //  use of quoted-string in phrase
 
-            // note that ptext should normally be trimmed, trailing spaces are particularly problematic
+            // note that ptext should normally be trimmed, trailing spaces are particularly problematic, and if it contains lots of contiguous WSP then it may fail to be added
+            // each piece of text added must be delimited by specials;
+            //   either the last char of the previous addition should be a special or
+            //   the first char of the addition should be a special
+            //   (the field header ends with a special (the ':') so the first addition can be anything)
 
-            // addspecial must be called between calls to this
-            //  the unsolvable problem is that if one call ends with enc-word WSP and the next call starts with an enc-word then the WSP will be lost
+            // note that the possible introduction of a fold at the beginning of the text is not technically valid for unstructured and comment text as spaces in the output are technically part of the text
+            //  (which is why the code here goes to some effort to retain the spaces present in the ptext)
+            // also note that white space at the end of an output line is deliberately allowed to take the line over the 78 char 'limit'
+            // (words longer than 77 chars that don't need to be encoded will also take output lines over the 78 char limit)
 
+            if (mComplete) throw new InvalidOperationException();
             if (pText == null) throw new ArgumentNullException(nameof(pText));
-            if (!cCharset.WSPVChar.ContainsAll(pText)) return false;
+            if (!cCharset.WSPVChar.ContainsAll(pText)) throw new ArgumentOutOfRangeException(nameof(pText));
+            if (!cCharset.Specials.Contains(mBytes[mBytes.Count - 1]) && pText.Length > 0 && !cCharset.Specials.Contains(pText[0])) return false;
+
+            if (pText.Length == 0)
+            {
+                if (pContext != eHeaderFieldTextContext.phrase) return true;
+
+                if (ZTryAddNonEncodedWord(true, kNoWSP, kDQUOTEDQUOTE, 2)) return true;
+
+                mComplete = true;
+                return false;
+            }
 
             char lChar;
             List<char> lLeadingWSP = new List<char>();
@@ -77,6 +96,7 @@ namespace work.bacome.mailclient
             List<char> lEncodedWordLeadingWSP = new List<char>();
             List<char> lEncodedWordWordChars = new List<char>();
             List<char> lTemp = new List<char>();
+            bool lFirstWord = true;
 
             // loop through the words
 
@@ -147,7 +167,11 @@ namespace work.bacome.mailclient
 
                 if (pContext == eHeaderFieldTextContext.structured)
                 {
-                    if (lContainsNonASCII && !mUTF8Headers) return false;
+                    if (lContainsNonASCII && !mUTF8Headers)
+                    {
+                        mComplete = true;
+                        return false;
+                    }
                 }
                 else if (ZLooksLikeAnEncodedWord(lWordChars) || (lContainsNonASCII && !mUTF8Headers))
                 {
@@ -162,7 +186,13 @@ namespace work.bacome.mailclient
 
                 if (lEncodedWordWordChars.Count > 0)
                 {
-                    if (!ZTryAddEncodedWords(lEncodedWordLeadingWSP, lEncodedWordWordChars, pContext)) return false;
+                    if (!ZTryAddEncodedWords(lFirstWord, lEncodedWordLeadingWSP, lEncodedWordWordChars, pContext))
+                    {
+                        mComplete = true;
+                        return false;
+                    }
+
+                    lFirstWord = false;
                     lEncodedWordLeadingWSP.Clear();
                     lEncodedWordWordChars.Clear();
                 }
@@ -188,15 +218,24 @@ namespace work.bacome.mailclient
                 }
                 else lNonEncodedWordChars = lWordChars.ToArray();
 
-                if (!ZTryAddNonEncodedWord(lLeadingWSP, Encoding.UTF8.GetBytes(lNonEncodedWordChars), lNonEncodedWordChars.Length)) return false;
+                if (!ZTryAddNonEncodedWord(lFirstWord, lLeadingWSP, Encoding.UTF8.GetBytes(lNonEncodedWordChars), lNonEncodedWordChars.Length))
+                {
+                    mComplete = true;
+                    return false;
+                }
+
+                lFirstWord = false;
             }
 
             // output the cached encoded word chars if any
             //
-            if (lEncodedWordWordChars.Count > 0 && !ZTryAddEncodedWords(lEncodedWordLeadingWSP, lEncodedWordWordChars, pContext)) return false;
+            if (lEncodedWordWordChars.Count > 0 && !ZTryAddEncodedWords(lFirstWord, lEncodedWordLeadingWSP, lEncodedWordWordChars, pContext))
+            {
+                mComplete = true;
+                return false;
+            }
 
             // done
-            mCanAddText = false;
             return true;
         }
 
@@ -244,6 +283,7 @@ namespace work.bacome.mailclient
             return true;
         } */
 
+            /*
         public void AddSpecial(byte pByte)
         {
             if (!cCharset.Specials.Contains(pByte)) throw new ArgumentOutOfRangeException(nameof(pByte));
@@ -274,21 +314,17 @@ namespace work.bacome.mailclient
             mCurrentLineCharCount++;
             mCurrentLineHasNonWSP = true;
             mCanAddText = true;
-        }
+        } */
 
-        public bool TryGetBytes(out cBytes rBytes, out )
+        public bool TryGetMessageDataPart(out cLiteralMessageDataPart rMessageDataPart)
         {
-            if (mcur)
-
-
-            ;?; // must check that the last line isn't completely spaces. (
-            ;?; //  must do this before adding any CRLF => this should be a common
-
-            // add the new line before passing out
-            new cBytes(mBytes);
+            if (mComplete) throw new InvalidOperationException();
+            mComplete = true;
+            if (!mCurrentLineHasNonWSP) { rMessageDataPart = null; return false; }
+            mBytes.AddRange(kCRLF);
+            rMessageDataPart = new cLiteralMessageDataPart(new cBytes(mBytes), mUsedUTF8 ? fMessageDataFormat.utf8headers : 0);
+            return true;
         }
-
-        public fMessageDataFormat Format => mUsedUTF8 ? fMessageDataFormat.utf8headers : 0;
 
         private bool ZLooksLikeAnEncodedWord(List<char> pWordChars)
         {
@@ -297,12 +333,12 @@ namespace work.bacome.mailclient
             return false;
         }
 
-        private bool ZTryAddNonEncodedWord(List<char> pLeadingWSP, IList<byte> pWordBytes, int pWordCharCount)
+        private bool ZTryAddNonEncodedWord(bool pFirstWord, IList<char> pLeadingWSP, IList<byte> pWordBytes, int pWordCharCount)
         {
-            List<char> lLeadingWSP;
+            IList<char> lLeadingWSP;
 
             // fold if possible and required
-            if (pLeadingWSP.Count > 0 && mCurrentLineHasNonWSP)
+            if ((pFirstWord || pLeadingWSP.Count > 0) && mCurrentLineHasNonWSP)
             {
                 if (mCurrentLineHasEncodedWords)
                 {
@@ -345,7 +381,7 @@ namespace work.bacome.mailclient
             return true;
         }
 
-        private bool ZTryAddEncodedWords(List<char> pLeadingWSP, List<char> pWordChars, eHeaderFieldTextContext pContext)
+        private bool ZTryAddEncodedWords(bool pFirstWord, List<char> pLeadingWSP, List<char> pWordChars, eHeaderFieldTextContext pContext)
         {
             byte lEncoding;
             List<byte> lEncodedText;
@@ -357,7 +393,7 @@ namespace work.bacome.mailclient
             ZEncodeWord(pContext, lWordString, out lEncoding, out lEncodedText);
 
             // fold if possible and required
-            if (pLeadingWSP.Count > 0 && mCurrentLineHasNonWSP)
+            if ((pFirstWord || pLeadingWSP.Count > 0) && mCurrentLineHasNonWSP)
             {
                 if (mCurrentLineByteCount + pLeadingWSP.Count + 7 + mCharsetNameBytes.Count + lEncodedText.Count > 76)
                 {
@@ -434,18 +470,22 @@ namespace work.bacome.mailclient
             return true;
         }
 
-        private List<char> ZFold(List<char> pLeadingWSP, int pLimit)
+        private IList<char> ZFold(IList<char> pLeadingWSP, int pLimit)
         {
-            int lWSPCharsOnThisLine = Math.Max(pLimit - mCurrentLineByteCount, pLeadingWSP.Count - 1);
+            IList<char> lRemainingWSP;
 
-            List<char> lRemainingWSP;
-
-            if (lWSPCharsOnThisLine == 0) lRemainingWSP = pLeadingWSP;
+            if (pLeadingWSP.Count == 0) lRemainingWSP = kSingleWSP;
             else
             {
-                for (int i = 0; i < lWSPCharsOnThisLine; i++) mBytes.Add((byte)pLeadingWSP[i]);
-                lRemainingWSP = new List<char>();
-                for (int i = lWSPCharsOnThisLine; i < pLeadingWSP.Count; i++) lRemainingWSP.Add(pLeadingWSP[i]);
+                int lWSPCharsOnThisLine = Math.Max(pLimit - mCurrentLineByteCount, pLeadingWSP.Count - 1);
+
+                if (lWSPCharsOnThisLine == 0) lRemainingWSP = pLeadingWSP;
+                else
+                {
+                    for (int i = 0; i < lWSPCharsOnThisLine; i++) mBytes.Add((byte)pLeadingWSP[i]);
+                    lRemainingWSP = new List<char>();
+                    for (int i = lWSPCharsOnThisLine; i < pLeadingWSP.Count; i++) lRemainingWSP.Add(pLeadingWSP[i]);
+                }
             }
 
             mBytes.AddRange(kCRLF);

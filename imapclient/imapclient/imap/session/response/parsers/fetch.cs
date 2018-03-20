@@ -322,7 +322,6 @@ namespace work.bacome.imapclient
                             {
                                 // group finish
 
-                                ;?; // don't fail
                                 if (lGroupAddresses == null) { rAddresses = null; return false; } // end of group without a start of group
                                 lAddresses.Add(new cGroupAddress(lGroupDisplayName, lGroupAddresses));
                                 lGroupDisplayName = null;
@@ -332,7 +331,7 @@ namespace work.bacome.imapclient
                             {
                                 // group start
 
-                                if (lGroupAddresses != null) { rAddresses = null; return false; } // start of group while in a group
+                                if (lGroupAddresses != null) lAddresses.Add(new cGroupAddress(lGroupDisplayName, lGroupAddresses)); // handle a start of group with no end of group
                                 lGroupDisplayName = new cCulturedString(lMailboxBytes);
                                 lGroupAddresses = new List<cEmailAddress>();
                             }
@@ -353,23 +352,6 @@ namespace work.bacome.imapclient
 
                             if (lGroupAddresses != null) lGroupAddresses.Add(lEmailAddress);
                             else lAddresses.Add(lEmailAddress);
-
-                            if (lFirst)
-                            {
-                                lSortString = lMailbox;
-
-                                if (lDisplayName != null)
-                                {
-                                    lDisplaySortString = lDisplayName;
-                                    if (lDisplaySortString.Length != 0) lFirst = false;
-                                }
-
-                                if (lFirst)
-                                {
-                                    lDisplaySortString = lAddress;
-                                    lFirst = false;
-                                }
-                            }
                         }
                     }
 

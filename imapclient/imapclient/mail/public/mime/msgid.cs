@@ -18,20 +18,11 @@ namespace work.bacome.mailclient
         {
             IdLeft = pIdLeft ?? throw new ArgumentNullException(nameof(pIdLeft));
             IdRight = pIdRight ?? throw new ArgumentNullException(nameof(pIdRight));
-            if (!cTools.IsDotAtom(pIdLeft)) throw new ArgumentOutOfRangeException(nameof(pIdLeft));
-            if (!cTools.IsDotAtom(pIdRight) && !ZIsNoFoldLiteral(pIdRight)) throw new ArgumentOutOfRangeException(nameof(pIdRight));
+            if (!cValidation.IsDotAtom(pIdLeft)) throw new ArgumentOutOfRangeException(nameof(pIdLeft));
+            if (!cValidation.IsDotAtom(pIdRight) && !cValidation.IsNoFoldLiteral(pIdRight)) throw new ArgumentOutOfRangeException(nameof(pIdRight));
         }
 
         public string MessageId => $"<{IdLeft}@{IdRight}>";
-
-        private bool ZIsNoFoldLiteral(string pString)
-        {
-            cBytesCursor lCursor = new cBytesCursor(pString);
-            if (!lCursor.SkipByte(cASCII.LBRACKET)) return false;
-            if (!lCursor.GetToken(cCharset.DText, null, null, out cByteList _)) return false;
-            if (!lCursor.SkipByte(cASCII.RBRACKET)) return false;
-            return lCursor.Position.AtEnd;
-        }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public bool Equals(cMsgId pObject) => this == pObject;

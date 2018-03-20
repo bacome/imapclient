@@ -283,40 +283,16 @@ namespace work.bacome.mailclient
             return kIDNMapping.GetUnicode(lASCII);
         }
 
-        public static bool IsDotAtom(string pText)
+        public static List<cEmailAddress> MailAddressesToEmailAddresses(IEnumerable<MailAddress> pAddresses)
         {
-            if (pText == null) return false;
-            var lAtoms = pText.Split('.');
-            foreach (var lAtom in lAtoms) if (lAtom.Length == 0 || !cCharset.AText.ContainsAll(lAtom)) return false;
-            return true;
-        }
-
-        public static bool IsDomainLiteral(string pText, out string rDText)
-        {
-            if (pText == null) { rDText = null; return false; }
-            cBytesCursor lCursor = new cBytesCursor(pText);
-            lCursor.SkipRFC822CFWS();
-            if (!lCursor.SkipByte(cASCII.LBRACKET)) { rDText = null; return false; }
-            lCursor.SkipRFC822FWS();
-            if (!lCursor.GetToken(cCharset.DText, null, null, out rDText)) return false;
-            lCursor.SkipRFC822FWS();
-            if (!lCursor.SkipByte(cASCII.RBRACKET)) return false;
-            lCursor.SkipRFC822CFWS();
-            return lCursor.Position.AtEnd;
-        }
-
-        public static bool IsDomain(string pText) => IsDomainLiteral(pText, out _) || IsDotAtom(pText);
-
-        public static List<cEmailAddress> MailAddressesToEmailAddresses(IEnumerable<MailAddress> pMailAddresses)
-        {
-            if (pMailAddresses == null) throw new ArgumentNullException(nameof(pMailAddresses));
+            if (pAddresses == null) throw new ArgumentNullException(nameof(pAddresses));
 
             var lEmailAddresses = new List<cEmailAddress>();
 
-            foreach (var lMailAddress in pMailAddresses)
+            foreach (var lAddress in pAddresses)
             {
-                if (lMailAddress == null) throw new ArgumentOutOfRangeException(nameof(pMailAddresses), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
-                lEmailAddresses.Add(lMailAddress);
+                if (lAddress == null) throw new ArgumentOutOfRangeException(nameof(pAddresses), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
+                lEmailAddresses.Add(lAddress);
             }
 
             return lEmailAddresses;

@@ -72,7 +72,8 @@
     <Compile Include="mail\public\mime\messagedatapart.cs" />
     <Compile Include="mail\public\mime\messagedataformat.cs" />
     <Compile Include="mail\public\mime\msgid.cs" />
-    <Compile Include="mail\public\mime\headerfieldphrase.cs" />
+    <Compile Include="mail\public\mime\headervalue.cs" />
+    <Compile Include="mail\public\mime\validation.cs" />
     <Compile Include="mail\public\other\exceptions.cs" />
     <Compile Include="mail\public\mime\messagedata.cs" />
     <Compile Include="imap\session\append\append.cs" />
