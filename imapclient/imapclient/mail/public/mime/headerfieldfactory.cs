@@ -22,19 +22,16 @@ namespace work.bacome.mailclient
             mCharsetNameBytes = new cBytes(cTools.GetCharsetNameBytes(pEncoding));
         }
 
-        public cLiteralMessageDataPart UnstructuredValue(string pFieldName, string pText)
+        public cLiteralMessageDataPart Unstructured(string pFieldName, string pText)
         {
             var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
-            if (pText == null) throw new ArgumentNullException(nameof(pText));
-            if (!cCharset.WSPVChar.ContainsAll(pText)) throw new ArgumentOutOfRangeException(nameof(pText));
-            if (!lBytes.TryAdd(pText, eHeaderFieldTextContext.unstructured)) throw new ArgumentOutOfRangeException(nameof(pText));
-            if (!lBytes.TryGetMessageDataPart(out var lResult)) throw new ArgumentOutOfRangeException(nameof(pText));
-            return lResult;
+            if (!lBytes.TryAdd(pText, eHeaderFieldTextContext.unstructured)) return null;
+            return lBytes.GetMessageDataPart();
         }
 
-        public cLiteralMessageDataPart PhraseValue(string pFieldName, params cHeaderPhraseValue[] pPhrases) => PhraseValue(pFieldName, pPhrases as IEnumerable<cHeaderPhraseValue>);
+        public cLiteralMessageDataPart Phrases(string pFieldName, params string[] pPhrases) => Phrases(pFieldName, pPhrases as IEnumerable<string>);
 
-        public cLiteralMessageDataPart PhraseValue(string pFieldName, IEnumerable<cHeaderPhraseValue> pPhrases)
+        public cLiteralMessageDataPart Phrases(string pFieldName, IEnumerable<string> pPhrases)
         {
             var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
 
@@ -47,16 +44,45 @@ namespace work.bacome.mailclient
                 if (lPhrase == null) throw new ArgumentOutOfRangeException(nameof(pPhrases), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
 
                 if (lFirst) lFirst = false;
-                else if (!lBytes.TryAdd(",", eHeaderFieldTextContext.structured)) throw new ArgumentOutOfRangeException(nameof(pPhrases));
+                else if (!lBytes.TryAdd(",", eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(Phrases)}.1");
 
-                if (!ZAddPhrase(lPhrase, lBytes)) throw new ArgumentOutOfRangeException(nameof(pPhrases));
+                if (!lBytes.TryAdd(lPhrase, eHeaderFieldTextContext.phrase)) return null;
             }
 
-            if (!lBytes.TryGetMessageDataPart(out var lResult)) throw new ArgumentOutOfRangeException(nameof(pPhrases));
-            return lResult;
+            return lBytes.GetMessageDataPart();
         }
 
-        public cLiteralMessageDataPart StructuredValue(string pFieldName, cHeaderStructuredValue pValue)
+        public cLiteralMessageDataPart Phrases(string pFieldName, params cHeaderPhraseValue[] pPhrases) => Phrases(pFieldName, pPhrases as IEnumerable<cHeaderPhraseValue>);
+
+        public cLiteralMessageDataPart Phrases(string pFieldName, IEnumerable<cHeaderPhraseValue> pPhrases)
+        {
+            var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
+
+            if (pPhrases == null) throw new ArgumentNullException(nameof(pPhrases));
+
+            bool lFirst = false;
+
+            foreach (var lPhrase in pPhrases)
+            {
+                if (lPhrase == null) throw new ArgumentOutOfRangeException(nameof(pPhrases), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
+
+                if (lFirst) lFirst = false;
+                else if (!lBytes.TryAdd(",", eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(Phrases)}.2");
+
+                if (!ZTryAddPhrase(lPhrase, lBytes)) return null;
+            }
+
+            return lBytes.GetMessageDataPart();
+        }
+
+        public cLiteralMessageDataPart Structured(string pFieldName, string pText)
+        {
+            var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
+            if (!lBytes.TryAdd(pText, eHeaderFieldTextContext.structured)) return null;
+            return lBytes.GetMessageDataPart();
+        }
+
+        public cLiteralMessageDataPart Structured(string pFieldName, cHeaderStructuredValue pValue)
         {
             var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
 
@@ -68,62 +94,72 @@ namespace work.bacome.mailclient
                 {
                     case cHeaderTextValue lText:
 
-                        if (!lBytes.TryAdd(lText.Text, eHeaderFieldTextContext.structured)) throw new ArgumentOutOfRangeException(nameof(pValue));
+                        if (!lBytes.TryAdd(lText.Text, eHeaderFieldTextContext.structured)) return null;
                         break;
 
                     case cHeaderCommentValue lComment:
 
-                        if (!ZAddComment(lComment, lBytes)) throw new ArgumentOutOfRangeException(nameof(pValue));
+                        if (!ZTryAddComment(lComment, lBytes)) return null;
                         break;
 
                     case cHeaderPhraseValue lPhrase:
 
-                        if (!ZAddPhrase(lPhrase, lBytes)) throw new ArgumentOutOfRangeException(nameof(pValue));
+                        if (!ZTryAddPhrase(lPhrase, lBytes)) return null;
                         break;
 
                     default:
 
-                        throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)},{nameof(StructuredValue)}");
+                        throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(Structured)}");
                 }
             }
 
-            if (!lBytes.TryGetMessageDataPart(out var lResult)) throw new ArgumentOutOfRangeException(nameof(pValue));
-            return lResult;
+            return lBytes.GetMessageDataPart();
         }
 
         public cLiteralMessageDataPart DateTimeValue(string pFieldName, DateTime pDateTime)
         {
             var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
-            if (!lBytes.TryAdd(cTools.GetRFC822DateTimeString(pDateTime), eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(DateTimeValue)}.1.1");
-            if (!lBytes.TryGetMessageDataPart(out var lResult)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(DateTimeValue)}.1.2");
-            return lResult;
+            if (!lBytes.TryAdd(cTools.GetRFC822DateTimeString(pDateTime), eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(DateTimeValue)}.1");
+            return lBytes.GetMessageDataPart();
         }
 
         public cLiteralMessageDataPart DateTimeValue(string pFieldName, DateTimeOffset pDateTimeOffset)
         {
             var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
-            if (!lBytes.TryAdd(cTools.GetRFC822DateTimeString(pDateTimeOffset), eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(DateTimeValue)}.2.1");
-            if (!lBytes.TryGetMessageDataPart(out var lResult)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(DateTimeValue)}.2.2");
-            return lResult;
+            if (!lBytes.TryAdd(cTools.GetRFC822DateTimeString(pDateTimeOffset), eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(DateTimeValue)}.2");
+            return lBytes.GetMessageDataPart();
         }
 
-        public cLiteralMessageDataPart MailboxValue(string pFieldName, params MailAddress[] pAddresses) => MailboxValue(pFieldName, cTools.MailAddressesToEmailAddresses(pAddresses));
+        public cLiteralMessageDataPart Mailboxes(string pFieldName, params MailAddress[] pAddresses) => Mailboxes(pFieldName, pAddresses as IEnumerable<MailAddress>);
 
-        public cLiteralMessageDataPart MailboxValue(string pFieldName, IEnumerable<MailAddress> pAddresses) => MailboxValue(pFieldName, cTools.MailAddressesToEmailAddresses(pAddresses));
+        public cLiteralMessageDataPart Mailboxes(string pFieldName, IEnumerable<MailAddress> pAddresses)
+        {
+            if (pAddresses == null) throw new ArgumentNullException(nameof(pAddresses));
 
-        public cLiteralMessageDataPart MailboxValue(string pFieldName, params cEmailAddress[] pAddresses) => MailboxValue(pFieldName, pAddresses as IEnumerable<cEmailAddress>);
+            var lAddresses = new List<cEmailAddress>();
 
-        public cLiteralMessageDataPart MailboxValue(string pFieldName, IEnumerable<cEmailAddress> pAddresses)
+            foreach (var lAddress in pAddresses)
+            {
+                if (lAddress == null) throw new ArgumentOutOfRangeException(nameof(pAddresses), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
+                if (!cEmailAddress.TryConstruct(lAddress, out var lEmailAddress)) return null;
+                lAddresses.Add(lEmailAddress);
+            }
+
+            return Mailboxes(pFieldName, lAddresses);
+        }
+
+        public cLiteralMessageDataPart Mailboxes(string pFieldName, params cEmailAddress[] pAddresses) => Mailboxes(pFieldName, pAddresses as IEnumerable<cEmailAddress>);
+
+        public cLiteralMessageDataPart Mailboxes(string pFieldName, IEnumerable<cEmailAddress> pAddresses)
         {
             var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
-            ZAddAddresses(pAddresses, lBytes);
-            if (!lBytes.TryGetMessageDataPart(out var lResult)) throw new ArgumentOutOfRangeException(nameof(pAddresses));
-            return lResult;
+            if (!ZTryAddEmailAddresses(pAddresses, lBytes)) return null;
+            return lBytes.GetMessageDataPart();
         }
 
-        public cLiteralMessageDataPart AddressValue(string pFieldName, params cAddress[] pAddresses) => AddressValue(pFieldName, pAddresses as IEnumerable<cAddress>);
+        public cLiteralMessageDataPart Addresses(string pFieldName, params cAddress[] pAddresses) => Addresses(pFieldName, pAddresses as IEnumerable<cAddress>);
 
-        public cLiteralMessageDataPart AddressValue(string pFieldName, IEnumerable<cAddress> pAddresses)
+        public cLiteralMessageDataPart Addresses(string pFieldName, IEnumerable<cAddress> pAddresses)
         {
             var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
 
@@ -136,13 +172,50 @@ namespace work.bacome.mailclient
                 if (lAddress == null) throw new ArgumentOutOfRangeException(nameof(pAddresses), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
 
                 if (lFirst) lFirst = false;
-                else if (!lBytes.TryAdd(",", eHeaderFieldTextContext.structured)) throw new ArgumentOutOfRangeException(nameof(pAddresses));
+                else if (!lBytes.TryAdd(",", eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(Addresses)}.1");
 
-                ZAddAddress(lAddress, lBytes);
+                switch (lAddress)
+                {
+                    case cGroupAddress lGroup:
+
+                        if (!ZTryAddGroupAddress(lGroup, lBytes)) return null;
+                        break;
+
+                    case cEmailAddress lEmail:
+
+                        if (!ZTryAddEmailAddress(lEmail, lBytes)) return null;
+                        break;
+
+                    default:
+
+                        throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(Addresses)}.2");
+                }
             }
 
-            if (!lBytes.TryGetMessageDataPart(out var lResult)) throw new ArgumentOutOfRangeException(nameof(pAddresses));
-            return lResult;
+            return lBytes.GetMessageDataPart();
+        }
+
+        public cLiteralMessageDataPart MessageId(string pFieldName, string pMessageId)
+        {
+            var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
+            ;?;
+            return lBytes.GetMessageDataPart();
+        }
+
+        public cLiteralMessageDataPart MessageIds(string pFieldName, string pMessageIds)
+        {
+            var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
+            ;?;
+            return lBytes.GetMessageDataPart();
+        }
+
+        public cLiteralMessageDataPart MessageIds(string pFieldName, params string[] pMessageIds) => MessageIds(pFieldName, pMessageIds as IEnumerable<string>);
+
+        public cLiteralMessageDataPart MessageIds(string pFieldName, IEnumerable<string> pMessageIds)
+        {
+            var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
+            ;?;
+            return lBytes.GetMessageDataPart();
         }
 
         public cLiteralMessageDataPart MIME(string pFieldName, string pValue, params cHeaderFieldMIMEParameter[] pParameters)
@@ -155,7 +228,7 @@ namespace work.bacome.mailclient
 
         }
 
-        private bool ZAddPhrase(cHeaderPhraseValue pPhrase, cHeaderFieldBytes pBytes)
+        private bool ZTryAddPhrase(cHeaderPhraseValue pPhrase, cHeaderFieldBytes pBytes)
         {
             foreach (var lPart in pPhrase.Parts)
             {
@@ -168,21 +241,21 @@ namespace work.bacome.mailclient
 
                     case cHeaderCommentValue lComment:
 
-                        if (!ZAddComment(lComment, pBytes)) return false;
+                        if (!ZTryAddComment(lComment, pBytes)) return false;
                         break;
 
                     default:
 
-                        throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)},{nameof(ZAddPhrase)}");
+                        throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(ZTryAddPhrase)}");
                 }
             }
 
             return true;
         }
 
-        private bool ZAddComment(cHeaderCommentValue pComment, cHeaderFieldBytes pBytes)
+        private bool ZTryAddComment(cHeaderCommentValue pComment, cHeaderFieldBytes pBytes)
         {
-            if (!pBytes.TryAdd("(", eHeaderFieldTextContext.structured)) return false;
+            if (!pBytes.TryAdd("(", eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(ZTryAddComment)}.1");
 
             foreach (var lPart in pComment.Parts)
             {
@@ -195,47 +268,30 @@ namespace work.bacome.mailclient
 
                     case cHeaderCommentValue lComment:
 
-                        if (!ZAddComment(lComment, pBytes)) return false;
+                        if (!ZTryAddComment(lComment, pBytes)) return false;
                         break;
 
                     default:
 
-                        throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)},{nameof(ZAddComment)}");
+                        throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(ZTryAddComment)}.2");
                 }
             }
 
-            return pBytes.TryAdd(")", eHeaderFieldTextContext.structured);
+            if (!pBytes.TryAdd(")", eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(ZTryAddComment)}.3");
+
+            return true;
         }
 
-        private void ZAddAddress(cAddress pAddress, cHeaderFieldBytes pBytes)
+        private bool ZTryAddGroupAddress(cGroupAddress pAddress, cHeaderFieldBytes pBytes)
         {
-            switch (pAddress)
-            {
-                case cGroupAddress lGroup:
-
-                    ZAddGroupAddress(lGroup, pBytes);
-                    break;
-
-                case cEmailAddress lEmail:
-
-                    ZAddEmailAddress(lEmail, pBytes);
-                    break;
-
-                default:
-
-                    throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)},{nameof(ZAddAddress)}");
-            }
+            if (!pBytes.TryAdd(pAddress.DisplayName.ToString(), eHeaderFieldTextContext.phrase)) return false;
+            if (!pBytes.TryAdd(":", eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(ZTryAddGroupAddress)}.1");
+            if (!ZTryAddEmailAddresses(pAddress.EmailAddresses, pBytes)) return false;
+            if (!pBytes.TryAdd(";", eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(ZTryAddGroupAddress)}.2");
+            return true;
         }
 
-        private void ZAddGroupAddress(cGroupAddress pAddress, cHeaderFieldBytes pBytes)
-        {
-            if (!pBytes.TryAdd(pAddress.DisplayName.ToString(), eHeaderFieldTextContext.phrase)) throw new cAddressFormException(pAddress);
-            if (!pBytes.TryAdd(":", eHeaderFieldTextContext.structured)) throw new cAddressFormException(pAddress);
-            ZAddAddresses(pAddress.EmailAddresses, pBytes);
-            if (!pBytes.TryAdd(";", eHeaderFieldTextContext.structured)) throw new cAddressFormException(pAddress);
-        }
-
-        private void ZAddAddresses(IEnumerable<cEmailAddress> pAddresses, cHeaderFieldBytes pBytes)
+        private bool ZTryAddEmailAddresses(IEnumerable<cEmailAddress> pAddresses, cHeaderFieldBytes pBytes)
         {
             if (pAddresses == null) throw new ArgumentNullException(nameof(pAddresses));
 
@@ -246,110 +302,43 @@ namespace work.bacome.mailclient
                 if (lAddress == null) throw new ArgumentOutOfRangeException(nameof(pAddresses), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
 
                 if (lFirst) lFirst = false;
-                else if (!pBytes.TryAdd(",", eHeaderFieldTextContext.structured)) throw new ArgumentOutOfRangeException(nameof(pAddresses));
+                else if (!pBytes.TryAdd(",", eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(ZTryAddEmailAddresses)}");
 
-                ZAddEmailAddress(lAddress, lBytes);
+                if (!ZTryAddEmailAddress(lAddress, pBytes)) return false;
             }
+
+            return true;
         }
 
-        private void ZAddEmailAddress(cEmailAddress pAddress, cHeaderFieldBytes pBytes)
+        private bool ZTryAddEmailAddress(cEmailAddress pAddress, cHeaderFieldBytes pBytes)
         {
-            if (pAddress.DisplayName == null) ZAddAddrSpec(pAddress);
-            else
-            {
-                if (!pBytes.TryAdd(pAddress.DisplayName.ToString(), eHeaderFieldTextContext.phrase)) throw new cAddressFormException(pAddress);
-            }
+            if (pAddress.DisplayName == null) return ZTryAddAddrSpec(pAddress, pBytes);
+
+            if (!pBytes.TryAdd(pAddress.DisplayName.ToString(), eHeaderFieldTextContext.phrase)) return false;
+            if (!pBytes.TryAdd("<", eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(ZTryAddEmailAddress)}.1");
+            if (!ZTryAddAddrSpec(pAddress, pBytes)) return false;
+            if (!pBytes.TryAdd(">", eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(ZTryAddEmailAddress)}.2");
+
+            return true;
+        }
+
+        private bool ZTryAddAddrSpec(cEmailAddress pAddress, cHeaderFieldBytes pBytes)
+        {
+            // note that the cEmailAddress may have come from the server, so the content isn't necessarily sendable ...
+            if (!cCharset.WSPVChar.ContainsAll(pAddress.LocalPart) || !cValidation.IsDomain(pAddress.Domain)) return false;
+
+            string lLocalPart;
+            if (cValidation.IsDotAtom(pAddress.LocalPart)) lLocalPart = pAddress.LocalPart;
+            else lLocalPart = cTools.Enquote(pAddress.LocalPart);
+
+            // it is done this way because of the "should" in rfc 5322 3.4.1
+            return pBytes.TryAdd(lLocalPart + "@" + pAddress.Domain, eHeaderFieldTextContext.structured);
         }
 
 
         ;?; // mime header - field, value, parameters ...
 
-        private void ZAddAddress(MailAddress pAddress, cHeaderFieldBytes pBytes)
-        {
-            if (string.IsNullOrWhiteSpace(pAddress.DisplayName))
-            {
-                ZAddAddrSpec(pAddress, pBytes);
-                return;
-            }
 
-            if (!cTools.IsValidHeaderFieldText(pAddress.DisplayName)) throw new cAddressFormException(pAddress);
-
-            pBytes.AddEncodableText(pAddress.DisplayName, eHeaderFieldTextContext.phrase);
-            pBytes.AddSpecial(cASCII.LESSTHAN);
-            ZAddAddrSpec(pAddress, pBytes);
-            pBytes.AddSpecial(cASCII.GREATERTHAN);
-        }
-
-        private void ZAddAddrSpec(MailAddress pAddress, cHeaderFieldBytes pBytes)
-        {
-            if (pAddress.Host == null || pAddress.Host.Length == 0) throw new cMailAddressFormException(pAddress);
-
-            ;?;
-            string lUser = ZRemoveQuoting(pAddress.User);
-            if (!pBytes.TryAddDotAtom(lUser) && !pBytes.TryAddQuotedString(lUser)) throw new cMailAddressFormException(pAddress);
-
-            pBytes.AddSpecial(cASCII.AT);
-
-            if (ZIsDomainLiteral(pAddress.Host, out var lDText))
-            {
-                pBytes.AddSpecial(cASCII.LBRACKET);
-                // add text/ structured
-                if (!pBytes.TryAddFoldableText(lDText)) throw new cMailAddressFormException(pAddress);
-                pBytes.AddSpecial(cASCII.RBRACKET);
-            }
-            else
-            {
-                string lHost;
-                if (mUTF8Headers) lHost = pAddress.Host;
-                else lHost = cTools.GetDNSHost(pAddress.Host);
-
-                if (!pBytes.TryAddDotAtom(lHost)) throw new cMailAddressFormException(pAddress);
-            }
-        }
-
-        private void ZAddAddress(cEmailAddress pAddress, cHeaderFieldBytes pBytes)
-        {
-            if (string.IsNullOrWhiteSpace(pAddress.DisplayName))
-            {
-                ZAddAddrSpec(pAddress, pBytes);
-                return;
-            }
-
-            string lDisplayName = pAddress.DisplayName.ToString();
-
-            ;?;
-            if (!cTools.IsValidHeaderFieldText(lDisplayName)) throw new cAddressFormException((cAddress)pAddress);
-
-            pBytes.AddEncodableText(pAddress.DisplayName, eHeaderFieldTextContext.phrase);
-            pBytes.AddSpecial(cASCII.LESSTHAN);
-            ZAddAddrSpec(pAddress, pBytes);
-            pBytes.AddSpecial(cASCII.GREATERTHAN);
-        }
-
-        private void ZAddAddrSpec(cEmailAddress pAddress, cHeaderFieldBytes pBytes)
-        {
-            if (pAddress.Host == null || pAddress.Host.Length == 0) throw new cMailAddressFormException(pAddress);
-
-            string lUser = ZRemoveQuoting(pAddress.User);
-            if (!pBytes.TryAddDotAtom(lUser) && !pBytes.TryAddQuotedString(lUser)) throw new cMailAddressFormException(pAddress);
-
-            pBytes.AddSpecial(cASCII.AT);
-
-            if (ZIsDomainLiteral(pAddress.Host, out var lDText))
-            {
-                pBytes.AddSpecial(cASCII.LBRACKET);
-                if (!pBytes.TryAddFoldableText(lDText)) throw new cMailAddressFormException(pAddress);
-                pBytes.AddSpecial(cASCII.RBRACKET);
-            }
-            else
-            {
-                string lHost;
-                if (mUTF8Headers) lHost = pAddress.Host;
-                else lHost = cTools.GetDNSHost(pAddress.Host);
-
-                if (!pBytes.TryAddDotAtom(lHost)) throw new cMailAddressFormException(pAddress);
-            }
-        }
 
 
 

@@ -212,7 +212,7 @@ namespace work.bacome.mailclient
             }
         }
 
-        private bool ZGetRFC822FWS(cByteList pBytes)
+        public bool ZGetRFC822FWS(cByteList pBytes)
         {
             bool lResult = ZGetRFC822WSP(pBytes);
 
@@ -232,7 +232,7 @@ namespace work.bacome.mailclient
             }
         }
 
-        public bool GetDomainLiteral(out string rDomainLiteral)
+        public bool GetRFC822DomainLiteral(out string rDomainLiteral)
         {
             var lBookmark = Position;
 
@@ -246,13 +246,10 @@ namespace work.bacome.mailclient
             cByteList lResult = new cByteList();
             lResult.Add(cASCII.LBRACKET);
 
-            // optional leading FWS
-            SkipRFC822FWS();
-
-            bool lSpace = false;
-
             while (true)
             {
+                ZGetRFC822FWS(lResult);
+
                 if (Position.AtEnd || Position.BytesLine.Literal) { Position = lBookmark; rDomainLiteral = null; return false; }
 
                 byte lByte = Position.BytesLine[Position.Byte];
@@ -265,13 +262,9 @@ namespace work.bacome.mailclient
                 }
                 else if (!cCharset.ObsDText.Contains(lByte)) break;
 
-                if (lSpace) lResult.Add(cASCII.SPACE);
-
                 lResult.Add(lByte);
 
                 ZAdvance(ref Position);
-
-                lSpace = SkipRFC822FWS();
             }
 
             // close bracket

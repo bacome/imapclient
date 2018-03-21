@@ -35,6 +35,7 @@ namespace work.bacome.mailclient
         public const string ContainsMixedMessageCaches = "contains mixed message caches";
         public const string ContainsMixedUIDValidities = "contains mixed uidvalidities";
         public const string HasNoContent = "has no content";
+        public const string AdjacencyProblem = "adjacency problem";
     }
 
     internal static class kMailMessageFormExceptionMessage

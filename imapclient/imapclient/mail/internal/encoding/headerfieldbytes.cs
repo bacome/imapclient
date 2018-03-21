@@ -77,7 +77,7 @@ namespace work.bacome.mailclient
 
             if (mComplete) throw new InvalidOperationException();
             if (pText == null) throw new ArgumentNullException(nameof(pText));
-            if (!cCharset.WSPVChar.ContainsAll(pText)) throw new ArgumentOutOfRangeException(nameof(pText));
+            if (!cCharset.WSPVChar.ContainsAll(pText)) return false;
             if (!cCharset.Specials.Contains(mBytes[mBytes.Count - 1]) && pText.Length > 0 && !cCharset.Specials.Contains(pText[0])) return false;
 
             if (pText.Length == 0)
@@ -316,14 +316,13 @@ namespace work.bacome.mailclient
             mCanAddText = true;
         } */
 
-        public bool TryGetMessageDataPart(out cLiteralMessageDataPart rMessageDataPart)
+        public cLiteralMessageDataPart GetMessageDataPart()
         {
             if (mComplete) throw new InvalidOperationException();
             mComplete = true;
-            if (!mCurrentLineHasNonWSP) { rMessageDataPart = null; return false; }
+            if (!mCurrentLineHasNonWSP) return null;
             mBytes.AddRange(kCRLF);
-            rMessageDataPart = new cLiteralMessageDataPart(new cBytes(mBytes), mUsedUTF8 ? fMessageDataFormat.utf8headers : 0);
-            return true;
+            return new cLiteralMessageDataPart(new cBytes(mBytes), mUsedUTF8 ? fMessageDataFormat.utf8headers : 0);
         }
 
         private bool ZLooksLikeAnEncodedWord(List<char> pWordChars)

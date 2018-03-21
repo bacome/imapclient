@@ -601,6 +601,23 @@ namespace work.bacome.mailclient.support
             }
         }
 
+        private class cQText : cCharset
+        {
+            public override bool Contains(byte pByte)
+            {
+                if (pByte > cASCII.DEL) return true; // allows utf8 to pass through (unvalidated)
+                if (pByte <= cASCII.SPACE || pByte == cASCII.DQUOTE || pByte == cASCII.BACKSL || pByte == cASCII.DEL) return false;
+                return true;
+            }
+
+            public override bool Contains(char pChar)
+            {
+                if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
+                if (pChar <= ' ' || pChar == '"' || pChar == '\\' || pChar == cChar.DEL) return false;
+                return true;
+            }
+        }
+
         private class cObsQText : cCharset
         {
             private const string kcQTextDisallowed = "\0\t\n\r \"\\";
@@ -783,6 +800,12 @@ namespace work.bacome.mailclient.support
             public override bool Contains(char pChar) => ZIsOneOf(pChar, kcSpecials);
         } 
 
+        private class cWSP : cCharset
+        {
+            public override bool Contains(byte pByte) => pByte == cASCII.TAB || pByte == cASCII.SPACE;
+            public override bool Contains(char pChar) => pChar == '\t' || pChar == ' ';
+        }
+
         // instances
 
         /**<summary>Represents the characters A-Z and a-z.</summary>*/
@@ -837,7 +860,9 @@ namespace work.bacome.mailclient.support
         public static readonly cCharset ObsCText = new cObsCText();
         /**<summary>Represents the characters used in RFC 6532 'atext'.</summary>*/
         public static readonly cCharset AText = new cAText();
-        /**<summary>Represents the characters used in RFC 6532 'obs-qtext'.</summary>*/
+        /**<summary>Represents the characters used in RFC 6532 'qtext'.</summary>*/
+        public static readonly cCharset QText = new cQText();
+        /**<summary>Represents the characters used in RFC 6532 'dtext'.</summary>*/
         public static readonly cCharset ObsQText = new cObsQText();
         /**<summary>Represents the characters used in RFC 6532 'dtext'.</summary>*/
         public static readonly cCharset DText = new cDText();
@@ -859,5 +884,7 @@ namespace work.bacome.mailclient.support
         public static readonly cCharset AttributeChar = new cAttributeChar();
         /**<summary>Represents the characters used in RFC 5322 'specials'.</summary>*/
         public static readonly cCharset Specials = new cSpecials();
+        /**<summary>Represents the characters used in RFC 5234 'WSP'.</summary>*/
+        public static readonly cCharset WSP = new cWSP();
     }
 }

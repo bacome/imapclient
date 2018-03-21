@@ -283,21 +283,6 @@ namespace work.bacome.mailclient
             return kIDNMapping.GetUnicode(lASCII);
         }
 
-        public static List<cEmailAddress> MailAddressesToEmailAddresses(IEnumerable<MailAddress> pAddresses)
-        {
-            if (pAddresses == null) throw new ArgumentNullException(nameof(pAddresses));
-
-            var lEmailAddresses = new List<cEmailAddress>();
-
-            foreach (var lAddress in pAddresses)
-            {
-                if (lAddress == null) throw new ArgumentOutOfRangeException(nameof(pAddresses), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
-                lEmailAddresses.Add(lAddress);
-            }
-
-            return lEmailAddresses;
-        }
-
         public static bool ContainsNonASCII(IEnumerable<char> pChars)
         {
             foreach (var lChar in pChars) if (lChar > cChar.DEL) return true;

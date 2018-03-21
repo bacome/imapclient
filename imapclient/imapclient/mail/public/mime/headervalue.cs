@@ -37,14 +37,21 @@ namespace work.bacome.mailclient
             if (pParts == null) throw new ArgumentNullException(nameof(pParts));
 
             var lParts = new List<cHeaderCommentOrTextValue>();
+            bool lLastWasText = false;
 
             foreach (var lPart in pParts)
             {
-                // can't have adjacent text parts
-            }
-                ;?;
                 if (lPart == null) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
-                else lParts.Add(lPart);
+
+                if (lPart is cHeaderTextValue)
+                {
+                    if (lLastWasText) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.AdjacencyProblem);
+                    lLastWasText = true;
+                }
+                else lLastWasText = false;
+
+                lParts.Add(lPart);
+            }
 
             Parts = lParts.AsReadOnly();
         }
@@ -73,18 +80,25 @@ namespace work.bacome.mailclient
             if (pParts == null) throw new ArgumentNullException(nameof(pParts));
 
             var lParts = new List<cHeaderCommentOrTextValue>();
-            bool lHasContent = false;
+            ;???; bool lLastWasText = false; // the problem is how to get "" into the output if this isn't allowed
+            bool lHasText = false;
 
             foreach (var lPart in pParts)
             {
-                ;?;                // can't have adjacent text parts
-
                 if (lPart == null) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
-                if (lPart is cHeaderTextValue lText) lHasContent = true;
+
+                if (lPart is cHeaderTextValue)
+                {
+                    if (lLastWasText) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.AdjacencyProblem);
+                    lLastWasText = true;
+                    lHasText = true;
+                }
+                else lLastWasText = false;
+
                 lParts.Add(lPart);
             }
 
-            if (!lHasContent) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.HasNoContent);
+            if (!lHasText) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.HasNoContent);
 
             Parts = lParts.AsReadOnly();
         }
@@ -92,7 +106,6 @@ namespace work.bacome.mailclient
         public cHeaderPhraseValue(string pText)
         {
             if (pText == null) throw new ArgumentNullException(nameof(pText));
-            if (string.IsNullOrWhiteSpace(pText)) throw new ArgumentOutOfRangeException(nameof(pText));
             var lParts = new List<cHeaderCommentOrTextValue>();
             lParts.Add(new cHeaderTextValue(pText));
             Parts = lParts.AsReadOnly();
@@ -115,13 +128,19 @@ namespace work.bacome.mailclient
             if (pParts == null) throw new ArgumentNullException(nameof(pParts));
 
             var lParts = new List<cHeaderCommentTextOrPhraseValue>();
+            bool lLastWasPhrase = false;
 
             foreach (var lPart in pParts)
             {
-                // cant have phrase next to phrase
-
-                ;?;
                 if (lPart == null) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
+
+                if (lPart is cHeaderPhraseValue)
+                {
+                    if (lLastWasPhrase) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.AdjacencyProblem);
+                    lLastWasPhrase = true;
+                }
+                else lLastWasPhrase = false;
+
                 lParts.Add(lPart);
             }
 
@@ -131,7 +150,6 @@ namespace work.bacome.mailclient
         public cHeaderStructuredValue(string pText)
         {
             if (pText == null) throw new ArgumentNullException(nameof(pText));
-            if (string.IsNullOrWhiteSpace(pText)) throw new ArgumentOutOfRangeException(nameof(pText));
             var lParts = new List<cHeaderCommentTextOrPhraseValue>();
             lParts.Add(new cHeaderTextValue(pText));
             Parts = lParts.AsReadOnly();

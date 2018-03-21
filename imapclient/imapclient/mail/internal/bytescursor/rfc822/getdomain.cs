@@ -7,26 +7,18 @@ namespace work.bacome.mailclient
     {
         internal bool GetRFC822Domain(out string rDomain)
         {
-            ;?; // note that this needs to be enhanced for domain-literal
-
-
-            if (GetDomainLiteral(out rDomain)) return true;
-
-            var lBookmark = Position;
+            if (GetRFC822DomainLiteral(out rDomain)) return true;
 
             List<string> lParts = new List<string>();
             string lPart;
 
-            SkipRFC822CFWS();
-            if (!GetRFC822Atom(out lPart)) { Position = lBookmark; rDomain = null; return false; }
+            if (!GetRFC822Atom(out lPart)) { rDomain = null; return false; }
             lParts.Add(lPart);
 
             while (true)
             {
-                SkipRFC822CFWS();
-                lBookmark = Position;
+                var lBookmark = Position;
                 if (!SkipByte(cASCII.DOT)) break;
-                SkipRFC822CFWS();
                 if (!GetRFC822Atom(out lPart)) { Position = lBookmark; break; }
                 lParts.Add(lPart);
             }
