@@ -153,6 +153,21 @@ namespace work.bacome.mailclient
             return true;
         }
 
+        public bool GetRFC822DAtom(out string rAtom)
+        {
+            var lBookmark = Position;
+
+            // optional leading spaces
+            SkipRFC822CFWS();
+
+            if (!GetToken(cCharset.DotAText, null, null, out rAtom)) { Position = lBookmark; return false; }
+
+            // optional trailing spaces
+            SkipRFC822CFWS();
+
+            return true;
+        }
+
         public bool GetRFC822QuotedString(out string rString)
         {
             var lBookmark = Position;

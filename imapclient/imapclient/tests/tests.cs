@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
-using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -36,6 +37,7 @@ namespace work.bacome.imapclient
             cHeaderFieldValuePart._Tests(lContext);
             cTests.QuotedPrintableEncodeTests(lContext);
             cAccountId._Tests();
+            cValidation._Tests();
         }
 
         private partial class cSession

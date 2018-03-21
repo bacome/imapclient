@@ -24,8 +24,18 @@ namespace work.bacome.mailclient
         /// </summary>
         public readonly ReadOnlyCollection<cCulturedStringPart> Parts;
 
-        internal cCulturedString(IList<byte> pBytes)
+        internal cCulturedString(IList<byte> pBytes, bool pPhraseSemantics)
         {
+            // "phrasesemantics" is to deal with the problem of IMAP removing the RFC 2822 quoting (see the addr-mailbox and addr-name definitions in RFC 3501)
+            //  consider the display name >fr€d " " fr€d< (with the 'fr€d's as encoded words)
+            //   after IMAP removing the quoting the string looks like this >fr€d   fr€d<, 
+            //    so if I were to ignore the spaces between the encoded words
+            //     (as I should when processing unstructured text (like the subject))
+            //      then I'd end up with >fr€dfr€d<
+            //
+            //  for this code to work the IMAP server has to guarantee that only one space will be inserted between phrase parts when sending the display name
+            //   (which is what I would guess is exactly what it would do)
+
             if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
 
             if (pBytes.Count == 0)

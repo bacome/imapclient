@@ -97,6 +97,11 @@ namespace work.bacome.mailclient
                         if (!lBytes.TryAdd(lText.Text, eHeaderFieldTextContext.structured)) return null;
                         break;
 
+                    case cHeaderQuotedStringValue lQuotedString:
+
+                        if (!lBytes.TryAdd(cTools.Enquote(lQuotedString.Text), eHeaderFieldTextContext.structured)) return null;
+                        break;
+
                     case cHeaderCommentValue lComment:
 
                         if (!ZTryAddComment(lComment, lBytes)) return null;
@@ -237,6 +242,11 @@ namespace work.bacome.mailclient
                     case cHeaderTextValue lText:
 
                         if (!pBytes.TryAdd(lText.Text, eHeaderFieldTextContext.phrase)) return false;
+                        break;
+
+                    case cHeaderQuotedStringValue lQuotedString:
+
+                        if (!pBytes.TryAdd(cTools.Enquote(lQuotedString.Text), eHeaderFieldTextContext.structured)) return false;
                         break;
 
                     case cHeaderCommentValue lComment:

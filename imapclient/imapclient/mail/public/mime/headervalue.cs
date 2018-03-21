@@ -5,17 +5,22 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
 {
-    public abstract class cHeaderCommentTextOrPhraseValue
+    public abstract class cHeaderCommentTextQuotedStringPhraseValue
     {
-        internal cHeaderCommentTextOrPhraseValue() { }
+        internal cHeaderCommentTextQuotedStringPhraseValue() { }
     }
 
-    public abstract class cHeaderCommentOrTextValue : cHeaderCommentTextOrPhraseValue
+    public abstract class cHeaderCommentTextQuotedStringValue : cHeaderCommentTextQuotedStringPhraseValue
     {
-        internal cHeaderCommentOrTextValue() { }
+        internal cHeaderCommentTextQuotedStringValue() { }
     }
 
-    public class cHeaderTextValue : cHeaderCommentOrTextValue
+    public abstract class cHeaderCommentTextValue : cHeaderCommentTextQuotedStringValue
+    {
+        internal cHeaderCommentTextValue() { }
+    }
+
+    public class cHeaderTextValue : cHeaderCommentTextValue
     {
         public readonly string Text;
 
@@ -28,15 +33,15 @@ namespace work.bacome.mailclient
         public override string ToString() => $"{nameof(cHeaderTextValue)}({Text})";
     }
 
-    public class cHeaderCommentValue : cHeaderCommentOrTextValue
+    public class cHeaderCommentValue : cHeaderCommentTextValue
     {
-        public readonly ReadOnlyCollection<cHeaderCommentOrTextValue> Parts;
+        public readonly ReadOnlyCollection<cHeaderCommentTextValue> Parts;
 
-        public cHeaderCommentValue(IEnumerable<cHeaderCommentOrTextValue> pParts)
+        public cHeaderCommentValue(IEnumerable<cHeaderCommentTextValue> pParts)
         {
             if (pParts == null) throw new ArgumentNullException(nameof(pParts));
 
-            var lParts = new List<cHeaderCommentOrTextValue>();
+            var lParts = new List<cHeaderCommentTextValue>();
             bool lLastWasText = false;
 
             foreach (var lPart in pParts)
@@ -58,7 +63,7 @@ namespace work.bacome.mailclient
 
         public cHeaderCommentValue(string pText)
         {
-            var lParts = new List<cHeaderCommentOrTextValue>();
+            var lParts = new List<cHeaderCommentTextValue>();
             lParts.Add(new cHeaderTextValue(pText));
             Parts = lParts.AsReadOnly();
         }
@@ -71,16 +76,31 @@ namespace work.bacome.mailclient
         }
     }
 
-    public class cHeaderPhraseValue : cHeaderCommentTextOrPhraseValue
+    public class cHeaderQuotedStringValue : cHeaderCommentTextQuotedStringValue
     {
-        public readonly ReadOnlyCollection<cHeaderCommentOrTextValue> Parts;
+        public static readonly cHeaderQuotedStringValue Empty = new cHeaderQuotedStringValue(string.Empty);
 
-        public cHeaderPhraseValue(IEnumerable<cHeaderCommentOrTextValue> pParts)
+        public readonly string Text;
+
+        public cHeaderQuotedStringValue(string pText)
+        {
+            Text = pText ?? throw new ArgumentNullException(nameof(pText));
+            if (!cCharset.WSPVChar.ContainsAll(pText)) throw new ArgumentOutOfRangeException(nameof(pText));
+        }
+
+        public override string ToString() => $"{nameof(cHeaderQuotedStringValue)}({Text})";
+    }
+
+    public class cHeaderPhraseValue : cHeaderCommentTextQuotedStringPhraseValue
+    {
+        public readonly ReadOnlyCollection<cHeaderCommentTextQuotedStringValue> Parts;
+
+        public cHeaderPhraseValue(IEnumerable<cHeaderCommentTextQuotedStringValue> pParts)
         {
             if (pParts == null) throw new ArgumentNullException(nameof(pParts));
 
-            var lParts = new List<cHeaderCommentOrTextValue>();
-            ;???; bool lLastWasText = false; // the problem is how to get "" into the output if this isn't allowed
+            var lParts = new List<cHeaderCommentTextQuotedStringValue>();
+            bool lLastWasText = false;
             bool lHasText = false;
 
             foreach (var lPart in pParts)
@@ -106,7 +126,7 @@ namespace work.bacome.mailclient
         public cHeaderPhraseValue(string pText)
         {
             if (pText == null) throw new ArgumentNullException(nameof(pText));
-            var lParts = new List<cHeaderCommentOrTextValue>();
+            var lParts = new List<cHeaderCommentTextQuotedStringValue>();
             lParts.Add(new cHeaderTextValue(pText));
             Parts = lParts.AsReadOnly();
         }
@@ -121,14 +141,18 @@ namespace work.bacome.mailclient
 
     public class cHeaderStructuredValue
     {
-        public readonly ReadOnlyCollection<cHeaderCommentTextOrPhraseValue> Parts;
+        public readonly ReadOnlyCollection<cHeaderCommentTextQuotedStringPhraseValue> Parts;
 
-        public cHeaderStructuredValue(IEnumerable<cHeaderCommentTextOrPhraseValue> pParts)
+        public cHeaderStructuredValue(IEnumerable<cHeaderCommentTextQuotedStringPhraseValue> pParts)
         {
             if (pParts == null) throw new ArgumentNullException(nameof(pParts));
 
-            var lParts = new List<cHeaderCommentTextOrPhraseValue>();
+            var lParts = new List<cHeaderCommentTextQuotedStringPhraseValue>();
             bool lLastWasPhrase = false;
+
+            // text next to text is ok in unstructured;
+            //  but you have to be careful that there is a special at the end/ beginning
+            //  the same on the text to phrase boundary also
 
             foreach (var lPart in pParts)
             {
@@ -150,7 +174,7 @@ namespace work.bacome.mailclient
         public cHeaderStructuredValue(string pText)
         {
             if (pText == null) throw new ArgumentNullException(nameof(pText));
-            var lParts = new List<cHeaderCommentTextOrPhraseValue>();
+            var lParts = new List<cHeaderCommentTextQuotedStringPhraseValue>();
             lParts.Add(new cHeaderTextValue(pText));
             Parts = lParts.AsReadOnly();
         }

@@ -8,6 +8,8 @@ namespace work.bacome.mailclient
     {
         public bool GetRFC5322MsgId(out string rMessageId)
         {
+            ;?;
+
             var lBookmark = Position;
 
             SkipRFC822CFWS();
@@ -32,6 +34,8 @@ namespace work.bacome.mailclient
 
         public bool GetRFC5322DotAtomText(out string rDotAtomText)
         {
+            ;?; // could get the qs form as long as it could be converted
+
             List<string> lParts = new List<string>();
             string lPart;
 

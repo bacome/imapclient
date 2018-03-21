@@ -17,6 +17,7 @@ namespace work.bacome.mailclient.support
         private const string kcACharSome = "!$'()*+,&=";
         private const string kcSubDelims = "!$&'()*+,;=";
         private const string kcTSpecials = "()<>@,;:\\\"/[]?=";
+        private const string kcATextSome = "!#$%&'*+-/=?^_`{|}~";
 
         private static readonly cBytes kaListWildcards = new cBytes(kcListWildcards);
         private static readonly cBytes kaQuotedSpecials = new cBytes(kcQuotedSpecials);
@@ -25,6 +26,7 @@ namespace work.bacome.mailclient.support
         private static readonly cBytes kaACharSome = new cBytes(kcACharSome);
         private static readonly cBytes kaSubDelims = new cBytes(kcSubDelims);
         private static readonly cBytes kaTSpecials = new cBytes(kcTSpecials);
+        private static readonly cBytes kaATextSome = new cBytes(kcATextSome);
 
         private static bool ZIsCTL(byte pByte) => pByte < cASCII.SPACE || pByte > cASCII.TILDA;
         private static bool ZIsCTL(char pChar) => pChar < ' ' || pChar > '~';
@@ -579,9 +581,6 @@ namespace work.bacome.mailclient.support
 
         private class cAText : cCharset
         {
-            private const string kcATextSome = "!#$%&'*+-/=?^_`{|}~";
-            private static readonly cBytes kaATextSome = new cBytes(kcATextSome);
-
             public override bool Contains(byte pByte)
             {
                 if (pByte > cASCII.DEL) return true; // allows utf8 to pass through (unvalidated)
@@ -597,6 +596,29 @@ namespace work.bacome.mailclient.support
                 if (ZIsAlpha(pChar)) return true;
                 if (ZIsDigit(pChar)) return true;
                 if (ZIsOneOf(pChar, kcATextSome)) return true;
+                return false;
+            }
+        }
+
+        private class cDotAText : cCharset
+        {
+            public override bool Contains(byte pByte)
+            {
+                if (pByte > cASCII.DEL) return true; // allows utf8 to pass through (unvalidated)
+                if (ZIsAlpha(pByte)) return true;
+                if (ZIsDigit(pByte)) return true;
+                if (ZIsOneOf(pByte, kaATextSome)) return true;
+                if (pByte == cASCII.DOT) return true;
+                return false;
+            }
+
+            public override bool Contains(char pChar)
+            {
+                if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
+                if (ZIsAlpha(pChar)) return true;
+                if (ZIsDigit(pChar)) return true;
+                if (ZIsOneOf(pChar, kcATextSome)) return true;
+                if (pChar == '.') return true;
                 return false;
             }
         }
@@ -860,6 +882,8 @@ namespace work.bacome.mailclient.support
         public static readonly cCharset ObsCText = new cObsCText();
         /**<summary>Represents the characters used in RFC 6532 'atext'.</summary>*/
         public static readonly cCharset AText = new cAText();
+        /**<summary>Represents the characters used in RFC 6532 'atext' plus ".".</summary>*/
+        public static readonly cCharset DotAText = new cDotAText();
         /**<summary>Represents the characters used in RFC 6532 'qtext'.</summary>*/
         public static readonly cCharset QText = new cQText();
         /**<summary>Represents the characters used in RFC 6532 'dtext'.</summary>*/
