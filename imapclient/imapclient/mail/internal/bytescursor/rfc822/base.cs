@@ -153,7 +153,7 @@ namespace work.bacome.mailclient
             return true;
         }
 
-        public bool GetRFC822DAtom(out string rAtom)
+        private bool ZGetRFC822DAtom(out string rAtom)
         {
             var lBookmark = Position;
 

@@ -5,50 +5,55 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
 {
-    public abstract class cHeaderCommentTextQuotedStringPhraseValue
+    public abstract class cHeaderFieldCommentTextQuotedStringPhraseValue
     {
-        internal cHeaderCommentTextQuotedStringPhraseValue() { }
+        internal cHeaderFieldCommentTextQuotedStringPhraseValue() { }
     }
 
-    public abstract class cHeaderCommentTextQuotedStringValue : cHeaderCommentTextQuotedStringPhraseValue
+    public abstract class cHeaderFieldCommentTextQuotedStringValue : cHeaderFieldCommentTextQuotedStringPhraseValue
     {
-        internal cHeaderCommentTextQuotedStringValue() { }
+        internal cHeaderFieldCommentTextQuotedStringValue() { }
     }
 
-    public abstract class cHeaderCommentTextValue : cHeaderCommentTextQuotedStringValue
+    public abstract class cHeaderFieldCommentTextValue : cHeaderFieldCommentTextQuotedStringValue
     {
-        internal cHeaderCommentTextValue() { }
+        internal cHeaderFieldCommentTextValue() { }
     }
 
-    public class cHeaderTextValue : cHeaderCommentTextValue
+    public class cHeaderFieldTextValue : cHeaderFieldCommentTextValue
     {
         public readonly string Text;
 
-        public cHeaderTextValue(string pText)
+        internal cHeaderFieldTextValue(string pText, bool pInternal)
+        {
+            Text = pText ?? throw new ArgumentNullException(nameof(pText));
+        }
+
+        public cHeaderFieldTextValue(string pText)
         {
             Text = pText ?? throw new ArgumentNullException(nameof(pText));
             if (!cCharset.WSPVChar.ContainsAll(pText)) throw new ArgumentOutOfRangeException(nameof(pText));
         }
 
-        public override string ToString() => $"{nameof(cHeaderTextValue)}({Text})";
+        public override string ToString() => $"{nameof(cHeaderFieldTextValue)}({Text})";
     }
 
-    public class cHeaderCommentValue : cHeaderCommentTextValue
+    public class cHeaderFieldCommentValue : cHeaderFieldCommentTextValue
     {
-        public readonly ReadOnlyCollection<cHeaderCommentTextValue> Parts;
+        public readonly ReadOnlyCollection<cHeaderFieldCommentTextValue> Parts;
 
-        public cHeaderCommentValue(IEnumerable<cHeaderCommentTextValue> pParts)
+        public cHeaderFieldCommentValue(IEnumerable<cHeaderFieldCommentTextValue> pParts)
         {
             if (pParts == null) throw new ArgumentNullException(nameof(pParts));
 
-            var lParts = new List<cHeaderCommentTextValue>();
+            var lParts = new List<cHeaderFieldCommentTextValue>();
             bool lLastWasText = false;
 
             foreach (var lPart in pParts)
             {
                 if (lPart == null) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
 
-                if (lPart is cHeaderTextValue)
+                if (lPart is cHeaderFieldTextValue)
                 {
                     if (lLastWasText) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.AdjacencyProblem);
                     lLastWasText = true;
@@ -61,45 +66,45 @@ namespace work.bacome.mailclient
             Parts = lParts.AsReadOnly();
         }
 
-        public cHeaderCommentValue(string pText)
+        public cHeaderFieldCommentValue(string pText)
         {
-            var lParts = new List<cHeaderCommentTextValue>();
-            lParts.Add(new cHeaderTextValue(pText));
+            var lParts = new List<cHeaderFieldCommentTextValue>();
+            lParts.Add(new cHeaderFieldTextValue(pText));
             Parts = lParts.AsReadOnly();
         }
 
         public override string ToString()
         {
-            cListBuilder lBuilder = new cListBuilder(nameof(cHeaderCommentValue));
+            cListBuilder lBuilder = new cListBuilder(nameof(cHeaderFieldCommentValue));
             foreach (var lPart in Parts) lBuilder.Append(lPart);
             return lBuilder.ToString();
         }
     }
 
-    public class cHeaderQuotedStringValue : cHeaderCommentTextQuotedStringValue
+    public class cHeaderFieldQuotedStringValue : cHeaderFieldCommentTextQuotedStringValue
     {
-        public static readonly cHeaderQuotedStringValue Empty = new cHeaderQuotedStringValue(string.Empty);
+        public static readonly cHeaderFieldQuotedStringValue Empty = new cHeaderFieldQuotedStringValue(string.Empty);
 
         public readonly string Text;
 
-        public cHeaderQuotedStringValue(string pText)
+        public cHeaderFieldQuotedStringValue(string pText)
         {
             Text = pText ?? throw new ArgumentNullException(nameof(pText));
             if (!cCharset.WSPVChar.ContainsAll(pText)) throw new ArgumentOutOfRangeException(nameof(pText));
         }
 
-        public override string ToString() => $"{nameof(cHeaderQuotedStringValue)}({Text})";
+        public override string ToString() => $"{nameof(cHeaderFieldQuotedStringValue)}({Text})";
     }
 
-    public class cHeaderPhraseValue : cHeaderCommentTextQuotedStringPhraseValue
+    public class cHeaderFieldPhraseValue : cHeaderFieldCommentTextQuotedStringPhraseValue
     {
-        public readonly ReadOnlyCollection<cHeaderCommentTextQuotedStringValue> Parts;
+        public readonly ReadOnlyCollection<cHeaderFieldCommentTextQuotedStringValue> Parts;
 
-        public cHeaderPhraseValue(IEnumerable<cHeaderCommentTextQuotedStringValue> pParts)
+        public cHeaderFieldPhraseValue(IEnumerable<cHeaderFieldCommentTextQuotedStringValue> pParts)
         {
             if (pParts == null) throw new ArgumentNullException(nameof(pParts));
 
-            var lParts = new List<cHeaderCommentTextQuotedStringValue>();
+            var lParts = new List<cHeaderFieldCommentTextQuotedStringValue>();
             bool lLastWasText = false;
             bool lHasText = false;
 
@@ -107,7 +112,7 @@ namespace work.bacome.mailclient
             {
                 if (lPart == null) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
 
-                if (lPart is cHeaderTextValue)
+                if (lPart is cHeaderFieldTextValue)
                 {
                     if (lLastWasText) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.AdjacencyProblem);
                     lLastWasText = true;
@@ -123,31 +128,31 @@ namespace work.bacome.mailclient
             Parts = lParts.AsReadOnly();
         }
 
-        public cHeaderPhraseValue(string pText)
+        public cHeaderFieldPhraseValue(string pText)
         {
             if (pText == null) throw new ArgumentNullException(nameof(pText));
-            var lParts = new List<cHeaderCommentTextQuotedStringValue>();
-            lParts.Add(new cHeaderTextValue(pText));
+            var lParts = new List<cHeaderFieldCommentTextQuotedStringValue>();
+            lParts.Add(new cHeaderFieldTextValue(pText));
             Parts = lParts.AsReadOnly();
         }
 
         public override string ToString()
         {
-            cListBuilder lBuilder = new cListBuilder(nameof(cHeaderPhraseValue));
+            cListBuilder lBuilder = new cListBuilder(nameof(cHeaderFieldPhraseValue));
             foreach (var lPart in Parts) lBuilder.Append(lPart);
             return lBuilder.ToString();
         }
     }
 
-    public class cHeaderStructuredValue
+    public class cHeaderFieldStructuredValue
     {
-        public readonly ReadOnlyCollection<cHeaderCommentTextQuotedStringPhraseValue> Parts;
+        public readonly ReadOnlyCollection<cHeaderFieldCommentTextQuotedStringPhraseValue> Parts;
 
-        public cHeaderStructuredValue(IEnumerable<cHeaderCommentTextQuotedStringPhraseValue> pParts)
+        public cHeaderFieldStructuredValue(IEnumerable<cHeaderFieldCommentTextQuotedStringPhraseValue> pParts)
         {
             if (pParts == null) throw new ArgumentNullException(nameof(pParts));
 
-            var lParts = new List<cHeaderCommentTextQuotedStringPhraseValue>();
+            var lParts = new List<cHeaderFieldCommentTextQuotedStringPhraseValue>();
             bool lLastWasPhrase = false;
 
             // text next to text is ok in unstructured;
@@ -158,7 +163,7 @@ namespace work.bacome.mailclient
             {
                 if (lPart == null) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
 
-                if (lPart is cHeaderPhraseValue)
+                if (lPart is cHeaderFieldPhraseValue)
                 {
                     if (lLastWasPhrase) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.AdjacencyProblem);
                     lLastWasPhrase = true;
@@ -171,17 +176,17 @@ namespace work.bacome.mailclient
             Parts = lParts.AsReadOnly();
         }
 
-        public cHeaderStructuredValue(string pText)
+        public cHeaderFieldStructuredValue(string pText)
         {
             if (pText == null) throw new ArgumentNullException(nameof(pText));
-            var lParts = new List<cHeaderCommentTextQuotedStringPhraseValue>();
-            lParts.Add(new cHeaderTextValue(pText));
+            var lParts = new List<cHeaderFieldCommentTextQuotedStringPhraseValue>();
+            lParts.Add(new cHeaderFieldTextValue(pText));
             Parts = lParts.AsReadOnly();
         }
 
         public override string ToString()
         {
-            cListBuilder lBuilder = new cListBuilder(nameof(cHeaderStructuredValue));
+            cListBuilder lBuilder = new cListBuilder(nameof(cHeaderFieldStructuredValue));
             foreach (var lPart in Parts) lBuilder.Append(lPart);
             return lBuilder.ToString();
         }

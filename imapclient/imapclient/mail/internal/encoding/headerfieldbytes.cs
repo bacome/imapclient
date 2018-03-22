@@ -175,6 +175,13 @@ namespace work.bacome.mailclient
                 }
                 else if (ZLooksLikeAnEncodedWord(lWordChars) || (lContainsNonASCII && !mUTF8Headers))
                 {
+                    // note that there is an option to put the thing that looks like an encoded word in quotes if we are in a phrase
+                    //  however this leads to a decoding problem in IMAP because IMAP sometimes removes the quotes before reporting the value to the client
+                    
+                    // this code fires when UTF8 is on if the word looks like an encoded word
+                    //  this is in violation of the SHOULD in RFC 6532 section 3.6
+                    //   but I'm not sure what the option is ... if I don't encode it then it will be decoded when received
+
                     if (lEncodedWordWordChars.Count > 0) lEncodedWordWordChars.AddRange(lLeadingWSP);
                     else lEncodedWordLeadingWSP.AddRange(lLeadingWSP);
 
@@ -238,83 +245,6 @@ namespace work.bacome.mailclient
             // done
             return true;
         }
-
-        /*
-        public bool TryAddDotAtom(string pText)
-        {
-            if (pText == null) throw new ArgumentNullException(nameof(pText));
-            if (!cTools.IsDotAtom(pText)) return false;
-
-            var lContainsNonASCII = cTools.ContainsNonASCII(pText);
-            if (lContainsNonASCII && !mUTF8Headers) return false;
-
-            ;?;
-            if (!ZTryAddNonEncodedWord(kNoWSP, Encoding.UTF8.GetBytes(pText), pText.Length)) return false;
-            if (lContainsNonASCII) mUsedUTF8 = true;
-
-            return true;
-        } 
-
-        public bool TryAddQuotedString(string pText)
-        {
-            if (pText == null) throw new ArgumentNullException(nameof(pText));
-            if (!cCharset.WSPVChar.ContainsAll(pText)) return false;
-
-            var lContainsNonASCII = cTools.ContainsNonASCII(pText);
-            if (lContainsNonASCII && !mUTF8Headers) return false;
-
-            if (!ZTryAddFoldableText(cTools.Enquote(pText))) return false;
-            if (lContainsNonASCII) mUsedUTF8 = true;
-
-            return true;
-        } 
-
-        public bool TryAddNonEncodableText(string pText)
-        {
-            if (pText == null) throw new ArgumentNullException(nameof(pText));
-            if (!cCharset.WSPVChar.ContainsAll(pText)) return false;
-
-            var lContainsNonASCII = cTools.ContainsNonASCII(pText);
-            if (lContainsNonASCII && !mUTF8Headers) return false;
-
-            if (!ZTryAddNonEncodableText(pText)) return false;
-            if (lContainsNonASCII) mUsedUTF8 = true;
-
-            return true;
-        } */
-
-            /*
-        public void AddSpecial(byte pByte)
-        {
-            if (!cCharset.Specials.Contains(pByte)) throw new ArgumentOutOfRangeException(nameof(pByte));
-
-            bool lFold;
-
-            if (mCurrentLineHasEncodedWords)
-            {
-                if (mCurrentLineByteCount > 75) lFold = true;
-                else lFold = false;
-            }
-            else
-            {
-                if (mCurrentLineCharCount > 77) lFold = true;
-                else lFold = false;
-            }
-
-            if (lFold)
-            {
-                mBytes.AddRange(kCRLFSPACE);
-                mCurrentLineByteCount = 1;
-                mCurrentLineCharCount = 1;
-                mCurrentLineHasEncodedWords = false;
-            }
-
-            mBytes.Add(pByte);
-            mCurrentLineByteCount++;
-            mCurrentLineCharCount++;
-            mCurrentLineHasNonWSP = true;
-            mCanAddText = true;
-        } */
 
         public cLiteralMessageDataPart GetMessageDataPart()
         {

@@ -6,20 +6,20 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
 {
-    public class cHeaderFieldMIMEParameter : cHeaderFieldValuePart
+    public class cMIMEHeaderFieldParameter
     {
         private static readonly cBytes kAsteriskEquals = new cBytes("*=");
         private static readonly cBytes kQuoteQuote = new cBytes("''");
 
-        private cBytes mAttribute;
-        private string mValue;
+        public readonly string Attribute;
+        public readonly string Value;
 
-        public cHeaderFieldMIMEParameter(string pAttribute, string pValue)
+        public cMIMEHeaderFieldParameter(string pAttribute, string pValue)
         {
-            if (pAttribute == null) throw new ArgumentNullException(nameof(pAttribute));
+            Attribute = pAttribute ?? throw new ArgumentNullException(nameof(pAttribute));
             if (!cCharset.AttributeChar.ContainsAll(pAttribute)) throw new ArgumentOutOfRangeException(nameof(pAttribute));
-            mAttribute = new cBytes(pAttribute);
-            mValue = pValue ?? throw new ArgumentNullException(nameof(pValue));
+
+            Value = pValue ?? throw new ArgumentNullException(nameof(pValue));
 
             foreach (var lChar in pValue)
             {
@@ -29,22 +29,24 @@ namespace work.bacome.mailclient
             }
         }
 
-        public cHeaderFieldMIMEParameter(string pAttribute, DateTime pDateTime)
+        public cMIMEHeaderFieldParameter(string pAttribute, DateTime pDateTime)
         {
-            if (pAttribute == null) throw new ArgumentNullException(nameof(pAttribute));
+            Attribute = pAttribute ?? throw new ArgumentNullException(nameof(pAttribute));
             if (!cCharset.AttributeChar.ContainsAll(pAttribute)) throw new ArgumentOutOfRangeException(nameof(pAttribute));
-            mAttribute = new cBytes(pAttribute);
-            mValue = cTools.RFC822DateTimeString(pDateTime);
+            Value = cTools.GetRFC822DateTimeString(pDateTime);
         }
 
-
-        public cHeaderFieldMIMEParameter(string pAttribute, long pValue)
+        public cMIMEHeaderFieldParameter(string pAttribute, long pValue)
         {
-            if (pAttribute == null) throw new ArgumentNullException(nameof(pAttribute));
+            Attribute = pAttribute ?? throw new ArgumentNullException(nameof(pAttribute));
             if (!cCharset.AttributeChar.ContainsAll(pAttribute)) throw new ArgumentOutOfRangeException(nameof(pAttribute));
-            mAttribute = new cBytes(pAttribute);
-            mValue = pValue.ToString();
+            Value = pValue.ToString();
         }
+
+        public override string ToString() => $"{nameof(cMIMEHeaderFieldParameter)}({Attribute},{Value})";
+    //}
+//}
+
 
         internal override void GetBytes(cHeaderFieldBytes pBytes, eHeaderFieldValuePartContext pContext)
         {
@@ -278,6 +280,5 @@ namespace work.bacome.mailclient
             }
         }
 
-        public override string ToString() => $"{nameof(cHeaderFieldMIMEParameter)}({mAttribute},{mValue})";
     }
 }

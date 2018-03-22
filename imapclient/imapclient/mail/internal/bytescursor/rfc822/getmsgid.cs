@@ -4,27 +4,27 @@ namespace work.bacome.mailclient
 {
     internal partial class cBytesCursor
     {
-        public bool GetRFC822MsgId(out string rMessageId)
+        public bool GetRFC822MsgId(out string rIdLeft, out string rIdRight)
         {
             var lBookmark = Position;
 
             SkipRFC822CFWS();
 
             if (!SkipByte(cASCII.LESSTHAN) ||
-                !GetRFC822LocalPart(out string lLocalPart) ||
+                !GetRFC822LocalPart(out rIdLeft) ||
                 !SkipByte(cASCII.AT) ||
-                !GetRFC822Domain(out string lDomain) ||
+                !GetRFC822Domain(out rIdRight) ||
                 !SkipByte(cASCII.GREATERTHAN)
                )
             {
                 Position = lBookmark;
-                rMessageId = null;
+                rIdLeft = null;
+                rIdRight = null;
                 return false;
             }
 
             SkipRFC822CFWS();
 
-            rMessageId = lLocalPart + "@" + lDomain;
             return true;
         }
     }

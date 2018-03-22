@@ -272,14 +272,14 @@ namespace work.bacome.imapclient
                     }
                     else
                     {
-                        lSubject = new cCulturedString(lSubjectBytes);
+                        lSubject = new cCulturedString(lSubjectBytes, false);
                         lBaseSubject = cBaseSubject.Calculate(lSubject);
                     }
 
                     cHeaderFieldMsgIds.TryConstruct(kHeaderFieldName.InReplyTo, lInReplyToBytes, out var lInReplyTo);
-                    cHeaderFieldMsgId.TryConstruct(kHeaderFieldName.MessageId, lMessageIdBytes, out var lMessageId);
+                    cHeaderFieldMsgId.TryConstruct(kHeaderFieldName.MessageId, lMessageIdBytes, out var lMsgId);
 
-                    rEnvelope = new cEnvelope(lSentDateTimeOffset, lSentDateTime, lSubject, lBaseSubject, lFrom, lSender, lReplyTo, lTo, lCC, lBCC, lInReplyTo, lMessageId);
+                    rEnvelope = new cEnvelope(lSentDateTimeOffset, lSentDateTime, lSubject, lBaseSubject, lFrom, lSender, lReplyTo, lTo, lCC, lBCC, lInReplyTo, lMsgId);
                     return true;
                 }
 
@@ -332,7 +332,7 @@ namespace work.bacome.imapclient
                                 // group start
 
                                 if (lGroupAddresses != null) lAddresses.Add(new cGroupAddress(lGroupDisplayName, lGroupAddresses)); // handle a start of group with no end of group
-                                lGroupDisplayName = new cCulturedString(lMailboxBytes);
+                                lGroupDisplayName = new cCulturedString(lMailboxBytes, true);
                                 lGroupAddresses = new List<cEmailAddress>();
                             }
                         }
@@ -346,7 +346,7 @@ namespace work.bacome.imapclient
 
                             cCulturedString lDisplayName;
                             if (lNameBytes == null) lDisplayName = null;
-                            else lDisplayName = new cCulturedString(lNameBytes);
+                            else lDisplayName = new cCulturedString(lNameBytes, true);
 
                             var lEmailAddress = new cEmailAddress(lMailbox, lHost, lDisplayName);
 
@@ -427,7 +427,7 @@ namespace work.bacome.imapclient
 
                     cCulturedString lDescription;
                     if (lDescriptionBytes == null) lDescription = null;
-                    else lDescription = new cCulturedString(lDescriptionBytes);
+                    else lDescription = new cCulturedString(lDescriptionBytes, false);
 
                     if (lType.Equals(kMimeType.Text, StringComparison.InvariantCultureIgnoreCase))
                     {
@@ -1083,7 +1083,7 @@ namespace work.bacome.imapclient
 
                     if (lData.Envelope.BCC != null || lData.Envelope.InReplyTo != null) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.10");
 
-                    if (lData.Envelope.MessageId.MsgId != "B27397-0100000@cac.washington.edu") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.11");
+                    if (lData.Envelope.MsgId.MessageId != "<B27397-0100000@cac.washington.edu>") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.11");
 
                     lTextPart = lData.Body as cTextBodyPart;
                     if (lTextPart.SubTypeCode != eTextBodyPartSubTypeCode.plain || lTextPart.Parameters.Count != 1 || lTextPart.Charset != "US-ASCII" || lTextPart.SizeInBytes != 3028 || lTextPart.SizeInLines != 92) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.12.1");

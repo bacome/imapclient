@@ -250,7 +250,7 @@ namespace work.bacome.imapclient
         /// Gets the normalised 'in-reply-to' message-ids of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
-        /// Normalised message-ids have the delimiters, quoting, comments and white space removed.
+        /// Normalised message-ids have the quoting, comments and white space removed.
         /// If the message cache does not contain the <see cref="fMessageCacheAttributes.envelope"/> of the message, it will be fetched from the server.
         /// </remarks>
         public override cStrings InReplyTo
@@ -271,7 +271,7 @@ namespace work.bacome.imapclient
             get
             {
                 if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return MessageHandle.Envelope.MessageId?.MessageId;
+                return MessageHandle.Envelope.MsgId?.MessageId;
             }
         }
 

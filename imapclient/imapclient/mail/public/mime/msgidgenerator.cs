@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using work.bacome.mailclient.support;
+using System.Text;
 
 namespace work.bacome.mailclient
 {
@@ -17,46 +16,39 @@ namespace work.bacome.mailclient
 
         private static readonly Random mRandom = new Random();
 
-        public static string IdLeft()
+        public static string MessageId()
         {
-            List<char> lChars = new List<char>(27);
+            var lBuilder = new StringBuilder();
 
-            lChars.AddRange(ZBase36Reverse((ulong)DateTime.Now.Ticks));
+            lBuilder.Append("<");
 
-            lChars.Add('.');
+            ZMessageIdWorker((ulong)DateTime.Now.Ticks, lBuilder);
+
+            lBuilder.Append(".");
 
             byte[] lRandomBytes = new byte[8];
             mRandom.NextBytes(lRandomBytes);
+            ZMessageIdWorker(BitConverter.ToUInt64(lRandomBytes, 0), lBuilder);
 
-            lChars.AddRange(ZBase36Reverse(BitConverter.ToUInt64(lRandomBytes, 0)));
+            lBuilder.Append("@");
 
-            return new string(lChars.ToArray());
+            lBuilder.Append(Environment.MachineName);
+
+            lBuilder.Append(">");
+
+            return lBuilder.ToString();
         }
 
-        public static string IdRight()
+        private static void ZMessageIdWorker(ulong pNumber, StringBuilder pBuilder)
         {
-            // meant to be a DNS safe value
-            if (cCharset.AText.ContainsAll(Environment.MachineName)) return Environment.MachineName;
-            throw new InvalidOperationException("machinename not valid atom");
-        }
-
-        public static cMsgId MsgId() => new cMsgId(IdLeft(), IdRight(), true);
-        public static string MessageId() => $"<{IdLeft()}@{IdRight()}>";
-
-        private static List<char> ZBase36Reverse(ulong pNumber)
-        {
-            List<char> lChars = new List<char>(13);
-
             ulong lNumber = pNumber;
 
             do
             {
                 int lChar = (int)(lNumber % 36);
-                lChars.Add(kChars[lChar]);
+                pBuilder.Append(kChars[lChar]);
                 lNumber = lNumber / 36;
             } while (lNumber > 0);
-
-            return lChars;
         }
     }
 }

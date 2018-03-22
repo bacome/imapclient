@@ -38,7 +38,7 @@ namespace work.bacome.mailclient
     public class cHeaderFieldMsgId : cHeaderField
     {
         /// <summary>
-        /// The value of the field as a normalised (delimiters, quoting, comments and white space removed) message-id.
+        /// The value of the field as a normalised (quoting, comments and white space removed) message-id.
         /// </summary>
         public readonly string MessageId;
 
@@ -70,7 +70,7 @@ namespace work.bacome.mailclient
     public class cHeaderFieldMsgIds : cHeaderField
     {
         /// <summary>
-        /// The value of the field as normalised (delimiters, quoting, comments and white space removed) message-ids.
+        /// The value of the field as normalised (quoting, comments and white space removed) message-ids.
         /// </summary>
         public readonly cStrings MessageIds;
 
@@ -273,7 +273,7 @@ namespace work.bacome.mailclient
         /// Returns the normalised message-ids from the references header field, or <see langword="null"/>. Throws if the collection has not been populated with the references header field.
         /// </summary>
         /// <remarks>
-        /// Normalised message-ids have the delimiters, quoting, comments and white space removed.
+        /// Normalised message-ids have the quoting, comments and white space removed.
         /// <see langword="null"/> indicates that there is either no references header field in the collection or that the references header field could not be parsed.
         /// </remarks>
         public cStrings References => (FirstNamed(kHeaderFieldName.References) as cHeaderFieldMsgIds)?.MessageIds;

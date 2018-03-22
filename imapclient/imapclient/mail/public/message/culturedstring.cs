@@ -34,7 +34,12 @@ namespace work.bacome.mailclient
             //      then I'd end up with >fr€dfr€d<
             //
             //  for this code to work the IMAP server has to guarantee that only one space will be inserted between phrase parts when sending the display name
-            //   (which is what I would guess is exactly what it would do)
+            //   (which is what I would guess it would do)
+            //
+            // Also consider the removing of quotes around text that contains something that looks like an encoded word
+            //  quite how that is meant to be handled I have no idea
+            //   e.g. the name >fred "fr€d" fred< (with the 'fr€d' as an encoded word) would end up with the middle fred decoded
+            //   the only defence against this is the one that this library's own encoder uses, which is to encode something that looks like an encoded word (even if UTF8 is on) rather than quoting it
 
             if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
 
@@ -48,10 +53,7 @@ namespace work.bacome.mailclient
 
             List<cCulturedStringPart> lParts = new List<cCulturedStringPart>();
             cByteList lBytes = new cByteList();
-            cBytes lPendingWSP = null;
-
-            ;?; // note that ANY amount of WSP between encoded words is ignored
-            => // use cursor services 
+            cByteList lPendingWSP = new cByteList();
 
             while (!lCursor.Position.AtEnd)
             {
@@ -61,27 +63,9 @@ namespace work.bacome.mailclient
 
                 if (lCursor.ProcessEncodedWord(out var lString, out var lLanguageTag))
                 {
+                    lPendingWSP.Clear();
                     if (lCursor.Position.AtEnd) lFoundEncodedWord = true;
-                    else if (lCursor.SkipByte(cASCII.SPACE))
-                    {
-                        lFoundEncodedWord = true;
-                        lPendingWSP = kSpace;
-                    }
-                    else if (lCursor.SkipBytes(kCRLFSPACE))
-                    {
-                        lFoundEncodedWord = true;
-                        lPendingWSP = kCRLFSPACE;
-                    }
-                    else if (lCursor.SkipByte(cASCII.TAB))
-                    {
-                        lFoundEncodedWord = true;
-                        lPendingWSP = kTab;
-                    }
-                    else if (lCursor.SkipBytes(kCRLFTAB))
-                    {
-                        lFoundEncodedWord = true;
-                        lPendingWSP = kCRLFTAB;
-                    }
+                    else if (lCursor.ZGetRFC822FWS(lPendingWSP)) lFoundEncodedWord = true;
                     else lFoundEncodedWord = false;
                 }
                 else lFoundEncodedWord = false;
@@ -95,6 +79,12 @@ namespace work.bacome.mailclient
                     }
 
                     lParts.Add(new cCulturedStringPart(lString, lLanguageTag));
+
+                    if (pPhraseSemantics && lPendingWSP.Count > 1)
+                    {
+                        lBytes.AddRange(lPendingWSP);
+                        lPendingWSP.Clear();
+                    }
                 }
                 else
                 {
@@ -103,7 +93,7 @@ namespace work.bacome.mailclient
                     if (lPendingWSP != null)
                     {
                         lBytes.AddRange(lPendingWSP);
-                        lPendingWSP = null;
+                        lPendingWSP.Clear();
                     }
 
                     if (!lCursor.GetByte(out var lByte)) break;
@@ -124,24 +114,6 @@ namespace work.bacome.mailclient
             Parts = new ReadOnlyCollection<cCulturedStringPart>(lParts);
         }
 
-        /* TODO: remove
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
-        public bool Equals(cCulturedString pObject) => this == pObject;
-
-        /// <inheritdoc />
-        public override bool Equals(object pObject) => this == pObject as cCulturedString;
-
-        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                int lHash = 17;
-                foreach (var lPart in Parts) lHash = lHash * 23 + lPart.GetHashCode();
-                return lHash;
-            }
-        } */
-
         /**<summary>Returns the string data sans the language information.</summary>*/
         public override string ToString()
         {
@@ -151,22 +123,6 @@ namespace work.bacome.mailclient
             foreach (var lPart in Parts) lBuilder.Append(lPart.String);
             return lBuilder.ToString();
         }
-
-        /*
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
-        public static bool operator ==(cCulturedString pA, cCulturedString pB)
-        {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
-
-            if (pA.Parts.Count != pB.Parts.Count) return false;
-            for (int i = 0; i < pA.Parts.Count; i++) if (pA.Parts[i] != pB.Parts[i]) return false;
-            return true;
-        }
-
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
-        public static bool operator !=(cCulturedString pA, cCulturedString pB) => !(pA == pB); */
 
         /// <inheritdoc cref="ToString"/>
         public static implicit operator string(cCulturedString pString) => pString?.ToString();
@@ -179,31 +135,34 @@ namespace work.bacome.mailclient
             cCulturedString lCString;
             string lString;
 
-            lCString = new cCulturedString(new cBytes("=?iso-8859-1?q?this=20is=20some=20text?="));
+            lCString = new cCulturedString(new cBytes("=?iso-8859-1?q?this=20is=20some=20text?="), false);
             lString = lCString;
             if (lString != "this is some text") throw new cTestsException($"{nameof(cCulturedString)}.1");
 
-            if (new cCulturedString(new cBytes("=?US-ASCII?Q?Keith_Moore?= <moore@cs.utk.edu>")) != "Keith Moore <moore@cs.utk.edu>") throw new cTestsException($"{nameof(cCulturedString)}.2");
+            if (new cCulturedString(new cBytes("=?US-ASCII?Q?Keith_Moore?= <moore@cs.utk.edu>"), false) != "Keith Moore <moore@cs.utk.edu>") throw new cTestsException($"{nameof(cCulturedString)}.2");
 
-            lString = new cCulturedString(new cBytes("=?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>"));
+            lString = new cCulturedString(new cBytes("=?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>"), false);
             if (lString != "Keld Jørn Simonsen <keld@dkuug.dk>") throw new cTestsException($"{nameof(cCulturedString)}.3");
 
-            lString = new cCulturedString(new cBytes("=?ISO-8859-1?Q?Andr=E9?= Pirard <PIRARD@vm1.ulg.ac.be>"));
+            lString = new cCulturedString(new cBytes("=?ISO-8859-1?Q?Andr=E9?= Pirard <PIRARD@vm1.ulg.ac.be>"), false);
             if (lString != "André Pirard <PIRARD@vm1.ulg.ac.be>") throw new cTestsException($"{nameof(cCulturedString)}.4");
 
-            lString = new cCulturedString(new cBytes("=?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?= =?ISO-8859-2?B?dSB1bmRlcnN0YW5kIHRoZSBleGFtcGxlLg==?="));
+            lString = new cCulturedString(new cBytes("=?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?= =?ISO-8859-2?B?dSB1bmRlcnN0YW5kIHRoZSBleGFtcGxlLg==?="), false);
             if (lString != "If you can read this you understand the example.") throw new cTestsException($"{nameof(cCulturedString)}.5");
 
-            if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= b")) != "a b") throw new cTestsException($"{nameof(cCulturedString)}.6");
-            if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= =?ISO-8859-1?Q?b?=")) != "ab") throw new cTestsException($"{nameof(cCulturedString)}.7");
-            if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?=  =?ISO-8859-1?Q?b?=")) != "ab") throw new cTestsException($"{nameof(cCulturedString)}.7.1");
-            if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a_b?=")) != "a b") throw new cTestsException($"{nameof(cCulturedString)}.8");
-            if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= =?ISO-8859-2?Q?_b?=")) != "a b") throw new cTestsException($"{nameof(cCulturedString)}.9");
+            if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= b"), false) != "a b") throw new cTestsException($"{nameof(cCulturedString)}.6.1");
+            if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= b"), true) != "a b") throw new cTestsException($"{nameof(cCulturedString)}.6.2");
+            if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= =?ISO-8859-1?Q?b?="), false) != "ab") throw new cTestsException($"{nameof(cCulturedString)}.7.1");
+            if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= =?ISO-8859-1?Q?b?="), true) != "ab") throw new cTestsException($"{nameof(cCulturedString)}.7.2");
+            if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?=  =?ISO-8859-1?Q?b?="), false) != "ab") throw new cTestsException($"{nameof(cCulturedString)}.8.1");
+            if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?=  =?ISO-8859-1?Q?b?="), true) != "a  b") throw new cTestsException($"{nameof(cCulturedString)}.8.2");
+            if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a_b?="), false) != "a b") throw new cTestsException($"{nameof(cCulturedString)}.9");
+            if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= =?ISO-8859-2?Q?_b?="), false) != "a b") throw new cTestsException($"{nameof(cCulturedString)}.10");
 
-            lCString = new cCulturedString(new cBytes("=?US-ASCII*EN?Q?Keith_Moore?= <moore@cs.utk.edu>"));
+            lCString = new cCulturedString(new cBytes("=?US-ASCII*EN?Q?Keith_Moore?= <moore@cs.utk.edu>"), false);
 
-            if (lCString != "Keith Moore <moore@cs.utk.edu>") throw new cTestsException($"{nameof(cCulturedString)}.10");
-            if (lCString.Parts[0].LanguageTag != "EN") throw new cTestsException($"{nameof(cCulturedString)}.11");
+            if (lCString != "Keith Moore <moore@cs.utk.edu>") throw new cTestsException($"{nameof(cCulturedString)}.11");
+            if (lCString.Parts[0].LanguageTag != "EN") throw new cTestsException($"{nameof(cCulturedString)}.12");
         }
     }
 
