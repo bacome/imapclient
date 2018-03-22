@@ -7,7 +7,7 @@ using System.Net.Mail;
 using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
-using work.bacome.imapclient.support;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
 {
@@ -23,11 +23,11 @@ namespace work.bacome.mailclient
 
         public cMessageData ConvertMailMessage(cConvertMailMessageDisposables pDisposables, MailMessage pMailMessage, fMessageDataFormat? pFormat = null, cConvertMailMessageConfiguration pConfiguration = null)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ConvertMailMessage));
+            var lContext = YRootContext.NewMethod(nameof(cIMAPClient), nameof(ConvertMailMessage));
             var lTask = ZConvertMailMessagesAsync(pDisposables, cMailMessageList.FromMessage(pMailMessage), pFlags, pReceived, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
             var lResult = lTask.Result;
-            if (lResult.Count != 1) throw new cInternalErrorException($"result count {lResult.Count}", lContext);
+            if (lResult.Count != 1) throw new cInternalErrorException(lContext);
             return lResult[0];
         }
 
@@ -35,7 +35,7 @@ namespace work.bacome.mailclient
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ConvertMailMessageAsync));
             var lResult = await ZConvertMailMessagesAsync(pDisposables, cMailMessageList.FromMessage(pMailMessage), pFlags, pReceived, pConfiguration, lContext).ConfigureAwait(false);
-            if (lResult.Count != 1) throw new cInternalErrorException($"result count {lResult.Count}", lContext);
+            if (lResult.Count != 1) throw new cInternalErrorException(lContext);
             return lResult[0];
         }
 
@@ -408,7 +408,7 @@ namespace work.bacome.mailclient
                 lTransferEncoding = TransferEncoding.Base64;
                 lPart = new cStreamAppendDataPart(pDisposables.GetMemoryStream(lEncoding.GetBytes(pMailMessage.Body)), true);
             }
-            else throw new cInternalErrorException($"bodytransferencoding {pMailMessage.BodyTransferEncoding}", lContext);
+            else throw new cInternalErrorException(lContext);
 
             ZConvertMailMessageAddPart(lTransferEncoding, lPart, pParts, lContext);
         }
@@ -463,7 +463,7 @@ namespace work.bacome.mailclient
                         lTransferEncoding = TransferEncoding.Base64;
                         lPart = new cStreamAppendDataPart(pDisposables.GetMessageDataStream(lMessageDataStream), true);
                     }
-                    else throw new cInternalErrorException($"cantbeconverted transferencoding {pData.TransferEncoding}", lContext);
+                    else throw new cInternalErrorException(lContext, 1);
                 }
                 else
                 {
@@ -472,7 +472,7 @@ namespace work.bacome.mailclient
                     if (lResult.AppendDataPartType == eConvertMailMessageAppendDataPartType.message) lPart = new cMessageAppendDataPart(lMessageDataStream.Client, lMessageDataStream.MessageHandle);
                     else if (lResult.AppendDataPartType == eConvertMailMessageAppendDataPartType.messagepart) lPart = new cMessagePartAppendDataPart(lMessageDataStream.Client, lMessageDataStream.MessageHandle, lMessageDataStream.Part);
                     else if (lResult.AppendDataPartType == eConvertMailMessageAppendDataPartType.uidsection) lPart = new cUIDSectionAppendDataPart(lMessageDataStream.Client, lMessageDataStream.MailboxHandle, lMessageDataStream.UID, lMessageDataStream.Section, lMessageDataStream.GetKnownLength());
-                    else throw new cInternalErrorException($"messagedatastream appenddataparttype {lResult.AppendDataPartType}", lContext);
+                    else throw new cInternalErrorException(lContext, 2);
                 }
             }
             else
@@ -502,7 +502,7 @@ namespace work.bacome.mailclient
                     lTransferEncoding = TransferEncoding.Base64;
                     lPart = new cStreamAppendDataPart(pData.ContentStream, true);
                 }
-                else throw new cInternalErrorException($"normal stream transferencoding {pData.TransferEncoding}", lContext);
+                else throw new cInternalErrorException(lContext, 3);
             }
 
             ZConvertMailMessageAddPart(lTransferEncoding, lPart, pParts, lContext);
@@ -552,7 +552,7 @@ namespace work.bacome.mailclient
             else if (pTransferEncoding == TransferEncoding.EightBit) lTransferEncodingString = "8bit";
             else if (pTransferEncoding == TransferEncoding.QuotedPrintable) lTransferEncodingString = "quoted-printable";
             else if (pTransferEncoding == TransferEncoding.Base64) lTransferEncodingString = "base64";
-            else throw new cInternalErrorException($"transferencoding {pTransferEncoding}", lContext);
+            else throw new cInternalErrorException(lContext);
 
             pParts.Add(new cHeaderFieldAppendDataPart("content-transfer-encoding", lTransferEncodingString));
             pParts.Add(cAppendDataPart.CRLF);

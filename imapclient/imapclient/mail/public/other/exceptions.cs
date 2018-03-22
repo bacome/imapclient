@@ -19,11 +19,9 @@ namespace work.bacome.mailclient
     /// </summary>
     public class cInternalErrorException : cMailException
     {
-        //internal cInternalErrorException() { }
-        internal cInternalErrorException(string pMessage) : base(pMessage) { }
-        internal cInternalErrorException(cTrace.cContext pContext) => pContext.TraceError(nameof(cInternalErrorException));
-        internal cInternalErrorException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cInternalErrorException), pMessage);
-        internal cInternalErrorException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cInternalErrorException), pMessage, pInner);
+        internal cInternalErrorException(string pClass, int pPlace = 1) : base($"{pClass}.{pPlace}") { }
+        internal cInternalErrorException(string pClass, string pMethod, int pPlace = 1) : base($"{pClass}.{pMethod}.{pPlace}") { }
+        internal cInternalErrorException(cTrace.cContext pContext, int pPlace = 1) => pContext.TraceError($"{nameof(cInternalErrorException)}.{pPlace}");
     }
 
     /// <summary>

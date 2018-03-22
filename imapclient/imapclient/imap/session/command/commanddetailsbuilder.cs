@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
-using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -296,7 +297,7 @@ namespace work.bacome.imapclient
 
                                 default:
 
-                                    throw new cInternalErrorException($"{nameof(cCommandDetailsBuilder)}.{nameof(ZFilterParts)} relativity {lRelativity.Relativity}");
+                                    throw new cInternalErrorException(nameof(cCommandDetailsBuilder), nameof(ZFilterParts));
                             }
 
                         case cFilterUIDIn lUIDIn:
@@ -563,7 +564,7 @@ namespace work.bacome.imapclient
 
                         default:
 
-                            throw new cInternalErrorException($"{nameof(cCommandDetailsBuilder)}.{nameof(Add)} textpart {pSection.TextPart}");
+                            throw new cInternalErrorException(nameof(cCommandDetailsBuilder), nameof(Add));
                     }
 
                     mParts.Add(cCommandPart.RBracket, kCommandPartLessThan, new cTextCommandPart(pOrigin), cCommandPart.Dot, new cTextCommandPart(pLength), kCommandPartGreaterThan);
@@ -679,7 +680,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandDetailsBuilder), nameof(_Tests));
 
-                    cCallbackSynchroniser lES = new cCallbackSynchroniser(new object(), cTrace.cContext.None);
+                    cCallbackSynchroniser lES = new cIMAPCallbackSynchroniser(new object(), cTrace.cContext.None);
                     cStrings lStrings = new cStrings(new List<string>());
                     cMailboxCache lMC = new cMailboxCache(lES, 0, cCommandPartFactory.Validation, new cIMAPCapabilities(lStrings, lStrings, 0), (eIMAPConnectionState pCS, cTrace.cContext pC) => { });
                     cSelectedMailbox lSelectedMailbox = new cSelectedMailbox(lES, new cMailboxCacheItem(lES, lMC, "fred"), false, true, 10, 5, 1111, 1, 0, cTrace.cContext.None);

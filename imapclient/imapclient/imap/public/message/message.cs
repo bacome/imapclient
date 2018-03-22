@@ -100,7 +100,7 @@ namespace work.bacome.imapclient
 
                 default:
 
-                    throw new cInternalErrorException($"{nameof(cIMAPMessage)}.{nameof(ZThrowFailure)} type {pType}");
+                    throw new cInternalErrorException(nameof(cIMAPMessage), nameof(ZThrowFailure));
             }
         }
 

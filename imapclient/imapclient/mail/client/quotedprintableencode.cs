@@ -5,7 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using work.bacome.imapclient.support;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
 {
@@ -213,7 +213,7 @@ namespace work.bacome.mailclient
 
                 if (mPendingBytes.Count + mPendingWSP.Count + mPendingNonWSP.Count + lCount > 76) await ZSoftLineBreakAsync(false).ConfigureAwait(false);
 
-                if (mPendingNonWSP.Count != 0) throw new cInternalErrorException($"{nameof(cQuotedPrintableTarget)}.{nameof(AddAsync)}");
+                if (mPendingNonWSP.Count != 0) throw new cInternalErrorException(nameof(cQuotedPrintableTarget), nameof(AddAsync));
 
                 if (pByte == cASCII.TAB || pByte == cASCII.SPACE)
                 {
@@ -266,7 +266,7 @@ namespace work.bacome.mailclient
                     if (lWSPThatWillFit < mPendingWSP.Count)
                     {
                         await ZSoftLineBreakAsync(true).ConfigureAwait(false);
-                        if (mPendingWSP.Count == 0) throw new cInternalErrorException($"{nameof(cQuotedPrintableTarget)}.{nameof(AddHardLineBreakAsync)}");
+                        if (mPendingWSP.Count == 0) throw new cInternalErrorException(nameof(cQuotedPrintableTarget), nameof(AddHardLineBreakAsync));
                     }
 
                     for (int i = 0; i < mPendingWSP.Count - 1; i++) mPendingBytes.Add(mPendingWSP[i]);
@@ -305,7 +305,7 @@ namespace work.bacome.mailclient
 
                 if (mPendingBytes.Count + mPendingWSP.Count + 1 > 76 || pInHardLineBreak)
                 {
-                    if (mPendingWSP.Count == 0) throw new cInternalErrorException($"{nameof(cQuotedPrintableTarget)}.{nameof(ZSoftLineBreakAsync)}");
+                    if (mPendingWSP.Count == 0) throw new cInternalErrorException(nameof(cQuotedPrintableTarget), nameof(ZSoftLineBreakAsync));
 
                     if (mPendingWSP.Count > 1)
                     {

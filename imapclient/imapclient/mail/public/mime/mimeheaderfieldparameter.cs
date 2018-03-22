@@ -8,9 +8,6 @@ namespace work.bacome.mailclient
 {
     public class cMIMEHeaderFieldParameter
     {
-        private static readonly cBytes kAsteriskEquals = new cBytes("*=");
-        private static readonly cBytes kQuoteQuote = new cBytes("''");
-
         public readonly string Attribute;
         public readonly string Value;
 
@@ -18,15 +15,8 @@ namespace work.bacome.mailclient
         {
             Attribute = pAttribute ?? throw new ArgumentNullException(nameof(pAttribute));
             if (!cCharset.AttributeChar.ContainsAll(pAttribute)) throw new ArgumentOutOfRangeException(nameof(pAttribute));
-
             Value = pValue ?? throw new ArgumentNullException(nameof(pValue));
-
-            foreach (var lChar in pValue)
-            {
-                if (lChar == '\t') continue;
-                if (lChar < ' ') throw new ArgumentOutOfRangeException(nameof(pValue));
-                if (lChar == cChar.DEL) throw new ArgumentOutOfRangeException(nameof(pValue));
-            }
+            if (!cCharset.WSPVChar.ContainsAll(pValue)) throw new ArgumentOutOfRangeException(nameof(pValue));
         }
 
         public cMIMEHeaderFieldParameter(string pAttribute, DateTime pDateTime)

@@ -33,7 +33,7 @@ namespace work.bacome.imapclient
                 cSessionAppendDataList lMessages = await ZAppendGetDataAsync(pMessages, lContext).ConfigureAwait(false);
 
                 // sanity check
-                if (lMessages.Count != pMessages.Count) throw new cInternalErrorException("too many messages", lContext);
+                if (lMessages.Count != pMessages.Count) throw new cInternalErrorException(lContext, 1);
 
                 // initialise any progress system that might be in place
                 if (pSetMaximum != null)
@@ -81,12 +81,12 @@ namespace work.bacome.imapclient
 
                         default:
 
-                            throw new cInternalErrorException($"switch/default {lResult}", lContext);
+                            throw new cInternalErrorException(lContext, 2);
                     }
                 }
 
                 // sanity check
-                if (lFeedbackItems.Count > pMessages.Count) throw new cInternalErrorException("too much feedback", lContext);
+                if (lFeedbackItems.Count > pMessages.Count) throw new cInternalErrorException(lContext, 3);
 
                 // add feedback for any appends we didn't attempt
                 for (int i = lFeedbackItems.Count; i < pMessages.Count; i++) lFeedbackItems.Add(new cAppendFeedbackItem(false));
@@ -333,7 +333,7 @@ namespace work.bacome.imapclient
 
                                         default:
 
-                                            throw new cInternalErrorException($"multipart switch/default {lPart}", lContext);
+                                            throw new cInternalErrorException(lContext, 1);
                                     }
                                 }
 
@@ -349,7 +349,7 @@ namespace work.bacome.imapclient
 
                         default:
 
-                            throw new cInternalErrorException($"message switch/default {lMessage}", lContext);
+                            throw new cInternalErrorException(lContext, 2);
                     }
                 }
 

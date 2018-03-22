@@ -340,7 +340,7 @@ namespace work.bacome.mailclient
                 return true;
             }
 
-            StringInfo lWordStringInfo = new StringInfo(lWordString);
+            var lWordStringInfo = new StringInfo(lWordString);
 
             // see if can add it at all
 

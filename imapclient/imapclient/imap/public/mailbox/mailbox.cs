@@ -4,8 +4,8 @@ using System.ComponentModel;
 using System.IO;
 using System.Net.Mail;
 using System.Threading.Tasks;
-using work.bacome.imapclient.apidocumentation;
 using work.bacome.imapclient.support;
+using work.bacome.mailclient;
 
 namespace work.bacome.imapclient
 {
@@ -401,7 +401,7 @@ namespace work.bacome.imapclient
             get
             {
                 if (MailboxHandle.LSubFlags == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.lsub);
-                if (MailboxHandle.LSubFlags == null) throw new cInternalErrorException($"{nameof(cMailbox)}.{nameof(IsSubscribed)}");
+                if (MailboxHandle.LSubFlags == null) throw new cInternalErrorException(nameof(cMailbox),nameof(IsSubscribed));
                 return MailboxHandle.LSubFlags.Subscribed;
             }
         }
@@ -1107,13 +1107,13 @@ namespace work.bacome.imapclient
 
         private cUID ZAppendResult(cAppendFeedback pFeedback)
         {
-            if (pFeedback.Count != 1) throw new cInternalErrorException($"{nameof(cMailbox)}.{nameof(ZAppendResult)} count {pFeedback.Count}");
+            if (pFeedback.Count != 1) throw new cInternalErrorException(nameof(cMailbox),nameof(ZAppendResult), 1);
             var lFeedbackItem = pFeedback[0];
             if (pFeedback.SucceededCount == 1) return lFeedbackItem.UID;
             if (lFeedbackItem.Exception != null) throw lFeedbackItem.Exception;
             //if (lFeedbackItem.Type == eAppendFeedbackType.notattempted) should never happen: if so this would result in the internal error exception below
             var lResult = lFeedbackItem.Result;
-            if (lResult == null) throw new cInternalErrorException($"{nameof(cMailbox)}.{nameof(ZAppendResult)} result null");
+            if (lResult == null) throw new cInternalErrorException(nameof(cMailbox), nameof(ZAppendResult), 2);
             if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lFeedbackItem.TryIgnoring);
             throw new cProtocolErrorException(lResult, lFeedbackItem.TryIgnoring);
         }

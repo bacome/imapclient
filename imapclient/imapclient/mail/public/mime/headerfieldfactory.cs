@@ -11,6 +11,7 @@ namespace work.bacome.mailclient
     {
         //        /// When generating header fields and RFC 2047 encoded words or RFC 2231 MIME parameters are , then this encoding is used.
 
+        private static readonly char[] kWSP = new char[] { '\t', ' ' };
 
         private readonly bool mUTF8Headers;
         private readonly Encoding mEncoding;
@@ -43,7 +44,7 @@ namespace work.bacome.mailclient
                 if (lPhrase == null) throw new ArgumentOutOfRangeException(nameof(pPhrases), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
 
                 if (lFirst) lFirst = false;
-                else if (!lBytes.TryAdd(",", eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(Phrases)}.2");
+                else if (!lBytes.TryAdd(",", eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(Phrases));
 
                 if (!ZTryAddPhrase(lPhrase, lBytes)) return null;
             }
@@ -98,7 +99,7 @@ namespace work.bacome.mailclient
 
                     default:
 
-                        throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(Structured)}");
+                        throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(Structured));
                 }
             }
 
@@ -108,14 +109,14 @@ namespace work.bacome.mailclient
         public cLiteralMessageDataPart DateTimeValue(string pFieldName, DateTime pDateTime)
         {
             var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
-            if (!lBytes.TryAdd(cTools.GetRFC822DateTimeString(pDateTime), eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(DateTimeValue)}.1");
+            if (!lBytes.TryAdd(cTools.GetRFC822DateTimeString(pDateTime), eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(DateTimeValue), 1);
             return lBytes.GetMessageDataPart();
         }
 
         public cLiteralMessageDataPart DateTimeValue(string pFieldName, DateTimeOffset pDateTimeOffset)
         {
             var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
-            if (!lBytes.TryAdd(cTools.GetRFC822DateTimeString(pDateTimeOffset), eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(DateTimeValue)}.2");
+            if (!lBytes.TryAdd(cTools.GetRFC822DateTimeString(pDateTimeOffset), eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(DateTimeValue), 2);
             return lBytes.GetMessageDataPart();
         }
 
@@ -155,7 +156,7 @@ namespace work.bacome.mailclient
                 if (lAddress == null) throw new ArgumentOutOfRangeException(nameof(pAddresses), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
 
                 if (lFirst) lFirst = false;
-                else if (!lBytes.TryAdd(",", eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(Addresses)}.1");
+                else if (!lBytes.TryAdd(",", eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(Addresses), 1);
 
                 switch (lAddress)
                 {
@@ -171,7 +172,7 @@ namespace work.bacome.mailclient
 
                     default:
 
-                        throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(Addresses)}.2");
+                        throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(Addresses), 2);
                 }
             }
 
@@ -223,7 +224,7 @@ namespace work.bacome.mailclient
 
                     default:
 
-                        throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(ZTryAddPhrase)}");
+                        throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(ZTryAddPhrase));
                 }
             }
 
@@ -232,7 +233,7 @@ namespace work.bacome.mailclient
 
         private bool ZTryAddComment(cHeaderFieldCommentValue pComment, cHeaderFieldBytes pBytes)
         {
-            if (!pBytes.TryAdd("(", eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(ZTryAddComment)}.1");
+            if (!pBytes.TryAdd("(", eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(ZTryAddComment), 1);
 
             foreach (var lPart in pComment.Parts)
             {
@@ -250,11 +251,11 @@ namespace work.bacome.mailclient
 
                     default:
 
-                        throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(ZTryAddComment)}.2");
+                        throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(ZTryAddComment), 2);
                 }
             }
 
-            if (!pBytes.TryAdd(")", eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(ZTryAddComment)}.3");
+            if (!pBytes.TryAdd(")", eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(ZTryAddComment), 3);
 
             return true;
         }
@@ -262,9 +263,9 @@ namespace work.bacome.mailclient
         private bool ZTryAddGroupAddress(cGroupAddress pAddress, cHeaderFieldBytes pBytes)
         {
             if (!pBytes.TryAdd(pAddress.DisplayName.ToString(), eHeaderFieldTextContext.phrase)) return false;
-            if (!pBytes.TryAdd(":", eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(ZTryAddGroupAddress)}.1");
+            if (!pBytes.TryAdd(":", eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(ZTryAddGroupAddress), 1);
             if (!ZTryAddEmailAddresses(pAddress.EmailAddresses, pBytes)) return false;
-            if (!pBytes.TryAdd(";", eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(ZTryAddGroupAddress)}.2");
+            if (!pBytes.TryAdd(";", eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(ZTryAddGroupAddress), 2);
             return true;
         }
 
@@ -279,7 +280,7 @@ namespace work.bacome.mailclient
                 if (lAddress == null) throw new ArgumentOutOfRangeException(nameof(pAddresses), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
 
                 if (lFirst) lFirst = false;
-                else if (!pBytes.TryAdd(",", eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(ZTryAddEmailAddresses)}");
+                else if (!pBytes.TryAdd(",", eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(ZTryAddEmailAddresses));
 
                 if (!ZTryAddEmailAddress(lAddress, pBytes)) return false;
             }
@@ -292,9 +293,9 @@ namespace work.bacome.mailclient
             if (pAddress.DisplayName == null) return ZTryAddAddrSpec(pAddress, pBytes);
 
             if (!pBytes.TryAdd(pAddress.DisplayName.ToString(), eHeaderFieldTextContext.phrase)) return false;
-            if (!pBytes.TryAdd("<", eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(ZTryAddEmailAddress)}.1");
+            if (!pBytes.TryAdd("<", eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(ZTryAddEmailAddress), 1);
             if (!ZTryAddAddrSpec(pAddress, pBytes)) return false;
-            if (!pBytes.TryAdd(">", eHeaderFieldTextContext.structured)) throw new cInternalErrorException($"{nameof(cHeaderFieldFactory)}.{nameof(ZTryAddEmailAddress)}.2");
+            if (!pBytes.TryAdd(">", eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(ZTryAddEmailAddress), 2);
 
             return true;
         }
@@ -315,51 +316,174 @@ namespace work.bacome.mailclient
 
         private bool ZTryAddMIMEParameter(cMIMEHeaderFieldParameter pParameter, cHeaderFieldBytes pBytes)
         {
-            StringBuilder lBuilder = new StringBuilder();
+            if (!ZMIMEParameterValueSections(pParameter.Attribute, )
+        }
 
-            // if the value is a non-zero-length short token
-            if (pParameter.Value.Length != 0 && cCharset.RFC2045Token.ContainsAll(pParameter.Value) && 1 + pParameter.Attribute.Length + 1 + pParameter.Value.Length < 78)
-                return pBytes.TryAdd(";" + pParameter.Attribute + "=" + pParameter.Value, eHeaderFieldTextContext.structured);
+        private bool ZMIMEParameterValueSections(cMIMEHeaderFieldParameter pParameter, out List<string> rSections)
+        {
+            string lSection;
+            rSections = new List<string>();
 
-            bool lValueContainsNonASCII = cTools.ContainsNonASCII(pParameter.Value);
+            bool lEncode = cTools.ContainsNonASCII(pParameter.Value);
 
-            if (mUTF8Headers || !lValueContainsNonASCII)
+            // see if we can get away without splitting the value
+            //
+            if (ZMIMEParameterValueSection(pParameter.Attribute, pParameter.Value, lEncode, false, 0, out lSection))
             {
-                // no encoding required
+                rSections.Add(lSection);
+                return true;
+            }
 
-                var lValue = cTools.Enquote(pParameter.Value);
+            // have to split the value
 
-                // if the value is a short quoted string
-                if (1 + pParameter.Attribute.Length + 1 + lValue.Length < 78)
-                    return pBytes.TryAdd(";" + pParameter.Attribute + "=" + lValue, eHeaderFieldTextContext.structured);
-            
-                // the value is too long, split it into chunks
+            var lValue = new StringInfo(pParameter.Value);
 
-                StringInfo liValue = new StringInfo(pParameter.Value);
+            if (!ZMIMEParameterValueSection(pParameter.Attribute, lValue.SubstringByTextElements(0, 1), lEncode, true, 0, out lSection))
+            {
+                rSections = null;
+                return false;
+            }
 
+            int lLastTextElementCount = 1;
+            string lLastSection = lSection;
 
-                string lSection = ZMIMEParameterSection(pParameter.Attribute, liValue, 0, 0, 1);
+            int lFromTextElement = 0;
+            int lTextElementCount = 2;
+
+            List<string> lSections = new List<string>();
+
+            while (lFromTextElement + lTextElementCount <= lValue.LengthInTextElements)
+            {
+                if (ZMIMEParameterValueSection(pParameter.Attribute, lValue.SubstringByTextElements(lFromTextElement, lTextElementCount), lEncode, true, rSections.Count, out lSection))
+                {
+                    lLastTextElementCount = lTextElementCount;
+                    lLastSection = lSection;
+                    lTextElementCount++;
+                }
+                else
+                {
+                    rSections.Add(lLastSection);
+
+                    lLastTextElementCount = 1;
+                    ;?;
+                }
 
 
             }
 
-            // encoding is required
+            ;?; // add the pending section
 
-            ;?;
-
-            // long
-
-            ;?;
+            return true;
         }
 
-        private string ZMIMEParameterValueSection(string pAttribute, StringInfo pValue, int lSectionNumber, int lFrom, int lLength)
+        private bool ZMIMEParameterValueSection(string pAttribute, string pValue, bool pEncode, bool pSplitting, int lSectionNumber, out string rSection)
         {
-            // this is the non-encoded version
-            string lValue = pValue.SubstringByTextElements(lFrom, lLength);
-            ;?;
+            var lBuilder = new StringBuilder();
+
+            lBuilder.Append(pAttribute);
+
+            if (pSplitting)
+            {
+                lBuilder.Append('*');
+                lBuilder.Append(lSectionNumber);
+            }
+
+            bool lUsedQuotedString;
+
+            if (pEncode)
+            {
+                if (lSectionNumber == 0)
+                {
+                    lBuilder.Append("*=");
+                    lBuilder.Append(mEncoding.WebName);
+                    lBuilder.Append("''");
+                    lBuilder.Append(ZMIMEParameterEncodeValue(pValue));
+                    lUsedQuotedString = false;
+                }
+                else
+                {
+                    if (pValue.Length > 0 && cCharset.RFC2045Token.ContainsAll(pValue))
+                    {
+                        lBuilder.Append("=");
+                        lBuilder.Append(pValue);
+                        lUsedQuotedString = false;
+                    }
+                    else if (mUTF8Headers || !cTools.ContainsNonASCII(pValue))
+                    {
+                        lBuilder.Append("=");
+                        lBuilder.Append(cTools.Enquote(pValue));
+                        lUsedQuotedString = true;
+                    }
+                    else
+                    {
+                        lBuilder.Append("*=");
+                        lBuilder.Append(ZMIMEParameterEncodeValue(pValue));
+                        lUsedQuotedString = false;
+                    }
+                }
+            }
+            else
+            {
+                lBuilder.Append("=");
+
+                if (cCharset.RFC2045Token.ContainsAll(pValue))
+                {
+                    lBuilder.Append(pValue);
+                    lUsedQuotedString = false;
+                }
+                else
+                {
+                    lBuilder.Append(cTools.Enquote(pValue));
+                    lUsedQuotedString = true;
+                }
+            }
+
+            if (lBuilder.Length < 78)
+            {
+                rSection = lBuilder.ToString();
+                return true;
+            }
+
+            if (!lUsedQuotedString)
+            {
+                rSection = null;
+                return false;
+            }
+
+            if (pValue.IndexOfAny(kWSP) == -1)
+            {
+                rSection = null;
+                return false;
+            }
+
+            // have to try adding it to see if it folds
+
+            rSection = lBuilder.ToString();
+            var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, "x", 78);
+            if (lBytes.TryAdd(rSection, eHeaderFieldTextContext.structured)) return true;
+
+            rSection = null;
+            return false;
         }
 
+        private string ZMIMEParameterEncodeValue(string pValue)
+        {
+            var lValue = mEncoding.GetBytes(pValue);
 
+            var lChars = new List<char>();
+
+            foreach (var lByte in lValue)
+            {
+                if (cCharset.AttributeChar.Contains(lByte)) lChars.Add((char)lByte);
+                else
+                {
+                    lChars.Add('%');
+                    lChars.AddRange(cTools.ByteToHexChars(lByte));
+                }
+            }
+
+            return new string(lChars.ToArray());
+        }
         ;?; // mime header - field, value, parameters ...
 
 

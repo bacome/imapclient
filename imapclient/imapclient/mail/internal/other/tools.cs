@@ -217,6 +217,20 @@ namespace work.bacome.mailclient
             }
         }
 
+        public static char[] ByteToHexChars(byte pByte)
+        {
+            char[] lResult = new char[2];
+            lResult[0] = LHexDigit(pByte >> 4);
+            lResult[1] = LHexDigit(pByte & 0b1111);
+            return lResult;
+
+            char LHexDigit(int pNibble)
+            {
+                if (pNibble < 10) return (char)('0' + pNibble);
+                return (char)('A' + pNibble - 10);
+            }
+        }
+
         public static string GetRFC822DateTimeString(DateTime pDateTime)
         {
             string lSign;

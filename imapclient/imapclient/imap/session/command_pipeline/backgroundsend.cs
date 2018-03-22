@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
@@ -30,7 +31,7 @@ namespace work.bacome.imapclient
                         else
                         {
                             lLiteral = mCurrentCommand.GetCurrentPart() as cLiteralCommandPartBase;
-                            if (lLiteral == null) throw new cInternalErrorException("literal null", lContext);
+                            if (lLiteral == null) throw new cInternalErrorException(lContext);
                         }
                     }
 
@@ -134,7 +135,7 @@ namespace work.bacome.imapclient
 
                                 lLiteral = lPart as cLiteralCommandPartBase;
 
-                                if (lLiteral == null) throw new cInternalErrorException("literal null", lContext);
+                                if (lLiteral == null) throw new cInternalErrorException(lContext);
 
                                 bool lSynchronising;
 
@@ -192,7 +193,7 @@ namespace work.bacome.imapclient
 
                                     default:
 
-                                        throw new cInternalErrorException($"multipart part {lPart}", lContext);
+                                        throw new cInternalErrorException(lContext, 1);
                                 }
                             }
 
@@ -200,7 +201,7 @@ namespace work.bacome.imapclient
 
                         default:
 
-                            throw new cInternalErrorException($"literal {pLiteral}", lContext);
+                            throw new cInternalErrorException(lContext, 2);
                     }
                 }
 

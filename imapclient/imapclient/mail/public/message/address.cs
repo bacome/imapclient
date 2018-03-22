@@ -113,7 +113,7 @@ namespace work.bacome.mailclient
                 return;
             }
 
-            throw new cInternalErrorException($"{nameof(cAddresses)}.{nameof(ZSortStrings)}");
+            throw new cInternalErrorException(nameof(cAddresses), nameof(ZSortStrings));
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>

@@ -258,7 +258,7 @@ namespace work.bacome.imapclient
                 return MessageHandle.Size.Value;
             }
 
-            throw new cInternalErrorException($"{nameof(cIMAPMessageDataStream)}.{nameof(GetKnownLength)}");
+            throw new cInternalErrorException(nameof(cIMAPMessageDataStream), nameof(GetKnownLength));
         }
 
         public async Task<uint> GetKnownLengthAsync()
@@ -278,7 +278,7 @@ namespace work.bacome.imapclient
                 return MessageHandle.Size.Value;
             }
 
-            throw new cInternalErrorException($"{nameof(cIMAPMessageDataStream)}.{nameof(GetKnownLengthAsync)}");
+            throw new cInternalErrorException(nameof(cIMAPMessageDataStream), nameof(GetKnownLengthAsync));
         }
 
         public int CurrentBufferSize => mBuffer?.CurrentSize ?? 0;
