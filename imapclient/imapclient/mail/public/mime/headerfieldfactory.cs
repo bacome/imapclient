@@ -26,14 +26,14 @@ namespace work.bacome.mailclient
 
         public cLiteralMessageDataPart Unstructured(string pFieldName, string pText)
         {
-            var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
+            var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
             if (!lBytes.TryAdd(pText, eHeaderFieldTextContext.unstructured)) return null;
             return lBytes.GetMessageDataPart();
         }
 
         public cLiteralMessageDataPart Phrases(string pFieldName, IEnumerable<cHeaderFieldPhraseValue> pPhrases)
         {
-            var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
+            var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
 
             if (pPhrases == null) throw new ArgumentNullException(nameof(pPhrases));
 
@@ -54,7 +54,7 @@ namespace work.bacome.mailclient
 
         public cLiteralMessageDataPart Structured(string pFieldName, params string[] pParts)
         {
-            var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
+            var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
 
             if (pParts == null) throw new ArgumentNullException(nameof(pParts));
 
@@ -69,7 +69,7 @@ namespace work.bacome.mailclient
 
         public cLiteralMessageDataPart Structured(string pFieldName, cHeaderFieldStructuredValue pValue)
         {
-            var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
+            var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
 
             if (pValue == null) throw new ArgumentNullException(nameof(pValue));
 
@@ -108,14 +108,14 @@ namespace work.bacome.mailclient
 
         public cLiteralMessageDataPart DateTimeValue(string pFieldName, DateTime pDateTime)
         {
-            var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
+            var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
             if (!lBytes.TryAdd(cTools.GetRFC822DateTimeString(pDateTime), eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(DateTimeValue), 1);
             return lBytes.GetMessageDataPart();
         }
 
         public cLiteralMessageDataPart DateTimeValue(string pFieldName, DateTimeOffset pDateTimeOffset)
         {
-            var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
+            var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
             if (!lBytes.TryAdd(cTools.GetRFC822DateTimeString(pDateTimeOffset), eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(DateTimeValue), 2);
             return lBytes.GetMessageDataPart();
         }
@@ -138,14 +138,14 @@ namespace work.bacome.mailclient
 
         public cLiteralMessageDataPart Mailboxes(string pFieldName, IEnumerable<cEmailAddress> pAddresses)
         {
-            var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
+            var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
             if (!ZTryAddEmailAddresses(pAddresses, lBytes)) return null;
             return lBytes.GetMessageDataPart();
         }
 
         public cLiteralMessageDataPart Addresses(string pFieldName, IEnumerable<cAddress> pAddresses)
         {
-            var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
+            var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
 
             if (pAddresses == null) throw new ArgumentNullException(nameof(pAddresses));
 
@@ -183,7 +183,7 @@ namespace work.bacome.mailclient
 
         public cLiteralMessageDataPart MIME(string pFieldName, string pValue, IEnumerable<cMIMEHeaderFieldParameter> pParameters)
         {
-            var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, pFieldName);
+            var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
 
             if (pValue == null) throw new ArgumentNullException(nameof(pValue));
 
@@ -316,67 +316,55 @@ namespace work.bacome.mailclient
 
         private bool ZTryAddMIMEParameter(cMIMEHeaderFieldParameter pParameter, cHeaderFieldBytes pBytes)
         {
-            if (!ZMIMEParameterValueSections(pParameter.Attribute, )
-        }
-
-        private bool ZMIMEParameterValueSections(cMIMEHeaderFieldParameter pParameter, out List<string> rSections)
-        {
             string lSection;
-            rSections = new List<string>();
 
             bool lEncode = cTools.ContainsNonASCII(pParameter.Value);
 
             // see if we can get away without splitting the value
-            //
-            if (ZMIMEParameterValueSection(pParameter.Attribute, pParameter.Value, lEncode, false, 0, out lSection))
+            if (ZTryGetMIMEParameterSection(pParameter.Attribute, pParameter.Value, lEncode, false, 0, out lSection))
             {
-                rSections.Add(lSection);
+                ZAddMIMEParameterSection(lSection, pBytes);
                 return true;
             }
 
-            // have to split the value
+            // must split on whole characters so need to use stringinfo to account for surrogate pairs
+            var lValueStringInfo = new StringInfo(pParameter.Value);
 
-            var lValue = new StringInfo(pParameter.Value);
+            // add it in chunks
 
-            if (!ZMIMEParameterValueSection(pParameter.Attribute, lValue.SubstringByTextElements(0, 1), lEncode, true, 0, out lSection))
-            {
-                rSections = null;
-                return false;
-            }
-
-            int lLastTextElementCount = 1;
-            string lLastSection = lSection;
-
+            string lLastSection;
+            int lSectionNumber = 0;
             int lFromTextElement = 0;
+            if (!ZTryGetMIMEParameterSection(pParameter.Attribute, lValueStringInfo.SubstringByTextElements(lFromTextElement, 1), lEncode, true, lSectionNumber, out lLastSection)) return false;
             int lTextElementCount = 2;
 
-            List<string> lSections = new List<string>();
-
-            while (lFromTextElement + lTextElementCount <= lValue.LengthInTextElements)
+            while (lFromTextElement + lTextElementCount <= lValueStringInfo.LengthInTextElements)
             {
-                if (ZMIMEParameterValueSection(pParameter.Attribute, lValue.SubstringByTextElements(lFromTextElement, lTextElementCount), lEncode, true, rSections.Count, out lSection))
+                if (ZTryGetMIMEParameterSection(pParameter.Attribute, lValueStringInfo.SubstringByTextElements(lFromTextElement, lTextElementCount), lEncode, true, lSectionNumber, out lSection))
                 {
-                    lLastTextElementCount = lTextElementCount;
                     lLastSection = lSection;
                     lTextElementCount++;
                 }
                 else
                 {
-                    rSections.Add(lLastSection);
+                    // add the previous chunk
+                    ZAddMIMEParameterSection(lLastSection, pBytes);
 
-                    lLastTextElementCount = 1;
-                    ;?;
+                    // start the next chunk
+                    lSectionNumber++;
+                    lFromTextElement = lFromTextElement + lTextElementCount - 1;
+                    if (!ZTryGetMIMEParameterSection(pParameter.Attribute, lValueStringInfo.SubstringByTextElements(lFromTextElement, 1), lEncode, true, lSectionNumber, out lLastSection)) return false;
+                    lTextElementCount = 2;
                 }
-
-
             }
 
-            ;?; // add the pending section
+            // add the final chunk
+            ZAddMIMEParameterSection(lLastSection, pBytes);
 
             return true;
         }
 
-        private bool ZMIMEParameterValueSection(string pAttribute, string pValue, bool pEncode, bool pSplitting, int lSectionNumber, out string rSection)
+        private bool ZTryGetMIMEParameterSection(string pAttribute, string pValue, bool pEncode, bool pSplitting, int lSectionNumber, out string rSection)
         {
             var lBuilder = new StringBuilder();
 
@@ -397,7 +385,7 @@ namespace work.bacome.mailclient
                     lBuilder.Append("*=");
                     lBuilder.Append(mEncoding.WebName);
                     lBuilder.Append("''");
-                    lBuilder.Append(ZMIMEParameterEncodeValue(pValue));
+                    lBuilder.Append(ZEncodeMIMEParameterValue(pValue));
                     lUsedQuotedString = false;
                 }
                 else
@@ -417,7 +405,7 @@ namespace work.bacome.mailclient
                     else
                     {
                         lBuilder.Append("*=");
-                        lBuilder.Append(ZMIMEParameterEncodeValue(pValue));
+                        lBuilder.Append(ZEncodeMIMEParameterValue(pValue));
                         lUsedQuotedString = false;
                     }
                 }
@@ -456,17 +444,17 @@ namespace work.bacome.mailclient
                 return false;
             }
 
-            // have to try adding it to see if it folds
+            // have to try adding it to see if it folds in 78 char pieces
 
             rSection = lBuilder.ToString();
-            var lBytes = new cHeaderFieldBytes(mUTF8Headers, mEncoding, mCharsetNameBytes, "x", 78);
+            var lBytes = new cHeaderFieldBytes("x", mUTF8Headers, mEncoding, mCharsetNameBytes, 78);
             if (lBytes.TryAdd(rSection, eHeaderFieldTextContext.structured)) return true;
 
             rSection = null;
             return false;
         }
 
-        private string ZMIMEParameterEncodeValue(string pValue)
+        private string ZEncodeMIMEParameterValue(string pValue)
         {
             var lValue = mEncoding.GetBytes(pValue);
 
@@ -484,8 +472,12 @@ namespace work.bacome.mailclient
 
             return new string(lChars.ToArray());
         }
-        ;?; // mime header - field, value, parameters ...
 
+        private void ZAddMIMEParameterSection(string pSection, cHeaderFieldBytes pBytes)
+        {
+            if (!pBytes.TryAdd(";", eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(ZAddMIMEParameterSection), 1);
+            if (!pBytes.TryAdd(pSection, eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(ZAddMIMEParameterSection), 2);
+        }
 
 
 
@@ -500,11 +492,25 @@ namespace work.bacome.mailclient
 
         internal static void _Tests(cTrace.cContext pParentContext)
         {
+
+
+
+
+            ZTestUnstructured("   \tfr€D  \t frEd \t  fR€d\t   Fr€d  \t\t", "x:   \t=="
+
+
+
+
+
             if (TryAsDotAtom("", out _)) throw new cTestsException("dotatom.1", pParentContext);
             if (TryAsDotAtom(".fred", out _)) throw new cTestsException("dotatom.2", pParentContext);
             if (TryAsDotAtom("fred..fred", out _)) throw new cTestsException("dotatom.3", pParentContext);
             if (TryAsDotAtom("fred.", out _)) throw new cTestsException("dotatom.4", pParentContext);
             if (!TryAsDotAtom("fred.fred", out _)) throw new cTestsException("dotatom.5", pParentContext);
+
+
+            ZTestA
+
 
             ZTestAddrSpec("1", "non.existant", "bacome.work", "x:non.existant@bacome.work");
             ZTestAddrSpec("2", "non,existant", "bacome.work", "x:\"non,existant\"@bacome.work");

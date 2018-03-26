@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using work.bacome.imapclient;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient

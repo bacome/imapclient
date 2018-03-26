@@ -24,7 +24,7 @@ namespace work.bacome.mailclient
         /// Initialises a new instance with the specified timeout and optional write-size configuration. Intended for use with synchronous APIs.
         /// </summary>
         /// <param name="pTimeout">May be <see cref="Timeout.Infinite"/>.</param>
-        /// <param name="pWrite">If <see langword="null"/> then <see cref="cIMAPClient.FetchBodyWriteConfiguration"/> will be used.</param>
+        /// <param name="pWrite">If <see langword="null"/> then <see cref="cMailClient.FetchWriteConfiguration"/> will be used.</param>
         public cFetchConfiguration(int pTimeout, cBatchSizerConfiguration pWriteConfiguration = null)
         {
             if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
@@ -39,7 +39,7 @@ namespace work.bacome.mailclient
         /// </summary>
         /// <param name="pCancellationToken">May be <see cref="CancellationToken.None"/>.</param>
         /// <param name="pIncrement">May be <see langword="null"/>.</param>
-        /// <param name="pWrite">If <see langword="null"/> then <see cref="cIMAPClient.FetchBodyWriteConfiguration"/> will be used.</param>
+        /// <param name="pWrite">If <see langword="null"/> then <see cref="cMailClient.FetchWriteConfiguration"/> will be used.</param>
         public cFetchConfiguration(CancellationToken pCancellationToken, Action<int> pIncrement, cBatchSizerConfiguration pWriteConfiguration = null)
         {
             Timeout = -1;

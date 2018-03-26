@@ -21,20 +21,28 @@ namespace work.bacome.mailclient
 
             private bool mDisposed = false;
 
-            private readonly object mSender;
+            private readonly ConcurrentQueue<sInvoke> mInvokes = new ConcurrentQueue<sInvoke>();
+
             private readonly CancellationTokenSource mCancellationTokenSource = new CancellationTokenSource(); // for use when disposing
             private readonly cReleaser mForegroundReleaser;
             private readonly cReleaser mBackgroundReleaser;
-            private readonly Task mBackgroundTask;
-            private readonly ConcurrentQueue<sInvoke> mInvokes = new ConcurrentQueue<sInvoke>();
+
+            private object mSender = null;
+            private Task mBackgroundTask = null;
+
             private volatile bool mOutstandingPost = false;
 
-            public cCallbackSynchroniser(object pSender, cTrace.cContext pParentContext)
+            public cCallbackSynchroniser()
             {
-                var lContext = pParentContext.NewObject(nameof(cCallbackSynchroniser));
-                mSender = pSender;
                 mForegroundReleaser = new cReleaser("callbacksynchroniser_foreground", mCancellationTokenSource.Token);
                 mBackgroundReleaser = new cReleaser("callbacksynchroniser_background", mCancellationTokenSource.Token);
+            }
+
+            public void Start(object pSender, cTrace.cContext pParentContext)
+            {
+                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(Start));
+                if (mSender != null) throw new InvalidOperationException();
+                mSender = pSender;
                 mBackgroundTask = ZBackgroundTaskAsync(lContext);
             }
 

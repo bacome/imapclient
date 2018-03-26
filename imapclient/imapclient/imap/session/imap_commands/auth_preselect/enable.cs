@@ -43,10 +43,7 @@ namespace work.bacome.imapclient
                         var lEnabledExtensions = lHook.EnabledExtensions;
                         lContext.TraceInformation("enabled extensions {0}", lEnabledExtensions);
                         EnabledExtensions = EnabledExtensions | lEnabledExtensions;
-
-                        if ((lEnabledExtensions & fEnableableExtensions.utf8) != 0) SupportFormats |= ;
-
-
+                        if ((lEnabledExtensions & fEnableableExtensions.utf8) != 0) ZAddSupportedFormat(fMessageDataFormat.utf8headers, lContext);
                         lContext.TraceVerbose("current enabled extensions {0}", EnabledExtensions);
                         mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.EnabledExtensions), lContext);
                         return;

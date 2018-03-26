@@ -215,14 +215,21 @@ namespace work.bacome.imapclient
             private void ZSetCapabilities(cStrings pCapabilities, cStrings pAuthenticationMechanisms, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetCapabilities), pCapabilities, pAuthenticationMechanisms);
-
                 _Capabilities = new cIMAPCapabilities(pCapabilities, pAuthenticationMechanisms, mIgnoreCapabilities);
-                if (_Capabilities.Binary) _SupportedFormats |= fMessageDataFormat.binary;
+                if (_Capabilities.Binary) ZAddSupportedFormat(fMessageDataFormat.binary, lContext);
                 mPipeline.SetCapabilities(_Capabilities, lContext);
                 mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.Capabilities), lContext);
             }
 
             public fMessageDataFormat SupportedFormats => _SupportedFormats;
+
+            public void ZAddSupportedFormat(fMessageDataFormat pFormat, cTrace.cContext pParentContext)
+            {
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZAddSupportedFormat), pFormat);
+                if ((_SupportedFormats & pFormat) == pFormat) return;
+                _SupportedFormats |= pFormat;
+                mSynchroniser.InvokePropertyChanged(nameof(cMailClient.SupportedFormats), lContext);
+            }
 
             public cURL HomeServerReferral => _HomeServerReferral;
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.Text;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
@@ -82,59 +81,39 @@ namespace work.bacome.imapclient
         //    or there are errors (like duplicate headers)
         //   so at this stage the MDNSent features are commented out as they aren't useful by themselves
 
-        /**<summary>The trace source name used when tracing. See <see cref="cTrace"/>.</summary>*/
-        public const string TraceSourceName = "work.bacome.cIMAPClient";
-
-        private static readonly cTrace mTrace = new cTrace(TraceSourceName);
 
         // mechanics
         private bool mDisposed = false;
-        private readonly string mInstanceName;
-        private readonly cTrace.cContext mRootContext;
-        private readonly cIMAPCallbackSynchroniser mSynchroniser;
-        private readonly cCancellationManager mCancellationManager;
+        private readonly cIMAPCallbackSynchroniser mIMAPSynchroniser;
 
         // current session
         private cSession mSession = null;
         private cNamespaces mNamespaces = null; // if namespace is not supported by the server then this is used
-        private cMailbox mInbox = null; // 
+        private cMailbox mInbox = null;
 
         // property backing storage
         private fIMAPCapabilities mIgnoreCapabilities = 0;
-        private cServer mServer = null;
         private cIMAPAuthenticationParameters mAuthenticationParameters = null;
         private bool mMailboxReferrals = false;
         private fMailboxCacheDataItems mMailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.uidnext | fMailboxCacheDataItems.uidvalidity | fMailboxCacheDataItems.unseencount;
-        private cBatchSizerConfiguration mNetworkWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
         private cBatchSizerConfiguration mFetchCacheItemsConfiguration = new cBatchSizerConfiguration(1, 1000, 10000, 1);
         private cBatchSizerConfiguration mFetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
-        private cBatchSizerConfiguration mFetchBodyWriteConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
         private cBatchSizerConfiguration mAppendBatchConfiguration = new cBatchSizerConfiguration(1000, int.MaxValue, 10000, 1000);
         private int mAppendTargetBufferSize = cIMAPMessageDataStream.DefaultTargetBufferSize;
-        private cBatchSizerConfiguration mAppendStreamReadConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
-        private cBatchSizerConfiguration mQuotedPrintableEncodeReadWriteConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
         private Encoding mEncoding = Encoding.UTF8;
         private cIMAPClientId mClientId = new cIMAPClientId(new cIMAPIdDictionary(true));
         private cIMAPClientIdUTF8 mClientIdUTF8 = null;
-        private ReadOnlyCollection<cSASLAuthentication> mFailedSASLAuthentications = null;
 
         /// <summary>
         /// Initialises a new instance.
         /// </summary>
         /// <param name="pInstanceName">The instance name to use for the instance's <see cref="cTrace"/> root-context.</param>
-        public cIMAPClient(string pInstanceName = TraceSourceName)
+        public cIMAPClient(string pInstanceName = "work.bacome.cIMAPClient") : base(pInstanceName, new cIMAPCallbackSynchroniser())
         {
-            mInstanceName = pInstanceName;
-            mRootContext = mTrace.NewRoot(pInstanceName);
-            mRootContext.TraceInformation("cIMAPClient by bacome version {0}, release date {1}", Version, ReleaseDate);
-            mSynchroniser = new cIMAPCallbackSynchroniser(this, mRootContext);
-            mCancellationManager = new cCancellationManager(mSynchroniser.InvokeCancellableCountChanged);
+            var lContext = mRootContext.NewObject(nameof(cIMAPClient), pInstanceName);
+            mIMAPSynchroniser = (cIMAPCallbackSynchroniser)mSynchroniser;
         }
-
-        protected override cTrace.cContext YRootContext => mRootContext;
-        protected override cCallbackSynchroniser YSynchroniser => mSynchroniser;
-        protected override cCancellationManager YCancellationManager => mCancellationManager;
 
         public override fMessageDataFormat SupportedFormats => mSession?.SupportedFormats ?? 0;
 
@@ -161,11 +140,20 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the instance name used in the tracing done by the instance.
+        /// Indicates whether the instance is currently unconnected.
         /// </summary>
-        /// <seealso cref="cTrace"/>
-        /// <seealso cref="cIMAPClient(String)"/>
-        public string InstanceName => mInstanceName;
+        /// <seealso cref="IsConnected"/>
+        /// <seealso cref="ConnectionState"/>
+        public override bool IsUnconnected => mSession == null || mSession.IsUnconnected;
+
+        /// <summary>
+        /// Indicates whether the instance is currently connected.
+        /// </summary>
+        /// <seealso cref="IsUnconnected"/>
+        /// <seealso cref="ConnectionState"/>
+        public override bool IsConnected => mSession != null && mSession.IsConnected;
+
+        public override cAccountId ConnectedAccountId => mSession?.ConnectedAccountId;
 
         /// <summary>
         /// Fired when server response text is received.
@@ -179,8 +167,8 @@ namespace work.bacome.imapclient
         /// </remarks>
         public event EventHandler<cResponseTextEventArgs> ResponseText
         {
-            add { mSynchroniser.ResponseText += value; }
-            remove { mSynchroniser.ResponseText -= value; }
+            add { mIMAPSynchroniser.ResponseText += value; }
+            remove { mIMAPSynchroniser.ResponseText -= value; }
         }
 
         /// <summary>
@@ -189,8 +177,8 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
         public event EventHandler<cMailboxPropertyChangedEventArgs> MailboxPropertyChanged
         {
-            add { mSynchroniser.MailboxPropertyChanged += value; }
-            remove { mSynchroniser.MailboxPropertyChanged -= value; }
+            add { mIMAPSynchroniser.MailboxPropertyChanged += value; }
+            remove { mIMAPSynchroniser.MailboxPropertyChanged -= value; }
         }
 
         /// <summary>
@@ -199,8 +187,8 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
         public event EventHandler<cMailboxMessageDeliveryEventArgs> MailboxMessageDelivery
         {
-            add { mSynchroniser.MailboxMessageDelivery += value; }
-            remove { mSynchroniser.MailboxMessageDelivery -= value; }
+            add { mIMAPSynchroniser.MailboxMessageDelivery += value; }
+            remove { mIMAPSynchroniser.MailboxMessageDelivery -= value; }
         }
 
         /// <summary>
@@ -209,30 +197,14 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
         public event EventHandler<cMessagePropertyChangedEventArgs> MessagePropertyChanged
         {
-            add { mSynchroniser.MessagePropertyChanged += value; }
-            remove { mSynchroniser.MessagePropertyChanged -= value; }
+            add { mIMAPSynchroniser.MessagePropertyChanged += value; }
+            remove { mIMAPSynchroniser.MessagePropertyChanged -= value; }
         }
 
         /// <summary>
         /// Gets the connection state of the instance.
         /// </summary>
-        /// <seealso cref="IsConnected"/>
-        /// <seealso cref="IsUnconnected"/>
         public eIMAPConnectionState ConnectionState => mSession?.ConnectionState ?? eIMAPConnectionState.notconnected;
-
-        /// <summary>
-        /// Indicates whether the instance is currently unconnected.
-        /// </summary>
-        /// <seealso cref="IsConnected"/>
-        /// <seealso cref="ConnectionState"/>
-        public bool IsUnconnected => mSession == null || mSession.IsUnconnected;
-
-        /// <summary>
-        /// Indicates whether the instance is currently connected.
-        /// </summary>
-        /// <seealso cref="IsUnconnected"/>
-        /// <seealso cref="ConnectionState"/>
-        public bool IsConnected => mSession != null && mSession.IsConnected;
 
         /// <summary>
         /// Gets the capabilities of the connected (or most recently connected) server. May be <see langword="null"/>.
@@ -252,38 +224,12 @@ namespace work.bacome.imapclient
         public fEnableableExtensions EnabledExtensions => mSession?.EnabledExtensions ?? fEnableableExtensions.none;
 
         /// <summary>
-        /// Gets the accountid of the current (or most recent) connection. May be <see langword="null"/>.
-        /// </summary>
-        /// <remarks>
-        /// Set during <see cref="Connect"/>.
-        /// </remarks>
-        public cAccountId ConnectedAccountId => mSession?.ConnectedAccountId;
-
-        /// <summary>
         /// Gets the login referral (RFC 2221), if received. May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
         /// Set during <see cref="Connect"/>.
         /// </remarks>
         public cURL HomeServerReferral => mSession?.HomeServerReferral;
-
-        /// <summary>
-        /// Gets the set of SASL authentication objects that failed during the last attempt to <see cref="Connect"/>. May be <see langword="null"/> or empty.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// <see langword="null"/> indicates that the instance has never tried to <see cref="Connect"/>.
-        /// The collection will be empty if there were no failed SASL authentication attempts in the last attempt to <see cref="Connect"/>.
-        /// </para>
-        /// <para>
-        /// This property is provided to give access to authentication error detail that is specific to the authentication mechanism.
-        /// (For example: XOAUTH2 provides an 'Error Response' as part of a failed attempt to authenticate.)
-        /// </para>
-        /// <note type="note">
-        /// All objects in this collection will have been disposed.
-        /// </note>
-        /// </remarks>
-        public ReadOnlyCollection<cSASLAuthentication> FailedSASLAuthentications => mFailedSASLAuthentications;
 
         /// <summary>
         /// Gets and sets the server capabilities that the instance should ignore.
@@ -306,27 +252,6 @@ namespace work.bacome.imapclient
             }
         }
 
-        /// <summary>
-        /// Gets and sets the server to connect to. 
-        /// </summary>
-        /// <remarks>
-        /// Must be set before calling <see cref="Connect"/>.
-        /// May only be set while <see cref="IsUnconnected"/>.
-        /// </remarks>
-        /// <seealso cref="SetServer(string)"/>
-        /// <seealso cref="SetServer(string, bool)"/>
-        /// <seealso cref="SetServer(string, int, bool)"/>
-        public cServer Server
-        {
-            get => mServer;
-
-            set
-            {
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
-                mServer = value;
-            }
-        }
 
         /// <summary>
         /// Sets <see cref="Server"/>, defaulting the port to 143 and SSL to <see langword="false"/>. 
@@ -458,25 +383,6 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets and sets the network-write batch-size configuration. You might want to limit this to increase the speed with which you can terminate the instance. May only be set while <see cref="IsUnconnected"/>.
-        /// </summary>
-        /// <remarks>
-        /// Limits the size of the buffer used when sending data to the server. Measured in bytes.
-        /// The default value is min=1000b, max=1000000b, maxtime=10s, initial=1000b.
-        /// </remarks>
-        public cBatchSizerConfiguration NetworkWriteConfiguration
-        {
-            get => mNetworkWriteConfiguration;
-
-            set
-            {
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
-                mNetworkWriteConfiguration = value ?? throw new ArgumentNullException();
-            }
-        }
-
-        /// <summary>
         /// Gets and sets the idle configuration. May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
@@ -541,32 +447,6 @@ namespace work.bacome.imapclient
             }
         }
 
-        ;?;
-
-        /// <summary>
-        /// Gets and sets the fetch-body-write batch-size configuration. You might want to limit this to increase the speed with which you can cancel the fetch.
-        /// </summary>
-        /// <remarks>
-        /// Limits the size of the buffer used when writing to the client-side stream (e.g. when writing to the local disk). Measured in bytes.
-        /// The default value is min=1000b, max=100000b, maxtime=1s, initial=1000b.
-        /// </remarks>
-        /// <seealso cref="cIMAPMessage.Fetch(cSection)"/>
-        /// <seealso cref="cIMAPMessage.Fetch(cSection, eDecodingRequired, System.IO.Stream, cFetchConfiguration)"/>
-        /// <seealso cref="cIMAPMessage.Fetch(cSinglePartBody, System.IO.Stream, cFetchConfiguration)"/>
-        /// <seealso cref="cIMAPMessage.Fetch(cTextBodyPart)"/>
-        /// <seealso cref="cIMAPAttachment.SaveAs(string, cFetchConfiguration)"/>
-        public cBatchSizerConfiguration FetchBodyWriteConfiguration
-        {
-            get => mFetchBodyWriteConfiguration;
-
-            set
-            {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(FetchBodyWriteConfiguration), value);
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                mFetchBodyWriteConfiguration = value ?? throw new ArgumentNullException();
-            }
-        }
-
         /// <summary>
         /// Gets and sets the append batch-size configuration. You might want to limit this to increase the speed with which you can cancel the append.
         /// </summary>
@@ -599,45 +479,6 @@ namespace work.bacome.imapclient
                 if (value < 1) throw new ArgumentOutOfRangeException();
                 mAppendTargetBufferSize = value;
                 mSession?.SetAppendTargetBufferSize(value, lContext);
-            }
-        }
-
-        /// <summary>
-        /// Gets and sets the default append-stream-read batch-size configuration. You might want to limit this to increase the speed with which you can terminate the instance.
-        /// </summary>
-        /// <remarks>
-        /// Limits the size of the buffer used when reading from the client-side stream (e.g. when reading an attachment from local disk). Measured in bytes.
-        /// The default value is min=1000b, max=100000b, maxtime=1s, initial=1000b.
-        /// </remarks>
-        public cBatchSizerConfiguration AppendStreamReadConfiguration
-        {
-            get => mAppendStreamReadConfiguration;
-
-            set
-            {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(AppendStreamReadConfiguration), value);
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                mAppendStreamReadConfiguration = value ?? throw new ArgumentNullException();
-                mSession?.SetAppendStreamReadConfiguration(value, lContext);
-            }
-        }
-
-        /// <summary>
-        /// Gets and sets the quoted-printable-encode configuration. You might want to limit this to increase the speed with which you can terminate an encode.
-        /// </summary>
-        /// <remarks>
-        /// Limits the size of the buffer used when reading and writing from streams when quoted printable encoding. Measured in bytes.
-        /// The default value is min=1000b, max=100000b, maxtime=1s, initial=1000b.
-        /// </remarks>
-        public cBatchSizerConfiguration QuotedPrintableEncodeReadWriteConfiguration
-        {
-            get => mQuotedPrintableEncodeReadWriteConfiguration;
-
-            set
-            {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(QuotedPrintableEncodeReadWriteConfiguration), value);
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                mQuotedPrintableEncodeReadWriteConfiguration = value ?? throw new ArgumentNullException();
             }
         }
 

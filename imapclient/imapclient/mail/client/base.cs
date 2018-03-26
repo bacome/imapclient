@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
@@ -28,14 +30,33 @@ namespace work.bacome.mailclient
         /**<summary>The release date of the library.</summary>*/
         public static readonly DateTime ReleaseDate = new DateTime(2017, 12, 02);
 
+        // tracing
+        private static readonly cTrace mTrace = new cTrace("work.bacome.cMailClient");
+
+        // mechanics
+        private readonly string mInstanceName;
+        protected readonly cTrace.cContext mRootContext;
+        protected readonly cCallbackSynchroniser mSynchroniser;
+        protected readonly cCancellationManager mCancellationManager;
+
         // property backing storage
         private int mTimeout = -1;
+        private cServer mServer = null;
+        private cBatchSizerConfiguration mNetworkWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
+        private cBatchSizerConfiguration mLocalStreamReadConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
+        private cBatchSizerConfiguration mLocalStreamWriteConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
+        private ReadOnlyCollection<cSASLAuthentication> mFailedSASLAuthentications = null;
 
-        internal cMailClient() { }
+        internal cMailClient(string pInstanceName, cCallbackSynchroniser pSynchroniser)
+        {
+            mRootContext = mTrace.NewRoot(pInstanceName);
+            mRootContext.TraceInformation("cMailClient by bacome version {0}, release date {1}", Version, ReleaseDate);
 
-        protected abstract cTrace.cContext YRootContext { get; }
-        protected abstract cCallbackSynchroniser YSynchroniser { get; }
-        protected abstract cCancellationManager YCancellationManager { get; }
+            mInstanceName = pInstanceName;
+            mSynchroniser = pSynchroniser;
+            mCancellationManager = new cCancellationManager(pSynchroniser.InvokeCancellableCountChanged);
+            mSynchroniser.Start(this, mRootContext);
+        }
 
         /// <summary>
         /// Gets the message formats that are supported by the instance.
@@ -51,13 +72,31 @@ namespace work.bacome.mailclient
         public abstract Encoding Encoding { get; set; }
 
         /// <summary>
+        /// Indicates whether the instance is currently unconnected.
+        /// </summary>
+        public abstract bool IsUnconnected { get; }
+
+        /// <summary>
+        /// Indicates whether the instance is currently connected.
+        /// </summary>
+        public abstract bool IsConnected { get; }
+
+        /// <summary>
+        /// Gets the accountid of the current (or most recent) connection. May be <see langword="null"/>.
+        /// </summary>
+        /// <remarks>
+        /// Set during <see cref="Connect"/>.
+        /// </remarks>
+        public abstract cAccountId ConnectedAccountId { get; }
+
+        /// <summary>
         /// Fired when a property value of the instance changes.
         /// </summary>
         /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
         public event PropertyChangedEventHandler PropertyChanged
         {
-            add { YSynchroniser.PropertyChanged += value; }
-            remove { YSynchroniser.PropertyChanged -= value; }
+            add { mSynchroniser.PropertyChanged += value; }
+            remove { mSynchroniser.PropertyChanged -= value; }
         }
 
         /// <summary>
@@ -72,12 +111,12 @@ namespace work.bacome.mailclient
         /// </remarks>
         public event EventHandler<cNetworkReceiveEventArgs> NetworkReceive
         {
-            add { YSynchroniser.NetworkReceive += value; }
-            remove { YSynchroniser.NetworkReceive -= value; }
+            add { mSynchroniser.NetworkReceive += value; }
+            remove { mSynchroniser.NetworkReceive -= value; }
         }
 
         /// <summary>
-        /// Fired when the client sends an IMAP command.
+        /// Fired when the client sends a command.
         /// </summary>
         /// <remarks>
         /// <para>This event is provided to aid in the debugging of the library.</para>
@@ -88,8 +127,8 @@ namespace work.bacome.mailclient
         /// </remarks>
         public event EventHandler<cNetworkSendEventArgs> NetworkSend
         {
-            add { YSynchroniser.NetworkSend += value; }
-            remove { YSynchroniser.NetworkSend -= value; }
+            add { mSynchroniser.NetworkSend += value; }
+            remove { mSynchroniser.NetworkSend -= value; }
         }
 
         /// <summary>
@@ -104,8 +143,8 @@ namespace work.bacome.mailclient
         /// </remarks>
         public event EventHandler<cCallbackExceptionEventArgs> CallbackException
         {
-            add { YSynchroniser.CallbackException += value; }
-            remove { YSynchroniser.CallbackException -= value; }
+            add { mSynchroniser.CallbackException += value; }
+            remove { mSynchroniser.CallbackException -= value; }
         }
 
         /// <summary>
@@ -117,9 +156,14 @@ namespace work.bacome.mailclient
         /// </remarks>
         public SynchronizationContext SynchronizationContext
         {
-            get => YSynchroniser.SynchronizationContext;
-            set => YSynchroniser.SynchronizationContext = value;
+            get => mSynchroniser.SynchronizationContext;
+            set => mSynchroniser.SynchronizationContext = value;
         }
+
+        /// <summary>
+        /// Gets the instance name used in the tracing done by the instance.
+        /// </summary>
+        public string InstanceName => mInstanceName;
 
         /// <summary>
         /// Gets and sets the timeout for calls where no operation specific value for a timeout can be (or has been) specified.
@@ -146,35 +190,124 @@ namespace work.bacome.mailclient
         /// <seealso cref="Cancel"/>
         public CancellationToken CancellationToken
         {
-            get => YCancellationManager.CancellationToken;
-            set => YCancellationManager.CancellationToken = value;
+            get => mCancellationManager.CancellationToken;
+            set => mCancellationManager.CancellationToken = value;
         }
 
         /// <summary>
         /// Gets the number of operations that will be cancelled by <see cref="Cancel"/>.
         /// </summary>
-        /// <seealso cref="CancellationToken"/>
-        /// <seealso cref="Cancel"/>
-        public int CancellableCount => YCancellationManager.Count;
+        public int CancellableCount => mCancellationManager.Count;
 
         /// <summary>
         /// Cancels the operations that are using the internal cancellation token.
         /// </summary>
-        /// <seealso cref="CancellationToken"/>
-        /// <seealso cref="CancellableCount"/>
         public void Cancel()
         {
-            var lContext = YRootContext.NewMethod(nameof(cMailClient), nameof(Cancel));
-            YCancellationManager.Cancel(lContext);
+            var lContext = mRootContext.NewMethod(nameof(cMailClient), nameof(Cancel));
+            mCancellationManager.Cancel(lContext);
         }
 
-        public cHeaderFieldFactory HeaderFieldFactory(Encoding pEncoding = null) =>  new cHeaderFieldFactory((SupportedFormats & fMessageDataFormat.utf8headers) != 0, pEncoding ?? Encoding);
+        /// <summary>
+        /// Gets and sets the server to connect to. 
+        /// </summary>
+        /// <remarks>
+        /// Must be set before calling <see cref="Connect"/>.
+        /// May only be set while <see cref="IsUnconnected"/>.
+        /// </remarks>
+        /// <seealso cref="SetServer(string)"/>
+        /// <seealso cref="SetServer(string, bool)"/>
+        /// <seealso cref="SetServer(string, int, bool)"/>
+        public cServer Server
+        {
+            get => mServer;
+
+            set
+            {
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
+                mServer = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets and sets the network-write batch-size configuration. You might want to limit this to increase the speed with which you can terminate the instance. May only be set while <see cref="IsUnconnected"/>.
+        /// </summary>
+        /// <remarks>
+        /// Limits the size of the buffer used when sending data to the server. Measured in bytes.
+        /// The default value is min=1000b, max=1000000b, maxtime=10s, initial=1000b.
+        /// </remarks>
+        public cBatchSizerConfiguration NetworkWriteConfiguration
+        {
+            get => mNetworkWriteConfiguration;
+
+            set
+            {
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
+                mNetworkWriteConfiguration = value ?? throw new ArgumentNullException();
+            }
+        }
+
+        /// <summary>
+        /// Gets and sets the stream-read batch-size configuration for client-side streams. You might want to limit this to increase the speed with which you can cancel these operations.
+        /// </summary>
+        /// <remarks>
+        /// Limits the size of the buffer used when reading from the client-side stream (e.g. when reading from local disk). Measured in bytes.
+        /// The default value is min=1000b, max=100000b, maxtime=1s, initial=1000b.
+        /// </remarks>
+        public cBatchSizerConfiguration LocalStreamReadConfiguration
+        {
+            get => mLocalStreamReadConfiguration;
+            set => mLocalStreamReadConfiguration = value ?? throw new ArgumentNullException();
+        }
+
+        /// <summary>
+        /// Gets and sets the stream-write batch-size configuration for client-side streams. You might want to limit this to increase the speed with which you can cancel these operations.
+        /// </summary>
+        /// <remarks>
+        /// Limits the size of the buffer used when writing to the client-side stream (e.g. when writing to local disk). Measured in bytes.
+        /// The default value is min=1000b, max=100000b, maxtime=1s, initial=1000b.
+        /// </remarks>
+        public cBatchSizerConfiguration LocalStreamWriteConfiguration
+        {
+            get => mLocalStreamWriteConfiguration;
+            set => mLocalStreamWriteConfiguration = value ?? throw new ArgumentNullException();
+        }
+
+        /// <summary>
+        /// Gets the set of SASL authentication objects that failed during the last attempt to <see cref="Connect"/>. May be <see langword="null"/> or empty.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <see langword="null"/> indicates that the instance has never tried to <see cref="Connect"/>.
+        /// The collection will be empty if there were no failed SASL authentication attempts in the last attempt to <see cref="Connect"/>.
+        /// </para>
+        /// <para>
+        /// This property is provided to give access to authentication error detail that is specific to the authentication mechanism.
+        /// (For example: XOAUTH2 provides an 'Error Response' as part of a failed attempt to authenticate.)
+        /// </para>
+        /// <note type="note">
+        /// All objects in this collection will have been disposed.
+        /// </note>
+        /// </remarks>
+        public ReadOnlyCollection<cSASLAuthentication> FailedSASLAuthentications
+        {
+            get => mFailedSASLAuthentications;
+            private set => mFailedSASLAuthentications = value ?? throw new ArgumentNullException();
+        }
+
+        public cHeaderFieldFactory HeaderFieldFactory(Encoding pEncoding = null) => new cHeaderFieldFactory((SupportedFormats & fMessageDataFormat.utf8headers) != 0, pEncoding ?? Encoding);
 
         internal void InvokeActionLong(Action<long> pAction, long pLong)
         {
-            var lContext = YRootContext.NewMethod(nameof(cMailClient), nameof(InvokeActionLong), pLong);
-            YSynchroniser.InvokeActionLong(pAction, pLong, lContext);
+            var lContext = mRootContext.NewMethod(nameof(cMailClient), nameof(InvokeActionLong), pLong);
+            mSynchroniser.InvokeActionLong(pAction, pLong, lContext);
         }
+
+        public abstract void Connect();
+        public abstract Task ConnectAsync();
+
+        public abstract void Disconnect();
+        public abstract Task DisconnectAsync();
 
         public void Dispose()
         {
