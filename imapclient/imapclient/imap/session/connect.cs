@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
                 if (lGreeting.Type == eGreetingType.bye)
                 {
                     ZSetState(eIMAPConnectionState.disconnected, lContext);
-                    if (ZSetHomeServerReferral(lGreeting.ResponseText, lContext)) throw new cHomeServerReferralException(lGreeting.ResponseText, lContext);
+                    if (ZSetHomeServerReferral(lGreeting.ResponseText, lContext)) throw new cIMAPHomeServerReferralException(lGreeting.ResponseText, lContext);
                     throw new cConnectByeException(lGreeting.ResponseText, lContext);
                 }
 

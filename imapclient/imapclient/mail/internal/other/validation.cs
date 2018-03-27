@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
@@ -148,12 +149,57 @@ namespace work.bacome.mailclient
         private static bool ZIsValidRFC5322Phrase(cHeaderFieldPhraseValue pPhrase)
         {
             foreach (var lPart in pPhrase.Parts)
-                if (lPart is cHeaderFieldTextValue lText && !cCharset.WSPVChar.ContainsAll(lText.Text))
-                    return false;
+            {
+                switch (lPart)
+                {
+                    case cHeaderFieldCommentValue lComment:
+
+                        if (ZIsValidRFC5322Comment(lComment)) break;
+                        return false;
+
+                    case cHeaderFieldTextValue lText:
+
+                        if (cCharset.WSPVChar.ContainsAll(lText.Text)) break;
+                        return false;
+
+                    case cHeaderFieldQuotedStringValue lQuotedString:
+
+                        if (cCharset.WSPVChar.ContainsAll(lQuotedString.Text)) break;
+                        return false;
+
+                    default:
+
+                        throw new cInternalErrorException(nameof(cValidation), nameof(ZIsValidRFC5322Phrase));
+                }
+            }
 
             return true;
         }
 
+        private static bool ZIsValidRFC5322Comment(cHeaderFieldCommentValue pComment)
+        {
+            foreach (var lPart in pComment.Parts)
+            {
+                switch (lPart)
+                {
+                    case cHeaderFieldCommentValue lComment:
+
+                        if (ZIsValidRFC5322Comment(lComment)) break;
+                        return false;
+
+                    case cHeaderFieldTextValue lText:
+
+                        if (cCharset.WSPVChar.ContainsAll(lText.Text)) break;
+                        return false;
+
+                    default:
+
+                        throw new cInternalErrorException(nameof(cValidation), nameof(ZIsValidRFC5322Comment));
+                }
+            }
+
+            return true;
+        }
 
         internal static void _Tests()
         {
@@ -203,7 +249,8 @@ namespace work.bacome.mailclient
 
             if (!TryParseMsgId("<fred.angus.miles@simon.john.lemar>", out lString) || lString != "<fred.angus.miles@simon.john.lemar>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.1");
             if (!TryParseMsgId("  \t   <   \"fred\"    .  \t angus  \".miles\"  \r\n @ simon    .   john   \r\n .  lemar > \t     ", out lString) || lString != "<fred.angus.miles@simon.john.lemar>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.2");
-            if (!TryParseMsgId("  \t   <   \"fred\"    .  \t angus  \".miles\"  \r\n @ [simon . john . lemar] > \t     ", out lString) || lString != "<fred.angus.miles@[simon . john . lemar]>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.3");
+            if (!TryParseMsgId("  \t   <   \"fred\"    .  \t angus  \".miles\"  \r\n @ [simon.john.lemar] > \t     ", out lString) || lString != "<fred.angus.miles@[simon.john.lemar]>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.3");
+            if (TryParseMsgId("  \t   <   \"fred\"    .  \t angus  \".miles\"  \r\n @ [simon.john.lemar ] > \t     ", out lString)) throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.3.1");
             if (!TryParseMsgId("<this@one>", out lString) || lString != "<this@one>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.4");
             if (TryParseMsgId("<this@one><this@one>", out lString)) throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.5");
             if (!TryParseMsgId("<\"this\"@one>", out lString) || lString != "<this@one>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.6");
@@ -211,14 +258,103 @@ namespace work.bacome.mailclient
             if (!TryParseMsgId("<this@[on\\a]>", out lString) || lString != "<this@[ona]>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.8");
             if (TryParseMsgId("<this@[on\\\a]>", out lString)) throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.9");
 
-
             cStrings lStrings;
-            if (!TryParseMsgIds("<this@one><this@one>", out lStrings) || lStrings.Count != 2 || lStrings[0] != "<this@one>" || lStrings[1] != "<this@one>") throw new cTestsException($"{ nameof(cValidation)}.TryParseMsgIds.1");
-            if (!TryParseMsgIds(" <  \r\n this @ one > \r\n <  \t this @  \t\t one > ", out lStrings) || lStrings.Count != 2 || lStrings[0] != "<this@one>" || lStrings[1] != "<this@one>") throw new cTestsException($"{ nameof(cValidation)}.TryParseMsgIds.2");
-            if (TryParseMsgIds("<this@one><this@one", out lStrings)) throw new cTestsException($"{ nameof(cValidation)}.TryParseMsgIds.3");
-            if (TryParseMsgIds("", out lStrings)) throw new cTestsException($"{ nameof(cValidation)}.TryParseMsgIds.4");
-            if (TryParseMsgIds("       ", out lStrings)) throw new cTestsException($"{ nameof(cValidation)}.TryParseMsgIds.5");
-            ;?;
+            if (!TryParseMsgIds("<this@one><this@one>", out lStrings) || lStrings.Count != 2 || lStrings[0] != "<this@one>" || lStrings[1] != "<this@one>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgIds.1");
+            if (!TryParseMsgIds(" <  \r\n this @ one > \r\n <  \t this @  \t\t one > ", out lStrings) || lStrings.Count != 2 || lStrings[0] != "<this@one>" || lStrings[1] != "<this@one>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgIds.2");
+            if (TryParseMsgIds("<this@one><this@one", out lStrings)) throw new cTestsException($"{nameof(cValidation)}.TryParseMsgIds.3");
+            if (TryParseMsgIds("", out lStrings)) throw new cTestsException($"{nameof(cValidation)}.TryParseMsgIds.4");
+            if (TryParseMsgIds("       ", out lStrings)) throw new cTestsException($"{nameof(cValidation)}.TryParseMsgIds.5");
+            if (!TryParseMsgIds("<this@one><\"this\"@one>", out lStrings) || lStrings.Count != 2 || lStrings[0] != "<this@one>" || lStrings[1] != "<this@one>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgIds.6");
+            if (TryParseMsgIds("<this@one><\"this \"@one>", out lStrings)) throw new cTestsException($"{nameof(cValidation)}.TryParseMsgIds.7");
+            if (!TryParseMsgIds("<this@one><this@[one]>", out lStrings) || lStrings.Count != 2 || lStrings[0] != "<this@one>" || lStrings[1] != "<this@[one]>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgIds.8");
+            if (!TryParseMsgIds("<this@one><this@[one ]>", out lStrings)) throw new cTestsException($"{nameof(cValidation)}.TryParseMsgIds.9");
+
+            cHeaderFieldPhraseValue lPhrase;
+            if (TryParsePhrase("", out lPhrase)) throw new cTestsException($"{ nameof(cValidation)}.TryParsePhrase.1");
+            if (TryParsePhrase("     \t      ()    \t   (   \t stuff  \t  (more    \t stuff  ))    ", out lPhrase)) throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.1");
+            if (!TryParsePhrase("    \t      ()  x \t   (   \t stuff  \t  (more    \t stuff  ))    ", out lPhrase) || ZTestPhraseToString(lPhrase) != "x") throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.2");
+            if (!TryParsePhrase("    \t      ()  x \t   (   \t stuff  \t  (more    \t stuff  ))  \"xxx\"   (extra \"comment\")  ", out lPhrase) || ZTestPhraseToString(lPhrase) != "x xxx") throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.3");
+            if (!TryParsePhrase("    \t      ()  x \t   (   \t stuff  \t  (more    \t stuff  ))  \"x x\"   (extra \"comment\")  ", out lPhrase) || ZTestPhraseToString(lPhrase) != "x\"x x\"") throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.4");
+            if (!TryParsePhrase("   Arthur     C.    Clarke  (Author)  ", out lPhrase) || ZTestPhraseToString(lPhrase) != "Arthur C. Clarke") throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.5");
+            if (TryParsePhrase("   .Arthur     C.    Clarke(, Author)  ", out lPhrase)) throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.6");
+            if (TryParsePhrase("    Arthur     C.    Clarke,  Author   ", out lPhrase)) throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.7");
+            if (!TryParsePhrase("   Arthur     C.  \"Clarke,\"Author   ", out lPhrase) || ZTestPhraseToString(lPhrase) != "Arthur C. Clarke, Author") throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.8");
+            if (!TryParsePhrase("   A.         C.    Clarke   \t\t\t   ", out lPhrase) || ZTestPhraseToString(lPhrase) != "A. C. Clarke") throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.9");
+            if (!TryParsePhrase("  \"A.\"    \"C.\"  Clarke   \t\r\n   ", out lPhrase) || ZTestPhraseToString(lPhrase) != "A. C. Clarke") throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.10");
+            if (!TryParsePhrase("   A.         C.    Clarke   \"\"     ", out lPhrase) || ZTestPhraseToString(lPhrase) != "A. C. Clarke\"\"") throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.11");
+            if (TryParsePhrase(" \"\arthur\"   C.  \"Clarke,\"Author   ", out lPhrase)) throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.12");
+            if (!TryParsePhrase("\" Arthur\"   C.    Clarke (\author)  ", out lPhrase) || ZTestPhraseToString(lPhrase) != "\" Arthur\"C. Clarke") throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.13");
+
+            // phrases
+            List<cHeaderFieldPhraseValue> lPhrases;
+            if (TryParsePhrases("", out lPhrases)) throw new cTestsException($"{ nameof(cValidation)}.TryParsePhrases.1");
+            if (TryParsePhrases("  ,   (),       (comment) ,    (  \t \r\n longer  comment   ) ,    ", out lPhrases)) throw new cTestsException($"{ nameof(cValidation)}.TryParsePhrases.2");
+            if (!TryParsePhrases(" ,   (),   x   (comment) ,    (  \t \r\n longer  comment   ) ,    ", out lPhrases) || lPhrases.Count != 1 || ZTestPhraseToString(lPhrases[0]) != "x") throw new cTestsException($"{ nameof(cValidation)}.TryParsePhrases.3");
+        }
+
+        private static string ZTestPhraseToString(cHeaderFieldPhraseValue pPhrase)
+        {
+            var lBuilder = new StringBuilder();
+
+            foreach (var lPart in pPhrase.Parts)
+            {
+                switch (lPart)
+                {
+                    case cHeaderFieldCommentValue lComment:
+
+                        lBuilder.Append(ZTestCommentToString(lComment));
+                        break;
+
+                    case cHeaderFieldTextValue lText:
+
+                        lBuilder.Append(lText.Text);
+                        break;
+
+                    case cHeaderFieldQuotedStringValue lQuotedString:
+
+                        lBuilder.Append('"');
+                        lBuilder.Append(lQuotedString.Text);
+                        lBuilder.Append('"');
+                        break;
+
+                    default:
+
+                        throw new cInternalErrorException(nameof(cValidation), nameof(ZTestPhraseToString));
+                }
+            }
+
+            return lBuilder.ToString();
+        }
+
+        private static string ZTestCommentToString(cHeaderFieldCommentValue pComment)
+        {
+            var lBuilder = new StringBuilder();
+
+            lBuilder.Append('(');
+
+            foreach (var lPart in pComment.Parts)
+            {
+                switch (lPart)
+                {
+                    case cHeaderFieldCommentValue lComment:
+
+                        lBuilder.Append(ZTestCommentToString(lComment));
+                        break;
+
+                    case cHeaderFieldTextValue lText:
+
+                        lBuilder.Append(lText.Text);
+                        break;
+
+                    default:
+
+                        throw new cInternalErrorException(nameof(cValidation), nameof(ZTestCommentToString));
+                }
+            }
+
+            lBuilder.Append(')');
+
+            return lBuilder.ToString();
         }
     }
 }

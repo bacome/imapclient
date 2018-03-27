@@ -15,13 +15,13 @@ namespace work.bacome.imapclient
                 {
                     public cActiveCommands() { }
 
-                    public void ProcessTextCode(eResponseTextContext pTextContext, cResponseData pData, cTrace.cContext pParentContext)
+                    public void ProcessTextCode(eIMAPResponseTextContext pTextContext, cResponseData pData, cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cActiveCommands), nameof(ProcessTextCode), pTextContext, pData);
                         foreach (var lCommand in this) lCommand.Hook.ProcessTextCode(pTextContext, pData, lContext);
                     }
 
-                    public void ProcessTextCode(eResponseTextContext pTextContext, cByteList pCode, cByteList pArguments, cTrace.cContext pParentContext)
+                    public void ProcessTextCode(eIMAPResponseTextContext pTextContext, cByteList pCode, cByteList pArguments, cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cActiveCommands), nameof(ProcessTextCode), pTextContext, pCode, pArguments);
                         foreach (var lCommand in this) lCommand.Hook.ProcessTextCode(pTextContext, pCode, pArguments, lContext);

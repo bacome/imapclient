@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
                     // state
                     private eCommandState mState = eCommandState.queued;
                     private bool mAwaitingContinuation = false;
-                    private cCommandResult mResult = null;
+                    private cIMAPCommandResult mResult = null;
                     private Exception mException = null;
 
                     private int mCurrentPart = 0;
@@ -47,7 +47,7 @@ namespace work.bacome.imapclient
                     public eCommandState State => mState;
                     public bool AwaitingContinuation => mAwaitingContinuation;
 
-                    public async Task<cCommandResult> WaitAsync(cMethodControl pMC, cTrace.cContext pParentContext)
+                    public async Task<cIMAPCommandResult> WaitAsync(cMethodControl pMC, cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cCommand), nameof(WaitAsync), pMC, Tag);
 
@@ -124,7 +124,7 @@ namespace work.bacome.imapclient
                         mState = eCommandState.sent;
                     }
 
-                    public void SetResult(cCommandResult pResult, cTrace.cContext pParentContext)
+                    public void SetResult(cIMAPCommandResult pResult, cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cCommand), nameof(SetResult), Tag, pResult);
 

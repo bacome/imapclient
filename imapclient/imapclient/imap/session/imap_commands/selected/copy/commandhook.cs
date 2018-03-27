@@ -17,11 +17,11 @@ namespace work.bacome.imapclient
 
                 public cCopyFeedback Feedback { get; private set; } = null;
 
-                public override void ProcessTextCode(eResponseTextContext pTextContext, cByteList pCode, cByteList pArguments, cTrace.cContext pParentContext)
+                public override void ProcessTextCode(eIMAPResponseTextContext pTextContext, cByteList pCode, cByteList pArguments, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookCopy), nameof(ProcessTextCode), pTextContext, pCode, pArguments);
 
-                    if (pTextContext == eResponseTextContext.success && pCode.Equals(kCopyUID))
+                    if (pTextContext == eIMAPResponseTextContext.success && pCode.Equals(kCopyUID))
                     {
                         if (pArguments != null)
                         {

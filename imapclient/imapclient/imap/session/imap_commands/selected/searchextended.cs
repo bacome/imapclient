@@ -41,7 +41,7 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("extended search success");
                         if (lHook.MessageHandles == null) throw new cUnexpectedServerActionException(lResult, "results not received on a successful extended search", fIMAPCapabilities.esearch, lContext);
@@ -50,8 +50,8 @@ namespace work.bacome.imapclient
 
                     if (lHook.MessageHandles != null) lContext.TraceError("results received on a failed extended search");
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fIMAPCapabilities.esearch, lContext);
-                    throw new cProtocolErrorException(lResult, fIMAPCapabilities.esearch, lContext);
+                    if (lResult.ResultType == eIMAPCommandResultType.no) throw new cUnsuccessfulIMAPCommandException(lResult.ResponseText, fIMAPCapabilities.esearch, lContext);
+                    throw new cIMAPProtocolErrorException(lResult, fIMAPCapabilities.esearch, lContext);
                 }
             }
         }

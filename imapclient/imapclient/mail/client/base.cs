@@ -64,10 +64,11 @@ namespace work.bacome.mailclient
         public abstract fMessageDataFormat SupportedFormats { get; }
 
         /// <summary>
-        /// Gets and sets the encoding to use when <see cref="fMessageDataFormat.utf8headers"/> is not supported by the instance.
+        /// Gets and sets the default encoding to use.
         /// </summary>
         /// <remarks>
         /// The default value is <see cref="Encoding.UTF8"/>.
+        /// Used when no encoding is specified when calling <see cref="GetHeaderFieldFactory(Encoding)"/>.
         /// </remarks>
         public abstract Encoding Encoding { get; set; }
 
@@ -102,13 +103,7 @@ namespace work.bacome.mailclient
         /// <summary>
         /// Fired when a server response is received.
         /// </summary>
-        /// <remarks>
-        /// <para>This event is provided to aid in the debugging of the library.</para>
-        /// <para>
-        /// If <see cref="SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
-        /// If an exception is raised in an event handler then the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.
-        /// </para>
-        /// </remarks>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
         public event EventHandler<cNetworkReceiveEventArgs> NetworkReceive
         {
             add { mSynchroniser.NetworkReceive += value; }
@@ -118,13 +113,7 @@ namespace work.bacome.mailclient
         /// <summary>
         /// Fired when the client sends a command.
         /// </summary>
-        /// <remarks>
-        /// <para>This event is provided to aid in the debugging of the library.</para>
-        /// <para>
-        /// If <see cref="SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
-        /// If an exception is raised in an event handler then the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.
-        /// </para>
-        /// </remarks>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
         public event EventHandler<cNetworkSendEventArgs> NetworkSend
         {
             add { mSynchroniser.NetworkSend += value; }
@@ -134,13 +123,7 @@ namespace work.bacome.mailclient
         /// <summary>
         /// Fired when an exception is raised by external code in a callback or event handler.
         /// </summary>
-        /// <remarks>
-        /// <para>The library ignores the exception other than raising this event. This event is provided to aid in the debugging of external code.</para>
-        /// <para>
-        /// If <see cref="SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
-        /// If an exception is raised in an event handler of this event then the exception is completely ignored.
-        /// </para>
-        /// </remarks>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
         public event EventHandler<cCallbackExceptionEventArgs> CallbackException
         {
             add { mSynchroniser.CallbackException += value; }
@@ -186,8 +169,6 @@ namespace work.bacome.mailclient
         /// The default value is <see cref="CancellationToken.None"/>.
         /// If this is <see cref="CancellationToken.None"/> then the call will use an internal cancellation token instead, and active operations can be cancelled using <see cref="Cancel"/>.
         /// </remarks>
-        /// <seealso cref="CancellableCount"/>
-        /// <seealso cref="Cancel"/>
         public CancellationToken CancellationToken
         {
             get => mCancellationManager.CancellationToken;
@@ -215,9 +196,6 @@ namespace work.bacome.mailclient
         /// Must be set before calling <see cref="Connect"/>.
         /// May only be set while <see cref="IsUnconnected"/>.
         /// </remarks>
-        /// <seealso cref="SetServer(string)"/>
-        /// <seealso cref="SetServer(string, bool)"/>
-        /// <seealso cref="SetServer(string, int, bool)"/>
         public cServer Server
         {
             get => mServer;
@@ -248,7 +226,7 @@ namespace work.bacome.mailclient
         }
 
         /// <summary>
-        /// Gets and sets the stream-read batch-size configuration for client-side streams. You might want to limit this to increase the speed with which you can cancel these operations.
+        /// Gets and sets the stream-read batch-size configuration for client-side streams. You might want to limit this to increase the speed with which you can cancel operations. May only be set while <see cref="IsUnconnected"/>.
         /// </summary>
         /// <remarks>
         /// Limits the size of the buffer used when reading from the client-side stream (e.g. when reading from local disk). Measured in bytes.
@@ -257,11 +235,16 @@ namespace work.bacome.mailclient
         public cBatchSizerConfiguration LocalStreamReadConfiguration
         {
             get => mLocalStreamReadConfiguration;
-            set => mLocalStreamReadConfiguration = value ?? throw new ArgumentNullException();
+
+            set
+            {
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
+                mLocalStreamReadConfiguration = value ?? throw new ArgumentNullException();
+            }
         }
 
         /// <summary>
-        /// Gets and sets the stream-write batch-size configuration for client-side streams. You might want to limit this to increase the speed with which you can cancel these operations.
+        /// Gets and sets the stream-write batch-size configuration for client-side streams. You might want to limit this to increase the speed with which you can cancel these operations. May only be set while <see cref="IsUnconnected"/>.
         /// </summary>
         /// <remarks>
         /// Limits the size of the buffer used when writing to the client-side stream (e.g. when writing to local disk). Measured in bytes.
@@ -270,7 +253,12 @@ namespace work.bacome.mailclient
         public cBatchSizerConfiguration LocalStreamWriteConfiguration
         {
             get => mLocalStreamWriteConfiguration;
-            set => mLocalStreamWriteConfiguration = value ?? throw new ArgumentNullException();
+
+            set
+            {
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
+                mLocalStreamWriteConfiguration = value ?? throw new ArgumentNullException();
+            }
         }
 
         /// <summary>
@@ -295,7 +283,7 @@ namespace work.bacome.mailclient
             private set => mFailedSASLAuthentications = value ?? throw new ArgumentNullException();
         }
 
-        public cHeaderFieldFactory HeaderFieldFactory(Encoding pEncoding = null) => new cHeaderFieldFactory((SupportedFormats & fMessageDataFormat.utf8headers) != 0, pEncoding ?? Encoding);
+        public cHeaderFieldFactory GetHeaderFieldFactory(Encoding pEncoding = null) => new cHeaderFieldFactory((SupportedFormats & fMessageDataFormat.utf8headers) != 0, pEncoding ?? Encoding);
 
         internal void InvokeActionLong(Action<long> pAction, long pLong)
         {

@@ -87,6 +87,11 @@ namespace work.bacome.mailclient
 
         public readonly string Text;
 
+        internal cHeaderFieldQuotedStringValue(string pText, bool pInternal)
+        {
+            Text = pText ?? throw new ArgumentNullException(nameof(pText));
+        }
+
         public cHeaderFieldQuotedStringValue(string pText)
         {
             Text = pText ?? throw new ArgumentNullException(nameof(pText));

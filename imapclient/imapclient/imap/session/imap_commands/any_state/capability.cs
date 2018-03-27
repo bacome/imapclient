@@ -27,7 +27,7 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType != eCommandResultType.ok) throw new cProtocolErrorException(lResult, 0, lContext);
+                    if (lResult.ResultType != eIMAPCommandResultType.ok) throw new cIMAPProtocolErrorException(lResult, 0, lContext);
 
                     lContext.TraceInformation("capability success");
 

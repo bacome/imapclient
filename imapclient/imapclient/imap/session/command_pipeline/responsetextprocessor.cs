@@ -72,11 +72,11 @@ namespace work.bacome.imapclient
                         mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                     }
 
-                    public cResponseText Process(eResponseTextContext pTextContext, cBytesCursor pCursor, iTextCodeProcessor pTextCodeProcessor, cTrace.cContext pParentContext)
+                    public cIMAPResponseText Process(eIMAPResponseTextContext pTextContext, cBytesCursor pCursor, iTextCodeProcessor pTextCodeProcessor, cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cResponseTextProcessor), nameof(Process), pTextContext);
 
-                        cResponseText lResponseText;
+                        cIMAPResponseText lResponseText;
 
                         var lBookmarkBeforeLBRACET = pCursor.Position;
 
@@ -88,85 +88,85 @@ namespace work.bacome.imapclient
 
                                 if (lArgumentsBytes == null)
                                 {
-                                    eResponseTextCode lCode;
+                                    eIMAPResponseTextCode lCode;
                                     bool lCodeIsAlwaysAnError;
 
-                                    if (lCodeBytes.Equals(kAlert)) { lCode = eResponseTextCode.alert; lCodeIsAlwaysAnError = false; }
-                                    else if (lCodeBytes.Equals(kParse)) { lCode = eResponseTextCode.parse; lCodeIsAlwaysAnError = false; }
-                                    else if (lCodeBytes.Equals(kTryCreate)) { lCode = eResponseTextCode.trycreate; lCodeIsAlwaysAnError = true; }
-                                    else if (lCodeBytes.Equals(kUnavailable)) { lCode = eResponseTextCode.unavailable; lCodeIsAlwaysAnError = true; }
-                                    else if (lCodeBytes.Equals(kAuthenticationFailed)) { lCode = eResponseTextCode.authenticationfailed; lCodeIsAlwaysAnError = true; }
-                                    else if (lCodeBytes.Equals(kAuthorizationFailed)) { lCode = eResponseTextCode.authorizationfailed; lCodeIsAlwaysAnError = true; }
-                                    else if (lCodeBytes.Equals(kExpired)) { lCode = eResponseTextCode.expired; lCodeIsAlwaysAnError = true; }
-                                    else if (lCodeBytes.Equals(kPrivacyRequired)) { lCode = eResponseTextCode.privacyrequired; lCodeIsAlwaysAnError = true; }
-                                    else if (lCodeBytes.Equals(kContactAdmin)) { lCode = eResponseTextCode.contactadmin; lCodeIsAlwaysAnError = false; }
-                                    else if (lCodeBytes.Equals(kNoPerm)) { lCode = eResponseTextCode.noperm; lCodeIsAlwaysAnError = true; }
-                                    else if (lCodeBytes.Equals(kInUse)) { lCode = eResponseTextCode.inuse; lCodeIsAlwaysAnError = true; }
-                                    else if (lCodeBytes.Equals(kExpungeIssued)) { lCode = eResponseTextCode.expungeissued; lCodeIsAlwaysAnError = false; }
-                                    else if (lCodeBytes.Equals(kCorruption)) { lCode = eResponseTextCode.corruption; lCodeIsAlwaysAnError = false; }
-                                    else if (lCodeBytes.Equals(kServerBug)) { lCode = eResponseTextCode.serverbug; lCodeIsAlwaysAnError = false; }
-                                    else if (lCodeBytes.Equals(kClientBug)) { lCode = eResponseTextCode.clientbug; lCodeIsAlwaysAnError = false; }
-                                    else if (lCodeBytes.Equals(kCannot)) { lCode = eResponseTextCode.cannot; lCodeIsAlwaysAnError = true; }
-                                    else if (lCodeBytes.Equals(kLimit)) { lCode = eResponseTextCode.limit; lCodeIsAlwaysAnError = true; }
-                                    else if (lCodeBytes.Equals(kOverQuota)) { lCode = eResponseTextCode.overquota; lCodeIsAlwaysAnError = false; }
-                                    else if (lCodeBytes.Equals(kAlreadyExists)) { lCode = eResponseTextCode.alreadyexists; lCodeIsAlwaysAnError = true; }
-                                    else if (lCodeBytes.Equals(kNonExistent)) { lCode = eResponseTextCode.nonexistent; lCodeIsAlwaysAnError = true; }
-                                    else if (lCodeBytes.Equals(kBadCharset)) { lCode = eResponseTextCode.badcharset; lCodeIsAlwaysAnError = true; }
-                                    else if (lCodeBytes.Equals(kUseAttr)) { lCode = eResponseTextCode.useattr; lCodeIsAlwaysAnError = true; }
-                                    else if (lCodeBytes.Equals(kUnknownCTE)) { lCode = eResponseTextCode.unknowncte; lCodeIsAlwaysAnError = true; }
-                                    else if (lCodeBytes.Equals(kTooBig)) { lCode = eResponseTextCode.toobig; lCodeIsAlwaysAnError = true; }
+                                    if (lCodeBytes.Equals(kAlert)) { lCode = eIMAPResponseTextCode.alert; lCodeIsAlwaysAnError = false; }
+                                    else if (lCodeBytes.Equals(kParse)) { lCode = eIMAPResponseTextCode.parse; lCodeIsAlwaysAnError = false; }
+                                    else if (lCodeBytes.Equals(kTryCreate)) { lCode = eIMAPResponseTextCode.trycreate; lCodeIsAlwaysAnError = true; }
+                                    else if (lCodeBytes.Equals(kUnavailable)) { lCode = eIMAPResponseTextCode.unavailable; lCodeIsAlwaysAnError = true; }
+                                    else if (lCodeBytes.Equals(kAuthenticationFailed)) { lCode = eIMAPResponseTextCode.authenticationfailed; lCodeIsAlwaysAnError = true; }
+                                    else if (lCodeBytes.Equals(kAuthorizationFailed)) { lCode = eIMAPResponseTextCode.authorizationfailed; lCodeIsAlwaysAnError = true; }
+                                    else if (lCodeBytes.Equals(kExpired)) { lCode = eIMAPResponseTextCode.expired; lCodeIsAlwaysAnError = true; }
+                                    else if (lCodeBytes.Equals(kPrivacyRequired)) { lCode = eIMAPResponseTextCode.privacyrequired; lCodeIsAlwaysAnError = true; }
+                                    else if (lCodeBytes.Equals(kContactAdmin)) { lCode = eIMAPResponseTextCode.contactadmin; lCodeIsAlwaysAnError = false; }
+                                    else if (lCodeBytes.Equals(kNoPerm)) { lCode = eIMAPResponseTextCode.noperm; lCodeIsAlwaysAnError = true; }
+                                    else if (lCodeBytes.Equals(kInUse)) { lCode = eIMAPResponseTextCode.inuse; lCodeIsAlwaysAnError = true; }
+                                    else if (lCodeBytes.Equals(kExpungeIssued)) { lCode = eIMAPResponseTextCode.expungeissued; lCodeIsAlwaysAnError = false; }
+                                    else if (lCodeBytes.Equals(kCorruption)) { lCode = eIMAPResponseTextCode.corruption; lCodeIsAlwaysAnError = false; }
+                                    else if (lCodeBytes.Equals(kServerBug)) { lCode = eIMAPResponseTextCode.serverbug; lCodeIsAlwaysAnError = false; }
+                                    else if (lCodeBytes.Equals(kClientBug)) { lCode = eIMAPResponseTextCode.clientbug; lCodeIsAlwaysAnError = false; }
+                                    else if (lCodeBytes.Equals(kCannot)) { lCode = eIMAPResponseTextCode.cannot; lCodeIsAlwaysAnError = true; }
+                                    else if (lCodeBytes.Equals(kLimit)) { lCode = eIMAPResponseTextCode.limit; lCodeIsAlwaysAnError = true; }
+                                    else if (lCodeBytes.Equals(kOverQuota)) { lCode = eIMAPResponseTextCode.overquota; lCodeIsAlwaysAnError = false; }
+                                    else if (lCodeBytes.Equals(kAlreadyExists)) { lCode = eIMAPResponseTextCode.alreadyexists; lCodeIsAlwaysAnError = true; }
+                                    else if (lCodeBytes.Equals(kNonExistent)) { lCode = eIMAPResponseTextCode.nonexistent; lCodeIsAlwaysAnError = true; }
+                                    else if (lCodeBytes.Equals(kBadCharset)) { lCode = eIMAPResponseTextCode.badcharset; lCodeIsAlwaysAnError = true; }
+                                    else if (lCodeBytes.Equals(kUseAttr)) { lCode = eIMAPResponseTextCode.useattr; lCodeIsAlwaysAnError = true; }
+                                    else if (lCodeBytes.Equals(kUnknownCTE)) { lCode = eIMAPResponseTextCode.unknowncte; lCodeIsAlwaysAnError = true; }
+                                    else if (lCodeBytes.Equals(kTooBig)) { lCode = eIMAPResponseTextCode.toobig; lCodeIsAlwaysAnError = true; }
                                     else
                                     {
-                                        lCode = eResponseTextCode.other;
+                                        lCode = eIMAPResponseTextCode.other;
                                         lCodeIsAlwaysAnError = false;
                                         ZProcess(pTextContext, lCodeBytes, null, pTextCodeProcessor, lContext);
                                     }
 
-                                    lResponseText = new cResponseText(lCodeBytes, lCode, lCodeIsAlwaysAnError, lText);
+                                    lResponseText = new cIMAPResponseText(lCodeBytes, lCode, lCodeIsAlwaysAnError, lText);
                                 }
                                 else
                                 {
-                                    eResponseTextCode lCode;
+                                    eIMAPResponseTextCode lCode;
                                     bool lCodeIsAlwaysAnError;
                                     cStrings lArguments;
 
                                     if (lCodeBytes.Equals(kBadCharset))
                                     {
-                                        lCode = eResponseTextCode.badcharset;
+                                        lCode = eIMAPResponseTextCode.badcharset;
                                         lCodeIsAlwaysAnError = true;
                                         lArguments = ZProcessCharsets(lArgumentsBytes);
                                     }
                                     else if (lCodeBytes.Equals(kReferral))
                                     {
-                                        lCode = eResponseTextCode.referral;
+                                        lCode = eIMAPResponseTextCode.referral;
                                         lCodeIsAlwaysAnError = false;
                                         lArguments = ZProcessReferrals(lArgumentsBytes, lContext);
                                     }
                                     else if (lCodeBytes.Equals(kBadURL))
                                     {
-                                        lCode = eResponseTextCode.badurl;
+                                        lCode = eIMAPResponseTextCode.badurl;
                                         lCodeIsAlwaysAnError = true;
                                         lArguments = new cStrings(new string[] { cTools.UTF8BytesToString(lArgumentsBytes) });
                                     }
                                     else
                                     {
-                                        lCode = eResponseTextCode.other;
+                                        lCode = eIMAPResponseTextCode.other;
                                         lCodeIsAlwaysAnError = false;
                                         ZProcess(pTextContext, lCodeBytes, lArgumentsBytes, pTextCodeProcessor, lContext);
                                         lArguments = null;
                                     }
 
-                                    lResponseText = new cResponseText(lCodeBytes, lArgumentsBytes, lCode, lCodeIsAlwaysAnError, lArguments, lText);
+                                    lResponseText = new cIMAPResponseText(lCodeBytes, lArgumentsBytes, lCode, lCodeIsAlwaysAnError, lArguments, lText);
                                 }
                             }
                             else
                             {
                                 lContext.TraceWarning("likely badly formed response text code");
                                 pCursor.Position = lBookmarkBeforeLBRACET;
-                                lResponseText = new cResponseText(pCursor.GetRestAsString());
+                                lResponseText = new cIMAPResponseText(pCursor.GetRestAsString());
                             }
                         }
-                        else lResponseText = new cResponseText(pCursor.GetRestAsString());
+                        else lResponseText = new cIMAPResponseText(pCursor.GetRestAsString());
 
                         lContext.TraceVerbose("response text received: {0}", lResponseText);
                         mSynchroniser.InvokeResponseText(pTextContext, lResponseText, lContext);
@@ -224,7 +224,7 @@ namespace work.bacome.imapclient
                         return new cStrings(lURIs);
                     }
 
-                    private void ZProcess(eResponseTextContext pTextContext, cByteList pCode, cByteList pArguments, iTextCodeProcessor pTextCodeProcessor, cTrace.cContext pParentContext)
+                    private void ZProcess(eIMAPResponseTextContext pTextContext, cByteList pCode, cByteList pArguments, iTextCodeProcessor pTextCodeProcessor, cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cResponseTextProcessor), nameof(ZProcess), pTextContext, pCode, pArguments);
 

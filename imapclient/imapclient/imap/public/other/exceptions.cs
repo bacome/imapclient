@@ -6,24 +6,14 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The <see langword="abstract"/> base class for all of the library's custom IMAP exceptions.
+    /// Thrown on an IMAP 'NO' command response.
     /// </summary>
-    public abstract class cIMAPException : cMailException
-    {
-        internal cIMAPException() { }
-        internal cIMAPException(string pMessage) : base(pMessage) { }
-        internal cIMAPException(string pMessage, Exception pInnerException) : base(pMessage, pInnerException) { }
-    }
-
-    /// <summary>
-    /// Thrown on a 'NO' command response.
-    /// </summary>
-    public class cUnsuccessfulCompletionException : cIMAPException
+    public class cUnsuccessfulIMAPCommandException : cMailException
     {
         /// <summary>
         /// The response text associated with the 'NO'.
         /// </summary>
-        public readonly cResponseText ResponseText;
+        public readonly cIMAPResponseText ResponseText;
 
         /// <summary>
         /// Indicates that ignoring these capabilities may prevent the problem.
@@ -31,23 +21,23 @@ namespace work.bacome.imapclient
         /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fIMAPCapabilities TryIgnoring;
 
-        internal cUnsuccessfulCompletionException(cResponseText pResponseText, fIMAPCapabilities pTryIgnoring)
+        internal cUnsuccessfulIMAPCommandException(cIMAPResponseText pResponseText, fIMAPCapabilities pTryIgnoring)
         {
             ResponseText = pResponseText;
             TryIgnoring = pTryIgnoring;
         }
 
-        internal cUnsuccessfulCompletionException(cResponseText pResponseText, fIMAPCapabilities pTryIgnoring, cTrace.cContext pContext)
+        internal cUnsuccessfulIMAPCommandException(cIMAPResponseText pResponseText, fIMAPCapabilities pTryIgnoring, cTrace.cContext pContext)
         {
             ResponseText = pResponseText;
             TryIgnoring = pTryIgnoring;
-            pContext.TraceError("{0}: {1}", nameof(cUnsuccessfulCompletionException), pResponseText);
+            pContext.TraceError("{0}: {1}", nameof(cUnsuccessfulIMAPCommandException), pResponseText);
         }
 
         /// <inheritdoc/>
         public override string ToString()
         {
-            var lBuilder = new cListBuilder(nameof(cUnsuccessfulCompletionException));
+            var lBuilder = new cListBuilder(nameof(cUnsuccessfulIMAPCommandException));
             lBuilder.Append(ResponseText);
             lBuilder.Append(TryIgnoring);
             lBuilder.Append(base.ToString());
@@ -56,14 +46,14 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown on a 'NO' or 'BAD' command response. (Only thrown on a 'NO' when the 'NO' is an unexpected possibility.)
+    /// Thrown on an IMAP 'NO' or 'BAD' command response. (Only thrown on a 'NO' when the 'NO' is an unexpected possibility.)
     /// </summary>
-    public class cProtocolErrorException : cIMAPException
+    public class cIMAPProtocolErrorException : cMailException
     {
         /// <summary>
         /// The command result associated with the response.
         /// </summary>
-        public readonly cCommandResult CommandResult;
+        public readonly cIMAPCommandResult CommandResult;
 
         /// <summary>
         /// Indicates that ignoring these capabilities may prevent the problem.
@@ -71,23 +61,23 @@ namespace work.bacome.imapclient
         /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fIMAPCapabilities TryIgnoring;
 
-        internal cProtocolErrorException(cCommandResult pCommandResult, fIMAPCapabilities pTryIgnoring)
+        internal cIMAPProtocolErrorException(cIMAPCommandResult pCommandResult, fIMAPCapabilities pTryIgnoring)
         {
             CommandResult = pCommandResult;
             TryIgnoring = pTryIgnoring;
         }
 
-        internal cProtocolErrorException(cCommandResult pCommandResult, fIMAPCapabilities pTryIgnoring, cTrace.cContext pContext)
+        internal cIMAPProtocolErrorException(cIMAPCommandResult pCommandResult, fIMAPCapabilities pTryIgnoring, cTrace.cContext pContext)
         {
             CommandResult = pCommandResult;
             TryIgnoring = pTryIgnoring;
-            pContext.TraceError("{0}: {1}", nameof(cProtocolErrorException), pCommandResult);
+            pContext.TraceError("{0}: {1}", nameof(cIMAPProtocolErrorException), pCommandResult);
         }
 
         /// <inheritdoc/>
         public override string ToString()
         {
-            var lBuilder = new cListBuilder(nameof(cProtocolErrorException));
+            var lBuilder = new cListBuilder(nameof(cIMAPProtocolErrorException));
             lBuilder.Append(CommandResult);
             lBuilder.Append(TryIgnoring);
             lBuilder.Append(base.ToString());
@@ -95,20 +85,15 @@ namespace work.bacome.imapclient
         }
     }
 
-    public class cCommandResultUnknownException : cIMAPException
-    {
-        internal cCommandResultUnknownException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cCommandResultUnknownException), pMessage, pInner);
-    }
-
     /// <summary>
     /// Thrown when something happens that shouldn't (according to my reading of the RFCs).
     /// </summary>
-    public class cUnexpectedServerActionException : cIMAPException
+    public class cUnexpectedIMAPServerActionException : cMailException
     {
         /// <summary>
         /// The command result associated with the unexpected action. May be <see langword="null"/>.
         /// </summary>
-        public readonly cCommandResult Result;
+        public readonly cIMAPCommandResult Result;
 
         /// <summary>
         /// Indicates that ignoring these capabilities may prevent the problem.
@@ -116,17 +101,17 @@ namespace work.bacome.imapclient
         /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fIMAPCapabilities TryIgnoring;
 
-        internal cUnexpectedServerActionException(cCommandResult pResult, string pMessage, fIMAPCapabilities pTryIgnoring, cTrace.cContext pContext) : base(pMessage)
+        internal cUnexpectedIMAPServerActionException(cIMAPCommandResult pResult, string pMessage, fIMAPCapabilities pTryIgnoring, cTrace.cContext pContext) : base(pMessage)
         {
             Result = pResult;
             TryIgnoring = pTryIgnoring;
-            pContext.TraceError("{0}: {1}", nameof(cUnexpectedServerActionException), pMessage);
+            pContext.TraceError("{0}: {1}", nameof(cUnexpectedIMAPServerActionException), pMessage);
         }
 
         /// <inheritdoc/>
         public override string ToString()
         {
-            var lBuilder = new cListBuilder(nameof(cUnexpectedServerActionException));
+            var lBuilder = new cListBuilder(nameof(cUnexpectedIMAPServerActionException));
             lBuilder.Append(Result);
             lBuilder.Append(TryIgnoring);
             lBuilder.Append(base.ToString());
@@ -137,15 +122,14 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Thrown to indicate that <see cref="cIMAPClient.Connect"/> failure is due to the server rejecting the connection.
     /// </summary>
-    /// <seealso cref="cIMAPClient.Connect"/>
-    public class cConnectByeException : cIMAPException
+    public class cConnectByeException : cMailException
     {
         /// <summary>
         /// The response text associated with the 'BYE'.
         /// </summary>
-        public readonly cResponseText ResponseText;
+        public readonly cIMAPResponseText ResponseText;
 
-        internal cConnectByeException(cResponseText pResponseText, cTrace.cContext pContext)
+        internal cConnectByeException(cIMAPResponseText pResponseText, cTrace.cContext pContext)
         {
             ResponseText = pResponseText;
             pContext.TraceError("{0}: {1}", nameof(cConnectByeException), pResponseText);
@@ -161,7 +145,7 @@ namespace work.bacome.imapclient
         }
     }
 
-    public class cUnexpectedPreAuthenticatedConnectionException : cIMAPException
+    public class cUnexpectedPreAuthenticatedConnectionException : cMailException
     {
         internal cUnexpectedPreAuthenticatedConnectionException(cTrace.cContext pContext) => pContext.TraceError(nameof(cUnexpectedPreAuthenticatedConnectionException));
     }
@@ -169,25 +153,24 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Thrown to indicate that a <see cref="cIMAPClient.Connect"/> failure came with a <see cref="cIMAPClient.HomeServerReferral"/>.
     /// </summary>
-    /// <seealso cref="cIMAPClient.Connect"/>
-    public class cHomeServerReferralException : cIMAPException
+    public class cIMAPHomeServerReferralException : cMailException
     {
         /// <summary>
         /// The response text associated with the rejection.
-        /// The home server referral will be in <see cref="cResponseText.Arguments"/>.
+        /// The home server referral will be in <see cref="cIMAPResponseText.Arguments"/>.
         /// </summary>
-        public readonly cResponseText ResponseText;
+        public readonly cIMAPResponseText ResponseText;
 
-        internal cHomeServerReferralException(cResponseText pResponseText, cTrace.cContext pContext)
+        internal cIMAPHomeServerReferralException(cIMAPResponseText pResponseText, cTrace.cContext pContext)
         {
             ResponseText = pResponseText;
-            pContext.TraceError("{0}: {1}", nameof(cHomeServerReferralException), pResponseText);
+            pContext.TraceError("{0}: {1}", nameof(cIMAPHomeServerReferralException), pResponseText);
         }
 
         /// <inheritdoc/>
         public override string ToString()
         {
-            var lBuilder = new cListBuilder(nameof(cHomeServerReferralException));
+            var lBuilder = new cListBuilder(nameof(cIMAPHomeServerReferralException));
             lBuilder.Append(ResponseText);
             lBuilder.Append(base.ToString());
             return lBuilder.ToString();
@@ -197,30 +180,29 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Thrown to indicate that <see cref="cIMAPClient.Connect"/> failure is due to the server rejecting the credentials in <see cref="cIMAPClient.AuthenticationParameters"/>.
     /// </summary>
-    /// <seealso cref="cIMAPClient.Connect"/>
-    public class cCredentialsException : cIMAPException
+    public class cIMAPCredentialsException : cMailException
     {
         /// <summary>
-        /// The response text if the server explicitly rejects the credentials by using <see cref="eResponseTextCode.authenticationfailed"/>, <see cref="eResponseTextCode.authorizationfailed"/> or <see cref="eResponseTextCode.expired"/>, otherwise <see langword="null"/>.
+        /// The response text if the server explicitly rejects the credentials by using <see cref="eIMAPResponseTextCode.authenticationfailed"/>, <see cref="eIMAPResponseTextCode.authorizationfailed"/> or <see cref="eIMAPResponseTextCode.expired"/>, otherwise <see langword="null"/>.
         /// </summary>
-        public readonly cResponseText ResponseText;
+        public readonly cIMAPResponseText ResponseText;
 
-        internal cCredentialsException(cTrace.cContext pContext)
+        internal cIMAPCredentialsException(cTrace.cContext pContext)
         {
             ResponseText = null;
-            pContext.TraceError(nameof(cCredentialsException));
+            pContext.TraceError(nameof(cIMAPCredentialsException));
         }
 
-        internal cCredentialsException(cResponseText pResponseText, cTrace.cContext pContext)
+        internal cIMAPCredentialsException(cIMAPResponseText pResponseText, cTrace.cContext pContext)
         {
             ResponseText = pResponseText;
-            pContext.TraceError("{0}: {1}", nameof(cCredentialsException), pResponseText);
+            pContext.TraceError("{0}: {1}", nameof(cIMAPCredentialsException), pResponseText);
         }
 
         /// <inheritdoc/>
         public override string ToString()
         {
-            var lBuilder = new cListBuilder(nameof(cCredentialsException));
+            var lBuilder = new cListBuilder(nameof(cIMAPCredentialsException));
             if (ResponseText != null) lBuilder.Append(ResponseText);
             lBuilder.Append(base.ToString());
             return lBuilder.ToString();
@@ -228,16 +210,16 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown to indicate that the server unilaterally disconnected.
+    /// Thrown to indicate that the IMAP server unilaterally disconnected.
     /// </summary>
-    public class cUnilateralByeException : cIMAPException
+    public class cUnilateralByeException : cMailException
     {
         /// <summary>
         /// The response text associated with the server's 'BYE'.
         /// </summary>
-        public readonly cResponseText ResponseText;
+        public readonly cIMAPResponseText ResponseText;
 
-        internal cUnilateralByeException(cResponseText pResponseText, cTrace.cContext pContext)
+        internal cUnilateralByeException(cIMAPResponseText pResponseText, cTrace.cContext pContext)
         {
             ResponseText = pResponseText;
             pContext.TraceError("{0}: {1}", nameof(cUnilateralByeException), pResponseText);
@@ -256,7 +238,7 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Thrown when there are two pipelined commands that conflict in some way. Indicates a bug in the library.
     /// </summary>
-    public class cPipelineConflictException : cIMAPException
+    public class cPipelineConflictException : cMailException
     {
         internal cPipelineConflictException(cTrace.cContext pContext) => pContext.TraceError(nameof(cPipelineConflictException));
     }
@@ -264,7 +246,7 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Thrown when the internal command pipeline has stopped processing commands.
     /// </summary>
-    public class cPipelineStoppedException : cIMAPException
+    public class cPipelineStoppedException : cMailException
     {
         internal cPipelineStoppedException() { }
         internal cPipelineStoppedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cPipelineStoppedException));
@@ -274,12 +256,12 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Thrown when the UIDValidity is incorrect or changed while the library was doing something that depended on it not changing.
     /// </summary>
-    public class cUIDValidityException : cIMAPException
+    public class cUIDValidityException : cMailException
     {
         /// <summary>
         /// The command result associated with the exception. May be <see langword="null"/>.
         /// </summary>
-        public readonly cCommandResult Result;
+        public readonly cIMAPCommandResult Result;
 
         internal cUIDValidityException()
         {
@@ -292,7 +274,7 @@ namespace work.bacome.imapclient
             pContext.TraceError(nameof(cUIDValidityException));
         }
 
-        internal cUIDValidityException(cCommandResult pResult, cTrace.cContext pContext)
+        internal cUIDValidityException(cIMAPCommandResult pResult, cTrace.cContext pContext)
         {
             Result = pResult;
             pContext.TraceError(nameof(cUIDValidityException));
@@ -305,7 +287,7 @@ namespace work.bacome.imapclient
     /// <remarks>
     /// Will be thrown either due to an error in the decoder or due to the library not having a suitable decoder to use.
     /// </remarks>
-    public class cContentTransferDecodingException : cIMAPException
+    public class cContentTransferDecodingException : cMailException
     {
         internal cContentTransferDecodingException(cTrace.cContext pContext) => pContext.TraceError(nameof(cContentTransferDecodingException));
         internal cContentTransferDecodingException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cContentTransferDecodingException), pMessage);
@@ -314,7 +296,7 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Thrown when a message's sequence number or server-side message data is required after the message has been expunged.
     /// </summary>
-    public class cMessageExpungedException : cIMAPException
+    public class cMessageExpungedException : cMailException
     {
         /// <summary>
         /// The message concerned.
@@ -334,12 +316,12 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown when the requested data is not returned by the server. This is most likely because the message has been expunged.
+    /// Thrown when the requested data is not returned by the IMAP server. This is most likely because the message has been expunged.
     /// </summary>
     /// <remarks>
     /// Either the <see cref="MailboxHandle"/> and <see cref="UID"/> will be not <see langword="null"/> or the <see cref="MessageHandle"/> will be not <see langword="null"/>.
     /// </remarks>
-    public class cRequestedDataNotReturnedException : cIMAPException
+    public class cRequestedIMAPDataNotReturnedException : cMailException
     {
         public readonly iMailboxHandle MailboxHandle;
         public readonly cUID UID;
@@ -349,14 +331,14 @@ namespace work.bacome.imapclient
         /// </summary>
         public readonly iMessageHandle MessageHandle;
 
-        internal cRequestedDataNotReturnedException(iMailboxHandle pMailboxHandle, cUID pUID)
+        internal cRequestedIMAPDataNotReturnedException(iMailboxHandle pMailboxHandle, cUID pUID)
         {
             MailboxHandle = pMailboxHandle;
             UID = pUID;
             MessageHandle = null;
         }
 
-        internal cRequestedDataNotReturnedException(iMessageHandle pMessageHandle)
+        internal cRequestedIMAPDataNotReturnedException(iMessageHandle pMessageHandle)
         {
             MailboxHandle = null;
             UID = null;
@@ -366,7 +348,7 @@ namespace work.bacome.imapclient
         /// <inheritdoc/>
         public override string ToString()
         {
-            var lBuilder = new cListBuilder(nameof(cRequestedDataNotReturnedException));
+            var lBuilder = new cListBuilder(nameof(cRequestedIMAPDataNotReturnedException));
             lBuilder.Append(MessageHandle);
             lBuilder.Append(base.ToString());
             return lBuilder.ToString();
@@ -376,7 +358,7 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Thrown when a single message store operation fails.
     /// </summary>
-    public class cSingleMessageStoreException : cIMAPException
+    public class cSingleMessageStoreException : cMailException
     {
         /// <summary>
         /// The message concerned.
@@ -403,13 +385,18 @@ namespace work.bacome.imapclient
     /// Either use another <see cref="cIMAPClient"/> instance with the same <see cref="cIMAPClient.ConnectedAccountId"/> as the source of the data
     /// or read and cache the data locally (e.g. in a file) before using it.
     /// </remarks>
-    public class cMessageDataClientException : cIMAPException
+    public class cMessageDataClientException : cMailException
     {
         internal cMessageDataClientException() { }
     }
 
-    public class cStreamRanOutOfDataException : cIMAPException
+    public class cAppendDataFormException : cMailException
     {
-        internal cStreamRanOutOfDataException() { }
+        public readonly cAppendData AppendData;
+
+        internal cAppendDataFormException(cAppendData pAppendData)
+        {
+            AppendData = pAppendData;
+        }
     }
 }

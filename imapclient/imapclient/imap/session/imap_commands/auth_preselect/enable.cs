@@ -38,7 +38,7 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         var lEnabledExtensions = lHook.EnabledExtensions;
                         lContext.TraceInformation("enabled extensions {0}", lEnabledExtensions);
@@ -51,7 +51,7 @@ namespace work.bacome.imapclient
 
                     if (lHook.EnabledExtensions != fEnableableExtensions.none) lContext.TraceError("received enabled on a failed enable");
 
-                    throw new cProtocolErrorException(lResult, fIMAPCapabilities.enable, lContext);
+                    throw new cIMAPProtocolErrorException(lResult, fIMAPCapabilities.enable, lContext);
                 }
             }
 

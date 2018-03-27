@@ -5,7 +5,7 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Represents the type of an IMAP command result.
     /// </summary>
-    public enum eCommandResultType
+    public enum eIMAPCommandResultType
     {
         /**<summary>Successful completion.</summary>*/
         ok,
@@ -18,26 +18,26 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Contains data relating to the result of an IMAP command.
     /// </summary>
-    /// <seealso cref="cProtocolErrorException"/>
-    public class cCommandResult
+    /// <seealso cref="cIMAPProtocolErrorException"/>
+    public class cIMAPCommandResult
     {
         /// <summary>
         /// The type of the result.
         /// </summary>
-        public readonly eCommandResultType ResultType;
+        public readonly eIMAPCommandResultType ResultType;
 
         /// <summary>
         /// The response text associated with the result.
         /// </summary>
-        public readonly cResponseText ResponseText;
+        public readonly cIMAPResponseText ResponseText;
 
-        internal cCommandResult(eCommandResultType pResultType, cResponseText pResponseText)
+        internal cIMAPCommandResult(eIMAPCommandResultType pResultType, cIMAPResponseText pResponseText)
         {
             ResultType = pResultType;
             ResponseText = pResponseText;
         }
 
         /// <inheritdoc/>
-        public override string ToString() => $"{nameof(cCommandResult)}({ResultType},{ResponseText})";
+        public override string ToString() => $"{nameof(cIMAPCommandResult)}({ResultType},{ResponseText})";
     }
 }

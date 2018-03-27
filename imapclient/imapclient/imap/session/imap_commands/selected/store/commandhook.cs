@@ -42,11 +42,11 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.notprocessed;
                 }
 
-                public override void ProcessTextCode(eResponseTextContext pTextContext, cByteList pCode, cByteList pArguments, cTrace.cContext pParentContext)
+                public override void ProcessTextCode(eIMAPResponseTextContext pTextContext, cByteList pCode, cByteList pArguments, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookStore), nameof(ProcessTextCode), pTextContext, pCode, pArguments);
 
-                    if (pTextContext == eResponseTextContext.success || pTextContext == eResponseTextContext.failure)
+                    if (pTextContext == eIMAPResponseTextContext.success || pTextContext == eIMAPResponseTextContext.failure)
                     {
                         if (pCode.Equals(kModified))
                         {
@@ -74,11 +74,11 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
+                public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookStore), nameof(CommandCompleted), pResult);
 
-                    if (pResult.ResultType == eCommandResultType.ok && mUIDStoreFeedback != null)
+                    if (pResult.ResultType == eIMAPCommandResultType.ok && mUIDStoreFeedback != null)
                     {
                         // find the handles for the UIDs, if possible
                         //  (this is to enhance the ability to tell if the store was successful or not for a UIDStore)

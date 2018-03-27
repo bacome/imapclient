@@ -28,21 +28,21 @@ namespace work.bacome.imapclient
                     if (pCursor.SkipBytes(kProcessResponseOKSpace))
                     {
                         lContext.TraceVerbose("got information");
-                        mResponseTextProcessor.Process(eResponseTextContext.information, pCursor, mActiveCommands, lContext);
+                        mResponseTextProcessor.Process(eIMAPResponseTextContext.information, pCursor, mActiveCommands, lContext);
                         return true;
                     }
 
                     if (pCursor.SkipBytes(kProcessResponseNoSpace))
                     {
                         lContext.TraceVerbose("got a warning");
-                        mResponseTextProcessor.Process(eResponseTextContext.warning, pCursor, mActiveCommands, lContext);
+                        mResponseTextProcessor.Process(eIMAPResponseTextContext.warning, pCursor, mActiveCommands, lContext);
                         return true;
                     }
 
                     if (pCursor.SkipBytes(kProcessResponseBadSpace))
                     {
                         lContext.TraceVerbose("got a protocol error");
-                        mResponseTextProcessor.Process(eResponseTextContext.protocolerror, pCursor, mActiveCommands, lContext);
+                        mResponseTextProcessor.Process(eIMAPResponseTextContext.protocolerror, pCursor, mActiveCommands, lContext);
                         return true;
                     }
 
@@ -69,7 +69,7 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceVerbose("got a bye");
 
-                        cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextContext.bye, pCursor, null, lContext);
+                        cIMAPResponseText lResponseText = mResponseTextProcessor.Process(eIMAPResponseTextContext.bye, pCursor, null, lContext);
                         cResponseDataBye lData = new cResponseDataBye(lResponseText);
 
                         foreach (var lCommand in mActiveCommands) ZProcessDataResponseWorker(ref lResult, lCommand.Hook.ProcessData(lData, lContext), lContext);
@@ -138,7 +138,7 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                private cCommandResult ZProcessCommandCompletionResponse(cBytesCursor pCursor, cCommandTag pTag, bool pIsAuthentication, iTextCodeProcessor pTextCodeProcessor, cTrace.cContext pParentContext)
+                private cIMAPCommandResult ZProcessCommandCompletionResponse(cBytesCursor pCursor, cCommandTag pTag, bool pIsAuthentication, iTextCodeProcessor pTextCodeProcessor, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZProcessCommandCompletionResponse), pTag);
 
@@ -153,24 +153,24 @@ namespace work.bacome.imapclient
                         return null;
                     }
 
-                    eCommandResultType lResultType;
-                    eResponseTextContext lTextContext;
+                    eIMAPCommandResultType lResultType;
+                    eIMAPResponseTextContext lTextContext;
 
                     if (pCursor.SkipBytes(kProcessResponseOKSpace))
                     {
-                        lResultType = eCommandResultType.ok;
-                        lTextContext = eResponseTextContext.success;
+                        lResultType = eIMAPCommandResultType.ok;
+                        lTextContext = eIMAPResponseTextContext.success;
                     }
                     else if (pCursor.SkipBytes(kProcessResponseNoSpace))
                     {
-                        lResultType = eCommandResultType.no;
-                        lTextContext = eResponseTextContext.failure;
+                        lResultType = eIMAPCommandResultType.no;
+                        lTextContext = eIMAPResponseTextContext.failure;
                     }
                     else if (pCursor.SkipBytes(kProcessResponseBadSpace))
                     {
-                        lResultType = eCommandResultType.bad;
-                        if (pIsAuthentication) lTextContext = eResponseTextContext.authenticationcancelled;
-                        else lTextContext = eResponseTextContext.error;
+                        lResultType = eIMAPCommandResultType.bad;
+                        if (pIsAuthentication) lTextContext = eIMAPResponseTextContext.authenticationcancelled;
+                        else lTextContext = eIMAPResponseTextContext.error;
                     }
                     else
                     {
@@ -179,7 +179,7 @@ namespace work.bacome.imapclient
                         return null;
                     }
 
-                    var lResult = new cCommandResult(lResultType, mResponseTextProcessor.Process(lTextContext, pCursor, pTextCodeProcessor, lContext));
+                    var lResult = new cIMAPCommandResult(lResultType, mResponseTextProcessor.Process(lTextContext, pCursor, pTextCodeProcessor, lContext));
 
                     if (mMailboxCache != null) mMailboxCache.CommandCompletion(lContext);
 

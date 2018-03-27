@@ -1,28 +1,30 @@
 ﻿using System;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal cAppendFeedback Append(iMailboxHandle pMailboxHandle, cAppendDataList pMessages, cAppendConfiguration pConfiguration)
+        internal cAppendFeedback Append(iMailboxHandle pMailboxHandle, cAppendDataList pData, cAppendConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Append), 1);
-            var lTask = ZAppendAsync(pMailboxHandle, pMessages, pConfiguration, lContext);
+            var lTask = ZAppendAsync(pMailboxHandle, pData, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        internal Task<cAppendFeedback> AppendAsync(iMailboxHandle pMailboxHandle, cAppendDataList pMessages, cAppendConfiguration pConfiguration)
+        internal Task<cAppendFeedback> AppendAsync(iMailboxHandle pMailboxHandle, cAppendDataList pData, cAppendConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(AppendAsync), 1);
-            return ZAppendAsync(pMailboxHandle, pMessages, pConfiguration, lContext);
+            return ZAppendAsync(pMailboxHandle, pData, pConfiguration, lContext);
         }
 
-        private async Task<cAppendFeedback> ZAppendAsync(iMailboxHandle pMailboxHandle, cAppendDataList pMessages, cAppendConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private async Task<cAppendFeedback> ZAppendAsync(iMailboxHandle pMailboxHandle, cAppendDataList pData, cAppendConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZAppendAsync), pMailboxHandle, pMessages, pConfiguration);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZAppendAsync), pMailboxHandle, pData, pConfiguration);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -30,29 +32,32 @@ namespace work.bacome.imapclient
             if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
             if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
-            if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
+            if (pData == null) throw new ArgumentNullException(nameof(pData));
 
             // special case
-            if (pMessages.Count == 0) return new cAppendFeedback();
+            if (pData.Count == 0) return new cAppendFeedback();
 
-            // verify that the appenddata will be readable during the append ...
-            //  the problem is that anything that is a (or anything that might be converted to a) stream that needs to be served by this client will not work
-            //   we will attempt to read from the stream while sending the data => there will be a deadlock 
-            //    (the fetch will be queued on the command pipeline while the command pipeline is in the middle of sending the append
-            //      the append will wait for the results of the fetch, but the fetch can't be sent until the append has finished)
-            //
-            // the way this should be done is by connecting a separate client to the same account and using a message instance from the separate client
-            //  (this is the best/safest design as it will work with or without catenate)
-            //
-            // alternatively, read into a temporary file and then use the file as the source of the data (this will obviously never use catenate).
-            //
-            foreach (var lMessage in pMessages)
+            // check input
+            foreach (var lItem in pData)
             {
-                switch (lMessage)
-                {
-                    case cMessageAppendData lWholeMessage:
+                if ((lItem.Format & lSession.SupportedFormats) != lItem.Format) throw new cAppendDataFormException(lItem);
 
-                        if (ReferenceEquals(lWholeMessage.Client, this)) throw new cMessageDataClientException();
+                // verify that the appenddata will be readable during the append ...
+                //  the problem is that anything that is a (or anything that might be converted to a) stream that needs to be served by this client will not work
+                //   we will attempt to read from the stream while sending the data => there will be a deadlock 
+                //    (the fetch will be queued on the command pipeline while the command pipeline is in the middle of sending the append
+                //      the append will wait for the results of the fetch, but the fetch can't be sent until the append has finished)
+                //
+                // the way this should be done is by connecting a separate client to the same account and using a message instance from the separate client
+                //  (this is the best/safest design as it will work with or without catenate)
+                //
+                // alternatively, read into a temporary file and then use the file as the source of the data (this will obviously never use catenate).
+                //
+                switch (lItem)
+                {
+                    case cMessageAppendData lMessage:
+
+                        if (ReferenceEquals(lMessage.Client, this)) throw new cMessageDataClientException();
                         break;
 
                     case cMessagePartAppendData lMessagePart:
@@ -68,28 +73,36 @@ namespace work.bacome.imapclient
                             break;
                         }
 
-                    case cMultiPartAppendData lMultiPart:
+                    case cMessageDataAppendData lMessageData:
 
-                        foreach (var lPart in lMultiPart.Parts)
+                        foreach (var lPart in lMessageData.MessageData.Parts)
                         {
                             switch (lPart)
                             {
-                                case cMessageAppendDataPart lWholeMessage:
+                                case cMessageMessageDataPart lMessage:
 
-                                    if (ReferenceEquals(lWholeMessage.Client, this)) throw new cMessageDataClientException();
+                                    if (ReferenceEquals(lMessage.Client, this)) throw new cMessageDataClientException();
                                     break;
 
-                                case cMessagePartAppendDataPart lMessagePart:
+                                case cMessagePartMessageDataPart lMessagePart:
 
                                     if (ReferenceEquals(lMessagePart.Client, this)) throw new cMessageDataClientException();
                                     break;
 
-                                case cUIDSectionAppendDataPart lSection:
+                                case cUIDSectionMessageDataPart lSection:
 
                                     if (ReferenceEquals(lSection.Client, this)) throw new cMessageDataClientException();
                                     break;
 
-                                case cStreamAppendDataPart lStream:
+                                case cStreamMessageDataPart lStream:
+
+                                    {
+                                        // if the stream where wrapped in another stream this check wouldn't work
+                                        if (lStream.Stream is cIMAPMessageDataStream lMessageDataStream && ReferenceEquals(lMessageDataStream.Client, this)) throw new cMessageDataClientException();
+                                        break;
+                                    }
+
+                                case cBase64StreamMessageDataPart lStream:
 
                                     {
                                         // if the stream where wrapped in another stream this check wouldn't work
@@ -109,14 +122,14 @@ namespace work.bacome.imapclient
             {
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
-                    var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                    return await lSession.AppendAsync(lMC, pMailboxHandle, pMessages, null, null, lContext).ConfigureAwait(false);
+                    var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
+                    return await lSession.AppendAsync(lMC, pMailboxHandle, pData, null, null, lContext).ConfigureAwait(false);
                 }
             }
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                return await lSession.AppendAsync(lMC, pMailboxHandle, pMessages, pConfiguration.SetMaximum, pConfiguration.Increment, lContext).ConfigureAwait(false);
+                return await lSession.AppendAsync(lMC, pMailboxHandle, pData, pConfiguration.SetMaximum, pConfiguration.Increment, lContext).ConfigureAwait(false);
             }
         }
 
@@ -147,14 +160,14 @@ namespace work.bacome.imapclient
             {
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
-                    var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                    return await ZZAppendAsync(lMC, pMailboxHandle, pMailMessages, null, null, mQuotedPrintableEncodeReadWriteConfiguration, mQuotedPrintableEncodeReadWriteConfiguration, pFlags, pReceived, null, null, lContext).ConfigureAwait(false);
+                    var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
+                    return await ZZAppendAsync(lMC, pMailboxHandle, pMailMessages, null, null, LocalStreamReadConfiguration, LocalStreamWriteConfiguration, pFlags, pReceived, null, null, lContext).ConfigureAwait(false);
                 }
             }
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                return await ZZAppendAsync(lMC, pMailboxHandle, pMailMessages, pConfiguration.ConvertSetMaximum, pConfiguration.ConvertIncrement, pConfiguration.ReadConfiguration ?? mQuotedPrintableEncodeReadWriteConfiguration, pConfiguration.WriteConfiguration ?? mQuotedPrintableEncodeReadWriteConfiguration, pFlags, pReceived, pConfiguration.AppendSetMaximum, pConfiguration.AppendIncrement, lContext).ConfigureAwait(false);
+                return await ZZAppendAsync(lMC, pMailboxHandle, pMailMessages, pConfiguration.ConvertSetMaximum, pConfiguration.ConvertIncrement, pConfiguration.ReadConfiguration ?? LocalStreamReadConfiguration, pConfiguration.WriteConfiguration ?? LocalStreamWriteConfiguration, pFlags, pReceived, pConfiguration.AppendSetMaximum, pConfiguration.AppendIncrement, lContext).ConfigureAwait(false);
             }
         }
 

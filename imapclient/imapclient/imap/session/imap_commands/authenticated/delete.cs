@@ -31,14 +31,14 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("delete success");
                         return;
                     }
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
-                    throw new cProtocolErrorException(lResult, 0, lContext);
+                    if (lResult.ResultType == eIMAPCommandResultType.no) throw new cUnsuccessfulIMAPCommandException(lResult.ResponseText, 0, lContext);
+                    throw new cIMAPProtocolErrorException(lResult, 0, lContext);
                 }
             }
 
@@ -51,10 +51,10 @@ namespace work.bacome.imapclient
                     mItem = pItem ?? throw new ArgumentNullException(nameof(pItem));
                 }
 
-                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
+                public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cDeleteCommandHook), nameof(CommandCompleted), pResult);
-                    if (pResult.ResultType == eCommandResultType.ok) mItem.ResetExists(lContext);
+                    if (pResult.ResultType == eIMAPCommandResultType.ok) mItem.ResetExists(lContext);
                 }
             }
         }

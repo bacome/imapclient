@@ -328,21 +328,23 @@ namespace work.bacome.mailclient
         /// </summary>
         public readonly cBodyParts Parts;
 
+        private fMessageDataFormat mFormat;
+
         /// <summary>
         /// The MIME subtype of the body-part as a code.
         /// </summary>
         public readonly eMultiPartBodySubTypeCode SubTypeCode;
-
-        private fMessageDataFormat mFormat;
 
         /// <summary>
         /// The IMAP BODYSTRUCTURE extension-data for the body-part. May be <see langword="null"/>.
         /// </summary>
         public readonly cMultiPartExtensionData ExtensionData;
 
-        internal cMultiPartBody(IList<cBodyPart> pParts, string pSubType, cSection pSection, fMessageDataFormat pFormat, cMultiPartExtensionData pExtensionData) : base(kMimeType.Multipart, pSubType, pSection)
+        ;?; // note if UTF8 is on and pFormat includes 8bit then utf8 should be turned on
+        internal cMultiPartBody(IList<cBodyPart> pParts, fMessageDataFormat pFormat, string pSubType, cSection pSection, cMultiPartExtensionData pExtensionData) : base(kMimeType.Multipart, pSubType, pSection)
         {
             Parts = new cBodyParts(pParts);
+            mFormat = pFormat; // sum of the formats of the parts + utf8 if 8bit is on
 
             if (SubType.Equals("MIXED", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eMultiPartBodySubTypeCode.mixed;
             else if (SubType.Equals("DIGEST", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eMultiPartBodySubTypeCode.digest;
@@ -480,9 +482,6 @@ namespace work.bacome.mailclient
     /// </list>
     /// Instances populated with BODY data are only available via <see cref="iMessageHandle.Body"/>.
     /// </remarks>
-    /// <seealso cref="cIMAPMessage.FetchSizeInBytes(cSinglePartBody)"/>
-    /// <seealso cref="cIMAPMessage.Fetch(cSinglePartBody, System.IO.Stream, cFetchConfiguration)"/>
-    /// <seealso cref="cAttachment.Part"/>
     public class cSinglePartBody : cBodyPart
     {
         /// <summary>
@@ -522,7 +521,7 @@ namespace work.bacome.mailclient
         /// </summary>
         public readonly cSinglePartExtensionData ExtensionData;
 
-        internal cSinglePartBody(string pType, string pSubType, cSection pSection, cBodyStructureParameters pParameters, string pContentId, cCulturedString pDescription, fMessageDataFormat pFormat, string pContentTransferEncoding, uint pSizeInBytes, cSinglePartExtensionData pExtensionData) : base(pType, pSubType, pSection)
+        internal cSinglePartBody(string pType, string pSubType, cSection pSection, cBodyStructureParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, bool p8bitImpliesUTF8Headers, uint pSizeInBytes, cSinglePartExtensionData pExtensionData) : base(pType, pSubType, pSection)
         {
             Parameters = pParameters;
             ContentId = pContentId;
@@ -531,34 +530,38 @@ namespace work.bacome.mailclient
 
             if (ContentTransferEncoding.Equals("7BIT", StringComparison.InvariantCultureIgnoreCase))
             {
-                mFormat = pFormat;
+                mFormat = 0;
                 DecodingRequired = eDecodingRequired.none;
             }
             else if (ContentTransferEncoding.Equals("8BIT", StringComparison.InvariantCultureIgnoreCase))
             {
-                mFormat = pFormat | fMessageDataFormat.eightbit;
+                if (p8bitImpliesUTF8Headers) mFormat = fMessageDataFormat.utf8headers; // should be a message subtype
+                else mFormat = fMessageDataFormat.eightbit;
+
                 DecodingRequired = eDecodingRequired.none;
             }
             else if (ContentTransferEncoding.Equals("BINARY", StringComparison.InvariantCultureIgnoreCase))
             {
-                mFormat = pFormat | fMessageDataFormat.binary;
+                if (p8bitImpliesUTF8Headers) mFormat = fMessageDataFormat.binary | fMessageDataFormat.utf8headers; // should be a message subtype
+                else mFormat = fMessageDataFormat.binary;
+
                 DecodingRequired = eDecodingRequired.none;
             }
             else if (ContentTransferEncoding.Equals("QUOTED-PRINTABLE", StringComparison.InvariantCultureIgnoreCase))
             {
-                mFormat = pFormat;
+                mFormat = 0;
                 DecodingRequired = eDecodingRequired.quotedprintable;
             }
             else if (ContentTransferEncoding.Equals("BASE64", StringComparison.InvariantCultureIgnoreCase))
             {
-                mFormat = pFormat;
+                mFormat = 0;
                 DecodingRequired = eDecodingRequired.base64;
             }
             else
             {
                 // note that rfc 2045 section 6.4 specifies that if 'unknown' then the part has to be treated as application/octet-stream
                 //  however I think I should be able to assume that it is 7bit data (otherwise the CTE should be binary)
-                mFormat = pFormat; // | fMessageDataFormat.binary;
+                mFormat = 0; // | fMessageDataFormat.binary;
                 DecodingRequired = eDecodingRequired.other; 
             }
 
@@ -615,7 +618,7 @@ namespace work.bacome.mailclient
         /// </summary>
         public readonly uint SizeInLines;
 
-        internal cMessageBodyPart(cSection pSection, cBodyStructureParameters pParameters, string pContentId, cCulturedString pDescription, fMessageDataFormat pFormat, string pContentTransferEncoding, uint pSizeInBytes, cEnvelope pEnvelope, cBodyPart pBody, cBodyPart pBodyStructure, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(kMimeType.Message, kMimeSubType.RFC822, pSection, pParameters, pContentId, pDescription, pFormat, pContentTransferEncoding, pSizeInBytes, pExtensionData)
+        internal cMessageBodyPart(cSection pSection, cBodyStructureParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, bool p8bitImpliesUTF8Headers, uint pSizeInBytes, cEnvelope pEnvelope, cBodyPart pBody, cBodyPart pBodyStructure, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(kMimeType.Message, kMimeSubType.RFC822, pSection, pParameters, pContentId, pDescription, pContentTransferEncoding, p8bitImpliesUTF8Headers, pSizeInBytes, pExtensionData)
         {
             Envelope = pEnvelope;
             mBody = pBody;
@@ -654,7 +657,7 @@ namespace work.bacome.mailclient
         /// </summary>
         public readonly uint SizeInLines;
 
-        internal cTextBodyPart(string pSubType, cSection pSection, cBodyStructureParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(kMimeType.Text, pSubType, pSection, pParameters, pContentId, pDescription, 0, pContentTransferEncoding, pSizeInBytes, pExtensionData)
+        internal cTextBodyPart(string pSubType, cSection pSection, cBodyStructureParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(kMimeType.Text, pSubType, pSection, pParameters, pContentId, pDescription, pContentTransferEncoding, false, pSizeInBytes, pExtensionData)
         {
             if (SubType.Equals("PLAIN", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eTextBodyPartSubTypeCode.plain;
             else if (SubType.Equals("HTML", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eTextBodyPartSubTypeCode.html;

@@ -34,14 +34,14 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("rlist success");
                         return lHook.MailboxHandles;
                     }
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fIMAPCapabilities.mailboxreferrals, lContext);
-                    throw new cProtocolErrorException(lResult, fIMAPCapabilities.mailboxreferrals, lContext);
+                    if (lResult.ResultType == eIMAPCommandResultType.no) throw new cUnsuccessfulIMAPCommandException(lResult.ResponseText, fIMAPCapabilities.mailboxreferrals, lContext);
+                    throw new cIMAPProtocolErrorException(lResult, fIMAPCapabilities.mailboxreferrals, lContext);
                 }
             }
         }

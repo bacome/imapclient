@@ -8,9 +8,9 @@ namespace work.bacome.imapclient
         {
             private class cResponseDataBye : cResponseData
             {
-                public readonly cResponseText ResponseText;
+                public readonly cIMAPResponseText ResponseText;
 
-                public cResponseDataBye(cResponseText pResponseText)
+                public cResponseDataBye(cIMAPResponseText pResponseText)
                 {
                     ResponseText = pResponseText;
                 }

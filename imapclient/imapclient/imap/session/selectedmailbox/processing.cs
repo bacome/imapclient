@@ -25,7 +25,7 @@ namespace work.bacome.imapclient
 
                 public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext) => mCache.ProcessData(pCursor, pParentContext);
 
-                public void ProcessTextCode(eResponseTextContext pTextContext, cResponseData pData, cTrace.cContext pParentContext)
+                public void ProcessTextCode(eIMAPResponseTextContext pTextContext, cResponseData pData, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(ProcessTextCode), pTextContext, pData);
 
@@ -99,11 +99,11 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.notprocessed;
                 }
 
-                public void ProcessTextCode(eResponseTextContext pTextContext, cResponseData pData, cTrace.cContext pParentContext)
+                public void ProcessTextCode(eIMAPResponseTextContext pTextContext, cResponseData pData, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ProcessTextCode), pTextContext, pData);
                     if (pData is cResponseDataUIDNext lUIDNext) ZUIDNext(lUIDNext.UIDNext, lContext);
-                    else if (pTextContext == eResponseTextContext.success && pData is cResponseDataHighestModSeq lHighestModSeq) ZHighestModSeq(lHighestModSeq.HighestModSeq, lContext);
+                    else if (pTextContext == eIMAPResponseTextContext.success && pData is cResponseDataHighestModSeq lHighestModSeq) ZHighestModSeq(lHighestModSeq.HighestModSeq, lContext);
                 }
             }
         }

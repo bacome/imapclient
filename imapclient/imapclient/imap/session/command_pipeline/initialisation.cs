@@ -44,7 +44,7 @@ namespace work.bacome.imapclient
                                 {
                                     var lHook = new cCommandHookInitial();
 
-                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextContext.greetingok, lCursor, lHook, lContext);
+                                    cIMAPResponseText lResponseText = mResponseTextProcessor.Process(eIMAPResponseTextContext.greetingok, lCursor, lHook, lContext);
                                     lContext.TraceVerbose("got ok: {0}", lResponseText);
 
                                     mState = eState.connected;
@@ -60,7 +60,7 @@ namespace work.bacome.imapclient
                                 {
                                     var lHook = new cCommandHookInitial();
 
-                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextContext.greetingpreauth, lCursor, lHook, lContext);
+                                    cIMAPResponseText lResponseText = mResponseTextProcessor.Process(eIMAPResponseTextContext.greetingpreauth, lCursor, lHook, lContext);
                                     lContext.TraceVerbose("got preauth: {0}", lResponseText);
 
                                     mState = eState.connected;
@@ -74,7 +74,7 @@ namespace work.bacome.imapclient
 
                                 if (lCursor.SkipBytes(kGreetingAsteriskSpaceBYESpace))
                                 {
-                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextContext.greetingbye, lCursor, null, lContext);
+                                    cIMAPResponseText lResponseText = mResponseTextProcessor.Process(eIMAPResponseTextContext.greetingbye, lCursor, null, lContext);
                                     lContext.TraceError("got bye: {0}", lResponseText);
 
                                     mConnection.Disconnect(lContext);

@@ -7,7 +7,7 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Represents the context in which response text was received.
     /// </summary>
-    public enum eResponseTextContext
+    public enum eIMAPResponseTextContext
     {
         /**<summary>As part of an IMAP '* OK' greeting.</summary>*/
         greetingok,
@@ -38,12 +38,12 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Represents the code associated with response text.
     /// </summary>
-    public enum eResponseTextCode
+    public enum eIMAPResponseTextCode
     {
         /**<summary>There was no code.</summary>*/
         none,
 
-        /**<summary>There was a code, but there isn't a <see cref="eResponseTextCode"/> value for it.</summary>*/
+        /**<summary>There was a code, but there isn't a <see cref="eIMAPResponseTextCode"/> value for it.</summary>*/
         other,
 
         // rfc 3501
@@ -113,10 +113,10 @@ namespace work.bacome.imapclient
     /// Contains IMAP response text.
     /// </summary>
     /// <remarks>
-    /// If <see cref="Code"/> is <see cref="eResponseTextCode.badcharset"/> then <see cref="Arguments"/> may contain a list of supported character sets.
-    /// If <see cref="Code"/> is <see cref="eResponseTextCode.referral"/> then <see cref="Arguments"/> should contain URI(s).
+    /// If <see cref="Code"/> is <see cref="eIMAPResponseTextCode.badcharset"/> then <see cref="Arguments"/> may contain a list of supported character sets.
+    /// If <see cref="Code"/> is <see cref="eIMAPResponseTextCode.referral"/> then <see cref="Arguments"/> should contain URI(s).
     /// </remarks>
-    public class cResponseText
+    public class cIMAPResponseText
     {
         /// <summary>
         /// The response code associated with the response text as a string, may be <see langword="null"/>.
@@ -131,13 +131,13 @@ namespace work.bacome.imapclient
         /// <summary>
         /// The response code associated with the response text as a code.
         /// </summary>
-        /// <inheritdoc cref="cResponseText" select="remarks"/>
-        public readonly eResponseTextCode Code;
+        /// <inheritdoc cref="cIMAPResponseText" select="remarks"/>
+        public readonly eIMAPResponseTextCode Code;
 
         /// <summary>
         /// The response code arguments associated with the response text in list form, may be <see langword="null"/>.
         /// </summary>
-        /// <inheritdoc cref="cResponseText" select="remarks"/>
+        /// <inheritdoc cref="cIMAPResponseText" select="remarks"/>
         public readonly cStrings Arguments; // for badcharset, referrals
 
         /// <summary>
@@ -147,17 +147,17 @@ namespace work.bacome.imapclient
     
         internal readonly bool CodeIsAlwaysAnError;
 
-        internal cResponseText(string pText)
+        internal cIMAPResponseText(string pText)
         {
             CodeText = null;
             ArgumentsText = null;
-            Code = eResponseTextCode.none;
+            Code = eIMAPResponseTextCode.none;
             Arguments = null;
             Text = pText;
             CodeIsAlwaysAnError = false;
         }
 
-        internal cResponseText(IList<byte> pCodeText, eResponseTextCode pCode, bool pCodeIsAlwaysAnError, string pText)
+        internal cIMAPResponseText(IList<byte> pCodeText, eIMAPResponseTextCode pCode, bool pCodeIsAlwaysAnError, string pText)
         {
             CodeText = cTools.ASCIIBytesToString(pCodeText);
             ArgumentsText = null;
@@ -167,7 +167,7 @@ namespace work.bacome.imapclient
             CodeIsAlwaysAnError = pCodeIsAlwaysAnError;
         }
 
-        internal cResponseText(IList<byte> pCodeText, IList<byte> pArgumentsText, eResponseTextCode pCode, bool pCodeIsAlwaysAnError, cStrings pArguments, string pText)
+        internal cIMAPResponseText(IList<byte> pCodeText, IList<byte> pArgumentsText, eIMAPResponseTextCode pCode, bool pCodeIsAlwaysAnError, cStrings pArguments, string pText)
         {
             CodeText = cTools.ASCIIBytesToString(pCodeText);
             ArgumentsText = cTools.UTF8BytesToString(pArgumentsText);
@@ -180,7 +180,7 @@ namespace work.bacome.imapclient
         /// <inheritdoc/>
         public override string ToString()
         {
-            var lBuilder = new cListBuilder(nameof(cResponseText));
+            var lBuilder = new cListBuilder(nameof(cIMAPResponseText));
             lBuilder.Append(CodeText);
             lBuilder.Append(ArgumentsText);
             lBuilder.Append(Text);
@@ -191,25 +191,25 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Carries IMAP response text.
     /// </summary>
-    public class cResponseTextEventArgs : EventArgs
+    public class cIMAPResponseTextEventArgs : EventArgs
     {
         /// <summary>
         /// The context in which the response text was received.
         /// </summary>
-        public readonly eResponseTextContext Context;
+        public readonly eIMAPResponseTextContext Context;
 
         /// <summary>
         /// The response text.
         /// </summary>
-        public readonly cResponseText Text;
+        public readonly cIMAPResponseText Text;
 
-        internal cResponseTextEventArgs(eResponseTextContext pContext, cResponseText pText)
+        internal cIMAPResponseTextEventArgs(eIMAPResponseTextContext pContext, cIMAPResponseText pText)
         {
             Context = pContext;
             Text = pText;
         }
 
         /// <inheritdoc/>
-        public override string ToString() => $"{nameof(cResponseTextEventArgs)}({Context},{Text})";
+        public override string ToString() => $"{nameof(cIMAPResponseTextEventArgs)}({Context},{Text})";
     }
 }

@@ -58,7 +58,7 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("append success");
                         if (lHook.UIDs == null) return new cAppendSucceeded(pMessages.Count);
@@ -83,11 +83,11 @@ namespace work.bacome.imapclient
 
                 public cAppendSucceededWithUIDs UIDs { get; private set; } = null;
 
-                public override void ProcessTextCode(eResponseTextContext pTextContext, cByteList pCode, cByteList pArguments, cTrace.cContext pParentContext)
+                public override void ProcessTextCode(eIMAPResponseTextContext pTextContext, cByteList pCode, cByteList pArguments, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cAppendCommandHook), nameof(ProcessTextCode), pTextContext, pCode, pArguments);
 
-                    if (pTextContext == eResponseTextContext.success && pCode.Equals(kAppendUID))
+                    if (pTextContext == eIMAPResponseTextContext.success && pCode.Equals(kAppendUID))
                     {
                         if (pArguments != null)
                         {

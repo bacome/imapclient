@@ -92,7 +92,7 @@ namespace work.bacome.imapclient
             {
                 case eOperationType.fetch:
 
-                    throw new cRequestedDataNotReturnedException(MessageHandle);
+                    throw new cRequestedIMAPDataNotReturnedException(MessageHandle);
 
                 case eOperationType.store:
 

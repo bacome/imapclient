@@ -67,21 +67,21 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("authenticate success");
                         ZAuthenticated(lCapabilities, lHook, lResult.ResponseText, new cAccountId(pHost, pSASL.CredentialId), lContext);
                         return null;
                     }
 
-                    if (lResult.ResultType == eCommandResultType.no)
+                    if (lResult.ResultType == eIMAPCommandResultType.no)
                     {
                         lContext.TraceInformation("authenticate failed: {0}", lResult.ResponseText);
 
-                        if (ZSetHomeServerReferral(lResult.ResponseText, lContext)) return new cAuthenticateFailureDetails(lAuthentication, new cHomeServerReferralException(lResult.ResponseText, lContext));
+                        if (ZSetHomeServerReferral(lResult.ResponseText, lContext)) return new cAuthenticateFailureDetails(lAuthentication, new cIMAPHomeServerReferralException(lResult.ResponseText, lContext));
 
-                        if (lResult.ResponseText.Code == eResponseTextCode.authenticationfailed || lResult.ResponseText.Code == eResponseTextCode.authorizationfailed || lResult.ResponseText.Code == eResponseTextCode.expired)
-                            return new cAuthenticateFailureDetails(lAuthentication, new cCredentialsException(lResult.ResponseText, lContext));
+                        if (lResult.ResponseText.Code == eIMAPResponseTextCode.authenticationfailed || lResult.ResponseText.Code == eIMAPResponseTextCode.authorizationfailed || lResult.ResponseText.Code == eIMAPResponseTextCode.expired)
+                            return new cAuthenticateFailureDetails(lAuthentication, new cIMAPCredentialsException(lResult.ResponseText, lContext));
 
                         return new cAuthenticateFailureDetails(lAuthentication, null);
                     }
@@ -103,10 +103,10 @@ namespace work.bacome.imapclient
                     mAuthentication = pAuthentication;
                 }
 
-                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
+                public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookAuthenticate), nameof(CommandCompleted), pResult);
-                    if (pResult.ResultType != eCommandResultType.ok) return;
+                    if (pResult.ResultType != eIMAPCommandResultType.ok) return;
                     var lSecurity = mAuthentication.GetSecurity();
                     if (lSecurity != null) mPipeline.InstallSASLSecurity(lSecurity, lContext);
                 }

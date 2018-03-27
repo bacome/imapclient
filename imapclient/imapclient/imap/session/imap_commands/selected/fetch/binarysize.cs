@@ -47,24 +47,24 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("fetch binary.size success");
                         return;
                     }
 
-                    if (lResult.ResultType == eCommandResultType.no)
+                    if (lResult.ResultType == eIMAPCommandResultType.no)
                     {
-                        if (lResult.ResponseText.Code == eResponseTextCode.unknowncte && !pThrowOnUnknownCTE)
+                        if (lResult.ResponseText.Code == eIMAPResponseTextCode.unknowncte && !pThrowOnUnknownCTE)
                         {
                             lContext.TraceInformation("fetch binary.size failure due to unknown-cte");
                             return;
                         }
 
-                        throw new cUnsuccessfulCompletionException(lResult.ResponseText, fIMAPCapabilities.binary, lContext);
+                        throw new cUnsuccessfulIMAPCommandException(lResult.ResponseText, fIMAPCapabilities.binary, lContext);
                     }
 
-                    throw new cProtocolErrorException(lResult, fIMAPCapabilities.binary, lContext);
+                    throw new cIMAPProtocolErrorException(lResult, fIMAPCapabilities.binary, lContext);
                 }
             }
 
@@ -98,24 +98,24 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("uid fetch binary.size success");
                         return;
                     }
 
-                    if (lResult.ResultType == eCommandResultType.no)
+                    if (lResult.ResultType == eIMAPCommandResultType.no)
                     {
-                        if (lResult.ResponseText.Code == eResponseTextCode.unknowncte && !pThrowOnUnknownCTE)
+                        if (lResult.ResponseText.Code == eIMAPResponseTextCode.unknowncte && !pThrowOnUnknownCTE)
                         {
                             lContext.TraceInformation("uid fetch binary.size failure due to unknown-cte");
                             return;
                         }
 
-                        throw new cUnsuccessfulCompletionException(lResult.ResponseText, fIMAPCapabilities.binary, lContext);
+                        throw new cUnsuccessfulIMAPCommandException(lResult.ResponseText, fIMAPCapabilities.binary, lContext);
                     }
 
-                    throw new cProtocolErrorException(lResult, fIMAPCapabilities.binary, lContext);
+                    throw new cIMAPProtocolErrorException(lResult, fIMAPCapabilities.binary, lContext);
                 }
             }
         }

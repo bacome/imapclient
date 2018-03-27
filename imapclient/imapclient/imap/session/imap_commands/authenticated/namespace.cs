@@ -38,13 +38,13 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("namespace success");
                         return;
                     }
 
-                    throw new cProtocolErrorException(lResult, fIMAPCapabilities.namespaces, lContext);
+                    throw new cIMAPProtocolErrorException(lResult, fIMAPCapabilities.namespaces, lContext);
                 }
             }
 

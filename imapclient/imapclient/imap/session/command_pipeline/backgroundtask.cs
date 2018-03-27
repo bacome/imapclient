@@ -142,7 +142,7 @@ namespace work.bacome.imapclient
 
                             if (!mCurrentCommand.IsAuthentication) 
                             {
-                                mResponseTextProcessor.Process(eResponseTextContext.continuerequest, lCursor, mCurrentCommand.Hook, lContext);
+                                mResponseTextProcessor.Process(eIMAPResponseTextContext.continuerequest, lCursor, mCurrentCommand.Hook, lContext);
                                 mCurrentCommand.ResetAwaitingContinuation(lContext);
                                 return;
                             }
@@ -194,7 +194,7 @@ namespace work.bacome.imapclient
                     var lResult = ZProcessCommandCompletionResponse(pCursor, pCommand.Tag, pCommand.IsAuthentication, pCommand.Hook, lContext);
                     if (lResult == null) return false;
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         // if the UID validity changed while the command was running and the command depends on the UID not changing, something bad could have happened
                         //  (like updating the wrong message)

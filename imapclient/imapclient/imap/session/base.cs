@@ -15,18 +15,17 @@ namespace work.bacome.imapclient
             private object mConnectionStateLock = new object();
             private eIMAPConnectionState _ConnectionState = eIMAPConnectionState.notconnected;
 
-            private readonly cCallbackSynchroniser mSynchroniser;
+            private readonly cIMAPCallbackSynchroniser mSynchroniser;
+            private readonly cBatchSizerConfiguration mLocalStreamReadConfiguration;
             private readonly fIMAPCapabilities mIgnoreCapabilities;
             private readonly fMailboxCacheDataItems mMailboxCacheDataItems;
+            private readonly cBatchSizer mFetchCacheItemsSizer;
+            private readonly cBatchSizer mFetchBodySizer;
+            private readonly cStorableFlags mAppendDefaultFlags;
+            private readonly int mAppendTargetBufferSize;
+            private readonly cBatchSizer mAppendBatchSizer;
             private readonly cCommandPipeline mPipeline;
 
-            private cBatchSizer mFetchCacheItemsSizer;
-            private cBatchSizer mFetchBodyReadSizer;
-            private cBatchSizer mAppendBatchSizer;
-
-            private cStorableFlags mAppendDefaultFlags;
-            private int mAppendTargetBufferSize;
-            private cBatchSizerConfiguration mAppendStreamReadConfiguration;
             private Encoding mEncoding;
 
             private cCommandPartFactory mCommandPartFactory;
@@ -51,28 +50,33 @@ namespace work.bacome.imapclient
             // (note for when adding more: they need to be disposed)
 
             public cSession(
-                cCallbackSynchroniser pSynchroniser, fIMAPCapabilities pIgnoreCapabilities, fMailboxCacheDataItems pMailboxCacheDataItems, cBatchSizerConfiguration pNetworkWriteConfiguration,
+                cIMAPCallbackSynchroniser pSynchroniser, cBatchSizerConfiguration pNetworkWriteConfiguration, cBatchSizerConfiguration pLocalStreamReadConfiguration,
+                fIMAPCapabilities pIgnoreCapabilities, fMailboxCacheDataItems pMailboxCacheDataItems,
+                cBatchSizerConfiguration pFetchCacheItemsConfiguration, cBatchSizerConfiguration pFetchBodyConfiguration,
+                cStorableFlags pAppendDefaultFlags, cBatchSizerConfiguration pAppendBatchConfiguration, int pAppendTargetBufferSize, 
                 cIdleConfiguration pIdleConfiguration, 
-                cBatchSizerConfiguration pFetchCacheItemsConfiguration, cBatchSizerConfiguration pFetchBodyReadConfiguration, cBatchSizerConfiguration pAppendBatchConfiguration,
-                cStorableFlags pAppendDefaultFlags, int pAppendTargetBufferSize, cBatchSizerConfiguration pAppendStreamReadConfiguration,
                 Encoding pEncoding,
                 cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pMailboxCacheDataItems, pNetworkWriteConfiguration, pIdleConfiguration, pFetchCacheItemsConfiguration, pFetchBodyReadConfiguration, pAppendBatchConfiguration, pAppendTargetBufferSize, pAppendStreamReadConfiguration);
+                var lContext = 
+                    pParentContext.NewObject(
+                        nameof(cSession),
+                        pNetworkWriteConfiguration, pLocalStreamReadConfiguration,
+                        pIgnoreCapabilities, pMailboxCacheDataItems,
+                        pFetchCacheItemsConfiguration, pFetchBodyConfiguration,
+                        pAppendDefaultFlags, pAppendBatchConfiguration, pAppendTargetBufferSize,
+                        pIdleConfiguration);
 
                 mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
+                mLocalStreamReadConfiguration = pLocalStreamReadConfiguration ?? throw new ArgumentNullException(nameof(pLocalStreamReadConfiguration));
                 mIgnoreCapabilities = pIgnoreCapabilities;
                 mMailboxCacheDataItems = pMailboxCacheDataItems;
-
-                mPipeline = new cCommandPipeline(pSynchroniser, ZDisconnected, pNetworkWriteConfiguration, pIdleConfiguration, lContext);
-
                 mFetchCacheItemsSizer = new cBatchSizer(pFetchCacheItemsConfiguration);
-                mFetchBodyReadSizer = new cBatchSizer(pFetchBodyReadConfiguration);
-                mAppendBatchSizer = new cBatchSizer(pAppendBatchConfiguration);
-
+                mFetchBodySizer = new cBatchSizer(pFetchBodyConfiguration);
                 mAppendDefaultFlags = pAppendDefaultFlags;
+                mAppendBatchSizer = new cBatchSizer(pAppendBatchConfiguration);
                 mAppendTargetBufferSize = pAppendTargetBufferSize;
-                mAppendStreamReadConfiguration = pAppendStreamReadConfiguration ?? throw new ArgumentNullException(nameof(pAppendStreamReadConfiguration));
+                mPipeline = new cCommandPipeline(pSynchroniser, ZDisconnected, pNetworkWriteConfiguration, pIdleConfiguration, lContext);
                 mEncoding = pEncoding ?? throw new ArgumentNullException(nameof(pEncoding));
 
                 mCommandPartFactory = new cCommandPartFactory(false, null);
@@ -127,46 +131,6 @@ namespace work.bacome.imapclient
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetIdleConfiguration), pConfiguration);
                 mPipeline.SetIdleConfiguration(pConfiguration, lContext);
-            }
-
-            public void SetFetchCacheItemsConfiguration(cBatchSizerConfiguration pConfiguration, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetFetchCacheItemsConfiguration), pConfiguration);
-                if (pConfiguration == null) throw new ArgumentNullException(nameof(pConfiguration));
-                mFetchCacheItemsSizer = new cBatchSizer(pConfiguration);
-            }
-
-            public void SetFetchBodyReadConfiguration(cBatchSizerConfiguration pConfiguration, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetFetchBodyReadConfiguration), pConfiguration);
-                if (pConfiguration == null) throw new ArgumentNullException(nameof(pConfiguration));
-                mFetchBodyReadSizer = new cBatchSizer(pConfiguration);
-            }
-
-            public void SetAppendBatchConfiguration(cBatchSizerConfiguration pConfiguration, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetAppendBatchConfiguration), pConfiguration);
-                if (pConfiguration == null) throw new ArgumentNullException(nameof(pConfiguration));
-                mAppendBatchSizer = new cBatchSizer(pConfiguration);
-            }
-
-            public void SetAppendDefaultFlags(cStorableFlags pFlags, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetAppendDefaultFlags), pFlags);
-                mAppendDefaultFlags = pFlags;
-            }
-
-            public void SetAppendTargetBufferSize(int pSize, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetAppendTargetBufferSize), pSize);
-                if (pSize < 1) throw new ArgumentOutOfRangeException(nameof(pSize));
-                mAppendTargetBufferSize = pSize;
-            }
-
-            public void SetAppendStreamReadConfiguration(cBatchSizerConfiguration pConfiguration, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetAppendStreamReadConfiguration), pConfiguration);
-                mAppendStreamReadConfiguration = pConfiguration ?? throw new ArgumentNullException(nameof(pConfiguration));
             }
 
             public void SetEncoding(Encoding pEncoding, cTrace.cContext pParentContext)
@@ -233,11 +197,11 @@ namespace work.bacome.imapclient
 
             public cURL HomeServerReferral => _HomeServerReferral;
 
-            private bool ZSetHomeServerReferral(cResponseText pResponseText, cTrace.cContext pParentContext)
+            private bool ZSetHomeServerReferral(cIMAPResponseText pResponseText, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetHomeServerReferral), pResponseText);
 
-                if (pResponseText.Code != eResponseTextCode.referral || pResponseText.Arguments == null || pResponseText.Arguments.Count != 1) return false;
+                if (pResponseText.Code != eIMAPResponseTextCode.referral || pResponseText.Arguments == null || pResponseText.Arguments.Count != 1) return false;
 
                 if (cURL.TryParse(pResponseText.Arguments[0], out var lReferral) && lReferral.IsHomeServerReferral)
                 {

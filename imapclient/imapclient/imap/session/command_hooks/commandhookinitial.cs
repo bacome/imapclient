@@ -17,11 +17,11 @@ namespace work.bacome.imapclient
                 public cStrings Capabilities { get; private set; } = null;
                 public cStrings AuthenticationMechanisms { get; private set; } = null;
 
-                public override void ProcessTextCode(eResponseTextContext pTextContext, cByteList pCode, cByteList pArguments, cTrace.cContext pParentContext)
+                public override void ProcessTextCode(eIMAPResponseTextContext pTextContext, cByteList pCode, cByteList pArguments, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookInitial), nameof(ProcessTextCode), pTextContext, pCode, pArguments);
 
-                    if (pTextContext == eResponseTextContext.greetingok || pTextContext == eResponseTextContext.greetingpreauth || pTextContext == eResponseTextContext.success)
+                    if (pTextContext == eIMAPResponseTextContext.greetingok || pTextContext == eIMAPResponseTextContext.greetingpreauth || pTextContext == eIMAPResponseTextContext.success)
                     {
                         if (pCode.Equals(kCapability))
                         {

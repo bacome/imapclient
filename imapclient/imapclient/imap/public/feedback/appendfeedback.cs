@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     {
         public readonly eAppendFeedbackType Type;
         public readonly cUID UID;
-        public readonly cCommandResult Result;
+        public readonly cIMAPCommandResult Result;
         public readonly fIMAPCapabilities TryIgnoring;
         public readonly Exception Exception;
 
@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
             Exception = null;
         }
 
-        internal cAppendFeedbackItem(cCommandResult pResult, fIMAPCapabilities pTryIgnoring)
+        internal cAppendFeedbackItem(cIMAPCommandResult pResult, fIMAPCapabilities pTryIgnoring)
         {
             Type = eAppendFeedbackType.failedwithresult;
             UID = null;

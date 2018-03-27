@@ -49,10 +49,10 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("uid fetch body success");
-                        if (lHook.Body == null) throw new cRequestedDataNotReturnedException(pMailboxHandle, pUID);
+                        if (lHook.Body == null) throw new cRequestedIMAPDataNotReturnedException(pMailboxHandle, pUID);
                         return lHook.Body;
                     }
 
@@ -62,8 +62,8 @@ namespace work.bacome.imapclient
                     if (pBinary) lTryIgnoring = fIMAPCapabilities.binary;
                     else lTryIgnoring = 0;
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);
-                    throw new cProtocolErrorException(lResult, lTryIgnoring, lContext);
+                    if (lResult.ResultType == eIMAPCommandResultType.no) throw new cUnsuccessfulIMAPCommandException(lResult.ResponseText, lTryIgnoring, lContext);
+                    throw new cIMAPProtocolErrorException(lResult, lTryIgnoring, lContext);
                 }
             }
         }

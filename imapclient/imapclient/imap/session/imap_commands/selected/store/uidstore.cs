@@ -40,7 +40,7 @@ namespace work.bacome.imapclient
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
                     // note: the base spec states that non-existent UIDs are ignored without comment => a NO from a UID STORE is unexpected
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("uid store success");
                         return;
@@ -50,8 +50,8 @@ namespace work.bacome.imapclient
                     if (pIfUnchangedSinceModSeq == null) lTryIgnoring = 0;
                     else lTryIgnoring = fIMAPCapabilities.condstore;
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);
-                    throw new cProtocolErrorException(lResult, lTryIgnoring, lContext);
+                    if (lResult.ResultType == eIMAPCommandResultType.no) throw new cUnsuccessfulIMAPCommandException(lResult.ResponseText, lTryIgnoring, lContext);
+                    throw new cIMAPProtocolErrorException(lResult, lTryIgnoring, lContext);
                 }
             }
         }

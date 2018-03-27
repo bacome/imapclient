@@ -37,14 +37,14 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("create success");
                         return lHook.MailboxHandle;
                     }
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
-                    throw new cProtocolErrorException(lResult, 0, lContext);
+                    if (lResult.ResultType == eIMAPCommandResultType.no) throw new cUnsuccessfulIMAPCommandException(lResult.ResponseText, 0, lContext);
+                    throw new cIMAPProtocolErrorException(lResult, 0, lContext);
                 }
             }
 
@@ -61,10 +61,10 @@ namespace work.bacome.imapclient
 
                 public iMailboxHandle MailboxHandle { get; private set; }
 
-                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
+                public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCreateCommandHook), nameof(CommandCompleted), pResult);
-                    if (pResult.ResultType == eCommandResultType.ok) MailboxHandle = mCache.Create(mMailboxName, lContext);
+                    if (pResult.ResultType == eIMAPCommandResultType.ok) MailboxHandle = mCache.Create(mMailboxName, lContext);
                 }
             }
         }

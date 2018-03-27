@@ -175,7 +175,7 @@ namespace work.bacome.imapclient
                         if (lCursor.SkipBytes(kPlusSpace))
                         {
                             if (!pExpectContinueRequest) throw new cUnexpectedServerActionException(null, "unexpected continuation request", fIMAPCapabilities.idle, lContext);
-                            mResponseTextProcessor.Process(eResponseTextContext.continuerequest, lCursor, null, lContext);
+                            mResponseTextProcessor.Process(eIMAPResponseTextContext.continuerequest, lCursor, null, lContext);
                             return eIdleProcessResponsesTerminatedBy.continuerequest;
                         }
 

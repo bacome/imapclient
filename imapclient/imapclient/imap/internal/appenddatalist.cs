@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using work.bacome.mailclient;
 
 namespace work.bacome.imapclient
 {
@@ -15,24 +16,24 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
 
-        public static cAppendDataList FromMessage(cAppendData pMessage)
+        public static cAppendDataList FromData(cAppendData pData)
         {
-            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
+            if (pData == null) throw new ArgumentNullException(nameof(pData));
             var lResult = new cAppendDataList();
-            lResult.Add(pMessage);
+            lResult.Add(pData);
             return lResult;
         }
 
-        public static cAppendDataList FromMessages(IEnumerable<cAppendData> pMessages)
+        public static cAppendDataList FromData(IEnumerable<cAppendData> pData)
         {
-            if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
+            if (pData == null) throw new ArgumentNullException(nameof(pData));
 
             var lResult = new cAppendDataList();
 
-            foreach (var lMessage in pMessages)
+            foreach (var lItem in pData)
             {
-                if (lMessage == null) throw new ArgumentOutOfRangeException(nameof(pMessages), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
-                lResult.Add(lMessage);
+                if (lItem == null) throw new ArgumentOutOfRangeException(nameof(pData), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
+                lResult.Add(lItem);
             }
 
             return lResult;

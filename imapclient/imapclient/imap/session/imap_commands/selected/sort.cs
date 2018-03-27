@@ -44,7 +44,7 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("sort success");
                         if (lHook.MessageHandles == null) throw new cUnexpectedServerActionException(lResult, "results not received on a successful sort", fIMAPCapabilities.sort, lContext);
@@ -53,8 +53,8 @@ namespace work.bacome.imapclient
 
                     if (lHook.MessageHandles != null) lContext.TraceError("results received on a failed sort");
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fIMAPCapabilities.sort, lContext);
-                    throw new cProtocolErrorException(lResult, fIMAPCapabilities.sort, lContext);
+                    if (lResult.ResultType == eIMAPCommandResultType.no) throw new cUnsuccessfulIMAPCommandException(lResult.ResponseText, fIMAPCapabilities.sort, lContext);
+                    throw new cIMAPProtocolErrorException(lResult, fIMAPCapabilities.sort, lContext);
                 }
             }
 
@@ -105,11 +105,11 @@ namespace work.bacome.imapclient
 
                 public cMessageHandleList MessageHandles { get; private set; } = null;
 
-                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
+                public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSortCommandHook), nameof(CommandCompleted), pResult);
 
-                    if (pResult.ResultType != eCommandResultType.ok || mMSNs == null) return;
+                    if (pResult.ResultType != eIMAPCommandResultType.ok || mMSNs == null) return;
 
                     cMessageHandleList lMessageHandles = new cMessageHandleList();
                     foreach (var lMSN in mMSNs) lMessageHandles.Add(mSelectedMailbox.GetHandle(lMSN));

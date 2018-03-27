@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("login success");
                         ZAuthenticated(lCapabilities, lHook, lResult.ResponseText, new cAccountId(pHost, pLogin.UserId), lContext);
@@ -39,19 +39,19 @@ namespace work.bacome.imapclient
 
                     if (lHook.Capabilities != null) lContext.TraceError("received capability on a failed login");
 
-                    if (lResult.ResultType == eCommandResultType.no)
+                    if (lResult.ResultType == eIMAPCommandResultType.no)
                     {
                         lContext.TraceInformation("login failed: {0}", lResult.ResponseText);
 
-                        if (ZSetHomeServerReferral(lResult.ResponseText, lContext)) return new cHomeServerReferralException(lResult.ResponseText, lContext);
+                        if (ZSetHomeServerReferral(lResult.ResponseText, lContext)) return new cIMAPHomeServerReferralException(lResult.ResponseText, lContext);
 
-                        if (lResult.ResponseText.Code == eResponseTextCode.authenticationfailed || lResult.ResponseText.Code == eResponseTextCode.authorizationfailed || lResult.ResponseText.Code == eResponseTextCode.expired)
-                            return new cCredentialsException(lResult.ResponseText, lContext);
+                        if (lResult.ResponseText.Code == eIMAPResponseTextCode.authenticationfailed || lResult.ResponseText.Code == eIMAPResponseTextCode.authorizationfailed || lResult.ResponseText.Code == eIMAPResponseTextCode.expired)
+                            return new cIMAPCredentialsException(lResult.ResponseText, lContext);
 
                         return null;
                     }
 
-                    throw new cProtocolErrorException(lResult, 0, lContext);
+                    throw new cIMAPProtocolErrorException(lResult, 0, lContext);
                 }
             }
         }

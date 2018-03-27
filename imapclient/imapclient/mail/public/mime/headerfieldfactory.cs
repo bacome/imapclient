@@ -11,8 +11,6 @@ namespace work.bacome.mailclient
     {
         //        /// When generating header fields and RFC 2047 encoded words or RFC 2231 MIME parameters are , then this encoding is used.
 
-        private static readonly char[] kWSP = new char[] { '\t', ' ' };
-
         private readonly bool mUTF8Headers;
         private readonly Encoding mEncoding;
         private readonly cBytes mCharsetNameBytes;
@@ -432,13 +430,7 @@ namespace work.bacome.mailclient
                 return true;
             }
 
-            if (!lUsedQuotedString)
-            {
-                rSection = null;
-                return false;
-            }
-
-            if (pValue.IndexOfAny(kWSP) == -1)
+            if (!lUsedQuotedString || !cTools.ContainsWSP(pValue))
             {
                 rSection = null;
                 return false;
@@ -489,88 +481,89 @@ namespace work.bacome.mailclient
 
 
 
+        /*
 
-        internal static void _Tests(cTrace.cContext pParentContext)
+    internal static void _Tests(cTrace.cContext pParentContext)
+    {
+        // TODO: copy tests to here
+
+
+
+        ZTestUnstructured("   \tfr€D  \t frEd \t  fR€d\t   Fr€d  \t\t", "x:   \t=="
+
+
+
+
+
+        if (TryAsDotAtom("", out _)) throw new cTestsException("dotatom.1", pParentContext);
+        if (TryAsDotAtom(".fred", out _)) throw new cTestsException("dotatom.2", pParentContext);
+        if (TryAsDotAtom("fred..fred", out _)) throw new cTestsException("dotatom.3", pParentContext);
+        if (TryAsDotAtom("fred.", out _)) throw new cTestsException("dotatom.4", pParentContext);
+        if (!TryAsDotAtom("fred.fred", out _)) throw new cTestsException("dotatom.5", pParentContext);
+
+
+        ZTestA
+
+
+        ZTestAddrSpec("1", "non.existant", "bacome.work", "x:non.existant@bacome.work");
+        ZTestAddrSpec("2", "non,existant", "bacome.work", "x:\"non,existant\"@bacome.work");
+        ZTestAddrSpec("3", "non\0existant", "bacome.work", null);
+        ZTestAddrSpec("4", "non.existant", "[bacome.work]", "x:non.existant@[bacome.work]");
+        ZTestAddrSpec("5", "non.existant", "[bacome]work", null);
+
+        ZTestNameAddr("1", null, "non.existant", "bacome.work", "x:<non.existant@bacome.work>");
+        ZTestNameAddr("2", "", "non.existant", "bacome.work", "x:<non.existant@bacome.work>");
+        ZTestNameAddr("3", " ", "non.existant", "bacome.work", "x:<non.existant@bacome.work>");
+        ZTestNameAddr("4", "Keld Jørn Simonsen", "non.existant", "bacome.work", "x:Keld =?utf-8?b?SsO4cm4=?= Simonsen<non.existant@bacome.work>");
+
+        TryAsMsgId("left", "right", out var lPart);
+        cHeaderFieldBytes lBytes = new cHeaderFieldBytes("x", null);
+
+        for (int i = 0; i < 6; i++)
         {
-
-
-
-
-            ZTestUnstructured("   \tfr€D  \t frEd \t  fR€d\t   Fr€d  \t\t", "x:   \t=="
-
-
-
-
-
-            if (TryAsDotAtom("", out _)) throw new cTestsException("dotatom.1", pParentContext);
-            if (TryAsDotAtom(".fred", out _)) throw new cTestsException("dotatom.2", pParentContext);
-            if (TryAsDotAtom("fred..fred", out _)) throw new cTestsException("dotatom.3", pParentContext);
-            if (TryAsDotAtom("fred.", out _)) throw new cTestsException("dotatom.4", pParentContext);
-            if (!TryAsDotAtom("fred.fred", out _)) throw new cTestsException("dotatom.5", pParentContext);
-
-
-            ZTestA
-
-
-            ZTestAddrSpec("1", "non.existant", "bacome.work", "x:non.existant@bacome.work");
-            ZTestAddrSpec("2", "non,existant", "bacome.work", "x:\"non,existant\"@bacome.work");
-            ZTestAddrSpec("3", "non\0existant", "bacome.work", null);
-            ZTestAddrSpec("4", "non.existant", "[bacome.work]", "x:non.existant@[bacome.work]");
-            ZTestAddrSpec("5", "non.existant", "[bacome]work", null);
-
-            ZTestNameAddr("1", null, "non.existant", "bacome.work", "x:<non.existant@bacome.work>");
-            ZTestNameAddr("2", "", "non.existant", "bacome.work", "x:<non.existant@bacome.work>");
-            ZTestNameAddr("3", " ", "non.existant", "bacome.work", "x:<non.existant@bacome.work>");
-            ZTestNameAddr("4", "Keld Jørn Simonsen", "non.existant", "bacome.work", "x:Keld =?utf-8?b?SsO4cm4=?= Simonsen<non.existant@bacome.work>");
-
-            TryAsMsgId("left", "right", out var lPart);
-            cHeaderFieldBytes lBytes = new cHeaderFieldBytes("x", null);
-
-            for (int i = 0; i < 6; i++)
-            {
-                if (i != 0) COMMA.GetBytes(lBytes, eHeaderFieldValuePartContext.unstructured);
-                lPart.GetBytes(lBytes, eHeaderFieldValuePartContext.unstructured);
-            }
-
-            string lString = cTools.ASCIIBytesToString(lBytes.Bytes);
-            if (lString != "x:<left@right>,<left@right>,<left@right>,<left@right>,<left@right>,\r\n <left@right>") throw new cTestsException("msgid");
-
-            //  12345678901234567890123456789012345678901234567890123456789012345678901234567890
-            // "x:<left@right>,<left@right>,<left@right>,<left@right>,<left@right>,<left@right>"
-        }
-
-        private static void ZTestAddrSpec(string pTestName, string pLocalPart, string pDomain, string pExpected)
-        {
-            cHeaderFieldBytes lBytes = new cHeaderFieldBytes("x", null);
-
-            if (!TryAsAddrSpec(pLocalPart, pDomain, out var lPart))
-            {
-                if (pExpected == null) return;
-                throw new cTestsException($"addrspec.{pTestName}.f");
-            }
-
-            if (pExpected == null) throw new cTestsException($"addrspec.{pTestName}.s");
-
+            if (i != 0) COMMA.GetBytes(lBytes, eHeaderFieldValuePartContext.unstructured);
             lPart.GetBytes(lBytes, eHeaderFieldValuePartContext.unstructured);
-            string lString = cTools.ASCIIBytesToString(lBytes.Bytes);
-            if (lString != pExpected) throw new cTestsException($"addrspec.{pTestName}.e({lString})");
         }
 
-        private static void ZTestNameAddr(string pTestName, string pDisplayName, string pLocalPart, string pDomain, string pExpected)
+        string lString = cTools.ASCIIBytesToString(lBytes.Bytes);
+        if (lString != "x:<left@right>,<left@right>,<left@right>,<left@right>,<left@right>,\r\n <left@right>") throw new cTestsException("msgid");
+
+        //  12345678901234567890123456789012345678901234567890123456789012345678901234567890
+        // "x:<left@right>,<left@right>,<left@right>,<left@right>,<left@right>,<left@right>"
+    }
+
+    private static void ZTestAddrSpec(string pTestName, string pLocalPart, string pDomain, string pExpected)
+    {
+        cHeaderFieldBytes lBytes = new cHeaderFieldBytes("x", null);
+
+        if (!TryAsAddrSpec(pLocalPart, pDomain, out var lPart))
         {
-            cHeaderFieldBytes lBytes = new cHeaderFieldBytes("x", Encoding.UTF8);
-
-            if (!TryAsNameAddr(pDisplayName, pLocalPart, pDomain, out var lPart))
-            {
-                if (pExpected == null) return;
-                throw new cTestsException($"nameaddr.{pTestName}.f");
-            }
-
-            if (pExpected == null) throw new cTestsException($"nameaddr.{pTestName}.s");
-
-            lPart.GetBytes(lBytes, eHeaderFieldValuePartContext.unstructured);
-            string lString = cTools.ASCIIBytesToString(lBytes.Bytes);
-            if (lString != pExpected) throw new cTestsException($"nameaddr.{pTestName}.e({lString})");
+            if (pExpected == null) return;
+            throw new cTestsException($"addrspec.{pTestName}.f");
         }
+
+        if (pExpected == null) throw new cTestsException($"addrspec.{pTestName}.s");
+
+        lPart.GetBytes(lBytes, eHeaderFieldValuePartContext.unstructured);
+        string lString = cTools.ASCIIBytesToString(lBytes.Bytes);
+        if (lString != pExpected) throw new cTestsException($"addrspec.{pTestName}.e({lString})");
+    }
+
+    private static void ZTestNameAddr(string pTestName, string pDisplayName, string pLocalPart, string pDomain, string pExpected)
+    {
+        cHeaderFieldBytes lBytes = new cHeaderFieldBytes("x", Encoding.UTF8);
+
+        if (!TryAsNameAddr(pDisplayName, pLocalPart, pDomain, out var lPart))
+        {
+            if (pExpected == null) return;
+            throw new cTestsException($"nameaddr.{pTestName}.f");
+        }
+
+        if (pExpected == null) throw new cTestsException($"nameaddr.{pTestName}.s");
+
+        lPart.GetBytes(lBytes, eHeaderFieldValuePartContext.unstructured);
+        string lString = cTools.ASCIIBytesToString(lBytes.Bytes);
+        if (lString != pExpected) throw new cTestsException($"nameaddr.{pTestName}.e({lString})");
+    } */
     }
 }

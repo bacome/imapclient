@@ -10,28 +10,33 @@ namespace work.bacome.mailclient
         {
             var lStrings = new List<string>();
 
+            var lBookmark = Position;
+
             while (true)
             {
-                string lString;
-
-                var lBookmark = Position;
-
-                if (ZGetRFC822DAtom(out lString))
+                if (ZGetRFC822DAtom(out var lString))
                 {
-                    if (lStrings.Count == 0 && lString[0] == '.') Position = lBookmark;
-                    else
+                    if (lStrings.Count == 0 && lString[0] == '.')
                     {
-                        lStrings.Add(lString);
-                        continue;
+                        Position = lBookmark;
+                        rPhrase = null;
+                        return false;
                     }
+
+                    lStrings.Add(lString);
                 }
+                else if (GetRFC822QuotedString(out lString)) lStrings.Add(lString);
+                else
+                {
+                    if (lStrings.Count == 0)
+                    {
+                        rPhrase = null;
+                        return false;
+                    }
 
-                if (!GetRFC822QuotedString(out lString)) break;
-
-                lStrings.Add(lString);
+                    break;
+                }
             }
-
-            if (lStrings.Count == 0) { rPhrase = null; return false; }
 
             var lBuilder = new StringBuilder();
 
@@ -39,7 +44,7 @@ namespace work.bacome.mailclient
 
             foreach (var lString in lStrings)
             {
-                if (lString.Length == 0)
+                if (lString.Length == 0 || cTools.ContainsWSP(lString))
                 {
                     if (lBuilder.Length != 0)
                     {
@@ -47,7 +52,8 @@ namespace work.bacome.mailclient
                         lBuilder.Clear();
                     }
 
-                    lParts.Add(cHeaderFieldQuotedStringValue.Empty);
+                    if (lString.Length == 0) lParts.Add(cHeaderFieldQuotedStringValue.Empty);
+                    else lParts.Add(new cHeaderFieldQuotedStringValue(lString, true));
                 }
                 else
                 {

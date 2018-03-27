@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -13,7 +14,7 @@ namespace work.bacome.imapclient
             {
                 private static readonly cBytes kListSpace = new cBytes("LIST ");
 
-                private bool mUTF8Enabled;
+                private readonly bool mUTF8Enabled;
 
                 public cResponseDataParserList(bool pUTF8Enabled)
                 {

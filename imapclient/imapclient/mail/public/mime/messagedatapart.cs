@@ -1004,6 +1004,6 @@ namespace work.bacome.mailclient
                 var lString = cTools.ASCIIBytesToString(lPart.GetBytes(Encoding.UTF8));
                 if (lString != pExpected) throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.Addresses({pTestName}: {lString})");
             }
-        } */
-    }
+        }
+    } */
 }

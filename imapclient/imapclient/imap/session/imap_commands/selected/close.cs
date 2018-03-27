@@ -33,13 +33,13 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("close success");
                         return;
                     }
 
-                    throw new cProtocolErrorException(lResult, 0, lContext);
+                    throw new cIMAPProtocolErrorException(lResult, 0, lContext);
                 }
             }
 
@@ -52,10 +52,10 @@ namespace work.bacome.imapclient
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                 }
 
-                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
+                public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCloseCommandHook), nameof(CommandCompleted), pResult);
-                    if (pResult.ResultType == eCommandResultType.ok) mMailboxCache.Unselect(lContext);
+                    if (pResult.ResultType == eIMAPCommandResultType.ok) mMailboxCache.Unselect(lContext);
                 }
             }
         }

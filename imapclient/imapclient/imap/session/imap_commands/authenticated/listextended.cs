@@ -87,7 +87,7 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("listextended success");
                         return lHook.MailboxHandles;
@@ -99,8 +99,8 @@ namespace work.bacome.imapclient
                     if (pStatus) lTryIgnoring |= fIMAPCapabilities.liststatus;
                     if (lTryIgnoring == 0) lTryIgnoring |= fIMAPCapabilities.listextended;
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);
-                    throw new cProtocolErrorException(lResult, lTryIgnoring, lContext);
+                    if (lResult.ResultType == eIMAPCommandResultType.no) throw new cUnsuccessfulIMAPCommandException(lResult.ResponseText, lTryIgnoring, lContext);
+                    throw new cIMAPProtocolErrorException(lResult, lTryIgnoring, lContext);
                 }
             }
 
@@ -175,11 +175,11 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
+                public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cListExtendedCommandHook), nameof(CommandCompleted), pResult);
 
-                    if (pResult.ResultType != eCommandResultType.ok) return;
+                    if (pResult.ResultType != eIMAPCommandResultType.ok) return;
 
                     if (mSelect == eListExtendedSelect.exists) mCache.ResetExists(mPattern, mSequence, lContext);
                     if (mSelect == eListExtendedSelect.subscribed || mSelect == eListExtendedSelect.subscribedrecursive) mCache.ResetLSubFlags(mPattern, mSequence, lContext);

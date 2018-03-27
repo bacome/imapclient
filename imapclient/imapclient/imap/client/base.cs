@@ -98,7 +98,7 @@ namespace work.bacome.imapclient
         private fMailboxCacheDataItems mMailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.uidnext | fMailboxCacheDataItems.uidvalidity | fMailboxCacheDataItems.unseencount;
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
         private cBatchSizerConfiguration mFetchCacheItemsConfiguration = new cBatchSizerConfiguration(1, 1000, 10000, 1);
-        private cBatchSizerConfiguration mFetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
+        private cBatchSizerConfiguration mFetchBodyConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cBatchSizerConfiguration mAppendBatchConfiguration = new cBatchSizerConfiguration(1000, int.MaxValue, 10000, 1000);
         private int mAppendTargetBufferSize = cIMAPMessageDataStream.DefaultTargetBufferSize;
         private Encoding mEncoding = Encoding.UTF8;
@@ -122,8 +122,8 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// The default value is <see cref="Encoding.UTF8"/>.
-        /// Used when filtering by message content and in the default <see cref="HeaderFieldFactory"/>.
-        /// When filtering, if the connected server does not support the encoding it will reject filters that use it and the library will throw <see cref="cUnsuccessfulCompletionException"/> with <see cref="eResponseTextCode.badcharset"/>.
+        /// Used when filtering by message content and when no encoding is specified when calling <see cref="cMailClient.GetHeaderFieldFactory(Encoding)"/>.
+        /// When filtering, if the connected server does not support the encoding it will reject filters that use it and the library will throw <see cref="cUnsuccessfulIMAPCommandException"/> with <see cref="eIMAPResponseTextCode.badcharset"/>.
         /// </remarks>
         public override Encoding Encoding
         {
@@ -159,13 +159,13 @@ namespace work.bacome.imapclient
         /// Fired when server response text is received.
         /// </summary>
         /// <remarks>
-        /// <para>The IMAP spec says that <see cref="eResponseTextCode.alert"/> text MUST be brought to the user's attention. See <see cref="cResponseTextEventArgs.Text"/>.</para>
+        /// <para>The IMAP spec says that <see cref="eIMAPResponseTextCode.alert"/> text MUST be brought to the user's attention. See <see cref="cIMAPResponseTextEventArgs.Text"/>.</para>
         /// <para>
         /// If <see cref="SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
         /// If an exception is raised in an event handler then the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.
         /// </para>
         /// </remarks>
-        public event EventHandler<cResponseTextEventArgs> ResponseText
+        public event EventHandler<cIMAPResponseTextEventArgs> ResponseText
         {
             add { mIMAPSynchroniser.ResponseText += value; }
             remove { mIMAPSynchroniser.ResponseText -= value; }
@@ -334,9 +334,9 @@ namespace work.bacome.imapclient
         /// Handling mailbox referrals means handling the exceptions that could be raised when accessing remote mailboxes.
         /// See RFC 2193 for details.
         /// </remarks>
-        /// <seealso cref="cUnsuccessfulCompletionException"/>
-        /// <seealso cref="cUnsuccessfulCompletionException.ResponseText"/>
-        /// <seealso cref="cResponseText.Arguments"/>
+        /// <seealso cref="cUnsuccessfulIMAPCommandException"/>
+        /// <seealso cref="cUnsuccessfulIMAPCommandException.ResponseText"/>
+        /// <seealso cref="cIMAPResponseText.Arguments"/>
         /// <seealso cref="cURL"/>
         /// <seealso cref="cURI"/>
         public bool MailboxReferrals

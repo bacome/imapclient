@@ -41,10 +41,10 @@ namespace work.bacome.imapclient
             private class cAppendFailedWithResult : cAppendResult
             {
                 public readonly int Count;
-                public readonly cCommandResult Result;
+                public readonly cIMAPCommandResult Result;
                 public readonly fIMAPCapabilities TryIgnoring;
 
-                public cAppendFailedWithResult(int pCount, cCommandResult pResult, fIMAPCapabilities pTryIgnoring)
+                public cAppendFailedWithResult(int pCount, cIMAPCommandResult pResult, fIMAPCapabilities pTryIgnoring)
                 {
                     if (pCount < 1) throw new ArgumentOutOfRangeException(nameof(pCount));
                     Count = pCount;

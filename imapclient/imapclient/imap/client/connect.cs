@@ -59,12 +59,12 @@ namespace work.bacome.imapclient
         ///   </description>
         /// </item>
         /// <item>
-        ///   <term><see cref="cCredentialsException"/></term>
+        ///   <term><see cref="cIMAPCredentialsException"/></term>
         ///   <description>
         ///   The client was able to try credentials from <see cref="AuthenticationParameters"/>, but they didn't work.
         ///   If the server explicitly rejected the credentials using one of the 
-        ///   <see cref="eResponseTextCode.authenticationfailed"/>, <see cref="eResponseTextCode.authorizationfailed"/> or <see cref="eResponseTextCode.expired"/> codes,
-        ///   then <see cref="cCredentialsException.ResponseText"/> will contain the details (otherwise <see cref="cCredentialsException.ResponseText"/> will be <see langword="null"/>).
+        ///   <see cref="eIMAPResponseTextCode.authenticationfailed"/>, <see cref="eIMAPResponseTextCode.authorizationfailed"/> or <see cref="eIMAPResponseTextCode.expired"/> codes,
+        ///   then <see cref="cIMAPCredentialsException.ResponseText"/> will contain the details (otherwise <see cref="cIMAPCredentialsException.ResponseText"/> will be <see langword="null"/>).
         ///   </description>
         /// </item>
         /// <item>
@@ -75,10 +75,10 @@ namespace work.bacome.imapclient
         ///   </description>
         /// </item>
         /// <item>
-        ///   <term><see cref="cHomeServerReferralException"/></term>
+        ///   <term><see cref="cIMAPHomeServerReferralException"/></term>
         ///   <description>
         ///   While connecting the server explicitly rejected the attempt to connect or authenticate and as part of the rejection suggested that we try connecting to a different server instead
-        ///   (see <see cref="cHomeServerReferralException.ResponseText"/> and the contained <see cref="cResponseText.Arguments"/>).
+        ///   (see <see cref="cIMAPHomeServerReferralException.ResponseText"/> and the contained <see cref="cIMAPResponseText.Arguments"/>).
         ///   </description>
         /// </item>
         /// </list>
@@ -228,7 +228,7 @@ namespace work.bacome.imapclient
                             if (lTriedCredentials)
                             {
                                 if (lAuthenticateException != null) throw lAuthenticateException;
-                                throw new cCredentialsException(lContext);
+                                throw new cIMAPCredentialsException(lContext);
                             }
 
                             throw new cAuthenticationMechanismsException(lTLSIssue, lContext); // the server has no mechanisms that we can try

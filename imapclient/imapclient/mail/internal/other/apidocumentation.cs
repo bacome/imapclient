@@ -13,8 +13,8 @@ namespace work.bacome.mailclient
         /// 
         /// </summary>
         /// <remarks>
-        /// If <see cref="cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, events and callbacks are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
-        /// If an exception is raised in an event handler or callback then the <see cref="cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
+        /// If <see cref="cMailClient.SynchronizationContext"/> is not <see langword="null"/>, events and callbacks are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
+        /// If an exception is raised in an event handler or callback then the <see cref="cMailClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
         /// </remarks>
         protected Action Event = null;
 

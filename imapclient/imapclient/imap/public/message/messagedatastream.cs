@@ -252,7 +252,7 @@ namespace work.bacome.imapclient
                 if (!Client.Fetch(MessageHandle, fMessageCacheAttributes.size))
                 {
                     if (MessageHandle.Expunged) throw new cMessageExpungedException(MessageHandle);
-                    throw new cRequestedDataNotReturnedException(MessageHandle);
+                    throw new cRequestedIMAPDataNotReturnedException(MessageHandle);
                 }
 
                 return MessageHandle.Size.Value;
@@ -272,7 +272,7 @@ namespace work.bacome.imapclient
                 if (!await Client.FetchAsync(MessageHandle, fMessageCacheAttributes.size).ConfigureAwait(false))
                 {
                     if (MessageHandle.Expunged) throw new cMessageExpungedException(MessageHandle);
-                    throw new cRequestedDataNotReturnedException(MessageHandle);
+                    throw new cRequestedIMAPDataNotReturnedException(MessageHandle);
                 }
 
                 return MessageHandle.Size.Value;

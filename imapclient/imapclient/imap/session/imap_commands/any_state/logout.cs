@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("logout success");
                         if (!lHook.GotBye) throw new cUnexpectedServerActionException(lResult, "bye not received", 0, lContext);
@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
 
                     if (lHook.GotBye) lContext.TraceError("received bye on a failed logout");
 
-                    throw new cProtocolErrorException(lResult, 0, lContext);
+                    throw new cIMAPProtocolErrorException(lResult, 0, lContext);
                 }
             }
 
@@ -69,10 +69,10 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.notprocessed;
                 }
 
-                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
+                public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cLogoutCommandHook), nameof(CommandCompleted), pResult);
-                    if (pResult.ResultType == eCommandResultType.ok) mPipeline.RequestStop(lContext);
+                    if (pResult.ResultType == eIMAPCommandResultType.ok) mPipeline.RequestStop(lContext);
                 }
             }
         }

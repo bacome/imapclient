@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Mail;
+using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
@@ -117,7 +118,24 @@ namespace work.bacome.mailclient
 
     public class cMailMessageFormException : cMailException
     {
-        internal cMailMessageFormException(string pMessage) : base(pMessage) { }
+        public readonly MailMessage MailMessage;
+        public readonly string Property;
+
+        internal cMailMessageFormException(MailMessage pMailMessage, string pProperty, string pMessage, Exception pInnerException) : base(pMessage, pInnerException)
+        {
+            MailMessage = pMailMessage;
+            Property = pProperty;
+        }
+    }
+
+    public class cCommandResultUnknownException : cMailException
+    {
+        internal cCommandResultUnknownException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cCommandResultUnknownException), pMessage, pInner);
+    }
+
+    public class cStreamRanOutOfDataException : cMailException
+    {
+        internal cStreamRanOutOfDataException() { }
     }
 
     internal class cTestsException : Exception

@@ -10,6 +10,7 @@ namespace work.bacome.mailclient
     internal static class cTools
     {
         private static readonly IdnMapping kIDNMapping = new IdnMapping();
+        private static readonly char[] kWSP = new char[] { '\t', ' ' };
 
         public static string ASCIIBytesToString(IList<byte> pBytes)
         {
@@ -301,6 +302,12 @@ namespace work.bacome.mailclient
         {
             foreach (var lChar in pChars) if (lChar > cChar.DEL) return true;
             return false;
+        }
+
+        public static bool ContainsWSP(string pString)
+        {
+            if (pString == null) return false;
+            return pString.IndexOfAny(kWSP) != -1;
         }
 
         public static string Enquote(IEnumerable<char> pChars)

@@ -42,13 +42,13 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("status success");
                         return;
                     }
 
-                    if (lResult.ResultType == eCommandResultType.no)
+                    if (lResult.ResultType == eIMAPCommandResultType.no)
                     {
                         lContext.TraceInformation("status unsuccessful");
                         return;
@@ -58,7 +58,7 @@ namespace work.bacome.imapclient
                     if (_Capabilities.CondStore) lTryIgnoring = fIMAPCapabilities.condstore;
                     else lTryIgnoring = 0;
 
-                    throw new cProtocolErrorException(lResult, lTryIgnoring, lContext);
+                    throw new cIMAPProtocolErrorException(lResult, lTryIgnoring, lContext);
                 }
             }
 
@@ -78,10 +78,10 @@ namespace work.bacome.imapclient
                     mSequence = mItem.MailboxCache.Sequence;
                 }
 
-                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
+                public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cStatusCommandHook), nameof(CommandCompleted), pResult);
-                    if (pResult.ResultType == eCommandResultType.bad || mItem.Exists == false) return;
+                    if (pResult.ResultType == eIMAPCommandResultType.bad || mItem.Exists == false) return;
                     if (mItem.Status == null || mItem.Status.Sequence < mSequence) mItem.ResetExists(lContext);
                 }
             }

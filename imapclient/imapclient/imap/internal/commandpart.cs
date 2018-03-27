@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -48,14 +49,12 @@ namespace work.bacome.imapclient
 
         public cStreamCommandPart(Stream pStream, uint pLength, bool pBinary, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration) : base(pBinary, false, false)
         {
-            if (pStream == null) throw new ArgumentNullException(nameof(pStream));
-            if (pReadConfiguration == null) throw new ArgumentNullException(nameof(pReadConfiguration));
+            Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!pStream.CanRead) throw new ArgumentOutOfRangeException(nameof(pStream));
-            if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
-            Stream = pStream;
             mLength = pLength;
+            if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
             Increment = pIncrement;
-            ReadConfiguration = pReadConfiguration;
+            ReadConfiguration = pReadConfiguration ?? throw new ArgumentNullException(nameof(pReadConfiguration));
         }
 
         public override uint Length => mLength;

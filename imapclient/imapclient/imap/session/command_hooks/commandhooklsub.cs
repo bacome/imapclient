@@ -45,11 +45,11 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.observed;
                 }
 
-                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
+                public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookLSub), nameof(CommandCompleted), pResult);
 
-                    if (pResult.ResultType != eCommandResultType.ok) return;
+                    if (pResult.ResultType != eIMAPCommandResultType.ok) return;
 
                     mCache.ResetLSubFlags(mPattern, mSequence, lContext);
                     MailboxHandles = mCache.GetHandles(mMailboxes);

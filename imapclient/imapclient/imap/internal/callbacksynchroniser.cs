@@ -8,19 +8,19 @@ namespace work.bacome.imapclient
     {
         private class cIMAPCallbackSynchroniser : cCallbackSynchroniser
         {
-            public event EventHandler<cResponseTextEventArgs> ResponseText;
+            public event EventHandler<cIMAPResponseTextEventArgs> ResponseText;
             public event EventHandler<cMailboxPropertyChangedEventArgs> MailboxPropertyChanged;
             public event EventHandler<cMailboxMessageDeliveryEventArgs> MailboxMessageDelivery;
             public event EventHandler<cMessagePropertyChangedEventArgs> MessagePropertyChanged;
 
             public cIMAPCallbackSynchroniser() : base() { }
 
-            public void InvokeResponseText(eResponseTextContext pTextContext, cResponseText pResponseText, cTrace.cContext pParentContext)
+            public void InvokeResponseText(eIMAPResponseTextContext pTextContext, cIMAPResponseText pResponseText, cTrace.cContext pParentContext)
             {
                 if (ResponseText == null) return; // pre-check for efficiency only
                 var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeResponseText), pTextContext, pResponseText);
                 if (IsDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
-                YInvokeAndForget(new cResponseTextEventArgs(pTextContext, pResponseText), lContext);
+                YInvokeAndForget(new cIMAPResponseTextEventArgs(pTextContext, pResponseText), lContext);
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
@@ -119,7 +119,7 @@ namespace work.bacome.imapclient
 
                 switch (pEventArgs)
                 {
-                    case cResponseTextEventArgs lEventArgs:
+                    case cIMAPResponseTextEventArgs lEventArgs:
 
                         ResponseText?.Invoke(pSender, lEventArgs);
                         break;

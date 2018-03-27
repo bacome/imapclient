@@ -34,7 +34,7 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("examine success");
                         return;
@@ -45,8 +45,8 @@ namespace work.bacome.imapclient
                     if (_Capabilities.QResync) lTryIgnoring = fIMAPCapabilities.qresync;
                     else lTryIgnoring = 0;
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);
-                    throw new cProtocolErrorException(lResult, lTryIgnoring, lContext);
+                    if (lResult.ResultType == eIMAPCommandResultType.no) throw new cUnsuccessfulIMAPCommandException(lResult.ResponseText, lTryIgnoring, lContext);
+                    throw new cIMAPProtocolErrorException(lResult, lTryIgnoring, lContext);
                 }
             }
         }

@@ -56,15 +56,15 @@ namespace work.bacome.imapclient
                     // NOTE: updates may have been done on both OK and NO responses (see rfc 2180/ 7162) so we can't throw on a NO for this command ... NO indicates that some (or all) of the messages have pending deletes
 
                     // throw on a bad
-                    if (lResult.ResultType == eCommandResultType.bad)
+                    if (lResult.ResultType == eIMAPCommandResultType.bad)
                     {
                         fIMAPCapabilities lTryIgnoring;
                         if (pIfUnchangedSinceModSeq == null) lTryIgnoring = 0;
                         else lTryIgnoring = fIMAPCapabilities.condstore;
-                        throw new cProtocolErrorException(lResult, lTryIgnoring, lContext);
+                        throw new cIMAPProtocolErrorException(lResult, lTryIgnoring, lContext);
                     }
 
-                    if (lResult.ResultType == eCommandResultType.ok) lContext.TraceInformation("store success");
+                    if (lResult.ResultType == eIMAPCommandResultType.ok) lContext.TraceInformation("store success");
                     else lContext.TraceInformation("store possible partial success");
                 }
             }

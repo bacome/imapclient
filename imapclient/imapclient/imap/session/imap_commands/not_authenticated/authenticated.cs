@@ -7,7 +7,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private void ZAuthenticated(cStrings pOldPipelineCapabilities, cCommandHookInitial pHook, cResponseText pResponseText, cAccountId pAccountId, cTrace.cContext pParentContext)
+            private void ZAuthenticated(cStrings pOldPipelineCapabilities, cCommandHookInitial pHook, cIMAPResponseText pResponseText, cAccountId pAccountId, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZAuthenticated));
 

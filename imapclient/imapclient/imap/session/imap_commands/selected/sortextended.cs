@@ -43,7 +43,7 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eCommandResultType.ok)
+                    if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("extended sort success");
                         if (lHook.MessageHandles == null) throw new cUnexpectedServerActionException(lResult, "results not received on a successful extended sort", fIMAPCapabilities.esort, lContext);
@@ -52,8 +52,8 @@ namespace work.bacome.imapclient
 
                     if (lHook.MessageHandles != null) lContext.TraceError("results received on a failed extended sort");
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fIMAPCapabilities.esort, lContext);
-                    throw new cProtocolErrorException(lResult, fIMAPCapabilities.esort, lContext);
+                    if (lResult.ResultType == eIMAPCommandResultType.no) throw new cUnsuccessfulIMAPCommandException(lResult.ResponseText, fIMAPCapabilities.esort, lContext);
+                    throw new cIMAPProtocolErrorException(lResult, fIMAPCapabilities.esort, lContext);
                 }
             }
         }

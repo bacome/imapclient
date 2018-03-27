@@ -11,9 +11,9 @@ namespace work.bacome.imapclient
             public struct sGreeting
             {
                 public readonly eGreetingType Type;
-                public readonly cResponseText ResponseText;
+                public readonly cIMAPResponseText ResponseText;
 
-                public sGreeting(eGreetingType pType, cResponseText pResponseText)
+                public sGreeting(eGreetingType pType, cIMAPResponseText pResponseText)
                 {
                     Type = pType;
                     ResponseText = pResponseText;

@@ -1098,8 +1098,8 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Copy(IEnumerable{cIMAPMessage})" select="returns|remarks"/>
         public Task<cCopyFeedback> CopyAsync(IEnumerable<cIMAPMessage> pMessages) => Client.CopyAsync(cMessageHandleList.FromMessages(pMessages), MailboxHandle);
 
-        public cUID Append(cAppendData pMessage, cAppendConfiguration pConfiguration = null) => ZAppendResult(Client.Append(MailboxHandle, cAppendDataList.FromMessage(pMessage), pConfiguration));
-        public async Task<cUID> AppendAsync(cAppendData pMessage, cAppendConfiguration pConfiguration = null) => ZAppendResult(await Client.AppendAsync(MailboxHandle, cAppendDataList.FromMessage(pMessage), pConfiguration).ConfigureAwait(false));
+        public cUID Append(cAppendData pData, cAppendConfiguration pConfiguration = null) => ZAppendResult(Client.Append(MailboxHandle, cAppendDataList.FromData(pData), pConfiguration));
+        public async Task<cUID> AppendAsync(cAppendData pData, cAppendConfiguration pConfiguration = null) => ZAppendResult(await Client.AppendAsync(MailboxHandle, cAppendDataList.FromData(pData), pConfiguration).ConfigureAwait(false));
         public cUID Append(MailMessage pMailMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, cAppendMailMessageConfiguration pConfiguration = null) 
             => ZAppendResult(Client.Append(MailboxHandle, cMailMessageList.FromMessage(pMailMessage), pFlags, pReceived, pConfiguration));
         public async Task<cUID> AppendAsync(MailMessage pMailMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, cAppendMailMessageConfiguration pConfiguration = null)
@@ -1114,12 +1114,12 @@ namespace work.bacome.imapclient
             //if (lFeedbackItem.Type == eAppendFeedbackType.notattempted) should never happen: if so this would result in the internal error exception below
             var lResult = lFeedbackItem.Result;
             if (lResult == null) throw new cInternalErrorException(nameof(cMailbox), nameof(ZAppendResult), 2);
-            if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lFeedbackItem.TryIgnoring);
-            throw new cProtocolErrorException(lResult, lFeedbackItem.TryIgnoring);
+            if (lResult.ResultType == eIMAPCommandResultType.no) throw new cUnsuccessfulIMAPCommandException(lResult.ResponseText, lFeedbackItem.TryIgnoring);
+            throw new cIMAPProtocolErrorException(lResult, lFeedbackItem.TryIgnoring);
         }
 
-        public cAppendFeedback Append(IEnumerable<cAppendData> pMessages, cAppendConfiguration pConfiguration = null) => Client.Append(MailboxHandle, cAppendDataList.FromMessages(pMessages), pConfiguration);
-        public Task<cAppendFeedback> AppendAsync(IEnumerable<cAppendData> pMessages, cAppendConfiguration pConfiguration = null) => Client.AppendAsync(MailboxHandle, cAppendDataList.FromMessages(pMessages), pConfiguration);
+        public cAppendFeedback Append(IEnumerable<cAppendData> pData, cAppendConfiguration pConfiguration = null) => Client.Append(MailboxHandle, cAppendDataList.FromData(pData), pConfiguration);
+        public Task<cAppendFeedback> AppendAsync(IEnumerable<cAppendData> pData, cAppendConfiguration pConfiguration = null) => Client.AppendAsync(MailboxHandle, cAppendDataList.FromData(pData), pConfiguration);
         public cAppendFeedback Append(IEnumerable<MailMessage> pMailMessages, cStorableFlags pFlags = null, DateTime? pReceived = null, cAppendMailMessageConfiguration pConfiguration = null) 
             => Client.Append(MailboxHandle, cMailMessageList.FromMessages(pMailMessages), pFlags, pReceived, pConfiguration);
         public Task<cAppendFeedback> AppendAsync(IEnumerable<MailMessage> pMailMessages, cStorableFlags pFlags = null, DateTime? pReceived = null, cAppendMailMessageConfiguration pConfiguration = null)
@@ -1138,7 +1138,7 @@ namespace work.bacome.imapclient
         /// If <see cref="cIMAPCapabilities.Binary"/> is in use and the entire body-part (<see cref="cSection.TextPart"/> is <see cref="eSectionTextPart.all"/>) is being fetched then
         /// unless <paramref name="pDecoding"/> is <see cref="eDecodingRequired.none"/> the server will do the decoding that it determines is required (i.e. the decoding specified is ignored).
         /// </remarks>
-        public void UIDFetch(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.UIDFetch(MailboxHandle, pUID, pSection, pDecoding, pStream, pConfiguration);
+        public void UIDFetch(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchConfiguration pConfiguration = null) => Client.UIDFetch(MailboxHandle, pUID, pSection, pDecoding, pStream, pConfiguration);
 
         /// <summary>
         /// Asynchronously fetches a section of a message into a stream. The mailbox must be selected.
@@ -1150,7 +1150,7 @@ namespace work.bacome.imapclient
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <returns></returns>
         /// <inheritdoc cref="UIDFetch(cUID, cSection, eDecodingRequired, Stream, cBodyFetchConfiguration)" select="remarks"/>
-        public Task UIDFetchAsync(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.UIDFetchAsync(MailboxHandle, pUID, pSection, pDecoding, pStream, pConfiguration);
+        public Task UIDFetchAsync(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchConfiguration pConfiguration = null) => Client.UIDFetchAsync(MailboxHandle, pUID, pSection, pDecoding, pStream, pConfiguration);
 
         /// <summary>
         /// Stores flags for a message. The mailbox must be selected.

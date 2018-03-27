@@ -29,11 +29,11 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kBinarySizeLBracket = new cBytes("BINARY.SIZE[");
                 private static readonly cBytes kModSeqSpaceLParen = new cBytes("MODSEQ (");
 
-                private readonly fMessageDataFormat mFormat;
+                private readonly bool mUTF8Enabled;
 
-                public cResponseDataParserFetch(fMessageDataFormat pFormat)
+                public cResponseDataParserFetch(bool pUTF8Enabled)
                 {
-                    mFormat = pFormat;
+                    mUTF8Enabled = pUTF8Enabled;
                 }
 
                 public bool Process(cBytesCursor pCursor, out cResponseData rResponseData, cTrace.cContext pParentContext)
@@ -405,7 +405,9 @@ namespace work.bacome.imapclient
 
                         if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyPart = null; return false; }
 
-                        rBodyPart = new cMultiPartBody(lParts, lSubType, pSection, lFormat, lMultiPartExtensionData);
+                        if (mUTF8Enabled && (lFormat | fMessageDataFormat.eightbit) != 0) lFormat |= fMessageDataFormat.utf8headers; // for the mime headers
+
+                        rBodyPart = new cMultiPartBody(lParts, lFormat, lSubType, pSection, lMultiPartExtensionData);
                         return true;
                     }
 
@@ -472,7 +474,7 @@ namespace work.bacome.imapclient
 
                         if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyPart = null; return false; }
 
-                        rBodyPart = new cMessageBodyPart(pSection, lParameters, lContentId, lDescription, mFormat, lContentTransferEncoding, lSizeInBytes, lEnvelope, lBody, lBodyStructure, lSizeInLines, lExtensionData);
+                        rBodyPart = new cMessageBodyPart(pSection, lParameters, lContentId, lDescription, lContentTransferEncoding, mUTF8Enabled, lSizeInBytes, lEnvelope, lBody, lBodyStructure, lSizeInLines, lExtensionData);
                         return true;
                     }
 
@@ -484,7 +486,7 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyPart = null; return false; }
 
-                    rBodyPart = new cSinglePartBody(lType, lSubType, pSection, lParameters, lContentId, lDescription, 0, lContentTransferEncoding, lSizeInBytes, lExtensionData);
+                    rBodyPart = new cSinglePartBody(lType, lSubType, pSection, lParameters, lContentId, lDescription, lContentTransferEncoding, false, lSizeInBytes, lExtensionData);
                     return true;
                 }
 
@@ -1037,7 +1039,7 @@ namespace work.bacome.imapclient
 
                     cBytesCursor lCursor;
 
-                    cResponseDataParserFetch lRDPF = new cResponseDataParserFetch(0);
+                    cResponseDataParserFetch lRDPF = new cResponseDataParserFetch(false);
 
                     cResponseData lRD;
                     cResponseDataFetch lData;
@@ -1108,7 +1110,7 @@ namespace work.bacome.imapclient
                     lData = lRD as cResponseDataFetch;
                     if (lData == null) throw new cTestsException($"{nameof(cResponseDataFetch)}.1a.2");
 
-                    if (lData.Envelope.InReplyTo == null || lData.Envelope.InReplyTo.MsgIds.Count != 1 || lData.Envelope.InReplyTo.MsgIds[0] != "01KF8JCEOCBS0045PS@xxx.yyy.com") throw new cTestsException($"{nameof(cResponseDataFetch)}.1a.3");
+                    if (lData.Envelope.InReplyTo == null || lData.Envelope.InReplyTo.MessageIds.Count != 1 || lData.Envelope.InReplyTo.MessageIds[0] != "<01KF8JCEOCBS0045PS@xxx.yyy.com>") throw new cTestsException($"{nameof(cResponseDataFetch)}.1a.3");
 
 
                     lCursor = new cBytesCursor(
