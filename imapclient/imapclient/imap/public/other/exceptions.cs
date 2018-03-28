@@ -390,11 +390,11 @@ namespace work.bacome.imapclient
         internal cMessageDataClientException() { }
     }
 
-    public class cAppendDataFormException : cMailException
+    public class cAppendDataFormatException : cMailException
     {
         public readonly cAppendData AppendData;
 
-        internal cAppendDataFormException(cAppendData pAppendData)
+        internal cAppendDataFormatException(cAppendData pAppendData)
         {
             AppendData = pAppendData;
         }

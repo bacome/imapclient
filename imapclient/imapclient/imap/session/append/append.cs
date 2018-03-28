@@ -122,9 +122,9 @@ namespace work.bacome.imapclient
                                     else throw new cRequestedIMAPDataNotReturnedException(lMessage.MessageHandle);
                                 }
 
-                                cCatenateURLAppendDataPart lURLPart = null;
+                                cURLCatenatePart lURLPart = null;
 
-                                if (lCatenate && !cCatenateURLAppendDataPart.TryConstruct(lMessage.MessageHandle, cSection.All, mCommandPartFactory, out lURLPart))
+                                if (lCatenate && !cURLCatenatePart.TryConstruct(lMessage.MessageHandle, cSection.All, mCommandPartFactory, out lURLPart))
                                 {
                                     lCatenate = false;
 
@@ -144,8 +144,8 @@ namespace work.bacome.imapclient
                                 if (lMessage.Received == null) lReceived = lMessage.MessageHandle.ReceivedDateTime;
                                 else lReceived = lMessage.Received;
 
-                                if (lCatenate) lData.Add(new cCatenateAppendData(lFlags, lReceived, new cCatenateURLAppendDataPart[] { lURLPart }));
-                                else lData.Add(new cSessionMessageAppendData(lFlags, lReceived, lMessage.Client, lMessage.MessageHandle, cSection.All, lMessage.MessageHandle.Size.Value));
+                                if (lCatenate) lData.Add(new cCatenateSessionAppendData(lFlags, lReceived, new cURLCatenatePart[] { lURLPart }));
+                                else lData.Add(new cMessageSessionAppendData(lFlags, lReceived, lMessage.Client, lMessage.MessageHandle, cSection.All, lMessage.MessageHandle.Size.Value));
 
                                 break;
                             }
@@ -165,9 +165,9 @@ namespace work.bacome.imapclient
                                     else throw new cRequestedIMAPDataNotReturnedException(lMessagePart.MessageHandle);
                                 }
 
-                                cCatenateURLAppendDataPart lURLPart = null;
+                                cURLCatenatePart lURLPart = null;
 
-                                if (lCatenate && !cCatenateURLAppendDataPart.TryConstruct(lMessagePart.MessageHandle, lMessagePart.Part.Section, mCommandPartFactory, out lURLPart)) lCatenate = false;
+                                if (lCatenate && !cURLCatenatePart.TryConstruct(lMessagePart.MessageHandle, lMessagePart.Part.Section, mCommandPartFactory, out lURLPart)) lCatenate = false;
 
                                 cStorableFlags lFlags;
                                 DateTime? lReceived;
@@ -178,26 +178,26 @@ namespace work.bacome.imapclient
                                 if (lMessagePart.Received == null) lReceived = lMessagePart.MessageHandle.ReceivedDateTime;
                                 else lReceived = lMessagePart.Received.Value;
 
-                                if (lCatenate) lData.Add(new cCatenateAppendData(lFlags, lReceived, new cCatenateURLAppendDataPart[] { lURLPart }));
-                                else lData.Add(new cSessionMessageAppendData(lFlags, lReceived, lMessagePart.Client, lMessagePart.MessageHandle, lMessagePart.Part.Section, lMessagePart.Part.SizeInBytes));
+                                if (lCatenate) lData.Add(new cCatenateSessionAppendData(lFlags, lReceived, new cURLCatenatePart[] { lURLPart }));
+                                else lData.Add(new cMessageSessionAppendData(lFlags, lReceived, lMessagePart.Client, lMessagePart.MessageHandle, lMessagePart.Part.Section, lMessagePart.Part.SizeInBytes));
 
                                 break;
                             }
 
                         case cLiteralAppendData lLiteral:
 
-                            lData.Add(new cSessionLiteralAppendData(lLiteral.Flags ?? mAppendDefaultFlags, lLiteral.Received, lLiteral.Bytes));
+                            lData.Add(new cLiteralSessionAppendData(lLiteral.Flags ?? mAppendDefaultFlags, lLiteral.Received, lLiteral.Bytes));
                             break;
 
                         case cFileAppendData lFile:
 
-                            lData.Add(new cSessionFileAppendData(lFile.Flags ?? mAppendDefaultFlags, lFile.Received, lFile.Path, lFile.Length, lFile.ReadConfiguration ?? mAppendStreamReadConfiguration));
+                            lData.Add(new cFileSessionAppendData(lFile.Flags ?? mAppendDefaultFlags, lFile.Received, lFile.Path, lFile.Length, lFile.ReadConfiguration ?? mLocalStreamReadConfiguration));
                             break;
 
                         case cStreamAppendData lStream:
 
                             if (lStream.Stream.CanSeek) lStream.Stream.Position = 0;
-                            lData.Add(new cSessionStreamAppendData(lStream.Flags ?? mAppendDefaultFlags, lStream.Received, lStream.Stream, lStream.Length, lStream.ReadConfiguration ?? mAppendStreamReadConfiguration));
+                            lData.Add(new cStreamSessionAppendData(lStream.Flags ?? mAppendDefaultFlags, lStream.Received, lStream.Stream, lStream.Length, lStream.ReadConfiguration ?? mLocalStreamReadConfiguration));
                             break;
 
                         case cMessageDataAppendData lMessageData:
@@ -208,7 +208,9 @@ namespace work.bacome.imapclient
                                 if (lMessageData.Flags == null) lFlags = mAppendDefaultFlags;
                                 else lFlags = lMessageData.Flags;
 
-                                List<cCatenateAppendDataPart> lCatenateParts = new List<cCatenateAppendDataPart>();
+                                ;?; // rename sessionappenddatapart -> appenddatapart
+
+                                List<cCatenatePart> lCatenateParts = new List<cCatenatePart>();
                                 List<cSessionAppendDataPart> lSessionParts = new List<cSessionAppendDataPart>();
 
                                 foreach (var lPart in lMessageData.MessageData.Parts)
@@ -230,9 +232,9 @@ namespace work.bacome.imapclient
                                                     else throw new cRequestedIMAPDataNotReturnedException(lMessage.MessageHandle);
                                                 }
 
-                                                cCatenateURLAppendDataPart lURLPart = null;
+                                                cURLCatenatePart lURLPart = null;
 
-                                                if (lCatenate && !cCatenateURLAppendDataPart.TryConstruct(lMessage.MessageHandle, cSection.All, mCommandPartFactory, out lURLPart))
+                                                if (lCatenate && !cURLCatenatePart.TryConstruct(lMessage.MessageHandle, cSection.All, mCommandPartFactory, out lURLPart))
                                                 {
                                                     lCatenate = false;
 
@@ -247,13 +249,13 @@ namespace work.bacome.imapclient
                                                 {
                                                     if (lSessionParts.Count > 0)
                                                     {
-                                                        lCatenateParts.Add(new cCatenateLiteralAppendDataPart(lSessionParts));
+                                                        lCatenateParts.Add(new cLiteralCatenatePart(lSessionParts));
                                                         lSessionParts.Clear();
                                                     }
 
                                                     lCatenateParts.Add(lURLPart);
                                                 }
-                                                else lSessionParts.Add(new cSessionMessageAppendDataPart(lMessage.Client, lMessage.MessageHandle, cSection.All, lMessage.MessageHandle.Size.Value));
+                                                else lSessionParts.Add(new cMessageSessionAppendDataPart(lMessage.Client, lMessage.MessageHandle, cSection.All, lMessage.MessageHandle.Size.Value));
 
                                                 break;
                                             }
@@ -269,17 +271,17 @@ namespace work.bacome.imapclient
                                                     else throw new cRequestedIMAPDataNotReturnedException(lMessagePart.MessageHandle);
                                                 }
 
-                                                if (lCatenate && cCatenateURLAppendDataPart.TryConstruct(lMessagePart.MessageHandle, lMessagePart.Part.Section, mCommandPartFactory, out var lURLPart))
+                                                if (lCatenate && cURLCatenatePart.TryConstruct(lMessagePart.MessageHandle, lMessagePart.Part.Section, mCommandPartFactory, out var lURLPart))
                                                 {
                                                     if (lSessionParts.Count > 0)
                                                     {
-                                                        lCatenateParts.Add(new cCatenateLiteralAppendDataPart(lSessionParts));
+                                                        lCatenateParts.Add(new cLiteralCatenatePart(lSessionParts));
                                                         lSessionParts.Clear();
                                                     }
 
                                                     lCatenateParts.Add(lURLPart);
                                                 }
-                                                else lSessionParts.Add(new cSessionMessageAppendDataPart(lMessagePart.Client, lMessagePart.MessageHandle, lMessagePart.Part.Section, lMessagePart.Part.SizeInBytes));
+                                                else lSessionParts.Add(new cMessageSessionAppendDataPart(lMessagePart.Client, lMessagePart.MessageHandle, lMessagePart.Part.Section, lMessagePart.Part.SizeInBytes));
 
                                                 break;
                                             }
@@ -287,53 +289,60 @@ namespace work.bacome.imapclient
                                         case cUIDSectionMessageDataPart lSection:
 
                                             {
-                                                if (_Capabilities.Catenate && lSection.Client.ConnectedAccountId == _ConnectedAccountId && cCatenateURLAppendDataPart.TryConstruct(lSection.MailboxHandle, lSection.UID, lSection.Section, mCommandPartFactory, out var lURLPart))
+                                                if (_Capabilities.Catenate && lSection.Client.ConnectedAccountId == _ConnectedAccountId && cURLCatenatePart.TryConstruct(lSection.MailboxHandle, lSection.UID, lSection.Section, mCommandPartFactory, out var lURLPart))
                                                 {
                                                     if (lSessionParts.Count > 0)
                                                     {
-                                                        lCatenateParts.Add(new cCatenateLiteralAppendDataPart(lSessionParts));
+                                                        lCatenateParts.Add(new cLiteralCatenatePart(lSessionParts));
                                                         lSessionParts.Clear();
                                                     }
 
                                                     lCatenateParts.Add(lURLPart);
                                                 }
-                                                else lSessionParts.Add(new cSessionMessageAppendDataPart(lSection.Client, lSection.MailboxHandle, lSection.UID, lSection.Section, lSection.Length));
+                                                else lSessionParts.Add(new cMessageSessionAppendDataPart(lSection.Client, lSection.MailboxHandle, lSection.UID, lSection.Section, lSection.Length));
 
                                                 break;
                                             }
 
                                         case cFileMessageDataPart lFile:
 
-                                            lSessionParts.Add(new cSessionFileAppendDataPart(lFile.Path, lFile.Length, false, lFile.ReadConfiguration ?? mAppendStreamReadConfiguration));
+                                            lSessionParts.Add(new cFileSessionAppendDataPart(lFile.Path, lFile.Length, false, lFile.ReadConfiguration ?? mLocalStreamReadConfiguration));
                                             break;
 
                                         case cBase64FileMessageDataPart lFile:
 
-                                            lSessionParts.Add(new cSessionFileAppendDataPart(lFile.Path, lFile.Length, true, lFile.ReadConfiguration ?? mAppendStreamReadConfiguration));
+                                            lSessionParts.Add(new cFileSessionAppendDataPart(lFile.Path, lFile.Length, true, lFile.ReadConfiguration ?? mLocalStreamReadConfiguration));
                                             break;
 
-                                        case cStreamAppendDataPart lStreamPart:
+                                        case cStreamMessageDataPart lStream:
 
                                             {
-                                                cBatchSizerConfiguration lConfiguration = lStreamPart.ReadConfiguration ?? mAppendStreamReadConfiguration;
+                                                cBatchSizerConfiguration lConfiguration = lStream.ReadConfiguration ?? mLocalStreamReadConfiguration;
 
-                                                if (lStreamPart.Stream.CanSeek) lStreamPart.Stream.Position = 0;
+                                                if (lStream.Stream.CanSeek) lStream.Stream.Position = 0;
 
-                                                Stream lStream;
-                                                if (lStreamPart.Base64Encode) lStream = new cBase64Encoder(lStreamPart.Stream, lConfiguration);
-                                                else lStream = lStreamPart.Stream;
-
-                                                lSessionParts.Add(new cSessionStreamAppendDataPart(lStream, lStreamPart.Length, lConfiguration));
+                                                lSessionParts.Add(new cStreamSessionAppendDataPart(lStream.Stream, lStream.Length, false, lConfiguration));
                                                 break;
                                             }
 
-                                        case cLiteralAppendDataPartBase lLiteral:
+                                        case cBase64StreamMessageDataPart lStream:
+
+                                            {
+                                                cBatchSizerConfiguration lConfiguration = lStream.ReadConfiguration ?? mLocalStreamReadConfiguration;
+
+                                                if (lStream.Stream.CanSeek) lStream.Stream.Position = 0;
+
+                                                lSessionParts.Add(new cStreamSessionAppendDataPart(lStream.Stream, lStream.Length, true, lConfiguration));
+                                                break;
+                                            }
+                                            ;?;
+                                        case cLiteralMessageDataPart lLiteral:
 
                                             Encoding lEncoding;
                                             if ((EnabledExtensions & fEnableableExtensions.utf8) == 0) lEncoding = lMultiPart.Encoding ?? mEncoding;
                                             else lEncoding = null;
 
-                                            lSessionParts.Add(new cSessionLiteralAppendDataPart(lLiteral.GetBytes(lEncoding)));
+                                            lSessionParts.Add(new cLiteralSessionAppendDataPart(lLiteral.GetBytes(lEncoding)));
                                             break;
 
                                         default:
@@ -344,10 +353,10 @@ namespace work.bacome.imapclient
 
                                 if (lCatenateParts.Count > 0)
                                 {
-                                    if (lSessionParts.Count > 0) lCatenateParts.Add(new cCatenateLiteralAppendDataPart(lSessionParts));
-                                    lMessages.Add(new cCatenateAppendData(lFlags, lMultiPart.Received, lCatenateParts));
+                                    if (lSessionParts.Count > 0) lCatenateParts.Add(new cLiteralCatenatePart(lSessionParts));
+                                    lMessages.Add(new cCatenateSessionAppendData(lFlags, lMultiPart.Received, lCatenateParts));
                                 }
-                                else lMessages.Add(new cSessionMultiPartAppendData(lFlags, lMultiPart.Received, lSessionParts));
+                                else lMessages.Add(new cMultiPartSessionAppendData(lFlags, lMultiPart.Received, lSessionParts));
 
                                 break;
                             }

@@ -14,8 +14,7 @@ namespace work.bacome.imapclient
         private partial class cSession
         {
             private static readonly cCommandPart kAppendDataUTF8SpaceLParen = new cTextCommandPart("UTF8 (");
-
-            private static readonly cBatchSizerConfiguration kSessionAppendMessageReadConfiguration = new cBatchSizerConfiguration(100000, 100000, 1, 100000); // 100k chunks
+            private static readonly cBatchSizerConfiguration kAppendDataReadConfiguration = new cBatchSizerConfiguration(100000, 100000, 1, 100000); // 100k chunks
 
             private class cSessionAppendDataList : List<cSessionAppendData>
             {
@@ -71,14 +70,14 @@ namespace work.bacome.imapclient
                 }
             }
 
-            private class cSessionMessageAppendData : cSessionAppendData
+            private class cMessageSessionAppendData : cSessionAppendData
             {
                 private readonly cIMAPClient mClient;
                 private readonly iMessageHandle mMessageHandle;
                 private readonly cSection mSection;
                 private readonly uint mLength;
 
-                public cSessionMessageAppendData(cStorableFlags pFlags, DateTime? pReceived, cIMAPClient pClient, iMessageHandle pMessageHandle, cSection pSection, uint pLength) : base(pFlags, pReceived)
+                public cMessageSessionAppendData(cStorableFlags pFlags, DateTime? pReceived, cIMAPClient pClient, iMessageHandle pMessageHandle, cSection pSection, uint pLength) : base(pFlags, pReceived)
                 {
                     mClient = pClient ?? throw new ArgumentNullException(nameof(pClient));
                     mMessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
@@ -93,17 +92,17 @@ namespace work.bacome.imapclient
                 {
                     cIMAPMessageDataStream lStream = new cIMAPMessageDataStream(mClient, mMessageHandle, mSection, pBuilder.TargetBufferSize);
                     pBuilder.Add(lStream); // this is what disposes the stream
-                    return YAddAppendData(pBuilder, new cStreamCommandPart(lStream, mLength, pBuilder.AppendDataBinary, pBuilder.Increment, kSessionAppendMessageReadConfiguration));
+                    return YAddAppendData(pBuilder, new cStreamCommandPart(lStream, mLength, pBuilder.AppendDataBinary, pBuilder.Increment, kAppendDataReadConfiguration));
                 }
 
-                public override string ToString() => $"{nameof(cSessionMessageAppendData)}({Flags},{Received},{mMessageHandle},{mSection},{mLength})";
+                public override string ToString() => $"{nameof(cMessageSessionAppendData)}({Flags},{Received},{mMessageHandle},{mSection},{mLength})";
             }
 
-            private class cSessionLiteralAppendData : cSessionAppendData
+            private class cLiteralSessionAppendData : cSessionAppendData
             {
                 private cBytes mBytes;
 
-                public cSessionLiteralAppendData(cStorableFlags pFlags, DateTime? pReceived, cBytes pBytes) : base(pFlags, pReceived)
+                public cLiteralSessionAppendData(cStorableFlags pFlags, DateTime? pReceived, cBytes pBytes) : base(pFlags, pReceived)
                 {
                     if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
                     if (pBytes.Count == 0) throw new ArgumentOutOfRangeException(nameof(pBytes));
@@ -114,16 +113,16 @@ namespace work.bacome.imapclient
 
                 public override fIMAPCapabilities AddAppendData(cAppendCommandDetailsBuilder pBuilder) => YAddAppendData(pBuilder, new cLiteralCommandPart(mBytes, pBuilder.AppendDataBinary, false, false, pBuilder.Increment));
 
-                public override string ToString() => $"{nameof(cSessionLiteralAppendData)}({Flags},{Received},{mBytes})";
+                public override string ToString() => $"{nameof(cLiteralSessionAppendData)}({Flags},{Received},{mBytes})";
             }
 
-            private class cSessionFileAppendData : cSessionAppendData
+            private class cFileSessionAppendData : cSessionAppendData
             {
                 private readonly string mPath;
                 private readonly uint mLength;
                 private readonly cBatchSizerConfiguration mReadConfiguration;
 
-                public cSessionFileAppendData(cStorableFlags pFlags, DateTime? pReceived, string pPath, uint pLength, cBatchSizerConfiguration pReadConfiguration) : base(pFlags, pReceived)
+                public cFileSessionAppendData(cStorableFlags pFlags, DateTime? pReceived, string pPath, uint pLength, cBatchSizerConfiguration pReadConfiguration) : base(pFlags, pReceived)
                 {
                     mPath = pPath ?? throw new ArgumentNullException(nameof(pPath));
                     if (pLength == 0) throw new ArgumentOutOfRangeException(nameof(pLength));
@@ -140,16 +139,16 @@ namespace work.bacome.imapclient
                     return YAddAppendData(pBuilder, new cStreamCommandPart(lStream, mLength, pBuilder.AppendDataBinary, pBuilder.Increment, mReadConfiguration));
                 }
 
-                public override string ToString() => $"{nameof(cSessionFileAppendData)}({Flags},{Received},{mPath},{mLength},{mReadConfiguration})";
+                public override string ToString() => $"{nameof(cFileSessionAppendData)}({Flags},{Received},{mPath},{mLength},{mReadConfiguration})";
             }
 
-            private class cSessionStreamAppendData : cSessionAppendData
+            private class cStreamSessionAppendData : cSessionAppendData
             {
                 private readonly Stream mStream;
                 private readonly uint mLength;
                 private readonly cBatchSizerConfiguration mReadConfiguration;
 
-                public cSessionStreamAppendData(cStorableFlags pFlags, DateTime? pReceived, Stream pStream, uint pLength, cBatchSizerConfiguration pReadConfiguration) : base(pFlags, pReceived)
+                public cStreamSessionAppendData(cStorableFlags pFlags, DateTime? pReceived, Stream pStream, uint pLength, cBatchSizerConfiguration pReadConfiguration) : base(pFlags, pReceived)
                 {
                     mStream = pStream;
                     if (pLength == 0) throw new ArgumentOutOfRangeException(nameof(pLength));
@@ -161,21 +160,21 @@ namespace work.bacome.imapclient
 
                 public override fIMAPCapabilities AddAppendData(cAppendCommandDetailsBuilder pBuilder) => YAddAppendData(pBuilder, new cStreamCommandPart(mStream, mLength, pBuilder.AppendDataBinary, pBuilder.Increment, mReadConfiguration));
 
-                public override string ToString() => $"{nameof(cSessionStreamAppendData)}({Flags},{Received},{mLength},{mReadConfiguration})";
+                public override string ToString() => $"{nameof(cStreamSessionAppendData)}({Flags},{Received},{mLength},{mReadConfiguration})";
             }
 
-            private class cCatenateAppendData : cSessionAppendData
+            private class cCatenateSessionAppendData : cSessionAppendData
             {
                 private static readonly cCommandPart kCATENATESpaceLParen = new cTextCommandPart("CATENATE (");
 
-                private readonly ReadOnlyCollection<cCatenateAppendDataPart> mParts;
+                private readonly ReadOnlyCollection<cCatenatePart> mParts;
                 private readonly uint mLength = 0;
 
-                public cCatenateAppendData(cStorableFlags pFlags, DateTime? pReceived, IEnumerable<cCatenateAppendDataPart> pParts) : base(pFlags, pReceived)
+                public cCatenateSessionAppendData(cStorableFlags pFlags, DateTime? pReceived, IEnumerable<cCatenatePart> pParts) : base(pFlags, pReceived)
                 {
                     if (pParts == null) throw new ArgumentNullException(nameof(pParts));
 
-                    List<cCatenateAppendDataPart> lParts = new List<cCatenateAppendDataPart>();
+                    List<cCatenatePart> lParts = new List<cCatenatePart>();
 
                     long lLength = 0;
 
@@ -217,7 +216,7 @@ namespace work.bacome.imapclient
 
                 public override string ToString()
                 {
-                    cListBuilder lBuilder = new cListBuilder(nameof(cCatenateAppendData));
+                    cListBuilder lBuilder = new cListBuilder(nameof(cCatenateSessionAppendData));
                     lBuilder.Append(Flags);
                     lBuilder.Append(Received);
                     lBuilder.Append(mLength);
@@ -226,7 +225,7 @@ namespace work.bacome.imapclient
                 }
             }
 
-            private abstract class cCatenateAppendDataPart
+            private abstract class cCatenatePart
             {
                 // this is the length that is used  
                 //  1) to determine the batch size for groups of append 
@@ -243,7 +242,7 @@ namespace work.bacome.imapclient
                 public abstract fIMAPCapabilities AddCatPart(cAppendCommandDetailsBuilder pBuilder);
             }
 
-            private class cCatenateURLAppendDataPart : cCatenateAppendDataPart
+            private class cURLCatenatePart : cCatenatePart
             {
                 private static readonly cCommandPart kURLSpace = new cTextCommandPart("URL ");
 
@@ -255,9 +254,9 @@ namespace work.bacome.imapclient
 
                 private cCommandPart mPart;
 
-                private cCatenateURLAppendDataPart(cCommandPart pPart) { mPart = pPart; }
+                private cURLCatenatePart(cCommandPart pPart) { mPart = pPart; }
 
-                public static bool TryConstruct(iMessageHandle pMessageHandle, cSection pSection, cCommandPartFactory pFactory, out cCatenateURLAppendDataPart rPart)
+                public static bool TryConstruct(iMessageHandle pMessageHandle, cSection pSection, cCommandPartFactory pFactory, out cURLCatenatePart rPart)
                 {
                     // always generates a url that starts with "/<mailboxname>", but may not generate a URL if the mailbox name/ section aren't supported
 
@@ -272,7 +271,7 @@ namespace work.bacome.imapclient
                     return TryConstruct(pMessageHandle.MessageCache.MailboxHandle, pMessageHandle.UID, pSection, pFactory, out rPart);
                 }
 
-                public static bool TryConstruct(iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, cCommandPartFactory pFactory, out cCatenateURLAppendDataPart rPart)
+                public static bool TryConstruct(iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, cCommandPartFactory pFactory, out cURLCatenatePart rPart)
                 {
                     // always generates a url that starts with "/<mailboxname>", but may not generate a URL if the mailbox name/ section aren't supported
 
@@ -335,7 +334,7 @@ namespace work.bacome.imapclient
                     }
 
                     // done
-                    rPart = new cCatenateURLAppendDataPart(new cTextCommandPart(lBytes));
+                    rPart = new cURLCatenatePart(new cTextCommandPart(lBytes));
                     return true;
                 }
 
@@ -347,17 +346,17 @@ namespace work.bacome.imapclient
                     return 0;
                 }
 
-                public override string ToString() => $"{nameof(cCatenateURLAppendDataPart)}({mPart})";
+                public override string ToString() => $"{nameof(cURLCatenatePart)}({mPart})";
             }
 
-            private class cCatenateLiteralAppendDataPart : cCatenateAppendDataPart
+            private class cLiteralCatenatePart : cCatenatePart
             {
                 private static readonly cCommandPart kTEXTSpace = new cTextCommandPart("TEXT ");
 
                 private readonly ReadOnlyCollection<cSessionAppendDataPart> mParts;
                 private readonly uint mLength;
 
-                public cCatenateLiteralAppendDataPart(IEnumerable<cSessionAppendDataPart> pParts)
+                public cLiteralCatenatePart(IEnumerable<cSessionAppendDataPart> pParts)
                 {
                     if (pParts == null) throw new ArgumentNullException(nameof(pParts));
 
@@ -401,19 +400,19 @@ namespace work.bacome.imapclient
 
                 public override string ToString()
                 {
-                    cListBuilder lBuilder = new cListBuilder(nameof(cCatenateLiteralAppendDataPart));
+                    cListBuilder lBuilder = new cListBuilder(nameof(cLiteralCatenatePart));
                     lBuilder.Append(mLength);
                     foreach (var lPart in mParts) lBuilder.Append(lPart);
                     return lBuilder.ToString();
                 }
             }
 
-            private class cSessionMultiPartAppendData : cSessionAppendData
+            private class cMultiPartSessionAppendData : cSessionAppendData
             {
                 private readonly ReadOnlyCollection<cSessionAppendDataPart> mParts;
                 private readonly uint mLength;
 
-                public cSessionMultiPartAppendData(cStorableFlags pFlags, DateTime? pReceived, IEnumerable<cSessionAppendDataPart> pParts) : base(pFlags, pReceived)
+                public cMultiPartSessionAppendData(cStorableFlags pFlags, DateTime? pReceived, IEnumerable<cSessionAppendDataPart> pParts) : base(pFlags, pReceived)
                 {
                     if (pParts == null) throw new ArgumentNullException(nameof(pParts));
 
@@ -445,7 +444,7 @@ namespace work.bacome.imapclient
 
                 public override string ToString()
                 {
-                    cListBuilder lBuilder = new cListBuilder(nameof(cSessionMultiPartAppendData));
+                    cListBuilder lBuilder = new cListBuilder(nameof(cMultiPartSessionAppendData));
                     lBuilder.Append(Flags);
                     lBuilder.Append(Received);
                     lBuilder.Append(mLength);
@@ -453,6 +452,8 @@ namespace work.bacome.imapclient
                     return lBuilder.ToString();
                 }
             }
+
+            ;?; // rename this to just appenddatapart
 
             private abstract class cSessionAppendDataPart
             {
@@ -470,7 +471,7 @@ namespace work.bacome.imapclient
                 public abstract void AddPart(cAppendCommandDetailsBuilder pBuilder, List<cMultiPartLiteralPartBase> pParts);
             }
 
-            private class cSessionMessageAppendDataPart : cSessionAppendDataPart
+            private class cMessageSessionAppendDataPart : cSessionAppendDataPart
             {
                 private readonly cIMAPClient mClient;
                 private readonly iMessageHandle mMessageHandle;
@@ -479,7 +480,7 @@ namespace work.bacome.imapclient
                 private readonly cSection mSection;
                 private readonly uint mLength;
 
-                public cSessionMessageAppendDataPart(cIMAPClient pClient, iMessageHandle pMessageHandle, cSection pSection, uint pLength)
+                public cMessageSessionAppendDataPart(cIMAPClient pClient, iMessageHandle pMessageHandle, cSection pSection, uint pLength)
                 {
                     mClient = pClient ?? throw new ArgumentNullException(nameof(pClient));
                     mMessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
@@ -491,7 +492,7 @@ namespace work.bacome.imapclient
                     mLength = pLength;
                 }
 
-                public cSessionMessageAppendDataPart(cIMAPClient pClient, iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, uint pLength)
+                public cMessageSessionAppendDataPart(cIMAPClient pClient, iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, uint pLength)
                 {
                     mClient = pClient ?? throw new ArgumentNullException(nameof(pClient));
                     mMessageHandle = null;
@@ -513,17 +514,17 @@ namespace work.bacome.imapclient
                     else lStream = new cIMAPMessageDataStream(mClient, mMessageHandle, mSection, pBuilder.TargetBufferSize);
 
                     pBuilder.Add(lStream); // this is what disposes the stream
-                    pParts.Add(new cMultiPartLiteralStreamPart(lStream, mLength, pBuilder.Increment, kSessionAppendMessageReadConfiguration));
+                    pParts.Add(new cMultiPartLiteralStreamPart(lStream, mLength, pBuilder.Increment, kAppendDataReadConfiguration));
                 }
 
-                public override string ToString() => $"{nameof(cSessionMessageAppendDataPart)}({mMessageHandle},{mMailboxHandle},{mUID},{mSection},{mLength})";
+                public override string ToString() => $"{nameof(cMessageSessionAppendDataPart)}({mMessageHandle},{mMailboxHandle},{mUID},{mSection},{mLength})";
             }
 
-            private class cSessionLiteralAppendDataPart : cSessionAppendDataPart
+            private class cLiteralSessionAppendDataPart : cSessionAppendDataPart
             {
                 private cBytes mBytes;
 
-                public cSessionLiteralAppendDataPart(IList<byte> pBytes)
+                public cLiteralSessionAppendDataPart(IList<byte> pBytes)
                 {
                     if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
                     mBytes = new cBytes(pBytes);
@@ -533,17 +534,17 @@ namespace work.bacome.imapclient
 
                 public override void AddPart(cAppendCommandDetailsBuilder pBuilder, List<cMultiPartLiteralPartBase> pParts) => pParts.Add(new cMultiPartLiteralPart(mBytes, pBuilder.Increment));
 
-                public override string ToString() => $"{nameof(cSessionLiteralAppendDataPart)}({mBytes})";
+                public override string ToString() => $"{nameof(cLiteralSessionAppendDataPart)}({mBytes})";
             }
 
-            private class cSessionFileAppendDataPart : cSessionAppendDataPart
+            private class cFileSessionAppendDataPart : cSessionAppendDataPart
             {
                 private readonly string mPath;
                 private readonly uint mLength;
                 private readonly bool mBase64Encode;
                 private readonly cBatchSizerConfiguration mReadConfiguration;
 
-                public cSessionFileAppendDataPart(string pPath, uint pLength, bool pBase64Encode, cBatchSizerConfiguration pReadConfiguration)
+                public cFileSessionAppendDataPart(string pPath, uint pLength, bool pBase64Encode, cBatchSizerConfiguration pReadConfiguration)
                 {
                     mPath = pPath;
                     if (pLength == 0) throw new ArgumentOutOfRangeException(nameof(pLength));
@@ -557,32 +558,62 @@ namespace work.bacome.imapclient
                 public override void AddPart(cAppendCommandDetailsBuilder pBuilder, List<cMultiPartLiteralPartBase> pParts)
                 {
                     Stream lStream = new FileStream(mPath, FileMode.Open, FileAccess.Read);
-                    pBuilder.Add(lStream); // this is what disposes the stream
-                    if (mBase64Encode) lStream = new cBase64Encoder(lStream, mReadConfiguration);
-                    pParts.Add(new cMultiPartLiteralStreamPart(lStream, mLength, pBuilder.Increment, mReadConfiguration));
+                    pBuilder.Add(lStream); // this is what disposes the filestream
+
+                    cBatchSizerConfiguration lReadConfiguration;
+
+                    if (mBase64Encode)
+                    {
+                        lStream = new cBase64EncodingStream(lStream, mReadConfiguration);
+                        pBuilder.Add(lStream); // this is what disposes the base64encodingstream
+                        lReadConfiguration = kAppendDataReadConfiguration;
+                    }
+                    else lReadConfiguration = mReadConfiguration;
+
+                    pParts.Add(new cMultiPartLiteralStreamPart(lStream, mLength, pBuilder.Increment, lReadConfiguration));
                 }
 
-                public override string ToString() => $"{nameof(cSessionFileAppendDataPart)}({mPath},{mLength},{mBase64Encode},{mReadConfiguration})";
+                public override string ToString() => $"{nameof(cFileSessionAppendDataPart)}({mPath},{mLength},{mBase64Encode},{mReadConfiguration})";
             }
 
-            private class cSessionStreamAppendDataPart : cSessionAppendDataPart
+            private class cStreamSessionAppendDataPart : cSessionAppendDataPart
             {
                 private readonly Stream mStream;
                 private readonly uint mLength;
+                private readonly bool mBase64Encode;
                 private readonly cBatchSizerConfiguration mReadConfiguration;
 
-                public cSessionStreamAppendDataPart(Stream pStream, uint pLength, cBatchSizerConfiguration pReadConfiguration)
+                public cStreamSessionAppendDataPart(Stream pStream, uint pLength, bool pBase64Encode, cBatchSizerConfiguration pReadConfiguration)
                 {
                     mStream = pStream;
                     mLength = pLength;
+                    mBase64Encode = pBase64Encode;
                     mReadConfiguration = pReadConfiguration ?? throw new ArgumentNullException(nameof(pReadConfiguration));
                 }
 
                 public override uint Length => mLength;
 
-                public override void AddPart(cAppendCommandDetailsBuilder pBuilder, List<cMultiPartLiteralPartBase> pParts) => pParts.Add(new cMultiPartLiteralStreamPart(mStream, mLength, pBuilder.Increment, mReadConfiguration));
+                public override void AddPart(cAppendCommandDetailsBuilder pBuilder, List<cMultiPartLiteralPartBase> pParts)
+                {
+                    Stream lStream;
+                    cBatchSizerConfiguration lReadConfiguration;
 
-                public override string ToString() => $"{nameof(cSessionStreamAppendDataPart)}({mLength},{mReadConfiguration})";
+                    if (mBase64Encode)
+                    {
+                        lStream = new cBase64EncodingStream(mStream, mReadConfiguration);
+                        pBuilder.Add(lStream); // this is what disposes the base64encodingstream
+                        lReadConfiguration = kAppendDataReadConfiguration;
+                    }
+                    else
+                    {
+                        lStream = mStream;
+                        lReadConfiguration = mReadConfiguration;
+                    }
+
+                    pParts.Add(new cMultiPartLiteralStreamPart(lStream, mLength, pBuilder.Increment, lReadConfiguration));
+                }
+
+                public override string ToString() => $"{nameof(cStreamSessionAppendDataPart)}({mLength},{mBase64Encode},{mReadConfiguration})";
             }
         }
     }

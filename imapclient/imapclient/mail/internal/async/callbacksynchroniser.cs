@@ -168,7 +168,7 @@ namespace work.bacome.mailclient
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
-            protected bool IsDisposed => mDisposed;
+            public bool IsDisposed => mDisposed;
 
             protected abstract void YInvoke(object pSender, EventArgs pArgs, cTrace.cContext pParentContext);
 

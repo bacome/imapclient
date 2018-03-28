@@ -11,24 +11,24 @@ namespace work.bacome.mailclient
 
         public override string ToString() => $"{nameof(cMailMessageList)}({Count})";
 
-        public static cMailMessageList FromMessage(MailMessage pMailMessage)
+        public static cMailMessageList FromMessage(MailMessage pMessage)
         {
-            if (pMailMessage == null) throw new ArgumentNullException(nameof(pMailMessage));
+            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
             var lResult = new cMailMessageList();
-            lResult.Add(pMailMessage);
+            lResult.Add(pMessage);
             return lResult;
         }
 
-        public static cMailMessageList FromMessages(IEnumerable<MailMessage> pMailMessages)
+        public static cMailMessageList FromMessages(IEnumerable<MailMessage> pMessages)
         {
-            if (pMailMessages == null) throw new ArgumentNullException(nameof(pMailMessages));
+            if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
 
             var lResult = new cMailMessageList();
 
-            foreach (var lMailMessage in pMailMessages)
+            foreach (var lMessage in pMessages)
             {
-                if (lMailMessage == null) throw new ArgumentOutOfRangeException(nameof(pMailMessages), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
-                lResult.Add(lMailMessage);
+                if (lMessage == null) throw new ArgumentOutOfRangeException(nameof(pMessages), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
+                lResult.Add(lMessage);
             }
 
             return lResult;

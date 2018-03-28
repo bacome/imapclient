@@ -34,6 +34,7 @@ namespace work.bacome.mailclient
         private static readonly cTrace mTrace = new cTrace("work.bacome.cMailClient");
 
         // mechanics
+        private bool mDisposed = false;
         private readonly string mInstanceName;
         protected readonly cTrace.cContext mRootContext;
         protected readonly cCallbackSynchroniser mSynchroniser;
@@ -285,17 +286,19 @@ namespace work.bacome.mailclient
 
         public cHeaderFieldFactory GetHeaderFieldFactory(Encoding pEncoding = null) => new cHeaderFieldFactory((SupportedFormats & fMessageDataFormat.utf8headers) != 0, pEncoding ?? Encoding);
 
-        internal void InvokeActionLong(Action<long> pAction, long pLong)
-        {
-            var lContext = mRootContext.NewMethod(nameof(cMailClient), nameof(InvokeActionLong), pLong);
-            mSynchroniser.InvokeActionLong(pAction, pLong, lContext);
-        }
-
         public abstract void Connect();
         public abstract Task ConnectAsync();
 
         public abstract void Disconnect();
         public abstract Task DisconnectAsync();
+
+        public bool IsDisposed => mDisposed;
+
+        internal void InvokeActionLong(Action<long> pAction, long pLong)
+        {
+            var lContext = mRootContext.NewMethod(nameof(cMailClient), nameof(InvokeActionLong), pLong);
+            mSynchroniser.InvokeActionLong(pAction, pLong, lContext);
+        }
 
         public void Dispose()
         {
@@ -303,6 +306,26 @@ namespace work.bacome.mailclient
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool pDisposing) { }
+        protected virtual void Dispose(bool pDisposing)
+        {
+            if (mDisposed) return;
+
+            if (pDisposing)
+            {
+                if (mSynchroniser != null)
+                {
+                    try { mSynchroniser.Dispose(); }
+                    catch { }
+                }
+
+                if (mCancellationManager != null)
+                {
+                    try { mCancellationManager.Dispose(); }
+                    catch { }
+                }
+            }
+
+            mDisposed = true;
+        }
     }
 }

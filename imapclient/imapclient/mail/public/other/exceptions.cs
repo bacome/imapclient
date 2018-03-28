@@ -119,12 +119,24 @@ namespace work.bacome.mailclient
     public class cMailMessageFormException : cMailException
     {
         public readonly MailMessage MailMessage;
-        public readonly string Property;
+        public readonly AttachmentBase Attachment;
 
-        internal cMailMessageFormException(MailMessage pMailMessage, string pProperty, string pMessage, Exception pInnerException) : base(pMessage, pInnerException)
+        internal cMailMessageFormException(MailMessage pMailMessage, string pMessage) : base(pMessage)
         {
             MailMessage = pMailMessage;
-            Property = pProperty;
+            Attachment = null;
+        }
+
+        internal cMailMessageFormException(MailMessage pMailMessage, AttachmentBase pAttachment, string pMessage) : base(pMessage)
+        {
+            MailMessage = pMailMessage;
+            Attachment = pAttachment;
+        }
+
+        internal cMailMessageFormException(MailMessage pMailMessage, AttachmentBase pAttachment, string pMessage, Exception pInnerException) : base(pMessage, pInnerException)
+        {
+            MailMessage = pMailMessage;
+            Attachment = pAttachment;
         }
     }
 

@@ -141,14 +141,12 @@ namespace work.bacome.imapclient
 
         public cMultiPartLiteralStreamPart(Stream pStream, uint pLength, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration)
         {
-            if (pStream == null) throw new ArgumentNullException(nameof(pStream));
-            if (pReadConfiguration == null) throw new ArgumentNullException(nameof(pReadConfiguration));
+            Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!pStream.CanRead) throw new ArgumentOutOfRangeException(nameof(pStream));
-            if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
-            Stream = pStream;
             mLength = pLength;
+            if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
             Increment = pIncrement;
-            ReadConfiguration = pReadConfiguration;
+            ReadConfiguration = pReadConfiguration ?? throw new ArgumentNullException(nameof(pReadConfiguration));
         }
 
         public override uint Length => mLength;

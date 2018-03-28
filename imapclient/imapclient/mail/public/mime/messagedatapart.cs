@@ -174,7 +174,7 @@ namespace work.bacome.mailclient
 
             Path = lFileInfo.FullName;
 
-            long lLength = cBase64Encoder.EncodedLength(lFileInfo.Length);
+            long lLength = cBase64EncodingStream.EncodedLength(lFileInfo.Length);
             if (lLength > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pPath));
             Length = (uint)lLength;
 
@@ -229,7 +229,7 @@ namespace work.bacome.mailclient
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!pStream.CanRead || !pStream.CanSeek) throw new ArgumentOutOfRangeException(nameof(pStream));
 
-            long lLength = cBase64Encoder.EncodedLength(pStream.Length);
+            long lLength = cBase64EncodingStream.EncodedLength(pStream.Length);
             if (lLength > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pStream));
             Length = (uint)lLength;
 
@@ -241,7 +241,7 @@ namespace work.bacome.mailclient
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!pStream.CanRead) throw new ArgumentOutOfRangeException(nameof(pStream));
 
-            long lLength = cBase64Encoder.EncodedLength(pLength);
+            long lLength = cBase64EncodingStream.EncodedLength(pLength);
             if (lLength > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pLength));
             Length = (uint)lLength;
 

@@ -10,7 +10,7 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
 {
-    internal class cBase64Encoder : Stream
+    internal class cBase64EncodingStream : Stream
     {
         private readonly Stream mStream;
         private readonly cBatchSizer mReadSizer;
@@ -29,7 +29,7 @@ namespace work.bacome.mailclient
 
         private readonly List<byte> mBytesToEncode = new List<byte>(57);
 
-        public cBase64Encoder(Stream pStream, cBatchSizerConfiguration pConfiguration)
+        public cBase64EncodingStream(Stream pStream, cBatchSizerConfiguration pConfiguration)
         {
             mStream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!mStream.CanRead) throw new ArgumentOutOfRangeException(nameof(pStream));
@@ -77,8 +77,8 @@ namespace work.bacome.mailclient
                 {
                     if (ZGenerateSomeOutputBytes()) break;
                     if (mReadStreamToEnd) return lBytesRead;
-                    ZPrepareForReadIntoReadBuffer();
-                    mBytesReadIntoReadBuffer = mStream.Read(mReadBuffer, 0, mReadBuffer.Length);
+                    int lReadSize = ZPrepareForReadIntoReadBuffer();
+                    mBytesReadIntoReadBuffer = mStream.Read(mReadBuffer, 0, lReadSize);
                     ZReadBytesIntoReadBuffer();
                 }
             }
@@ -101,8 +101,8 @@ namespace work.bacome.mailclient
                 {
                     if (ZGenerateSomeOutputBytes()) break;
                     if (mReadStreamToEnd) return lBytesRead;
-                    ZPrepareForReadIntoReadBuffer();
-                    mBytesReadIntoReadBuffer = await mStream.ReadAsync(mReadBuffer, 0, mReadBuffer.Length, pCancellationToken);
+                    int lReadSize = ZPrepareForReadIntoReadBuffer();
+                    mBytesReadIntoReadBuffer = await mStream.ReadAsync(mReadBuffer, 0, lReadSize, pCancellationToken);
                     ZReadBytesIntoReadBuffer();
                 }
             }
@@ -130,11 +130,12 @@ namespace work.bacome.mailclient
             return lBytesRead;
         }
 
-        private void ZPrepareForReadIntoReadBuffer()
+        private int ZPrepareForReadIntoReadBuffer()
         {
             int lCurrent = mReadSizer.Current;
             if (mReadBuffer == null || lCurrent > mReadBuffer.Length) mReadBuffer = new byte[lCurrent];
             mStopwatch.Restart();
+            return lCurrent;
         }
 
         private void ZReadBytesIntoReadBuffer()
@@ -297,12 +298,12 @@ namespace work.bacome.mailclient
             string lFinalString;
 
             using (MemoryStream lInput = new MemoryStream(Encoding.UTF8.GetBytes(pInputString)))
-            using (cBase64Encoder lEncoder = new cBase64Encoder(lInput, new cBatchSizerConfiguration(10, 10, 10000, 10)))
+            using (cBase64EncodingStream lEncoder = new cBase64EncodingStream(lInput, new cBatchSizerConfiguration(10, 10, 10000, 10)))
             using (MemoryStream lIntermediate = new MemoryStream())
             {
                 lEncoder.CopyTo(lIntermediate);
 
-                if (lIntermediate.Length != EncodedLength(lInput.Length)) throw new cTestsException($"{nameof(cBase64Encoder)}({pTestName}.l)");
+                if (lIntermediate.Length != EncodedLength(lInput.Length)) throw new cTestsException($"{nameof(cBase64EncodingStream)}({pTestName}.l)");
 
                 lIntermediateString = new string(Encoding.UTF8.GetChars(lIntermediate.ToArray()));
 
@@ -315,7 +316,7 @@ namespace work.bacome.mailclient
                 }
             }
 
-            if (lFinalString != pInputString) throw new cTestsException($"{nameof(cBase64Encoder)}({pTestName}.f)");
+            if (lFinalString != pInputString) throw new cTestsException($"{nameof(cBase64EncodingStream)}({pTestName}.f)");
 
             // check the lines are no longer than 76 chars and that they all end with crlf and there are no blank lines
 
@@ -325,9 +326,9 @@ namespace work.bacome.mailclient
             {
                 if (lLineStart == lIntermediateString.Length) break;
                 int lLineEnd = lIntermediateString.IndexOf("\r\n", lLineStart);
-                if (lLineEnd == -1) throw new cTestsException($"{nameof(cBase64Encoder)}({pTestName}.e)");
+                if (lLineEnd == -1) throw new cTestsException($"{nameof(cBase64EncodingStream)}({pTestName}.e)");
                 int lLineLength = lLineEnd - lLineStart;
-                if (lLineLength < 1 || lLineLength > 76) throw new cTestsException($"{nameof(cBase64Encoder)}({pTestName}.ll)");
+                if (lLineLength < 1 || lLineLength > 76) throw new cTestsException($"{nameof(cBase64EncodingStream)}({pTestName}.ll)");
                 lLineStart = lLineEnd + 2;
             }
         }

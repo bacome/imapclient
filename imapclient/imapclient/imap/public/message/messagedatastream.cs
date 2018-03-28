@@ -23,10 +23,10 @@ namespace work.bacome.imapclient
         public readonly eDecodingRequired Decoding;
         public readonly int TargetBufferSize;
 
-        // for streams that may be appended via a mailmessage: the length is required 
-        public readonly bool HasKnownLength;
+        private readonly bool mHasKnownFormatAndLength;
+        private fMessageDataFormat? mFormat;
+        private uint? mLength;
 
-        private uint mLength;
         private int mReadTimeout = Timeout.Infinite;
 
         // background fetch task
@@ -52,8 +52,12 @@ namespace work.bacome.imapclient
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
             TargetBufferSize = pTargetBufferSize;
 
-            HasKnownLength = true;
-            mLength = MessageHandle.Size ?? 0;
+            mHasKnownFormatAndLength = true;
+
+            if (MessageHandle.BodyStructure != null) mFormat = (Client.SupportedFormats & fMessageDataFormat.utf8headers) | MessageHandle.BodyStructure.Format;
+            else mFormat = null;
+
+            mLength = MessageHandle.Size;
         }
 
         public cIMAPMessageDataStream(cIMAPAttachment pAttachment, bool pDecoded = true, int pTargetBufferSize = DefaultTargetBufferSize)
@@ -78,13 +82,15 @@ namespace work.bacome.imapclient
 
             if (Decoding == eDecodingRequired.none)
             {
-                HasKnownLength = true;
+                mHasKnownFormatAndLength = true;
+                mFormat = pAttachment.Part.Format;
                 mLength = pAttachment.Part.SizeInBytes;
             }
             else
             {
-                HasKnownLength = false;
-                mLength = 0;
+                mHasKnownFormatAndLength = false;
+                mFormat = null;
+                mLength = null;
             }
         }
 
@@ -110,13 +116,15 @@ namespace work.bacome.imapclient
 
             if (Decoding == eDecodingRequired.none)
             {
-                HasKnownLength = true;
+                mHasKnownFormatAndLength = true;
+                mFormat = pPart.Format;
                 mLength = pPart.SizeInBytes;
             }
             else
             {
-                HasKnownLength = false;
-                mLength = 0;
+                mHasKnownFormatAndLength = false;
+                mFormat = null;
+                mLength = null;
             }
         }
 
@@ -140,19 +148,24 @@ namespace work.bacome.imapclient
 
             if (pSection == cSection.All && pDecoding == eDecodingRequired.none)
             {
-                HasKnownLength = true;
-                mLength = MessageHandle.Size ?? 0;
+                mHasKnownFormatAndLength = true;
+
+                if (MessageHandle.BodyStructure != null) mFormat = (Client.SupportedFormats & fMessageDataFormat.utf8headers) | MessageHandle.BodyStructure.Format;
+                else mFormat = null;
+
+                mLength = MessageHandle.Size;
             }
             else
             {
-                HasKnownLength = false;
-                mLength = 0;
+                mHasKnownFormatAndLength = false;
+                mFormat = null;
+                mLength = null;
             }
         }
 
-        public cIMAPMessageDataStream(cMailbox pMailbox, cUID pUID, cSection pSection, uint pLength, int pTargetBufferSize = DefaultTargetBufferSize)
+        public cIMAPMessageDataStream(cMailbox pMailbox, cUID pUID, cSection pSection, fMessageDataFormat pFormat, uint pLength, int pTargetBufferSize = DefaultTargetBufferSize)
         {
-            // note that this API if the length is wrong could lead to bad things
+            // note that this API if the format and/or length is wrong could lead to bad things
 
             if (pMailbox == null) throw new ArgumentNullException(nameof(pMailbox));
             if (!pMailbox.IsSelected) throw new ArgumentOutOfRangeException(nameof(pMailbox), kArgumentOutOfRangeExceptionMessage.MailboxMustBeSelected);
@@ -169,7 +182,9 @@ namespace work.bacome.imapclient
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
             TargetBufferSize = pTargetBufferSize;
 
-            HasKnownLength = true;
+            mHasKnownFormatAndLength = true;
+
+            mFormat = pFormat;
 
             if (pLength == 0) throw new ArgumentOutOfRangeException(nameof(pLength));
             mLength = pLength;
@@ -192,8 +207,9 @@ namespace work.bacome.imapclient
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
             TargetBufferSize = pTargetBufferSize;
 
-            HasKnownLength = false;
-            mLength = 0;
+            mHasKnownFormatAndLength = false;
+            mFormat = null;
+            mLength = null;
         }
 
         internal cIMAPMessageDataStream(cIMAPMessageDataStream pStream)
@@ -206,7 +222,8 @@ namespace work.bacome.imapclient
             Section = pStream.Section;
             Decoding = pStream.Decoding;
             TargetBufferSize = pStream.TargetBufferSize;
-            HasKnownLength = pStream.HasKnownLength;
+            mHasKnownFormatAndLength = pStream.mHasKnownFormatAndLength;
+            mFormat = pStream.mFormat;
             mLength = pStream.mLength;
             mReadTimeout = pStream.mReadTimeout;
         }
@@ -222,8 +239,9 @@ namespace work.bacome.imapclient
             Decoding = eDecodingRequired.none;
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
             TargetBufferSize = pTargetBufferSize;
-            HasKnownLength = false;
-            mLength = 0;
+            mHasKnownFormatAndLength = false;
+            mFormat = null;
+            mLength = null;
         }
 
         internal cIMAPMessageDataStream(cIMAPClient pClient, iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, int pTargetBufferSize)
@@ -237,48 +255,71 @@ namespace work.bacome.imapclient
             Decoding = eDecodingRequired.none;
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
             TargetBufferSize = pTargetBufferSize;
-            HasKnownLength = false;
-            mLength = 0;
+            mHasKnownFormatAndLength = false;
+            mFormat = null;
+            mLength = null;
         }
 
-        public uint GetKnownLength()
+        internal void GetKnownFormatAndLength()
         {
-            if (!HasKnownLength) throw new InvalidOperationException();
+            if (!mHasKnownFormatAndLength) throw new InvalidOperationException();
 
-            if (mLength > 0) return mLength;
+            if (mFormat != null && mLength != null ) return;
 
             if (MessageHandle != null && Section == cSection.All && Decoding == eDecodingRequired.none)
             {
-                if (!Client.Fetch(MessageHandle, fMessageCacheAttributes.size))
+                if (!Client.Fetch(MessageHandle, fMessageCacheAttributes.size | fMessageCacheAttributes.bodystructure))
                 {
                     if (MessageHandle.Expunged) throw new cMessageExpungedException(MessageHandle);
                     throw new cRequestedIMAPDataNotReturnedException(MessageHandle);
                 }
 
-                return MessageHandle.Size.Value;
+                mFormat = (Client.SupportedFormats & fMessageDataFormat.utf8headers) | MessageHandle.BodyStructure.Format;
+                mLength = MessageHandle.Size;
             }
 
-            throw new cInternalErrorException(nameof(cIMAPMessageDataStream), nameof(GetKnownLength));
+            throw new cInternalErrorException(nameof(cIMAPMessageDataStream), nameof(GetKnownFormatAndLength));
         }
 
-        public async Task<uint> GetKnownLengthAsync()
+        internal async Task GetKnownFormatAndLengthAsync()
         {
-            if (!HasKnownLength) throw new InvalidOperationException();
+            if (!mHasKnownFormatAndLength) throw new InvalidOperationException();
 
-            if (mLength > 0) return mLength;
+            if (mFormat != null && mLength != null) return;
 
             if (MessageHandle != null && Section == cSection.All && Decoding == eDecodingRequired.none)
             {
-                if (!await Client.FetchAsync(MessageHandle, fMessageCacheAttributes.size).ConfigureAwait(false))
+                if (!await Client.FetchAsync(MessageHandle, fMessageCacheAttributes.size | fMessageCacheAttributes.bodystructure).ConfigureAwait(false))
                 {
                     if (MessageHandle.Expunged) throw new cMessageExpungedException(MessageHandle);
                     throw new cRequestedIMAPDataNotReturnedException(MessageHandle);
                 }
 
-                return MessageHandle.Size.Value;
+                mFormat = (Client.SupportedFormats & fMessageDataFormat.utf8headers) | MessageHandle.BodyStructure.Format;
+                mLength = MessageHandle.Size;
             }
 
-            throw new cInternalErrorException(nameof(cIMAPMessageDataStream), nameof(GetKnownLengthAsync));
+            throw new cInternalErrorException(nameof(cIMAPMessageDataStream), nameof(GetKnownFormatAndLengthAsync));
+        }
+
+        public bool HasKnownFormatAndLength => mHasKnownFormatAndLength;
+
+        public fMessageDataFormat KnownFormat
+        {
+            get
+            {
+                GetKnownFormatAndLength();
+                return mFormat.Value;
+            }
+        }
+
+        public uint KnownLength
+        {
+            get
+            {
+                GetKnownFormatAndLength();
+                return mLength.Value;
+            }
         }
 
         public int CurrentBufferSize => mBuffer?.CurrentSize ?? 0;

@@ -40,9 +40,7 @@ namespace work.bacome.mailclient
 
     internal static class kMailMessageFormExceptionMessage
     {
-        public const string MixedEncodings = "mixed encodings";
         public const string StreamNotSeekable = "stream not seekable";
-        public const string MessageDataStreamUnknownLength = "message data stream unknown length";
-        public const string ReplyToNotSupported = "reply-to not supported";
+        public const string MessageDataStreamUnknownFormatAndLength = "message data stream unknown format and length";
     }
 }

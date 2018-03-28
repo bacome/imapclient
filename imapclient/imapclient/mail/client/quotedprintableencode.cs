@@ -93,7 +93,7 @@ namespace work.bacome.mailclient
                 if (pSource.CanTimeout) pSource.ReadTimeout = pMC.Timeout;
                 else _ = pMC.Timeout; // check for timeout
 
-                int lBytesReadIntoBuffer = await pSource.ReadAsync(lReadBuffer, 0, lReadBuffer.Length, pMC.CancellationToken).ConfigureAwait(false);
+                int lBytesReadIntoBuffer = await pSource.ReadAsync(lReadBuffer, 0, lCurrent, pMC.CancellationToken).ConfigureAwait(false);
 
                 lStopwatch.Stop();
 

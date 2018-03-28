@@ -47,6 +47,7 @@
     <Compile Include="imap\client\decodedsizeinbytes.cs" />
     <Compile Include="mail\client\quotedprintableencode.cs" />
     <Compile Include="mail\internal\bytescursor\rfc822\getphrase.cs" />
+    <Compile Include="mail\internal\encoding\encodingrequired.cs" />
     <Compile Include="mail\internal\encoding\headerfieldbytes.cs" />
     <Compile Include="mail\public\configuration\attachmentsaveconfiguration.cs" />
     <Compile Include="mail\public\configuration\fetchconfiguration.cs" />

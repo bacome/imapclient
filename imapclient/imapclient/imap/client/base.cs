@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Text;
 using work.bacome.mailclient;
-using work.bacome.mailclient.support;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -83,15 +82,10 @@ namespace work.bacome.imapclient
 
 
         // mechanics
-        private bool mDisposed = false;
         private readonly cIMAPCallbackSynchroniser mIMAPSynchroniser;
 
-        // current session
-        private cSession mSession = null;
-        private cNamespaces mNamespaces = null; // if namespace is not supported by the server then this is used
-        private cMailbox mInbox = null;
-
         // property backing storage
+        private Encoding mEncoding = Encoding.UTF8;
         private fIMAPCapabilities mIgnoreCapabilities = 0;
         private cIMAPAuthenticationParameters mAuthenticationParameters = null;
         private bool mMailboxReferrals = false;
@@ -101,9 +95,13 @@ namespace work.bacome.imapclient
         private cBatchSizerConfiguration mFetchBodyConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cBatchSizerConfiguration mAppendBatchConfiguration = new cBatchSizerConfiguration(1000, int.MaxValue, 10000, 1000);
         private int mAppendTargetBufferSize = cIMAPMessageDataStream.DefaultTargetBufferSize;
-        private Encoding mEncoding = Encoding.UTF8;
         private cIMAPClientId mClientId = new cIMAPClientId(new cIMAPIdDictionary(true));
         private cIMAPClientIdUTF8 mClientIdUTF8 = null;
+
+        // current session
+        private cSession mSession = null;
+        private cNamespaces mNamespaces = null; // if namespace is not supported by the server then this is used
+        private cMailbox mInbox = null;
 
         /// <summary>
         /// Initialises a new instance.
@@ -132,7 +130,7 @@ namespace work.bacome.imapclient
             set
             {
                 var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(Encoding), value);
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 if (!cCommandPartFactory.TryAsCharsetName(value, out _)) throw new ArgumentOutOfRangeException();
                 mEncoding = value;
                 mSession?.SetEncoding(value, lContext);
@@ -202,58 +200,6 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the connection state of the instance.
-        /// </summary>
-        public eIMAPConnectionState ConnectionState => mSession?.ConnectionState ?? eIMAPConnectionState.notconnected;
-
-        /// <summary>
-        /// Gets the capabilities of the connected (or most recently connected) server. May be <see langword="null"/>.
-        /// </summary>
-        /// <remarks>
-        /// The capabilities reflect the server capabilities less the <see cref="IgnoreCapabilities"/>.
-        /// Set during <see cref="Connect"/>.
-        /// </remarks>
-        public cIMAPCapabilities Capabilities => mSession?.Capabilities;
-
-        /// <summary>
-        /// Gets the extensions that the library has enabled on the connected (or most recently connected) server.
-        /// </summary>
-        /// <remarks>
-        /// Set during <see cref="Connect"/>.
-        /// </remarks>
-        public fEnableableExtensions EnabledExtensions => mSession?.EnabledExtensions ?? fEnableableExtensions.none;
-
-        /// <summary>
-        /// Gets the login referral (RFC 2221), if received. May be <see langword="null"/>.
-        /// </summary>
-        /// <remarks>
-        /// Set during <see cref="Connect"/>.
-        /// </remarks>
-        public cURL HomeServerReferral => mSession?.HomeServerReferral;
-
-        /// <summary>
-        /// Gets and sets the server capabilities that the instance should ignore.
-        /// </summary>
-        /// <remarks>
-        /// May only be set while <see cref="IsUnconnected"/>.
-        /// Useful for testing or if your server (or the library) has a bug in its implementation of an IMAP extension.
-        /// </remarks>
-        /// <seealso cref="Capabilities"/>
-        public fIMAPCapabilities IgnoreCapabilities
-        {
-            get => mIgnoreCapabilities;
-
-            set
-            {
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
-                if ((value & fIMAPCapabilities.logindisabled) != 0) throw new ArgumentOutOfRangeException();
-                mIgnoreCapabilities = value;
-            }
-        }
-
-
-        /// <summary>
         /// Sets <see cref="Server"/>, defaulting the port to 143 and SSL to <see langword="false"/>. 
         /// </summary>
         /// <param name="pHost"></param>
@@ -289,6 +235,27 @@ namespace work.bacome.imapclient
         public void SetServer(string pHost, int pPort, bool pSSL) => Server = new cServer(pHost, pPort, pSSL);
 
         /// <summary>
+        /// Gets and sets the server capabilities that the instance should ignore.
+        /// </summary>
+        /// <remarks>
+        /// May only be set while <see cref="IsUnconnected"/>.
+        /// Useful for testing or if your server (or the library) has a bug in its implementation of an IMAP extension.
+        /// </remarks>
+        /// <seealso cref="Capabilities"/>
+        public fIMAPCapabilities IgnoreCapabilities
+        {
+            get => mIgnoreCapabilities;
+
+            set
+            {
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
+                if ((value & fIMAPCapabilities.logindisabled) != 0) throw new ArgumentOutOfRangeException();
+                mIgnoreCapabilities = value;
+            }
+        }
+
+        /// <summary>
         /// Gets and sets the authentication parameters to be used by <see cref="Connect"/>.
         /// </summary>
         /// <remarks>
@@ -302,7 +269,7 @@ namespace work.bacome.imapclient
 
             set
             {
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 mAuthenticationParameters = value;
             }
@@ -345,7 +312,7 @@ namespace work.bacome.imapclient
 
             set
             {
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 mMailboxReferrals = value;
             }
@@ -361,22 +328,13 @@ namespace work.bacome.imapclient
         /// The mailbox data items that are actually requested depends on the <see cref="fMailboxCacheDataSets"/> value used at the time of the request.
         /// </note>
         /// </remarks>
-        /// <seealso cref="cNamespace.Mailboxes(fMailboxCacheDataSets)"/>
-        /// <seealso cref="cNamespace.Subscribed(bool, fMailboxCacheDataSets)"/>
-        /// <seealso cref="cMailbox.Mailboxes(fMailboxCacheDataSets)"/>
-        /// <seealso cref="cMailbox.Subscribed(bool, fMailboxCacheDataSets)"/>
-        /// <seealso cref="cMailbox.Refresh(fMailboxCacheDataSets)"/>
-        /// <seealso cref="iMailboxContainer.Mailboxes(fMailboxCacheDataSets)"/>
-        /// <seealso cref="iMailboxContainer.Subscribed(bool, fMailboxCacheDataSets)"/>
-        /// <seealso cref="Mailboxes(string, char?, fMailboxCacheDataSets)"/>
-        /// <seealso cref="Subscribed(string, char?, bool, fMailboxCacheDataSets)"/>
         public fMailboxCacheDataItems MailboxCacheDataItems
         {
             get => mMailboxCacheDataItems;
 
             set
             {
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 mMailboxCacheDataItems = value;
             }
@@ -397,7 +355,7 @@ namespace work.bacome.imapclient
             set
             {
                 var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(IdleConfiguration), value);
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 mIdleConfiguration = value;
                 mSession?.SetIdleConfiguration(value, lContext);
             }
@@ -408,22 +366,18 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// Limits the number of messages per batch when requesting cache-items from the server. Measured in number of messages.
+        /// May only be set while <see cref="IsUnconnected"/>.
         /// The default value is min=1 message, max=1000 messages, maxtime=10s, initial=1 message.
         /// </remarks>
-        /// <seealso cref="Fetch(System.Collections.Generic.IEnumerable{cIMAPMessage}, cMessageCacheItems, cFetchCacheItemConfiguration)"/>
-        /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchCacheItemConfiguration)"/>
-        /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{cUID}, cMessageCacheItems, cFetchCacheItemConfiguration)"/>
-        /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{iMessageHandle}, cMessageCacheItems, cFetchCacheItemConfiguration)"/>
         public cBatchSizerConfiguration FetchCacheItemsConfiguration
         {
             get => mFetchCacheItemsConfiguration;
 
             set
             {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(FetchCacheItemsConfiguration), value);
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 mFetchCacheItemsConfiguration = value ?? throw new ArgumentNullException();
-                mSession?.SetFetchCacheItemsConfiguration(value, lContext);
             }
         }
 
@@ -432,18 +386,18 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// Limits the size of the partial fetches used when getting body sections from the server. Measured in bytes.
+        /// May only be set while <see cref="IsUnconnected"/>.
         /// The default value is min=1000b, max=1000000b, maxtime=10s, initial=1000b.
         /// </remarks>
-        public cBatchSizerConfiguration FetchBodyReadConfiguration
+        public cBatchSizerConfiguration FetchBodyConfiguration
         {
-            get => mFetchBodyReadConfiguration;
+            get => mFetchBodyConfiguration;
 
             set
             {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(FetchBodyReadConfiguration), value);
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                mFetchBodyReadConfiguration = value ?? throw new ArgumentNullException();
-                mSession?.SetFetchBodyReadConfiguration(value, lContext);
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
+                mFetchBodyConfiguration = value ?? throw new ArgumentNullException();
             }
         }
 
@@ -452,8 +406,9 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// Limits the size of batches used when appending. Measured in bytes.
-        /// The default value is min=1000b, max=unlimited, maxtime=10s, initial=1000b.
         /// If <see cref="cIMAPCapabilities.MultiAppend"/> is in use, limits the number of messages sent in a single append, otherwise limits the number of pipelined appends.
+        /// May only be set while <see cref="IsUnconnected"/>.
+        /// The default value is min=1000b, max=unlimited, maxtime=10s, initial=1000b.
         /// </remarks>
         public cBatchSizerConfiguration AppendBatchConfiguration
         {
@@ -461,10 +416,9 @@ namespace work.bacome.imapclient
 
             set
             {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(AppendBatchConfiguration), value);
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 mAppendBatchConfiguration = value ?? throw new ArgumentNullException();
-                mSession?.SetAppendBatchConfiguration(value, lContext);
             }
         }
 
@@ -474,11 +428,10 @@ namespace work.bacome.imapclient
 
             set
             {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(AppendTargetBufferSize), value);
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 if (value < 1) throw new ArgumentOutOfRangeException();
                 mAppendTargetBufferSize = value;
-                mSession?.SetAppendTargetBufferSize(value, lContext);
             }
         }
 
@@ -497,7 +450,7 @@ namespace work.bacome.imapclient
 
             set
             {
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 mClientId = value;
             }
@@ -517,11 +470,41 @@ namespace work.bacome.imapclient
 
             set
             {
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 mClientIdUTF8 = value;
             }
         }
+
+        /// <summary>
+        /// Gets the connection state of the instance.
+        /// </summary>
+        public eIMAPConnectionState ConnectionState => mSession?.ConnectionState ?? eIMAPConnectionState.notconnected;
+
+        /// <summary>
+        /// Gets the capabilities of the connected (or most recently connected) server. May be <see langword="null"/>.
+        /// </summary>
+        /// <remarks>
+        /// The capabilities reflect the server capabilities less the <see cref="IgnoreCapabilities"/>.
+        /// Set during <see cref="Connect"/>.
+        /// </remarks>
+        public cIMAPCapabilities Capabilities => mSession?.Capabilities;
+
+        /// <summary>
+        /// Gets the extensions that the library has enabled on the connected (or most recently connected) server.
+        /// </summary>
+        /// <remarks>
+        /// Set during <see cref="Connect"/>.
+        /// </remarks>
+        public fEnableableExtensions EnabledExtensions => mSession?.EnabledExtensions ?? fEnableableExtensions.none;
+
+        /// <summary>
+        /// Gets the login referral (RFC 2221), if received. May be <see langword="null"/>.
+        /// </summary>
+        /// <remarks>
+        /// Set during <see cref="Connect"/>.
+        /// </remarks>
+        public cURL HomeServerReferral => mSession?.HomeServerReferral;
 
         /// <summary>
         /// Gets the ID (RFC 2971) details of the connected (or last connected) server, if they were sent. May be <see langword="null"/>.
@@ -530,6 +513,41 @@ namespace work.bacome.imapclient
         /// Set during <see cref="Connect"/>.
         /// </remarks>
         public cIMAPId ServerId => mSession?.ServerId;
+
+        /// <summary>
+        /// Gets an object that represents the currently selected mailbox, or <see langword="null"/> if there is no mailbox currently selected.
+        /// </summary>
+        /// <remarks>
+        /// Use <see cref="cMailbox.Select(bool)"/> to select a mailbox.
+        /// </remarks>
+        public cMailbox SelectedMailbox
+        {
+            get
+            {
+                var lDetails = mSession?.SelectedMailboxDetails;
+                if (lDetails == null) return null;
+                return new cMailbox(this, lDetails.MailboxHandle);
+            }
+        }
+
+        /// <summary>
+        /// Gets an object that represents the named mailbox.
+        /// </summary>
+        /// <param name="pMailboxName"></param>
+        /// <returns></returns>
+        public cMailbox GetMailbox(cMailboxName pMailboxName)
+        {
+            if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+
+            var lSession = mSession;
+            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
+
+            if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
+
+            var lMailboxHandle = mSession.GetMailboxHandle(pMailboxName);
+
+            return new cMailbox(this, lMailboxHandle);
+        }
 
         /// <summary>
         /// Gets the namespace details for the connected (or last connected) account. May be <see langword="null"/>.
@@ -558,47 +576,11 @@ namespace work.bacome.imapclient
 
         internal object MailboxCache => mSession?.MailboxCache;
         internal iSelectedMailboxDetails SelectedMailboxDetails => mSession?.SelectedMailboxDetails;
-
-        /// <summary>
-        /// Gets an object that represents the currently selected mailbox, or <see langword="null"/> if there is no mailbox currently selected.
-        /// </summary>
-        /// <remarks>
-        /// Use <see cref="cMailbox.Select(bool)"/> to select a mailbox.
-        /// </remarks>
-        public cMailbox SelectedMailbox
-        {
-            get
-            {
-                var lDetails = mSession?.SelectedMailboxDetails;
-                if (lDetails == null) return null;
-                return new cMailbox(this, lDetails.MailboxHandle);
-            }
-        }
-
-        /// <summary>
-        /// Gets an object that represents the named mailbox.
-        /// </summary>
-        /// <param name="pMailboxName"></param>
-        /// <returns></returns>
-        public cMailbox Mailbox(cMailboxName pMailboxName)
-        {
-            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-
-            var lSession = mSession;
-            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
-
-            if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
-
-            var lMailboxHandle = mSession.GetMailboxHandle(pMailboxName);
-
-            return new cMailbox(this, lMailboxHandle);
-        }
-
         internal bool? HasCachedChildren(iMailboxHandle pMailboxHandle) => mSession?.HasCachedChildren(pMailboxHandle);
 
         protected override void Dispose(bool pDisposing)
         {
-            if (mDisposed) return;
+            if (IsDisposed) return;
 
             if (pDisposing)
             {
@@ -607,21 +589,7 @@ namespace work.bacome.imapclient
                     try { mSession.Dispose(); }
                     catch { }
                 }
-
-                if (mSynchroniser != null)
-                {
-                    try { mSynchroniser.Dispose(); }
-                    catch { }
-                }
-
-                if (mCancellationManager != null)
-                {
-                    try { mCancellationManager.Dispose(); }
-                    catch { }
-                }
             }
-
-            mDisposed = true;
 
             base.Dispose(pDisposing);
         }
