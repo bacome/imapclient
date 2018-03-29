@@ -109,6 +109,8 @@ namespace work.bacome.mailclient
             // check for unsupported format
             if (pMessage.BodyTransferEncoding == TransferEncoding.EightBit && (SupportedFormats & fMessageDataFormat.eightbit) == 0) throw new cMailMessageFormException(pMessage, nameof(MailMessage.BodyTransferEncoding));
 
+            ;?; 
+
             long lToConvert = 0;
 
             foreach (var lAlternateView in pMessage.AlternateViews)
@@ -126,45 +128,117 @@ namespace work.bacome.mailclient
             return lToConvert;
         }
 
-        private async Task<long> ZConvertMailMessageValidateAttachmentAsync(MailMessage pMessage, AttachmentBase pAttachment, bool pText)
+        private async Task<sConvertMailMessageAttachmentDetails> ZConvertMailMessageGetAttachmentDetailsAsync(MailMessage pMessage, AttachmentBase pAttachment)
         {
-            ;?; // attachment.contenttype.mediatype must match 
-
-            // returns the length that needs to be converted to quoted printable (0 if it doesn't need conversion to qp)
-            //  throws if the stream isn't suitable 
-            //  throws if the cte specified doesn't match the content (only for messagedatastreams where I know what the format of the content is)
-            //  throws if I have to decide the cte and there is no option (only for messagedatastreams where I know what the format of the content is)
-            //   e.g. if the attachment uses utf8 headers and this is not supported
-            //        if the attachment is a message 8bit or 
-
             if (pAttachment.ContentStream is cIMAPMessageDataStream lMessageDataStream)
             {
-                if ((await ZConvertMailMessageGetIMAPMessageDataStreamURLDetailsAsync(lMessageDataStream, pAttachment.TransferEncoding).ConfigureAwait(false)).MessageDataPartType != eConvertMailMessageMessageDataPartType.none)
-                {
-                    // I can use the data in the message/rfc822 format directly (i.e. burl or catenate _could_ be used) => no quoted-printable encoding is required
-                    return 0;
-                }
+                var lDetails = await ZConvertMailMessageGetIMAPMessageDataStreamURLDetailsAsync(lMessageDataStream, pAttachment.TransferEncoding).ConfigureAwait(false);
+
+                // if the attachment can be converted to a URL return those details
+                if (lDetails.MessageDataPartType != eConvertMailMessageMessageDataPartType.none) return lDetails;
 
                 // I have to stream the data => I need to know the format and length
                 if (!lMessageDataStream.HasKnownFormatAndLength) throw new cMailMessageFormException(pMessage, pAttachment, kMailMessageFormExceptionMessage.MessageDataStreamUnknownFormatAndLength);
 
-                if (pAttachment.TransferEncoding )
-                    // ensure that the values are available
-                    await lMessageDataStream.GetKnownFormatAndLengthAsync().ConfigureAwait(false);
+                // ensure that the values are available
+                await lMessageDataStream.GetKnownFormatAndLengthAsync().ConfigureAwait(false);
 
+                switch (pAttachment.TransferEncoding)
+                {
+                    case TransferEncoding.QuotedPrintable:
 
+                        return new sConvertMailMessageAttachmentDetails(eContentTransferEncoding.quotedprintable, fMessageDataFormat.sevenbit, lMessageDataStream.KnownLength);
 
-                ;?; // check that the trasfer encoding matches the content type of the stream
-                // e.g. 
+                    case TransferEncoding.Base64:
 
-                if (pAttachment.TransferEncoding == TransferEncoding.QuotedPrintable || (pAttachment.TransferEncoding == TransferEncoding.Unknown && pText)) return lMessageDataStream.KnownLength;
-                return 0;
+                        return sConvertMailMessageAttachmentDetails.Base64;
+
+                    case TransferEncoding.SevenBit:
+
+                        if (lMessageDataStream.KnownFormat == fMessageDataFormat.sevenbit) return sConvertMailMessageAttachmentDetails.SevenBit;
+                        throw new cMailMessageFormException(pMessage, pAttachment, nameof(AttachmentBase.TransferEncoding));
+
+                    case TransferEncoding.EightBit:
+
+                        if ((lMessageDataStream.KnownFormat & fMessageDataFormat.binary) != 0) throw new cMailMessageFormException(pMessage, pAttachment, nameof(AttachmentBase.TransferEncoding));
+                        return new sConvertMailMessageAttachmentDetails(eContentTransferEncoding.eightbit, lMessageDataStream.KnownFormat, 0);
+
+                    case TransferEncoding.Unknown:
+
+                        if (lMessageDataStream.KnownFormat == fMessageDataFormat.sevenbit) return sConvertMailMessageAttachmentDetails.SevenBit;
+
+                        if (pAttachment.ContentType.MediaType.Equals("message/partial", StringComparison.InvariantCultureIgnoreCase)) throw new cMailMessageFormException(pMessage, pAttachment, nameof(ContentType.MediaType));
+
+                        if (pAttachment.ContentType.MediaType.Equals("message/rfc822", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            ;?; // these could be constants
+                            eContentTransferEncoding lCTE;
+                            if ((lMessageDataStream.KnownFormat & fMessageDataFormat.binary) != 0) lCTE = eContentTransferEncoding.binary;
+                            else lCTE = eContentTransferEncoding.eightbit;
+
+                            return new sConvertMailMessageAttachmentDetails(lCTE, lMessageDataStream.KnownFormat, 0);
+                        }
+
+                        ;?; // should be constant
+                        if (pAttachment.ContentType.MediaType.StartsWith("text/", StringComparison.InvariantCultureIgnoreCase)) return new sConvertMailMessageAttachmentDetails(eContentTransferEncoding.quotedprintableorbase64, fMessageDataFormat.sevenbit, lMessageDataStream.KnownLength);
+
+                        return sConvertMailMessageAttachmentDetails.Base64;
+
+                    default:
+
+                        throw new cInternalErrorException(nameof(cMailAttachment), nameof(ZConvertMailMessageGetAttachmentDetailsAsync), 1);
+                }
             }
 
             if (!pAttachment.ContentStream.CanSeek) throw new cMailMessageFormException(pMessage, pAttachment, kMailMessageFormExceptionMessage.StreamNotSeekable);
-            if (pAttachment.TransferEncoding == TransferEncoding.EightBit && (SupportedFormats & fMessageDataFormat.eightbit) == 0) throw new cMailMessageFormException(pMessage, pAttachment, nameof(Attachment.TransferEncoding));
-            if (pAttachment.TransferEncoding == TransferEncoding.QuotedPrintable || (pAttachment.TransferEncoding == TransferEncoding.Unknown && pText)) return pAttachment.ContentStream.Length;
-            return 0;
+
+            switch (pAttachment.TransferEncoding)
+            {
+                case TransferEncoding.QuotedPrintable:
+
+                    return new sConvertMailMessageAttachmentDetails(eContentTransferEncoding.quotedprintable, fMessageDataFormat.sevenbit, pAttachment.ContentStream.Length);
+
+                case TransferEncoding.Base64:
+
+                    return sConvertMailMessageAttachmentDetails.Base64;
+
+                case TransferEncoding.SevenBit:
+
+                    return sConvertMailMessageAttachmentDetails.SevenBit;
+
+                case TransferEncoding.EightBit:
+
+                    return sConvertMailMessageAttachmentDetails.EightBit;
+
+                case TransferEncoding.Unknown:
+
+                    if (pAttachment.ContentType.MediaType.Equals("message/partial", StringComparison.InvariantCultureIgnoreCase)) return sConvertMailMessageAttachmentDetails.SevenBit;
+
+                    if (pAttachment.ContentType.MediaType.Equals("message/rfc822", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        var lFormat = ZConvertMailMessageRFC822Format(pAttachment.ContentStream); // examines the stream parsing for format
+
+                        ;/; // these cuold be constants
+                        eContentTransferEncoding lCTE;
+                        if ((lFormat & fMessageDataFormat.binary) != 0) lCTE = eContentTransferEncoding.binary;
+                        else if (lFormat & fMessageDataFormat.eightbit) lCTE = eContentTransferEncoding.eightbit;
+                        else lCTE = eContentTransferEncoding.sevenbit;
+
+                        return new sConvertMailMessageAttachmentDetails(lCTE, lFormat, 0);
+                    }
+
+                    if (pAttachment.ContentType.MediaType.StartsWith("text/", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        ;?; // analyse the stream for 7bit or encoded AND use constant
+                        return new sConvertMailMessageAttachmentDetails(eContentTransferEncoding.quotedprintableorbase64, fMessageDataFormat.sevenbit, lMessageDataStream.KnownLength);
+                    }
+
+                    return sConvertMailMessageAttachmentDetails.Base64;
+
+                default:
+
+                    throw new cInternalErrorException(nameof(cMailAttachment), nameof(ZConvertMailMessageGetAttachmentDetailsAsync), 1);
+            }
         }
 
         private async Task<sConvertMailMessageIMAPMessageDataStreamURLDetails> ZConvertMailMessageGetIMAPMessageDataStreamURLDetailsAsync(cIMAPMessageDataStream pMessageDataStream, TransferEncoding pTransferEncoding)
@@ -609,19 +683,38 @@ namespace work.bacome.mailclient
             pParts.Add(pPart);
         }
 
-        private struct sConvertMailMessageIMAPMessageDataStreamURLDetails
+        private struct sConvertMailMessageAttachmentDetails
         {
-            public static readonly sConvertMailMessageIMAPMessageDataStreamURLDetails CannotBeRepresentedAsURL = new sConvertMailMessageIMAPMessageDataStreamURLDetails();
+            public static readonly sConvertMailMessageAttachmentDetails None = new sConvertMailMessageAttachmentDetails();
+            public static readonly sConvertMailMessageAttachmentDetails SevenBit = new sConvertMailMessageAttachmentDetails(eContentTransferEncoding.sevenbit, fMessageDataFormat.sevenbit, 0);
+            public static readonly sConvertMailMessageAttachmentDetails EightBit = new sConvertMailMessageAttachmentDetails(eContentTransferEncoding.eightbit, fMessageDataFormat.eightbit, 0);
+            public static readonly sConvertMailMessageAttachmentDetails Base64 = new sConvertMailMessageAttachmentDetails(eContentTransferEncoding.base64, fMessageDataFormat.sevenbit, 0);
 
             public readonly eConvertMailMessageMessageDataPartType MessageDataPartType;
             public readonly eContentTransferEncoding ContentTransferEncoding;
+            public readonly fMessageDataFormat MessageDataFormat;
+            public readonly long LengthToConvertToQuotedPrintable;
 
-            public sConvertMailMessageIMAPMessageDataStreamURLDetails(eConvertMailMessageMessageDataPartType pMessageDataPartType, eContentTransferEncoding pContentTransferEncoding)
+            public sConvertMailMessageAttachmentDetails(eConvertMailMessageMessageDataPartType pMessageDataPartType, eContentTransferEncoding pContentTransferEncoding, fMessageDataFormat pMessageDataFormat, long pLengthToConvertToQuotedPrintable)
             {
+                ;?;
                 MessageDataPartType = pMessageDataPartType;
                 ContentTransferEncoding = pContentTransferEncoding;
+                MessageDataFormat = pMessageDataFormat;
+                LengthToConvertToQuotedPrintable = pLengthToConvertToQuotedPrintable;
             }
+
+            public sConvertMailMessageAttachmentDetails(eContentTransferEncoding pContentTransferEncoding, fMessageDataFormat pMessageDataFormat, long pLengthToConvertToQuotedPrintable = 0)
+            {
+                MessageDataPartType = eConvertMailMessageMessageDataPartType.none;
+                ContentTransferEncoding = pContentTransferEncoding;
+                MessageDataFormat = pMessageDataFormat;
+                LengthToConvertToQuotedPrintable = pLengthToConvertToQuotedPrintable;
+            }
+
         }
+
+
 
         private struct sConvertMailMessageQuotedPrintableEncodeResult
         {
