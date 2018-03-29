@@ -10,6 +10,6 @@ namespace work.bacome.mailclient
         binary,
         quotedprintable,
         base64,
-        encoded // choose quotedprintable or base64
+        text // choose 7bit, quotedprintable or base64 based on the content
     }
 }

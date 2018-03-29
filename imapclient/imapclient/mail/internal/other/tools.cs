@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Net.Mail;
 using System.Text;
-using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
 {
