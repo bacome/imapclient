@@ -18,8 +18,8 @@ namespace work.bacome.imapclient
             public void InvokeResponseText(eIMAPResponseTextContext pTextContext, cIMAPResponseText pResponseText, cTrace.cContext pParentContext)
             {
                 if (ResponseText == null) return; // pre-check for efficiency only
-                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeResponseText), pTextContext, pResponseText);
-                if (IsDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
+                var lContext = pParentContext.NewMethod(nameof(cIMAPCallbackSynchroniser), nameof(InvokeResponseText), pTextContext, pResponseText);
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPCallbackSynchroniser));
                 YInvokeAndForget(new cIMAPResponseTextEventArgs(pTextContext, pResponseText), lContext);
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
@@ -28,9 +28,9 @@ namespace work.bacome.imapclient
             {
                 if (MailboxPropertyChanged == null || pProperties == 0) return; // pre-checks for efficiency
 
-                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeMailboxPropertiesChanged), pMailboxHandle, pProperties);
+                var lContext = pParentContext.NewMethod(nameof(cIMAPCallbackSynchroniser), nameof(InvokeMailboxPropertiesChanged), pMailboxHandle, pProperties);
 
-                if (IsDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPCallbackSynchroniser));
 
                 if ((pProperties & fMailboxProperties.exists) != 0) YInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.Exists)));
 
@@ -76,8 +76,8 @@ namespace work.bacome.imapclient
             public void InvokeMailboxMessageDelivery(iMailboxHandle pMailboxHandle, cMessageHandleList pMessageHandles, cTrace.cContext pParentContext)
             {
                 if (MailboxMessageDelivery == null) return; // pre-check for efficiency only
-                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeMailboxMessageDelivery), pMailboxHandle, pMessageHandles);
-                if (IsDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
+                var lContext = pParentContext.NewMethod(nameof(cIMAPCallbackSynchroniser), nameof(InvokeMailboxMessageDelivery), pMailboxHandle, pMessageHandles);
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPCallbackSynchroniser));
                 YInvokeAndForget(new cMailboxMessageDeliveryEventArgs(pMailboxHandle, pMessageHandles), lContext);
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
@@ -85,8 +85,8 @@ namespace work.bacome.imapclient
             public void InvokeMessagePropertyChanged(iMessageHandle pMessageHandle, string pPropertyName, cTrace.cContext pParentContext)
             {
                 if (MessagePropertyChanged == null) return; // pre-check for efficiency only
-                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeMessagePropertyChanged), pMessageHandle, pPropertyName);
-                if (IsDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
+                var lContext = pParentContext.NewMethod(nameof(cIMAPCallbackSynchroniser), nameof(InvokeMessagePropertyChanged), pMessageHandle, pPropertyName);
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPCallbackSynchroniser));
                 YInvokeAndForget(new cMessagePropertyChangedEventArgs(pMessageHandle, pPropertyName), lContext);
             }
 
@@ -94,9 +94,9 @@ namespace work.bacome.imapclient
             {
                 if (MessagePropertyChanged == null || pProperties == 0) return; // pre-checks for efficiency
 
-                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeMessagePropertiesChanged), pMessageHandle, pProperties);
+                var lContext = pParentContext.NewMethod(nameof(cIMAPCallbackSynchroniser), nameof(InvokeMessagePropertiesChanged), pMessageHandle, pProperties);
 
-                if (IsDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPCallbackSynchroniser));
 
                 if ((pProperties & fIMAPMessageProperties.flags) != 0) YInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pMessageHandle, nameof(cIMAPMessage.Flags)));
                 if ((pProperties & fIMAPMessageProperties.answered) != 0) YInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pMessageHandle, nameof(cIMAPMessage.Answered)));
@@ -115,7 +115,7 @@ namespace work.bacome.imapclient
 
             protected override void YInvoke(object pSender, EventArgs pEventArgs, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(YInvoke));
+                var lContext = pParentContext.NewMethod(nameof(cIMAPCallbackSynchroniser), nameof(YInvoke));
 
                 switch (pEventArgs)
                 {

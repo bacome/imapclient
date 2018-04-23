@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using work.bacome.mailclient;
 
 namespace work.bacome.imapclient
 {

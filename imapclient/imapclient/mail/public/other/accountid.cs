@@ -28,11 +28,7 @@ namespace work.bacome.mailclient
         public cAccountId(string pHost, object pCredentialId)
         {
             if (pHost == null) throw new ArgumentNullException(nameof(pHost));
-
-            ;?; // this is ok, but it should be done this way everywhere, so this should be replaced
-            string lASCIIHost = cIMAPClient.IDNMapping.GetAscii(pHost);
-            UnicodeHost = cIMAPClient.IDNMapping.GetUnicode(lASCIIHost);
-
+            Host = cTools.GetDisplayHost(pHost);
             CredentialId = pCredentialId ?? throw new ArgumentNullException(nameof(pCredentialId));
         }
 
@@ -48,14 +44,14 @@ namespace work.bacome.mailclient
             unchecked
             {
                 int lHash = 17;
-                lHash = lHash * 23 + UnicodeHost.GetHashCode();
+                lHash = lHash * 23 + Host.GetHashCode();
                 lHash = lHash * 23 + CredentialId.GetHashCode();
                 return lHash;
             }
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cAccountId)}({UnicodeHost},{CredentialId})";
+        public override string ToString() => $"{nameof(cAccountId)}({Host},{CredentialId})";
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
         public static bool operator ==(cAccountId pA, cAccountId pB)
@@ -63,7 +59,7 @@ namespace work.bacome.mailclient
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
             if (ReferenceEquals(pB, null)) return false;
-            return pA.UnicodeHost == pB.UnicodeHost && pA.CredentialId.Equals(pB.CredentialId);
+            return pA.Host == pB.Host && pA.CredentialId.Equals(pB.CredentialId);
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>

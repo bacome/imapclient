@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using work.bacome.imapclient;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
@@ -69,7 +70,7 @@ namespace work.bacome.mailclient
             var lContext = pParentContext.NewMethod(nameof(cBytesCursor), nameof(_Tests_Capability));
 
             cBytesCursor lCursor;
-            cCapabilities lCapabilities;
+            cIMAPCapabilities lCapabilities;
             cStrings lCapabilityList;
             cStrings lAuthenticationMechanisms;
 
@@ -89,11 +90,11 @@ namespace work.bacome.mailclient
             if (lAuthenticationMechanisms.Count != 2 || !lAuthenticationMechanisms.Contains("angus") || !lAuthenticationMechanisms.Contains("fred")) throw new cTestsException("authenticatemechanismnames not as expected", lContext);
             if (lCapabilityList.Count != 6) throw new cTestsException("capabilities not as expected", lContext);
 
-            lCapabilities = new cCapabilities(lCapabilityList, lAuthenticationMechanisms, 0);
+            lCapabilities = new cIMAPCapabilities(lCapabilityList, lAuthenticationMechanisms, 0);
             if (lCapabilities.LoginDisabled || !lCapabilities.Idle || lCapabilities.LiteralPlus || !lCapabilities.LiteralMinus || lCapabilities.Enable || !lCapabilities.UTF8Accept) throw new cTestsException("properties not as expected", lContext);
             //if (!lAuthenticationMechanisms.Contains("ANGUS") || !lAuthenticationMechanisms.Contains("FRED") || lAuthenticationMechanisms.Contains("fr€d")) throw new cTestsException("properties not as expected", lContext);
 
-            lCapabilities = new cCapabilities(lCapabilityList, lAuthenticationMechanisms, fCapabilities.idle | fCapabilities.literalminus);
+            lCapabilities = new cIMAPCapabilities(lCapabilityList, lAuthenticationMechanisms, fIMAPCapabilities.idle | fIMAPCapabilities.literalminus);
             if (lCapabilities.LoginDisabled || lCapabilities.Idle || lCapabilities.LiteralPlus || lCapabilities.LiteralMinus || lCapabilities.Enable || !lCapabilities.UTF8Accept) throw new cTestsException("properties not as expected", lContext);
 
             lCursor = new cBytesCursor("auth=angus idle auth=(fred literal- imap4rev1 charlie utf8=accept bob");

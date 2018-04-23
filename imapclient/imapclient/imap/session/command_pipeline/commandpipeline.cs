@@ -68,7 +68,7 @@ namespace work.bacome.imapclient
                 private cCommand mCurrentCommand = null;
                 private readonly cActiveCommands mActiveCommands = new cActiveCommands();
 
-                public cCommandPipeline(cCallbackSynchroniser pSynchroniser, Action<cTrace.cContext> pDisconnected, cBatchSizerConfiguration pNetworkWriteConfiguration, cIdleConfiguration pIdleConfiguration, cTrace.cContext pParentContext)
+                public cCommandPipeline(cIMAPCallbackSynchroniser pSynchroniser, Action<cTrace.cContext> pDisconnected, cBatchSizerConfiguration pNetworkWriteConfiguration, cIdleConfiguration pIdleConfiguration, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cCommandPipeline), pIdleConfiguration);
 

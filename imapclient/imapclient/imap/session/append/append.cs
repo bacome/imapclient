@@ -15,6 +15,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
+            /* TEMP comment out for cachefile work
             public async Task<cAppendFeedback> AppendAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cAppendDataList pData, Action<long> pSetMaximum, Action<int> pIncrement, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(AppendAsync), pMC, pMailboxHandle, pData);
@@ -472,7 +473,7 @@ namespace work.bacome.imapclient
 
                 // done
                 return lAllAppendedOK;
-            }
+            } */
         }
     }
 }

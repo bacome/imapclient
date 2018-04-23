@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -61,7 +63,7 @@ namespace work.bacome.imapclient
 
                 while (true)
                 {
-                    int lLength = mFetchBodyReadSizer.Current;
+                    int lLength = mFetchBodySizer.Current;
 
                     lStopwatch.Restart();
 
@@ -72,7 +74,7 @@ namespace work.bacome.imapclient
                     lStopwatch.Stop();
 
                     // store the time taken so the next fetch is a better size
-                    mFetchBodyReadSizer.AddSample(lBody.Bytes.Count, lStopwatch.ElapsedMilliseconds);
+                    mFetchBodySizer.AddSample(lBody.Bytes.Count, lStopwatch.ElapsedMilliseconds);
 
                     uint lBodyOrigin = lBody.Origin ?? 0;
 

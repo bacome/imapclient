@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -39,7 +41,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("setunseencount success");
-                        if (lHook.MessageHandles == null) throw new cUnexpectedServerActionException(lResult, "results not received on a successful setunseencount", 0, lContext);
+                        if (lHook.MessageHandles == null) throw new cUnexpectedIMAPServerActionException(lResult, "results not received on a successful setunseencount", 0, lContext);
                         return lHook.MessageHandles;
                     }
 

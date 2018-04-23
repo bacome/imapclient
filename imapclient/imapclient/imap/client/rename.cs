@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -24,7 +26,7 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZRenameAsync), pMailboxHandle, pMailboxName);
 
-            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+            if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
             if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
@@ -34,7 +36,7 @@ namespace work.bacome.imapclient
 
             using (var lToken = mCancellationManager.GetToken(lContext))
             {
-                var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
+                var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
                 var lMailboxHandle = await lSession.RenameAsync(lMC, pMailboxHandle, pMailboxName, lContext).ConfigureAwait(false);
                 return new cMailbox(this, lMailboxHandle);
             }

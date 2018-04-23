@@ -27,15 +27,14 @@ namespace work.bacome.imapclient
             cCulturedString._Tests(lContext);
             cMailboxName._Tests(lContext);
             cBatchSizer._Tests(lContext);
-            //cHeaderFieldNames._Tests(lContext);
             cHeaderFieldNameList._Tests(lContext);
             cHeaderFields._Tests(lContext);
             cStorableFlagList._Tests(lContext);
-            cHeaderFieldAppendDataPart._Tests(lContext);
+            //cHeaderFieldAppendDataPart._Tests(lContext);
             cQuotedPrintableDecoder._Tests(lContext);
             cBase64EncodingStream._Tests(lContext);
             cHeaderFieldBytes._Tests(lContext);
-            cHeaderFieldValuePart._Tests(lContext);
+            //cHeaderFieldValuePart._Tests(lContext);
             cTests.QuotedPrintableEncodeTests(lContext);
             cAccountId._Tests();
             cValidation._Tests();
@@ -58,11 +57,6 @@ namespace work.bacome.imapclient
                 //_Tests_ListExtendedCommandParts(lContext);
                 cCommandDetailsBuilder._Tests(lContext);
             }
-        }
-
-        private static partial class cTests
-        {
-            private static cIMAPClient mClient = new cIMAPClient();
         }
     }
 

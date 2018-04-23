@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using work.bacome.imapclient;
 
 namespace work.bacome.mailclient
 {
@@ -19,13 +18,6 @@ namespace work.bacome.mailclient
             return lTempFileName;
         }
 
-        internal cIMAPMessageDataStream GetMessageDataStream(cIMAPMessageDataStream pStream)
-        {
-            cIMAPMessageDataStream lMessageDataStream = new cIMAPMessageDataStream(pStream);
-            mStreams.Add(lMessageDataStream);
-            return lMessageDataStream;
-        }
-
         internal MemoryStream GetMemoryStream(byte[] pBuffer)
         {
             MemoryStream lMemoryStream = new MemoryStream(pBuffer);
@@ -35,15 +27,15 @@ namespace work.bacome.mailclient
 
         public void Dispose()
         {
-            foreach (var lTempFileName in mTempFileNames)
-            {
-                try { File.Delete(lTempFileName); }
-                catch { }
-            }
-
             foreach (var lStream in mStreams)
             {
                 try { lStream.Dispose(); }
+                catch { }
+            }
+
+            foreach (var lTempFileName in mTempFileNames)
+            {
+                try { File.Delete(lTempFileName); }
                 catch { }
             }
         }

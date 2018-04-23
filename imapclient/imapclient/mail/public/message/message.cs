@@ -18,27 +18,75 @@ namespace work.bacome.mailclient
         /// <summary>
         /// Gets the sent date of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
         /// </summary>
-        public abstract DateTimeOffset? SentDateTimeOffset { get; }
+        public DateTimeOffset? SentDateTimeOffset => Envelope.SentDateTimeOffset;
 
         /// <summary>
         /// Gets the sent date of the message from the <see cref="Envelope"/> (in local time if there is usable time zone information). May be <see langword="null"/>.
         /// </summary>
-        public abstract DateTime? SentDateTime { get; }
+        public DateTime? SentDateTime => Envelope.SentDateTime;
 
-        // note when doing help: see the the above worked first (for the IMAPMessage copying the summary from here and the remarks from there)
-        public abstract cCulturedString Subject { get; }
-        public abstract string BaseSubject { get; }
-        public abstract cAddresses From { get; }
-        public abstract cAddresses Sender { get; }
-        public abstract cAddresses ReplyTo { get; }
-        public abstract cAddresses To { get; }
-        public abstract cAddresses CC { get; }
-        public abstract cAddresses BCC { get; }
-        public abstract cStrings InReplyTo { get; }
-        public abstract string MessageId { get; }
+        /// <summary>
+        /// Gets the subject of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
+        /// </summary>
+        public cCulturedString Subject => Envelope.Subject;
+
+        /// <summary>
+        /// Gets the base subject of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
+        /// </summary>
+        /// <remarks>
+        /// The base subject is defined RFC 5256 and is the subject with the RE: FW: etc artifacts removed.
+        /// </remarks>
+        public string BaseSubject => Envelope.BaseSubject;
+
+        /// <summary>
+        /// Gets the 'from' addresses of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
+        /// </summary>
+        public cAddresses From => Envelope.From;
+
+        /// <summary>
+        /// Gets the 'sender' addresses of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
+        /// </summary>
+        public cAddresses Sender => Envelope.Sender;
+
+        /// <summary>
+        /// Gets the 'reply-to' addresses of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
+        /// </summary>
+        public cAddresses ReplyTo => Envelope.ReplyTo;
+
+        /// <summary>
+        /// Gets the 'to' addresses of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
+        /// </summary>
+        public cAddresses To => Envelope.To;
+
+        /// <summary>
+        /// Gets the 'CC' addresses of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
+        /// </summary>
+        public cAddresses CC => Envelope.CC;
+
+        /// <summary>
+        /// Gets the 'BCC' addresses of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
+        /// </summary>
+        public cAddresses BCC => Envelope.BCC;
+
+        /// <summary>
+        /// Gets the normalised 'in-reply-to' message-ids of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
+        /// </summary>
+        /// <remarks>
+        /// Normalised message-ids have the quoting, comments and white space removed.
+        /// </remarks>
+        public cStrings InReplyTo => Envelope.InReplyTo?.MessageIds;
+
+        /// <summary>
+        /// Gets the normalised message-id of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
+        /// </summary>
+        public string MessageId => Envelope.MsgId?.MessageId;
+
         public abstract uint Size { get; }
+
         public abstract cBodyPart BodyStructure { get; }
+
         public abstract fMessageDataFormat Format { get; }
+
         public abstract List<cMailAttachment> Attachments { get; }
 
         /// <summary>
@@ -54,13 +102,21 @@ namespace work.bacome.mailclient
             get
             {
                 uint lSize = 0;
-                foreach (var lPart in YPlainTextParts(BodyStructure)) lSize += lPart.SizeInBytes;
+                foreach (var lPart in ZPlainTextParts(BodyStructure)) lSize += lPart.SizeInBytes;
                 return lSize;
             }
         }
 
         public abstract cStrings References { get; }
         public abstract eImportance? Importance { get; }
+
+        internal void CheckPart(cBodyPart pPart)
+        {
+            if (pPart == null) throw new ArgumentNullException(nameof(pPart));
+            var lBodyStructure = BodyStructure;
+            if (ReferenceEquals(lBodyStructure, pPart)) return;
+            if (!lBodyStructure.Contains(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+        }
 
         /// <summary>
         /// Returns the plain text of the message.
@@ -75,7 +131,7 @@ namespace work.bacome.mailclient
         public string PlainText()
         {
             StringBuilder lBuilder = new StringBuilder();
-            foreach (var lPart in YPlainTextParts(BodyStructure)) lBuilder.Append(Fetch(lPart));
+            foreach (var lPart in ZPlainTextParts(BodyStructure)) lBuilder.Append(Fetch(lPart));
             return lBuilder.ToString();
         }
 
@@ -83,7 +139,16 @@ namespace work.bacome.mailclient
         /// Ansynchronously returns the plain text of the message.
         /// </summary>
         /// <inheritdoc cref="PlainText" select="returns|remarks"/>
-        public abstract Task<string> PlainTextAsync();
+        public virtual async Task<string> PlainTextAsync()
+        {
+            List<Task<string>> lTasks = new List<Task<string>>();
+            foreach (var lPart in ZPlainTextParts(BodyStructure)) lTasks.Add(FetchAsync(lPart));
+            await Task.WhenAll(lTasks).ConfigureAwait(false);
+
+            StringBuilder lBuilder = new StringBuilder();
+            foreach (var lTask in lTasks) lBuilder.Append(lTask.Result);
+            return lBuilder.ToString();
+        }
 
         /// <summary>
         /// Returns the content of the specified <see cref="cTextBodyPart"/>.
@@ -190,7 +255,7 @@ namespace work.bacome.mailclient
             return lResult;
         }
 
-        protected List<cTextBodyPart> YPlainTextParts(cBodyPart pPart)
+        private List<cTextBodyPart> ZPlainTextParts(cBodyPart pPart)
         {
             // TODO: when we know what languages the user is interested in (on implementation of languages) choose from multipart/alternative options based on language tag
 
@@ -206,7 +271,7 @@ namespace work.bacome.mailclient
             {
                 foreach (var lPart in lMultiPart.Parts)
                 {
-                    var lParts = YPlainTextParts(lPart);
+                    var lParts = ZPlainTextParts(lPart);
                     lResult.AddRange(lParts);
                     if (lParts.Count > 0 && lMultiPart.SubTypeCode == eMultiPartBodySubTypeCode.alternative) break;
                 }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -46,7 +48,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("extended sort success");
-                        if (lHook.MessageHandles == null) throw new cUnexpectedServerActionException(lResult, "results not received on a successful extended sort", fIMAPCapabilities.esort, lContext);
+                        if (lHook.MessageHandles == null) throw new cUnexpectedIMAPServerActionException(lResult, "results not received on a successful extended sort", fIMAPCapabilities.esort, lContext);
                         return lHook.MessageHandles;
                     }
 

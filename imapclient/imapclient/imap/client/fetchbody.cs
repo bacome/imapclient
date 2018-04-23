@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchBodyAsync), pMessageHandle, pSection, pDecoding);
 
-            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+            if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
             if (lSession == null || lSession.ConnectionState != eIMAPConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
@@ -44,14 +44,14 @@ namespace work.bacome.imapclient
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
                     var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
-                    var lWriteSizer = new cBatchSizer(mFetchBodyWriteConfiguration);
+                    var lWriteSizer = new cBatchSizer(LocalStreamWriteConfiguration);
                     await lSession.FetchBodyAsync(lMC, pMessageHandle, pSection, pDecoding, pStream, null, lWriteSizer, lContext).ConfigureAwait(false);
                 }
             }
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                var lWriteSizer = new cBatchSizer(pConfiguration.WriteConfiguration ?? mFetchBodyWriteConfiguration);
+                var lWriteSizer = new cBatchSizer(pConfiguration.WriteConfiguration ?? LocalStreamWriteConfiguration);
                 await lSession.FetchBodyAsync(lMC, pMessageHandle, pSection, pDecoding, pStream, pConfiguration.Increment, lWriteSizer, lContext).ConfigureAwait(false);
             }
         }

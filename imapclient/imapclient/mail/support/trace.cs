@@ -172,6 +172,16 @@ namespace work.bacome.mailclient.support
             public abstract cContext NewSetProp(bool pContextTraceDelay, string pClass, string pProperty, object pValue);
 
             /// <summary>
+            /// Returns a new sub-context with a context-create trace message in 'property getter' format.
+            /// </summary>
+            /// <param name="pContextTraceDelay"></param>
+            /// <param name="pClass">The name of the class.</param>
+            /// <param name="pProperty">The name of the property.</param>
+            /// <returns></returns>
+            /// <remarks>For use when creating a context for a property getter.</remarks>
+            public abstract cContext NewGetProp(bool pContextTraceDelay, string pClass, string pProperty);
+
+            /// <summary>
             /// Returns a new sub-context with a context-create trace message in 'method' format.
             /// </summary>
             /// <param name="pContextTraceDelay"></param>
@@ -262,6 +272,17 @@ namespace work.bacome.mailclient.support
             /// For use when creating a context for a property setter.
             /// </remarks>
             public virtual cContext NewSetProp(string pClass, string pProperty, object pValue) => NewSetProp(false, pClass, pProperty, pValue);
+
+            /// <summary>
+            /// Returns a new sub-context with a context-create trace message in 'property getter' format.
+            /// </summary>
+            /// <param name="pClass">The name of the class.</param>
+            /// <param name="pProperty">The name of the property.</param>
+            /// <returns></returns>
+            /// <remarks>
+            /// For use when creating a context for a property getter.
+            /// </remarks>
+            public virtual cContext NewGetProp(string pClass, string pProperty) => NewGetProp(false, pClass, pProperty);
 
             /// <summary>
             /// Returns a new sub-context with a context-create trace message in 'method' format.
@@ -415,6 +436,7 @@ namespace work.bacome.mailclient.support
                 public override cContext NewGeneric(bool pContextTraceDelay, string pMessage, params object[] pArgs) => this;
                 public override cContext NewObject(bool pContextTraceDelay, string pClass, params object[] pArgs) => this;
                 public override cContext NewSetProp(bool pContextTraceDelay, string pClass, string pProperty, object pValue) => this;
+                public override cContext NewGetProp(bool pContextTraceDelay, string pClass, string pProperty) => this;
                 public override cContext NewMethod(bool pContextTraceDelay, string pClass, string pMethod, params object[] pArgs) => this;
                 public override cContext NewRootObject(bool pContextTraceDelay, string pClass) => this;
                 public override cContext NewRootMethod(bool pContextTraceDelay, string pClass, string pMethod) => this;
@@ -424,6 +446,7 @@ namespace work.bacome.mailclient.support
                 public override cContext NewObjectV(bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs) => this;
                 public override cContext NewObjectV(string pClass, int pVersion, params object[] pArgs) => this;
                 public override cContext NewSetProp(string pClass, string pProperty, object pValue) => this;
+                public override cContext NewGetProp(string pClass, string pProperty) => this;
                 public override cContext NewMethod(string pClass, string pMethod, params object[] pArgs) => this;
                 public override cContext NewMethodV(bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs) => this;
                 public override cContext NewMethodV(string pClass, string pMethod, int pVersion, params object[] pArgs) => this;
@@ -514,6 +537,16 @@ namespace work.bacome.mailclient.support
                     if (mTraceSource == null) return this;
                     bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
                     var lResult = new cSubSetProp(this, this, 1, lContextTraceDelay, pClass, pProperty, pValue);
+                    if (!lContextTraceDelay) lResult.TraceContext();
+                    return lResult;
+                }
+
+                /// <inheritdoc/>
+                public override cContext NewGetProp(bool pContextTraceDelay, string pClass, string pProperty)
+                {
+                    if (mTraceSource == null) return this;
+                    bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
+                    var lResult = new cSubGetProp(this, this, 1, lContextTraceDelay, pClass, pProperty);
                     if (!lContextTraceDelay) lResult.TraceContext();
                     return lResult;
                 }
@@ -617,6 +650,14 @@ namespace work.bacome.mailclient.support
                     {
                         bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
                         var lResult = new cSubSetProp(mRoot, this, mLevel, lContextTraceDelay, pClass, pProperty, pValue);
+                        if (!lContextTraceDelay) lResult.TraceContext();
+                        return lResult;
+                    }
+
+                    public override cContext NewGetProp(bool pContextTraceDelay, string pClass, string pProperty)
+                    {
+                        bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
+                        var lResult = new cSubGetProp(mRoot, this, mLevel, lContextTraceDelay, pClass, pProperty);
                         if (!lContextTraceDelay) lResult.TraceContext();
                         return lResult;
                     }
@@ -747,6 +788,20 @@ namespace work.bacome.mailclient.support
                     }
 
                     protected override string Context => $"{mClass}.{mProperty}={mValue}";
+                }
+
+                private class cSubGetProp : cSub
+                {
+                    private string mClass;
+                    private string mProperty;
+
+                    public cSubGetProp(cRoot pRoot, cContext pParent, int pParentLevel, bool pContextTraceDelay, string pClass, string pProperty) : base(pRoot, pParent, pParentLevel, pContextTraceDelay)
+                    {
+                        mClass = pClass;
+                        mProperty = pProperty;
+                    }
+
+                    protected override string Context => $"{mClass}.{mProperty}";
                 }
 
                 private class cSubMethod : cSubArgs

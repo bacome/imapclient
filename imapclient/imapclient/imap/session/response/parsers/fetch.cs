@@ -379,7 +379,6 @@ namespace work.bacome.imapclient
                     if (ZProcessBodyStructure(pCursor, new cSection(lSubPartPrefix + "1"), pExtended, out lBodyPart))
                     {
                         List<cBodyPart> lParts = new List<cBodyPart>();
-                        fMessageDataFormat lFormat = 0;
 
                         lParts.Add(lBodyPart);
                         int lPart = 2;
@@ -388,7 +387,6 @@ namespace work.bacome.imapclient
                         {
                             if (!ZProcessBodyStructure(pCursor, new cSection(lSubPartPrefix + lPart++), pExtended, out lBodyPart)) break;
                             lParts.Add(lBodyPart);
-                            lFormat |= lBodyPart.Format;
                         }
 
                         if (!pCursor.SkipByte(cASCII.SPACE) || !pCursor.GetString(out lSubType)) { rBodyPart = null; return false; }
@@ -405,9 +403,7 @@ namespace work.bacome.imapclient
 
                         if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyPart = null; return false; }
 
-                        if (mUTF8Enabled && (lFormat | fMessageDataFormat.eightbit) != 0) lFormat |= fMessageDataFormat.utf8headers; // for the mime headers
-
-                        rBodyPart = new cMultiPartBody(lParts, lFormat, lSubType, pSection, lMultiPartExtensionData);
+                        rBodyPart = new cMultiPartBody(lParts, mUTF8Enabled, lSubType, pSection, lMultiPartExtensionData);
                         return true;
                     }
 

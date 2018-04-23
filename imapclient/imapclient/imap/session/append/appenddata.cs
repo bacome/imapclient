@@ -13,6 +13,8 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
+            /* TEMP comment out for cachefile work
+
             private static readonly cCommandPart kAppendDataUTF8SpaceLParen = new cTextCommandPart("UTF8 (");
             private static readonly cBatchSizerConfiguration kAppendDataReadConfiguration = new cBatchSizerConfiguration(100000, 100000, 1, 100000); // 100k chunks
 
@@ -614,7 +616,7 @@ namespace work.bacome.imapclient
                 }
 
                 public override string ToString() => $"{nameof(cStreamSessionAppendDataPart)}({mLength},{mBase64Encode},{mReadConfiguration})";
-            }
+            } */
         }
     }
 }

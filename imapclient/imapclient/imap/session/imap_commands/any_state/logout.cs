@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -32,7 +33,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("logout success");
-                        if (!lHook.GotBye) throw new cUnexpectedServerActionException(lResult, "bye not received", 0, lContext);
+                        if (!lHook.GotBye) throw new cUnexpectedIMAPServerActionException(lResult, "bye not received", 0, lContext);
                         Disconnect(lContext);
                         return;
                     }

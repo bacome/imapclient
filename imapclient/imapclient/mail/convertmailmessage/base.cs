@@ -14,19 +14,19 @@ namespace work.bacome.mailclient
 {
     public partial class cMailClient
     {
+        /* TEMP comment out for cachefile work
+        private static readonly cBatchSizerConfiguration kConvertMailMessageMemoryStreamReadWriteConfiguration = new cBatchSizerConfiguration(10000, 10000, 1, 10000); // 10k chunks
+
         [Flags]
         public enum fConvertMailMessageOptions
         {
-            excludebcc = 1
+            excludebcc = 1 << 0,
+            consider8bit = 1 << 1
         }
-
-        private enum eConvertMailMessageMessageDataPartType { none, message, messagepart, uidsection }
-
-        private static readonly cBatchSizerConfiguration kConvertMailMessageMemoryStreamReadWriteConfiguration = new cBatchSizerConfiguration(10000, 10000, 1, 10000); // 10k chunks
 
         public cMessageData ConvertMailMessage(cConvertMailMessageDisposables pDisposables, MailMessage pMessage, fConvertMailMessageOptions pOptions, cConvertMailMessageConfiguration pConfiguration = null)
         {
-            var lContext = mRootContext.NewMethod(nameof(cMailClient), nameof(ConvertMailMessage));
+            var lContext = RootContext.NewMethod(nameof(cMailClient), nameof(ConvertMailMessage));
             var lTask = ZConvertMailMessagesAsync(pDisposables, cMailMessageList.FromMessage(pMessage), pOptions, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
             var lResult = lTask.Result;
@@ -36,7 +36,7 @@ namespace work.bacome.mailclient
 
         public async Task<cMessageData> ConvertMailMessageAsync(cConvertMailMessageDisposables pDisposables, MailMessage pMessage, fConvertMailMessageOptions pOptions, cConvertMailMessageConfiguration pConfiguration = null)
         {
-            var lContext = mRootContext.NewMethod(nameof(cMailClient), nameof(ConvertMailMessageAsync));
+            var lContext = RootContext.NewMethod(nameof(cMailClient), nameof(ConvertMailMessageAsync));
             var lResult = await ZConvertMailMessagesAsync(pDisposables, cMailMessageList.FromMessage(pMessage), pOptions, pConfiguration, lContext).ConfigureAwait(false);
             if (lResult.Count != 1) throw new cInternalErrorException(lContext);
             return lResult[0];
@@ -44,7 +44,7 @@ namespace work.bacome.mailclient
 
         public List<cMessageData> ConvertMailMessages(cConvertMailMessageDisposables pDisposables, IEnumerable<MailMessage> pMessages, fConvertMailMessageOptions pOptions, cConvertMailMessageConfiguration pConfiguration = null)
         {
-            var lContext = mRootContext.NewMethod(nameof(cMailClient), nameof(ConvertMailMessages));
+            var lContext = RootContext.NewMethod(nameof(cMailClient), nameof(ConvertMailMessages));
             var lTask = ZConvertMailMessagesAsync(pDisposables, cMailMessageList.FromMessages(pMessages), pOptions, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
@@ -52,7 +52,7 @@ namespace work.bacome.mailclient
 
         public Task<List<cMessageData>> ConvertMailMessagesAsync(cConvertMailMessageDisposables pDisposables, IEnumerable<MailMessage> pMessages, fConvertMailMessageOptions pOptions, cConvertMailMessageConfiguration pConfiguration = null)
         {
-            var lContext = mRootContext.NewMethod(nameof(cMailClient), nameof(ConvertMailMessagesAsync));
+            var lContext = RootContext.NewMethod(nameof(cMailClient), nameof(ConvertMailMessagesAsync));
             return ZConvertMailMessagesAsync(pDisposables, cMailMessageList.FromMessages(pMessages), pOptions, pConfiguration, lContext);
         }
 
@@ -84,7 +84,16 @@ namespace work.bacome.mailclient
         {
             var lContext = pParentContext.NewMethod(nameof(cMailClient), nameof(YConvertMailMessagesAsync), pMC, pMessages, pOptions, pReadConfiguration, pWriteConfiguration);
 
-            long lToConvert = 0;
+            var lAttachments = new List<cConvertMailMessageAttachment>();
+
+            foreach (var lMessage in pMessages)
+            {
+
+            }
+
+
+
+                long lToConvert = 0;
             foreach (var lMessage in pMessages) lToConvert += await ZConvertMailMessageValidateAsync(lMessage, lContext).ConfigureAwait(false);
 
             mSynchroniser.InvokeActionLong(pSetMaximum, lToConvert, lContext);
@@ -97,7 +106,7 @@ namespace work.bacome.mailclient
 
         private async Task<long> ZConvertMailMessageValidateAsync(MailMessage pMessage, cTrace.cContext pParentContext)
         {
-            var lContext = mRootContext.NewMethod(nameof(cMailClient), nameof(ZConvertMailMessageValidateAsync));
+            var lContext = RootContext.NewMethod(nameof(cMailClient), nameof(ZConvertMailMessageValidateAsync));
 
             // check for unsupported features
             if (pMessage.ReplyTo != null) throw new cMailMessageFormException(pMessage, nameof(MailMessage.ReplyTo));
@@ -130,112 +139,6 @@ namespace work.bacome.mailclient
 
         private async Task<sConvertMailMessageAttachmentDetails> ZConvertMailMessageGetAttachmentDetailsAsync(MailMessage pMessage, AttachmentBase pAttachment)
         {
-            const string kMessagePartial = "message/partial";
-            const string kMessageRFC822 = "message/rfc822";
-            const string kText = "text/";
-
-            if (pAttachment.ContentStream is cIMAPMessageDataStream lMessageDataStream)
-            {
-                var lDetails = await ZConvertMailMessageGetIMAPMessageDataStreamURLDetailsAsync(pMessage, pAttachment, lMessageDataStream, pAttachment.TransferEncoding).ConfigureAwait(false);
-
-                // if the attachment can be converted to a URL return those details
-                if (lDetails.MessageDataPartType != eConvertMailMessageMessageDataPartType.none) return lDetails;
-
-                // I have to stream the data => I need to know the format and length
-                if (!lMessageDataStream.HasKnownFormatAndLength) throw new cMailMessageFormException(pMessage, pAttachment, kMailMessageFormExceptionMessage.MessageDataStreamUnknownFormatAndLength);
-
-                // ensure that the values are available
-                await lMessageDataStream.GetKnownFormatAndLengthAsync().ConfigureAwait(false);
-
-                switch (pAttachment.TransferEncoding)
-                {
-                    case TransferEncoding.QuotedPrintable:
-
-                        return new sConvertMailMessageAttachmentDetails(eContentTransferEncoding.quotedprintable, fMessageDataFormat.sevenbit, lMessageDataStream.KnownLength);
-
-                    case TransferEncoding.Base64:
-
-                        return sConvertMailMessageAttachmentDetails.Base64;
-
-                    case TransferEncoding.SevenBit:
-
-                        if (lMessageDataStream.KnownFormat == fMessageDataFormat.sevenbit) return sConvertMailMessageAttachmentDetails.SevenBit;
-                        throw new cMailMessageFormException(pMessage, pAttachment, nameof(AttachmentBase.TransferEncoding));
-
-                    case TransferEncoding.EightBit:
-
-                        if ((lMessageDataStream.KnownFormat & fMessageDataFormat.binary) != 0) throw new cMailMessageFormException(pMessage, pAttachment, nameof(AttachmentBase.TransferEncoding));
-                        return new sConvertMailMessageAttachmentDetails(eContentTransferEncoding.eightbit, lMessageDataStream.KnownFormat, 0);
-
-                    case TransferEncoding.Unknown:
-
-                        if (lMessageDataStream.KnownFormat == fMessageDataFormat.sevenbit) return sConvertMailMessageAttachmentDetails.SevenBit;
-
-                        if (pAttachment.ContentType.MediaType.Equals(kMessagePartial, StringComparison.InvariantCultureIgnoreCase)) throw new cMailMessageFormException(pMessage, pAttachment, nameof(ContentType.MediaType));
-
-                        if (pAttachment.ContentType.MediaType.Equals(kMessageRFC822, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            eContentTransferEncoding lCTE;
-                            if ((lMessageDataStream.KnownFormat & fMessageDataFormat.binary) != 0) lCTE = eContentTransferEncoding.binary;
-                            else lCTE = eContentTransferEncoding.eightbit;
-
-                            return new sConvertMailMessageAttachmentDetails(lCTE, lMessageDataStream.KnownFormat, 0);
-                        }
-
-                        if (pAttachment.ContentType.MediaType.StartsWith(kText, StringComparison.InvariantCultureIgnoreCase)) return new sConvertMailMessageAttachmentDetails(eContentTransferEncoding.text, fMessageDataFormat.sevenbit, lMessageDataStream.KnownLength);
-
-                        return sConvertMailMessageAttachmentDetails.Base64;
-
-                    default:
-
-                        throw new cInternalErrorException(nameof(cMailAttachment), nameof(ZConvertMailMessageGetAttachmentDetailsAsync), 1);
-                }
-            }
-
-            if (!pAttachment.ContentStream.CanSeek) throw new cMailMessageFormException(pMessage, pAttachment, kMailMessageFormExceptionMessage.StreamNotSeekable);
-
-            switch (pAttachment.TransferEncoding)
-            {
-                case TransferEncoding.QuotedPrintable:
-
-                    return new sConvertMailMessageAttachmentDetails(eContentTransferEncoding.quotedprintable, fMessageDataFormat.sevenbit, pAttachment.ContentStream.Length);
-
-                case TransferEncoding.Base64:
-
-                    return sConvertMailMessageAttachmentDetails.Base64;
-
-                case TransferEncoding.SevenBit:
-
-                    return sConvertMailMessageAttachmentDetails.SevenBit;
-
-                case TransferEncoding.EightBit:
-
-                    return sConvertMailMessageAttachmentDetails.EightBit;
-
-                case TransferEncoding.Unknown:
-
-                    if (pAttachment.ContentType.MediaType.Equals(kMessagePartial, StringComparison.InvariantCultureIgnoreCase)) return sConvertMailMessageAttachmentDetails.SevenBit;
-
-                    if (pAttachment.ContentType.MediaType.Equals(kMessageRFC822, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        var lFormat = cMessageDataFormat.ParseMessage(pAttachment.ContentStream); 
-
-                        eContentTransferEncoding lCTE;
-                        if ((lFormat & fMessageDataFormat.binary) != 0) lCTE = eContentTransferEncoding.binary;
-                        else if ((lFormat & fMessageDataFormat.eightbit) != 0) lCTE = eContentTransferEncoding.eightbit;
-                        else lCTE = eContentTransferEncoding.sevenbit;
-
-                        return new sConvertMailMessageAttachmentDetails(lCTE, lFormat, 0);
-                    }
-
-                    if (pAttachment.ContentType.MediaType.StartsWith(kText, StringComparison.InvariantCultureIgnoreCase)) return new sConvertMailMessageAttachmentDetails(eContentTransferEncoding.text, fMessageDataFormat.sevenbit, pAttachment.ContentStream.Length);
-
-                    return sConvertMailMessageAttachmentDetails.Base64;
-
-                default:
-
-                    throw new cInternalErrorException(nameof(cMailAttachment), nameof(ZConvertMailMessageGetAttachmentDetailsAsync), 1);
-            }
         }
 
         private async Task<sConvertMailMessageAttachmentDetails> ZConvertMailMessageGetIMAPMessageDataStreamURLDetailsAsync(MailMessage pMessage, AttachmentBase pAttachment, cIMAPMessageDataStream pMessageDataStream, TransferEncoding pTransferEncoding)
@@ -256,12 +159,14 @@ namespace work.bacome.mailclient
                         case TransferEncoding.SevenBit:
 
                             await pMessageDataStream.GetKnownFormatAndLengthAsync().ConfigureAwait(false);
+                            ;?;
                             if (pMessageDataStream.KnownFormat == fMessageDataFormat.sevenbit) return new sConvertMailMessageAttachmentDetails(lMessageDataPartType, eContentTransferEncoding.sevenbit, fMessageDataFormat.sevenbit);
                             throw new cMailMessageFormException(pMessage, pAttachment, nameof(AttachmentBase.TransferEncoding));
 
                         case TransferEncoding.EightBit:
 
                             await pMessageDataStream.GetKnownFormatAndLengthAsync().ConfigureAwait(false);
+                            ;?;
                             if ((pMessageDataStream.KnownFormat & fMessageDataFormat.binary) != 0) throw new cMailMessageFormException(pMessage, pAttachment, nameof(AttachmentBase.TransferEncoding));
                             return new sConvertMailMessageAttachmentDetails(lMessageDataPartType, eContentTransferEncoding.eightbit, pMessageDataStream.KnownFormat);
 
@@ -270,6 +175,7 @@ namespace work.bacome.mailclient
                             await pMessageDataStream.GetKnownFormatAndLengthAsync().ConfigureAwait(false);
 
                             eContentTransferEncoding lCTE;
+                            ;?;
                             if ((pMessageDataStream.KnownFormat & fMessageDataFormat.binary) != 0) lCTE = eContentTransferEncoding.binary;
                             else if ((pMessageDataStream.KnownFormat & fMessageDataFormat.eightbit) != 0) lCTE = eContentTransferEncoding.eightbit;
                             else lCTE = eContentTransferEncoding.sevenbit;
@@ -671,7 +577,7 @@ namespace work.bacome.mailclient
             pParts.Add(pPart);
         }
 
-        private struct sConvertMailMessageAttachmentDetails
+        private struct sConvertMailMessageAttachmentDetailsXXXXXXXXXXX
         {
             public static readonly sConvertMailMessageAttachmentDetails None = new sConvertMailMessageAttachmentDetails();
             public static readonly sConvertMailMessageAttachmentDetails SevenBit = new sConvertMailMessageAttachmentDetails(eContentTransferEncoding.sevenbit, fMessageDataFormat.sevenbit, 0);
@@ -733,7 +639,7 @@ namespace work.bacome.mailclient
             }
 
             public override string ToString() => $"{nameof(cConvertMailMessageBoundarySource)}({mUnique},{mPart})";
-        }
+        } */
     }
 }
  

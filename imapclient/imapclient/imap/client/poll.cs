@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -28,14 +29,14 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZPollAsync));
 
-            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+            if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
             if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
             using (var lToken = mCancellationManager.GetToken(lContext))
             {
-                var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
+                var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
                 var lCheck = lSession.CheckAsync(lMC, lContext);
                 var lNoOp = lSession.NoOpAsync(lMC, lContext);
                 await Task.WhenAll(lCheck, lNoOp).ConfigureAwait(false);

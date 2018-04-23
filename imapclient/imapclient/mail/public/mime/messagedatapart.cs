@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
-using System.Threading.Tasks;
-using work.bacome.imapclient;
-using work.bacome.imapclient.support;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
@@ -22,124 +18,14 @@ namespace work.bacome.mailclient
         internal abstract bool HasContent { get; }
     }
 
-    public class cMessageMessageDataPart : cMessageDataPart
-    {
-        public readonly cIMAPClient Client;
-        public readonly iMessageHandle MessageHandle;
-
-        public cMessageMessageDataPart(cIMAPMessage pMessage) : base(pMessage.Format)
-        {
-            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
-
-            // check that the source message is in a selected mailbox (in case we have to stream it)
-            //  (note that this is just a sanity check; the mailbox could become un-selected before we get a chance to get the message data which will cause a throw)
-            if (!pMessage.IsValid()) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.IsInvalid);
-
-            Client = pMessage.Client;
-            MessageHandle = pMessage.MessageHandle;
-        }
-
-        internal cMessageMessageDataPart(cIMAPClient pClient, iMessageHandle pMessageHandle) : base((pClient.SupportedFormats & fMessageDataFormat.utf8headers) | pMessageHandle.BodyStructure.Format)
-        {
-            Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
-            MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
-        }
-
-        internal override bool HasContent => true;
-
-        public override string ToString() => $"{nameof(cMessageMessageDataPart)}({MessageHandle},{Format})";
-    }
-
-    public class cMessagePartMessageDataPart : cMessageDataPart
-    {
-        public readonly cIMAPClient Client;
-        public readonly iMessageHandle MessageHandle;
-        public readonly cSinglePartBody Part;
-
-        public cMessagePartMessageDataPart(cIMAPMessage pMessage, cSinglePartBody pPart) : base(pPart.Format)
-        {
-            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
-
-            // check that the source message is in a selected mailbox (in case we have to stream it)
-            //  (note that this is just a sanity check; the mailbox could become un-selected before we get a chance to get the message data which will cause a throw)
-            if (!pMessage.IsValid()) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.IsInvalid);
-
-            Client = pMessage.Client;
-            MessageHandle = pMessage.MessageHandle;
-
-            Part = pPart ?? throw new ArgumentNullException(nameof(pPart));
-
-            // check that the part is part of the message
-            if (!pMessage.Contains(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
-        }
-
-        public cMessagePartMessageDataPart(cIMAPAttachment pAttachment) : base(pAttachment.Part.Format)
-        {
-            if (pAttachment == null) throw new ArgumentNullException(nameof(pAttachment));
-
-            Client = pAttachment.Client;
-            MessageHandle = pAttachment.MessageHandle;
-            Part = pAttachment.Part;
-        }
-
-        internal cMessagePartMessageDataPart(cIMAPClient pClient, iMessageHandle pMessageHandle, cSinglePartBody pPart) : base(pPart.Format)
-        {
-            Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
-            MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
-            Part = pPart ?? throw new ArgumentNullException(nameof(pPart));
-        }
-
-        internal override bool HasContent => Part.SizeInBytes != 0;
-
-        public override string ToString() => $"{nameof(cMessagePartMessageDataPart)}({MessageHandle},{Part})";
-    }
-
-    public class cUIDSectionMessageDataPart : cMessageDataPart
-    {
-        public readonly cIMAPClient Client;
-        public readonly iMailboxHandle MailboxHandle;
-        public readonly cUID UID;
-        public readonly cSection Section;
-        public readonly uint Length;
-
-        public cUIDSectionMessageDataPart(cMailbox pMailbox, cUID pUID, cSection pSection, uint pLength, fMessageDataFormat pFormat) : base(pFormat)
-        {
-            if (pMailbox == null) throw new ArgumentNullException(nameof(pMailbox));
-
-            // check that the mailbox is selected (in case we have to stream it)
-            //  (note that this is just a sanity check; the mailbox could become un-selected before we get a chance to get the message data which will cause a throw)
-            if (!pMailbox.IsSelected) throw new ArgumentOutOfRangeException(nameof(pMailbox), kArgumentOutOfRangeExceptionMessage.MailboxMustBeSelected);
-
-            Client = pMailbox.Client;
-            MailboxHandle = pMailbox.MailboxHandle;
-
-            UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
-            Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
-
-            Length = pLength;
-        }
-
-        internal cUIDSectionMessageDataPart(cIMAPClient pClient, iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, uint pLength, fMessageDataFormat pFormat) : base(pFormat)
-        {
-            Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
-            MailboxHandle = pMailboxHandle ?? throw new ArgumentNullException(nameof(pMailboxHandle));
-            UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
-            Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
-            Length = pLength;
-        }
-
-        internal override bool HasContent => Length != 0;
-
-        public override string ToString() => $"{nameof(cUIDSectionMessageDataPart)}({MailboxHandle},{UID},{Section},{Length},{Format})";
-    }
-
     public class cFileMessageDataPart : cMessageDataPart
     {
         public readonly string Path;
-        public readonly uint Length;
+        public readonly bool Base64;
+        public readonly uint Length; // if base64 this is the base64 length
         public readonly cBatchSizerConfiguration ReadConfiguration; // optional
 
-        public cFileMessageDataPart(string pPath, fMessageDataFormat pFormat, cBatchSizerConfiguration pReadConfiguration = null) : base(pFormat)
+        public cFileMessageDataPart(string pPath, bool pBase64, fMessageDataFormat pFormat, cBatchSizerConfiguration pReadConfiguration = null) : base(pFormat)
         {
             if (string.IsNullOrWhiteSpace(pPath)) throw new ArgumentOutOfRangeException(nameof(pPath));
 
@@ -147,9 +33,19 @@ namespace work.bacome.mailclient
             if (!lFileInfo.Exists || (lFileInfo.Attributes & FileAttributes.Directory) != 0) throw new ArgumentOutOfRangeException(nameof(pPath));
 
             Path = lFileInfo.FullName;
+            Base64 = pBase64;
 
-            if (lFileInfo.Length > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pPath));
-            Length = (uint)lFileInfo.Length;
+            long lLength;
+
+            if (pBase64)
+            {
+                if (pFormat != fMessageDataFormat.sevenbit) throw new ArgumentOutOfRangeException(nameof(pFormat));
+                lLength = cBase64EncodingStream.EncodedLength(lFileInfo.Length);
+            }
+            else lLength = lFileInfo.Length;
+
+            if (lLength > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pPath));
+            Length = (uint)lLength;
 
             ReadConfiguration = pReadConfiguration;
         }
@@ -159,56 +55,31 @@ namespace work.bacome.mailclient
         public override string ToString() => $"{nameof(cFileMessageDataPart)}({Path},{Length},{Format},{ReadConfiguration})";
     }
 
-    public class cBase64FileMessageDataPart : cMessageDataPart
-    {
-        public readonly string Path;
-        public readonly uint Length;
-        public readonly cBatchSizerConfiguration ReadConfiguration; // optional
-
-        public cBase64FileMessageDataPart(string pPath, cBatchSizerConfiguration pReadConfiguration = null) : base(0)
-        {
-            if (string.IsNullOrWhiteSpace(pPath)) throw new ArgumentOutOfRangeException(nameof(pPath));
-
-            var lFileInfo = new FileInfo(pPath);
-            if (!lFileInfo.Exists || (lFileInfo.Attributes & FileAttributes.Directory) != 0) throw new ArgumentOutOfRangeException(nameof(pPath));
-
-            Path = lFileInfo.FullName;
-
-            long lLength = cBase64EncodingStream.EncodedLength(lFileInfo.Length);
-            if (lLength > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pPath));
-            Length = (uint)lLength;
-
-            ReadConfiguration = pReadConfiguration;
-        }
-
-        internal override bool HasContent => Length != 0;
-
-        public override string ToString() => $"{nameof(cBase64FileMessageDataPart)}({Path},{Length},{ReadConfiguration})";
-    }
-
     public class cStreamMessageDataPart : cMessageDataPart
     {
         public readonly Stream Stream;
-        public readonly uint Length;
+        public readonly bool Base64;
+        public readonly uint Length; // if base64 this is the base64 length
         public readonly cBatchSizerConfiguration ReadConfiguration; // optional
 
-        public cStreamMessageDataPart(Stream pStream, fMessageDataFormat pFormat, cBatchSizerConfiguration pReadConfiguration = null) : base(pFormat)
+        public cStreamMessageDataPart(Stream pStream, bool pBase64, fMessageDataFormat pFormat, cBatchSizerConfiguration pReadConfiguration = null) : base(pFormat)
         {
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!pStream.CanRead || !pStream.CanSeek) throw new ArgumentOutOfRangeException(nameof(pStream));
 
-            if (pStream.Length > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pStream));
-            Length = (uint)pStream.Length;
+            Base64 = pBase64;
 
-            ReadConfiguration = pReadConfiguration;
-        }
+            long lLength;
 
-        public cStreamMessageDataPart(Stream pStream, uint pLength, fMessageDataFormat pFormat, cBatchSizerConfiguration pReadConfiguration = null) : base(pFormat)
-        {
-            Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
-            if (!pStream.CanRead) throw new ArgumentOutOfRangeException(nameof(pStream));
+            if (pBase64)
+            {
+                if (pFormat != fMessageDataFormat.sevenbit) throw new ArgumentOutOfRangeException(nameof(pFormat));
+                lLength = cBase64EncodingStream.EncodedLength(pStream.Length);
+            }
+            else lLength = pStream.Length;
 
-            Length = pLength;
+            if (lLength > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pStream));
+            Length = (uint)lLength;
 
             ReadConfiguration = pReadConfiguration;
         }
@@ -216,41 +87,6 @@ namespace work.bacome.mailclient
         internal override bool HasContent => Length != 0;
 
         public override string ToString() => $"{nameof(cStreamMessageDataPart)}({Length},{Format},{ReadConfiguration})";
-    }
-
-    public class cBase64StreamMessageDataPart : cMessageDataPart
-    {
-        public readonly Stream Stream;
-        public readonly uint Length;
-        public readonly cBatchSizerConfiguration ReadConfiguration; // optional
-
-        public cBase64StreamMessageDataPart(Stream pStream, cBatchSizerConfiguration pReadConfiguration = null) : base(0)
-        {
-            Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
-            if (!pStream.CanRead || !pStream.CanSeek) throw new ArgumentOutOfRangeException(nameof(pStream));
-
-            long lLength = cBase64EncodingStream.EncodedLength(pStream.Length);
-            if (lLength > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pStream));
-            Length = (uint)lLength;
-
-            ReadConfiguration = pReadConfiguration;
-        }
-
-        public cBase64StreamMessageDataPart(Stream pStream, uint pLength, cBatchSizerConfiguration pReadConfiguration = null) : base(0)
-        {
-            Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
-            if (!pStream.CanRead) throw new ArgumentOutOfRangeException(nameof(pStream));
-
-            long lLength = cBase64EncodingStream.EncodedLength(pLength);
-            if (lLength > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pLength));
-            Length = (uint)lLength;
-
-            ReadConfiguration = pReadConfiguration;
-        }
-
-        internal override bool HasContent => Length != 0;
-
-        public override string ToString() => $"{nameof(cBase64StreamMessageDataPart)}({Length},{ReadConfiguration})";
     }
 
     public class cLiteralMessageDataPart : cMessageDataPart
@@ -266,14 +102,12 @@ namespace work.bacome.mailclient
         {
             if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
             Bytes = new cBytes(new List<byte>(pBytes));
-            // TODO: could validate that the data matches the format specified
         }
 
         public cLiteralMessageDataPart(string pString, fMessageDataFormat pFormat) : base(pFormat)
         {
             if (pString == null) throw new ArgumentNullException(nameof(pString));
             Bytes = new cBytes(Encoding.UTF8.GetBytes(pString));
-            // TODO: could validate that the data matches the format specified
         }
 
         internal override bool HasContent => Bytes.Count > 0;

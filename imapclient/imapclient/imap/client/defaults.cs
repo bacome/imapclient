@@ -1,4 +1,5 @@
 ﻿using System;
+using work.bacome.mailclient;
 
 namespace work.bacome.imapclient
 {
@@ -11,8 +12,6 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Gets and sets the items that are cached by default when message lists are generated.
         /// </summary>
-        /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchCacheItemConfiguration)"/>
-        /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{support.iMessageHandle}, cMessageCacheItems, cFetchCacheItemConfiguration)"/>
         public cMessageCacheItems DefaultMessageCacheItems
         {
             get => mDefaultMessageCacheItems;
@@ -22,7 +21,6 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Gets and sets the default message sort order.
         /// </summary>
-        /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchCacheItemConfiguration)"/>
         public cSort DefaultSort
         {
             get => mDefaultSort;
@@ -43,10 +41,9 @@ namespace work.bacome.imapclient
 
             set
             {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(DefaultAppendFlags), value);
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 mDefaultAppendFlags = value;
-                mSession?.SetAppendDefaultFlags(value, lContext);
             }
         }
     }

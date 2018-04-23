@@ -50,13 +50,13 @@ namespace work.bacome.mailclient
 
             cBytesCursor lCursor = new cBytesCursor(pValue);
 
-            if (!lCursor.GetRFC822MsgId(out var lMessageId) || !lCursor.Position.AtEnd)
+            if (!lCursor.GetRFC822MsgId(out var lIdLeft, out var lIdRight) || !lCursor.Position.AtEnd)
             {
                 rMsgId = null;
                 return false;
             }
 
-            rMsgId = new cHeaderFieldMsgId(pName, new cBytes(pValue), lMessageId);
+            rMsgId = new cHeaderFieldMsgId(pName, new cBytes(pValue), cTools.MessageId(lIdLeft, lIdRight));
             return true;
         }
 
@@ -86,8 +86,8 @@ namespace work.bacome.mailclient
 
             while (true)
             {
-                if (!lCursor.GetRFC822MsgId(out var lMessageId)) break;
-                lMessageIds.Add(lMessageId);
+                if (!lCursor.GetRFC822MsgId(out var lIdLeft, out var lIdRight)) break;
+                lMessageIds.Add(cTools.MessageId(lIdLeft, lIdRight));
             }
 
             if (lCursor.Position.AtEnd)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -13,7 +14,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// The IMAP connection is closed gracefully, however any multi-part operations in progress will throw exceptions.
         /// </remarks>
-        public void Disconnect()
+        public override void Disconnect()
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Disconnect));
             mSynchroniser.Wait(ZDisconnectAsync(lContext), lContext);
@@ -25,7 +26,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <returns></returns>
         /// <inheritdoc cref="Disconnect" select="remarks"/>
-        public Task DisconnectAsync()
+        public override Task DisconnectAsync()
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(DisconnectAsync));
             return ZDisconnectAsync(lContext);
@@ -35,14 +36,14 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ZDisconnectAsync));
 
-            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+            if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
             if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
             using (var lToken = mCancellationManager.GetToken(lContext))
             {
-                var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
+                var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
 
                 try { await lSession.LogoutAsync(lMC, lContext).ConfigureAwait(false); }
                 catch when (lSession.ConnectionState != eIMAPConnectionState.disconnected)

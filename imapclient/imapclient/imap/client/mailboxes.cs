@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -116,7 +118,7 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZMailboxesAsync), pListMailbox, pDelimiter, pPattern, pDataSets);
 
-            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+            if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
             if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
@@ -128,7 +130,7 @@ namespace work.bacome.imapclient
 
             using (var lToken = mCancellationManager.GetToken(lContext))
             {
-                var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
+                var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
 
                 var lCapabilities = lSession.Capabilities;
                 bool lLSub = (pDataSets & fMailboxCacheDataSets.lsub) != 0;

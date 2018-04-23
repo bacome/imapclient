@@ -42,19 +42,28 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="imap\public\sectioncache\accountspecificsectioncache.cs" />
+    <Compile Include="imap\sectioncache\readwritestream.cs" />
+    <Compile Include="imap\public\sectioncache\tempfilesectioncache.cs" />
+    <Compile Include="imap\sectioncache\readstream.cs" />
     <Compile Include="imap\client\append.cs" />
-    <Compile Include="mail\client\convertmailmessage.cs" />
+    <Compile Include="imap\public\sectioncache\sectioncache.cs" />
+    <Compile Include="imap\public\sectioncache\sectioncacheitem.cs" />
+    <Compile Include="imap\public\sectioncache\sectioncachekeys.cs" />
+    <Compile Include="imap\public\message\messagedatastream.cs" />
+    <Compile Include="mail\convertmailmessage\base.cs" />
     <Compile Include="imap\client\decodedsizeinbytes.cs" />
     <Compile Include="mail\client\quotedprintableencode.cs" />
     <Compile Include="mail\internal\bytescursor\rfc822\getphrase.cs" />
+    <Compile Include="mail\convertmailmessage\attachmentdetail.cs" />
     <Compile Include="mail\internal\encoding\encodingrequired.cs" />
     <Compile Include="mail\internal\encoding\headerfieldbytes.cs" />
-    <Compile Include="mail\internal\encoding\messagedataformat.cs" />
+    <Compile Include="mail\internal\message\message.cs" />
     <Compile Include="mail\public\configuration\attachmentsaveconfiguration.cs" />
     <Compile Include="mail\public\configuration\fetchconfiguration.cs" />
     <Compile Include="mail\public\message\attachment.cs" />
     <Compile Include="mail\public\message\message.cs" />
-    <Compile Include="mail\public\mime\convertmailmessagedisposables.cs" />
+    <Compile Include="mail\public\other\convertmailmessagedisposables.cs" />
     <Compile Include="mail\public\mime\mimeheaderfieldparameter.cs" />
     <Compile Include="imap\public\mailbox\appenddata.cs" />
     <Compile Include="mail\public\mime\headerfieldfactory.cs" />
@@ -64,7 +73,6 @@
     <Compile Include="mail\public\configuration\quotedprintableencodeconfiguration.cs" />
     <Compile Include="imap\public\feedback\appendfeedback.cs" />
     <Compile Include="imap\public\mailbox\checkformessagesflag.cs" />
-    <Compile Include="imap\public\message\messagedatastream.cs" />
     <Compile Include="mail\client\base.cs" />
     <Compile Include="mail\internal\constants\ascii.cs" />
     <Compile Include="mail\internal\async\callbacksynchroniser.cs" />

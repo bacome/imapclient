@@ -1,5 +1,5 @@
 ﻿using System;
-using work.bacome.imapclient.support;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
 {

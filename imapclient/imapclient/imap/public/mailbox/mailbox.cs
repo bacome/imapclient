@@ -1098,6 +1098,7 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Copy(IEnumerable{cIMAPMessage})" select="returns|remarks"/>
         public Task<cCopyFeedback> CopyAsync(IEnumerable<cIMAPMessage> pMessages) => Client.CopyAsync(cMessageHandleList.FromMessages(pMessages), MailboxHandle);
 
+        /* TEMP comment out for cachefile work
         public cUID Append(cAppendData pData, cAppendConfiguration pConfiguration = null) => ZAppendResult(Client.Append(MailboxHandle, cAppendDataList.FromData(pData), pConfiguration));
         public async Task<cUID> AppendAsync(cAppendData pData, cAppendConfiguration pConfiguration = null) => ZAppendResult(await Client.AppendAsync(MailboxHandle, cAppendDataList.FromData(pData), pConfiguration).ConfigureAwait(false));
         public cUID Append(MailMessage pMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, cAppendMailMessageConfiguration pConfiguration = null) 
@@ -1124,6 +1125,7 @@ namespace work.bacome.imapclient
             => Client.Append(MailboxHandle, cMailMessageList.FromMessages(pMessages), pFlags, pReceived, pConfiguration);
         public Task<cAppendFeedback> AppendAsync(IEnumerable<MailMessage> pMessages, cStorableFlags pFlags = null, DateTime? pReceived = null, cAppendMailMessageConfiguration pConfiguration = null)
             => Client.AppendAsync(MailboxHandle, cMailMessageList.FromMessages(pMessages), pFlags, pReceived, pConfiguration);
+            */
 
         /// <summary>
         /// Fetches a section of a message into a stream. The mailbox must be selected.
@@ -1267,3 +1269,4 @@ namespace work.bacome.imapclient
         public static bool operator !=(cMailbox pA, cMailbox pB) => !(pA == pB);
     }
 }
+ 

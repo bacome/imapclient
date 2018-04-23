@@ -84,7 +84,7 @@ namespace work.bacome.imapclient
         /// </list>
         /// </para>
         /// </remarks>
-        public void Connect()
+        public override void Connect()
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Connect));
             mSynchroniser.Wait(ZConnectAsync(lContext), lContext);
@@ -97,7 +97,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <returns></returns>
         /// <inheritdoc cref="Connect" select="remarks"/>
-        public Task ConnectAsync()
+        public override Task ConnectAsync()
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ConnectAsync));
             return ZConnectAsync(lContext);
@@ -105,9 +105,9 @@ namespace work.bacome.imapclient
 
         private async Task ZConnectAsync(cTrace.cContext pParentContext)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ZConnectAsync));
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZConnectAsync));
 
-            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+            if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             cServer lServer = Server;
             cIMAPAuthenticationParameters lAuthenticationParameters = mAuthenticationParameters;
@@ -131,7 +131,7 @@ namespace work.bacome.imapclient
                 mSynchroniser.InvokePropertyChanged(nameof(Inbox), lContext);
             }
 
-            mSession = new cSession(mSynchroniser, mIgnoreCapabilities, mMailboxCacheDataItems, mNetworkWriteConfiguration, mIdleConfiguration, mFetchCacheItemsConfiguration, mFetchBodyReadConfiguration, mAppendBatchConfiguration, mDefaultAppendFlags, mAppendTargetBufferSize, mAppendStreamReadConfiguration, mEncoding, lContext);
+            mSession = new cSession(mIMAPSynchroniser, NetworkWriteConfiguration, LocalStreamReadConfiguration, mIgnoreCapabilities, mMailboxCacheDataItems, mFetchCacheItemsConfiguration, mFetchBodyConfiguration, mDefaultAppendFlags, mAppendBatchConfiguration, mIdleConfiguration, mEncoding, lContext);
             var lSession = mSession;
 
             if (lSessionReplaced)
@@ -150,7 +150,7 @@ namespace work.bacome.imapclient
             }
 
             List<cSASLAuthentication> lFailedSASLAuthentications = new List<cSASLAuthentication>();
-            mFailedSASLAuthentications = lFailedSASLAuthentications.AsReadOnly();
+            FailedSASLAuthentications = lFailedSASLAuthentications.AsReadOnly();
             mSynchroniser.InvokePropertyChanged(nameof(FailedSASLAuthentications), lContext);
 
             using (var lToken = mCancellationManager.GetToken(lContext))

@@ -63,11 +63,8 @@ namespace work.bacome.imapclient
 
             Client = pMessage.Client;
             MessageHandle = pMessage.MessageHandle;
-
-            Part = pPart ?? throw new ArgumentNullException(nameof(pPart));
-
-            // check that the part is part of the message
-            if (!pMessage.Contains(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            pMessage.CheckPart(pPart);
+            Part = pPart;
         }
 
         public override string ToString() => $"{nameof(cMessagePartAppendData)}({Format},{Flags},{Received},{MessageHandle},{Part})";

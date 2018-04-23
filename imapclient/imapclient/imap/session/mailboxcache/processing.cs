@@ -1,4 +1,5 @@
 ﻿using System;
+using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 

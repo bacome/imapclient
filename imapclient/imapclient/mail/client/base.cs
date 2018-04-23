@@ -31,13 +31,13 @@ namespace work.bacome.mailclient
         public static readonly DateTime ReleaseDate = new DateTime(2017, 12, 02);
 
         // tracing
-        private static readonly cTrace mTrace = new cTrace("work.bacome.cMailClient");
+        internal static readonly cTrace Trace = new cTrace("work.bacome.cMailClient");
 
         // mechanics
         private bool mDisposed = false;
-        private readonly string mInstanceName;
+        protected readonly string mInstanceName;
+        protected internal readonly cCallbackSynchroniser mSynchroniser;
         protected readonly cTrace.cContext mRootContext;
-        protected readonly cCallbackSynchroniser mSynchroniser;
         protected readonly cCancellationManager mCancellationManager;
 
         // property backing storage
@@ -50,12 +50,14 @@ namespace work.bacome.mailclient
 
         internal cMailClient(string pInstanceName, cCallbackSynchroniser pSynchroniser)
         {
-            mRootContext = mTrace.NewRoot(pInstanceName);
-            mRootContext.TraceInformation("cMailClient by bacome version {0}, release date {1}", Version, ReleaseDate);
-
             mInstanceName = pInstanceName;
             mSynchroniser = pSynchroniser;
+
+            mRootContext = Trace.NewRoot(pInstanceName);
+            mRootContext.TraceInformation("cMailClient by bacome version {0}, release date {1}", Version, ReleaseDate);
+
             mCancellationManager = new cCancellationManager(pSynchroniser.InvokeCancellableCountChanged);
+
             mSynchroniser.Start(this, mRootContext);
         }
 
@@ -281,7 +283,7 @@ namespace work.bacome.mailclient
         public ReadOnlyCollection<cSASLAuthentication> FailedSASLAuthentications
         {
             get => mFailedSASLAuthentications;
-            private set => mFailedSASLAuthentications = value ?? throw new ArgumentNullException();
+            protected set => mFailedSASLAuthentications = value ?? throw new ArgumentNullException();
         }
 
         public cHeaderFieldFactory GetHeaderFieldFactory(Encoding pEncoding = null) => new cHeaderFieldFactory((SupportedFormats & fMessageDataFormat.utf8headers) != 0, pEncoding ?? Encoding);

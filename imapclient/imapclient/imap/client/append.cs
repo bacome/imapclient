@@ -9,9 +9,10 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
+        /* TEMP comment out for cachefile work
         internal cAppendFeedback Append(iMailboxHandle pMailboxHandle, cAppendDataList pData, cAppendConfiguration pConfiguration)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Append), 1);
+            var lContext = RootContext.NewMethodV(nameof(cIMAPClient), nameof(Append), 1);
             var lTask = ZAppendAsync(pMailboxHandle, pData, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
@@ -19,7 +20,7 @@ namespace work.bacome.imapclient
 
         internal Task<cAppendFeedback> AppendAsync(iMailboxHandle pMailboxHandle, cAppendDataList pData, cAppendConfiguration pConfiguration)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(AppendAsync), 1);
+            var lContext = RootContext.NewMethodV(nameof(cIMAPClient), nameof(AppendAsync), 1);
             return ZAppendAsync(pMailboxHandle, pData, pConfiguration, lContext);
         }
 
@@ -137,7 +138,7 @@ namespace work.bacome.imapclient
 
         internal cAppendFeedback Append(iMailboxHandle pMailboxHandle, cMailMessageList pMessages, cStorableFlags pFlags, DateTime? pReceived, cAppendMailMessageConfiguration pConfiguration)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Append), 2);
+            var lContext = RootContext.NewMethodV(nameof(cIMAPClient), nameof(Append), 2);
             var lTask = ZAppendAsync(pMailboxHandle, pMessages, pFlags, pReceived, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
@@ -145,7 +146,7 @@ namespace work.bacome.imapclient
 
         internal Task<cAppendFeedback> AppendAsync(iMailboxHandle pMailboxHandle, cMailMessageList pMessages, cStorableFlags pFlags, DateTime? pReceived, cAppendMailMessageConfiguration pConfiguration)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(AppendAsync), 2);
+            var lContext = RootContext.NewMethodV(nameof(cIMAPClient), nameof(AppendAsync), 2);
             return ZAppendAsync(pMailboxHandle, pMessages, pFlags, pReceived, pConfiguration, lContext);
         }
 
@@ -207,6 +208,6 @@ namespace work.bacome.imapclient
                 var lData = await YConvertMailMessagesAsync(pMC, lDisposables, true, pMessages, pConvertSetMaximum, pConvertIncrement, pReadConfiguration, pWriteConfiguration, pFlags, pReceived, lContext).ConfigureAwait(false);
                 return await lSession.AppendAsync(pMC, pMailboxHandle, lData, pAppendSetMaximum, pAppendIncrement, lContext).ConfigureAwait(false);
             }
-        }
+        } */
     }
 }

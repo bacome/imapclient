@@ -24,7 +24,6 @@ namespace work.bacome.imapclient
         private static readonly cMessageCacheItems kEnvelope = fMessageCacheAttributes.envelope;
         private static readonly cMessageCacheItems kFlags = fMessageCacheAttributes.flags;
         private static readonly cMessageCacheItems kReceived = fMessageCacheAttributes.received;
-        private static readonly cMessageCacheItems kSize = fMessageCacheAttributes.size;
         private static readonly cMessageCacheItems kUID = fMessageCacheAttributes.uid;
         private static readonly cMessageCacheItems kModSeq = fMessageCacheAttributes.modseq;
         private static readonly cMessageCacheItems kBodyStructure = fMessageCacheAttributes.bodystructure;
@@ -114,164 +113,6 @@ namespace work.bacome.imapclient
             {
                 if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
                 return MessageHandle.Envelope;
-            }
-        }
-
-        /// <inheritdoc select="summary"/>
-        /// <inheritdoc cref="Envelope" select="remarks"/>
-        public override DateTimeOffset? SentDateTimeOffset
-        {
-            get
-            {
-                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return MessageHandle.Envelope.SentDateTimeOffset;
-            }
-        }
-
-        /// <inheritdoc select="summary"/>
-        /// <inheritdoc cref="Envelope" select="remarks"/>
-        public override DateTime? SentDateTime
-        {
-            get
-            {
-                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return MessageHandle.Envelope.SentDateTime;
-            }
-        }
-
-        /// <summary>
-        /// Gets the subject of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
-        /// </summary>
-        /// <inheritdoc cref="Envelope" select="remarks"/>
-        public override cCulturedString Subject
-        {
-            get
-            {
-                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return MessageHandle.Envelope.Subject;
-            }
-        }
-
-        /// <summary>
-        /// Gets the base subject of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
-        /// </summary>
-        /// <remarks>
-        /// The base subject is defined RFC 5256 and is the subject with the RE: FW: etc artifacts removed.
-        /// If the message cache does not contain the <see cref="fMessageCacheAttributes.envelope"/> of the message, it will be fetched from the server.
-        /// </remarks>
-        public override string BaseSubject
-        {
-            get
-            {
-                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return MessageHandle.Envelope.BaseSubject;
-            }
-        }
-
-        /// <summary>
-        /// Gets the 'from' addresses of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
-        /// </summary>
-        /// <inheritdoc cref="Envelope" select="remarks"/>
-        public override cAddresses From
-        {
-            get
-            {
-                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return MessageHandle.Envelope.From;
-            }
-        }
-
-        /// <summary>
-        /// Gets the 'sender' addresses of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
-        /// </summary>
-        /// <inheritdoc cref="Envelope" select="remarks"/>
-        public override cAddresses Sender
-        {
-            get
-            {
-                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return MessageHandle.Envelope.Sender;
-            }
-        }
-
-        /// <summary>
-        /// Gets the 'reply-to' addresses of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
-        /// </summary>
-        /// <inheritdoc cref="Envelope" select="remarks"/>
-        public override cAddresses ReplyTo
-        {
-            get
-            {
-                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return MessageHandle.Envelope.ReplyTo;
-            }
-        }
-
-        /// <summary>
-        /// Gets the 'to' addresses of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
-        /// </summary>
-        /// <inheritdoc cref="Envelope" select="remarks"/>
-        public override cAddresses To
-        {
-            get
-            {
-                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return MessageHandle.Envelope.To;
-            }
-        }
-
-        /// <summary>
-        /// Gets the 'CC' addresses of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
-        /// </summary>
-        /// <inheritdoc cref="Envelope" select="remarks"/>
-        public override cAddresses CC
-        {
-            get
-            {
-                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return MessageHandle.Envelope.CC;
-            }
-        }
-
-        /// <summary>
-        /// Gets the 'BCC' addresses of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
-        /// </summary>
-        /// <inheritdoc cref="Envelope" select="remarks"/>
-        public override cAddresses BCC
-        {
-            get
-            {
-                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return MessageHandle.Envelope.BCC;
-            }
-        }
-
-        /// <summary>
-        /// Gets the normalised 'in-reply-to' message-ids of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
-        /// </summary>
-        /// <remarks>
-        /// Normalised message-ids have the quoting, comments and white space removed.
-        /// If the message cache does not contain the <see cref="fMessageCacheAttributes.envelope"/> of the message, it will be fetched from the server.
-        /// </remarks>
-        public override cStrings InReplyTo
-        {
-            get
-            {
-                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return MessageHandle.Envelope.InReplyTo?.MessageIds;
-            }
-        }
-
-        /// <summary>
-        /// Gets the normalised message-id of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
-        /// </summary>
-        /// <inheritdoc cref="InReplyTo" select="remarks"/>
-        public override string MessageId
-        {
-            get
-            {
-                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return MessageHandle.Envelope.MsgId?.MessageId;
             }
         }
 
@@ -444,7 +285,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(MessageHandle, kSize)) ZThrowFailure(eOperationType.fetch);
+                if (!Client.Fetch(MessageHandle, cMessageCacheItems.Size)) ZThrowFailure(eOperationType.fetch);
                 return MessageHandle.Size.Value;
             }
         }
@@ -501,7 +342,9 @@ namespace work.bacome.imapclient
             get
             {
                 if (!Client.Fetch(MessageHandle, kBodyStructure)) ZThrowFailure(eOperationType.fetch);
-                return (Client.SupportedFormats & fMessageDataFormat.utf8headers) | MessageHandle.BodyStructure.Format;
+                var lFormat = MessageHandle.BodyStructure.Format;
+                if ((Client.SupportedFormats & fMessageDataFormat.utf8headers) == fMessageDataFormat.utf8headers) lFormat |= fMessageDataFormat.utf8headers;
+                return lFormat;
             }
         }
 
@@ -591,14 +434,6 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Fetch(cMessageCacheItems)" select="returns|remarks"/>
         public Task<bool> FetchAsync(cMessageCacheItems pItems) => Client.FetchAsync(MessageHandle, pItems);
 
-        internal bool Contains(cBodyPart pPart)
-        {
-            if (pPart == null) throw new ArgumentNullException(nameof(pPart));
-            if (MessageHandle.BodyStructure == null) return false;
-            if (ReferenceEquals(MessageHandle.BodyStructure, pPart)) return true;
-            return MessageHandle.BodyStructure.Contains(pPart);
-        }
-
         /// <summary>
         /// Gets the fetch size of the specified <see cref="cSinglePartBody"/>.
         /// </summary>
@@ -611,7 +446,7 @@ namespace work.bacome.imapclient
         /// </remarks>
         public uint FetchSizeInBytes(cSinglePartBody pPart)
         {
-            if (!Contains(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            CheckPart(pPart);
             return Client.FetchSizeInBytes(MessageHandle, pPart);
         }
 
@@ -622,19 +457,19 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Fetch(cMessageCacheItems)" select="returns|remarks"/>
         public Task<uint> FetchSizeInBytesAsync(cSinglePartBody pPart)
         {
-            if (!Contains(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            CheckPart(pPart);
             return Client.FetchSizeInBytesAsync(MessageHandle, pPart);
         }
 
         public uint? DecodedSizeInBytes(cSinglePartBody pPart)
         {
-            if (!Contains(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            CheckPart(pPart);
             return Client.DecodedSizeInBytes(MessageHandle, pPart);
         }
 
         public Task<uint?> DecodedSizeInBytesAsync(cSinglePartBody pPart)
         {
-            if (!Contains(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            CheckPart(pPart);
             return Client.DecodedSizeInBytesAsync(MessageHandle, pPart);
         }
 
@@ -648,19 +483,12 @@ namespace work.bacome.imapclient
         public override async Task<string> PlainTextAsync()
         {
             if (!await Client.FetchAsync(MessageHandle, kBodyStructure).ConfigureAwait(false)) ZThrowFailure(eOperationType.fetch);
-
-            List<Task<string>> lTasks = new List<Task<string>>();
-            foreach (var lPart in YPlainTextParts(MessageHandle.BodyStructure)) lTasks.Add(FetchAsync(lPart));
-            await Task.WhenAll(lTasks).ConfigureAwait(false);
-
-            StringBuilder lBuilder = new StringBuilder();
-            foreach (var lTask in lTasks) lBuilder.Append(lTask.Result);
-            return lBuilder.ToString();
+            return await base.PlainTextAsync().ConfigureAwait(false);
         }
 
         public override string Fetch(cTextBodyPart pPart)
         {
-            if (!Contains(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            CheckPart(pPart);
 
             using (var lStream = new MemoryStream())
             {
@@ -672,7 +500,7 @@ namespace work.bacome.imapclient
 
         public override async Task<string> FetchAsync(cTextBodyPart pPart)
         {
-            if (!Contains(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            CheckPart(pPart);
 
             using (var lStream = new MemoryStream())
             {
@@ -702,13 +530,13 @@ namespace work.bacome.imapclient
 
         public override void Fetch(cSinglePartBody pPart, Stream pStream, cFetchConfiguration pConfiguration = null)
         {
-            if (!Contains(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            CheckPart(pPart);
             Client.Fetch(MessageHandle, pPart.Section, pPart.DecodingRequired, pStream, pConfiguration);
         }
 
         public override Task FetchAsync(cSinglePartBody pPart, Stream pStream, cFetchConfiguration pConfiguration = null)
         {
-            if (!Contains(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            CheckPart(pPart);
             return Client.FetchAsync(MessageHandle, pPart.Section, pPart.DecodingRequired, pStream, pConfiguration);
         }
 

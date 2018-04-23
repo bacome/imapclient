@@ -105,11 +105,11 @@ namespace work.bacome.mailclient
             // domain literal
             lCursor = new cBytesCursor("   \t (there is a domain\r\n literal coming up(and\tit'll\r\n\tbe a good one))  \r\n [Header]      \r\n ( now with with FWS ) [  \t  \r\n\t the.name.com  \r\n     ]    (now with embedded FWS)  [  \t  \r\n\t the \t   name   \r\n   com  \r\n     ]   (with quotes and utf8)    [     \\[   fr€d     ]     (something invalid)     [    [   ]   \r\n");
 
-            if (!lCursor.GetDomainLiteral(out lString) || lString != "[Header]") throw new cTestsException("domain literal 1.1");
-            if (!lCursor.GetDomainLiteral(out lString) || lString != "[the.name.com]") throw new cTestsException("domain literal 1.2");
-            if (!lCursor.GetDomainLiteral(out lString) || lString != "[the name com]") throw new cTestsException("domain literal 1.3");
-            if (!lCursor.GetDomainLiteral(out lString) || lString != "[[ fr€d]") throw new cTestsException("domain literal 1.4");
-            if (lCursor.GetDomainLiteral(out lString)) throw new cTestsException("domain literal 1.5");
+            if (!lCursor.GetRFC822DomainLiteral(out lString) || lString != "[Header]") throw new cTestsException("domain literal 1.1");
+            if (!lCursor.GetRFC822DomainLiteral(out lString) || lString != "[the.name.com]") throw new cTestsException("domain literal 1.2");
+            if (!lCursor.GetRFC822DomainLiteral(out lString) || lString != "[the name com]") throw new cTestsException("domain literal 1.3");
+            if (!lCursor.GetRFC822DomainLiteral(out lString) || lString != "[[ fr€d]") throw new cTestsException("domain literal 1.4");
+            if (lCursor.GetRFC822DomainLiteral(out lString)) throw new cTestsException("domain literal 1.5");
             if (!lCursor.GetRFC822FieldValue(out lByteList) || cTools.UTF8BytesToString(lByteList) != "[    [   ]   ") throw new cTestsException("domain literal 1.6");
 
             // domain
@@ -137,10 +137,13 @@ namespace work.bacome.mailclient
             // message id
             lCursor = new cBytesCursor("     \r\n\t   (one)  <1234@local.machine.example>      <5678.21-Nov-1997@example.com>    <testabcd.1234@silly.example>     <1234   @   local(blah)  .machine .example>    ");
 
-            if (!lCursor.GetRFC822MsgId(out lString) || lString != "1234@local.machine.example") throw new cTestsException("msgid 1.1");
-            if (!lCursor.GetRFC822MsgId(out lString) || lString != "5678.21-Nov-1997@example.com") throw new cTestsException("msgid 1.2");
-            if (!lCursor.GetRFC822MsgId(out lString) || lString != "testabcd.1234@silly.example") throw new cTestsException("msgid 1.3");
-            if (!lCursor.GetRFC822MsgId(out lString) || lString != "1234@local.machine.example") throw new cTestsException("msgid 1.4");
+            string lIdLeft;
+            string lIdRight;
+
+            if (!lCursor.GetRFC822MsgId(out lIdLeft, out lIdRight) || cTools.MessageId(lIdLeft, lIdRight) != "1234@local.machine.example") throw new cTestsException("msgid 1.1");
+            if (!lCursor.GetRFC822MsgId(out lIdLeft, out lIdRight) || cTools.MessageId(lIdLeft, lIdRight) != "5678.21-Nov-1997@example.com") throw new cTestsException("msgid 1.2");
+            if (!lCursor.GetRFC822MsgId(out lIdLeft, out lIdRight) || cTools.MessageId(lIdLeft, lIdRight) != "testabcd.1234@silly.example") throw new cTestsException("msgid 1.3");
+            if (!lCursor.GetRFC822MsgId(out lIdLeft, out lIdRight) || cTools.MessageId(lIdLeft, lIdRight) != "1234@local.machine.example") throw new cTestsException("msgid 1.4");
         }
     }
 }

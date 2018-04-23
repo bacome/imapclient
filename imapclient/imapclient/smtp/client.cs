@@ -8,8 +8,9 @@ namespace work.bacome.smtpclient
     //
     // implementation to come
 
+    /*
     public sealed partial class cSMTPClient : cMailClient, IDisposable
     {
 
-    }
+    } */
 }

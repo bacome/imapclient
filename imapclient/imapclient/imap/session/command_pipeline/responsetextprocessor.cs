@@ -54,11 +54,11 @@ namespace work.bacome.imapclient
                     private static readonly cBytes kTooBig = new cBytes("TOOBIG");
 
 
-                    private readonly cCallbackSynchroniser mSynchroniser;
+                    private readonly cIMAPCallbackSynchroniser mSynchroniser;
                     private readonly List<iResponseTextCodeParser> mResponseTextCodeParsers = new List<iResponseTextCodeParser>();
                     private cMailboxCache mMailboxCache = null;
 
-                    public cResponseTextProcessor(cCallbackSynchroniser pSynchroniser)
+                    public cResponseTextProcessor(cIMAPCallbackSynchroniser pSynchroniser)
                     {
                         mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                     }

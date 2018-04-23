@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using work.bacome.imapclient;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
@@ -18,7 +19,7 @@ namespace work.bacome.mailclient
 
         public long QuotedPrintableEncode(Stream pSource, Stream pTarget = null, cQuotedPrintableEncodeConfiguration pConfiguration = null)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(QuotedPrintableEncode), 1);
+            var lContext = mRootContext.NewMethodV(nameof(cMailClient), nameof(QuotedPrintableEncode), 1);
             var lTask = ZQuotedPrintableEncodeAsync(pSource, kQuotedPrintableEncodeDefaultSourceType, eQuotedPrintableEncodeQuotingRule.EBCDIC, pTarget, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
@@ -26,13 +27,13 @@ namespace work.bacome.mailclient
 
         public Task<long> QuotedPrintableEncodeAsync(Stream pSource, Stream pTarget, cQuotedPrintableEncodeConfiguration pConfiguration = null)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(QuotedPrintableEncodeAsync), 1);
+            var lContext = mRootContext.NewMethodV(nameof(cMailClient), nameof(QuotedPrintableEncodeAsync), 1);
             return ZQuotedPrintableEncodeAsync(pSource, kQuotedPrintableEncodeDefaultSourceType, eQuotedPrintableEncodeQuotingRule.EBCDIC, pTarget, pConfiguration, lContext);
         }
 
         public long QuotedPrintableEncode(Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget = null, cQuotedPrintableEncodeConfiguration pConfiguration = null)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(QuotedPrintableEncode), 2);
+            var lContext = mRootContext.NewMethodV(nameof(cMailClient), nameof(QuotedPrintableEncode), 2);
             var lTask = ZQuotedPrintableEncodeAsync(pSource, pSourceType, pQuotingRule, pTarget, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
@@ -40,15 +41,15 @@ namespace work.bacome.mailclient
 
         public Task<long> QuotedPrintableEncodeAsync(Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget = null, cQuotedPrintableEncodeConfiguration pConfiguration = null)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(QuotedPrintableEncodeAsync), 2);
+            var lContext = mRootContext.NewMethodV(nameof(cMailClient), nameof(QuotedPrintableEncodeAsync), 2);
             return ZQuotedPrintableEncodeAsync(pSource, pSourceType, pQuotingRule, pTarget, pConfiguration, lContext);
         }
 
         private async Task<long> ZQuotedPrintableEncodeAsync(Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget, cQuotedPrintableEncodeConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZQuotedPrintableEncodeAsync), pSourceType, pQuotingRule, pConfiguration);
+            var lContext = pParentContext.NewMethod(nameof(cMailClient), nameof(ZQuotedPrintableEncodeAsync), pSourceType, pQuotingRule, pConfiguration);
 
-            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+            if (mDisposed) throw new ObjectDisposedException(nameof(cMailClient));
 
             if (pSource == null) throw new ArgumentNullException(nameof(pSource));
             if (!pSource.CanRead) throw new ArgumentOutOfRangeException(nameof(pSource));
@@ -59,19 +60,19 @@ namespace work.bacome.mailclient
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                    return await ZZQuotedPrintableEncodeAsync(lMC, pSource, pSourceType, pQuotingRule, pTarget, null, mQuotedPrintableEncodeReadWriteConfiguration, mQuotedPrintableEncodeReadWriteConfiguration, lContext).ConfigureAwait(false);
+                    return await ZZQuotedPrintableEncodeAsync(lMC, pSource, pSourceType, pQuotingRule, pTarget, null, mLocalStreamReadConfiguration, mLocalStreamWriteConfiguration, lContext).ConfigureAwait(false);
                 }
             }
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                return await ZZQuotedPrintableEncodeAsync(lMC, pSource, pSourceType, pQuotingRule, pTarget, pConfiguration.Increment, pConfiguration.ReadConfiguration ?? mQuotedPrintableEncodeReadWriteConfiguration, pConfiguration.WriteConfiguration ?? mQuotedPrintableEncodeReadWriteConfiguration, lContext).ConfigureAwait(false);
+                return await ZZQuotedPrintableEncodeAsync(lMC, pSource, pSourceType, pQuotingRule, pTarget, pConfiguration.Increment, pConfiguration.ReadConfiguration ?? mLocalStreamReadConfiguration, pConfiguration.WriteConfiguration ?? mLocalStreamWriteConfiguration, lContext).ConfigureAwait(false);
             }
         }
 
         private async Task<long> ZZQuotedPrintableEncodeAsync(cMethodControl pMC, Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZQuotedPrintableEncodeAsync), pMC, pSourceType, pQuotingRule, pReadConfiguration, pWriteConfiguration);
+            var lContext = pParentContext.NewMethod(nameof(cMailClient), nameof(ZZQuotedPrintableEncodeAsync), pMC, pSourceType, pQuotingRule, pReadConfiguration, pWriteConfiguration);
 
             byte[] lReadBuffer = null;
             Stopwatch lStopwatch = new Stopwatch();
@@ -383,7 +384,7 @@ namespace work.bacome.mailclient
             }
         }
 
-        private static partial class cTests
+        internal static partial class cTests
         {
             public static void QuotedPrintableEncodeTests(cTrace.cContext pParentContext)
             {
@@ -508,9 +509,10 @@ namespace work.bacome.mailclient
                         false,
                         eQuotedPrintableEncodeQuotingRule.EBCDIC, pParentContext);
 
+                using (var lClient = new cIMAPClient())
                 using (var lInput = new MemoryStream(Encoding.UTF8.GetBytes("All doggies go to heaven (or so I've been told).\r\nThey run and play along the streets of Gold.\r\nWhy is heaven such a doggie-delight?\r\nWhy, because there's not a single cat in sight!")))
                 {
-                    long lLength = mClient.QuotedPrintableEncode(lInput);
+                    long lLength = lClient.QuotedPrintableEncode(lInput);
                     if (lLength != lExpectedLength) throw new cTestsException($"dev/null: {lLength} vs {lExpectedLength}");
                 }
             }
@@ -628,7 +630,7 @@ namespace work.bacome.mailclient
                     var lIncrement = new cTestActionInt();
                     cQuotedPrintableEncodeConfiguration lConfig = new cQuotedPrintableEncodeConfiguration(CancellationToken.None, lIncrement.ActionInt);
 
-                    lBytesWritten = mClient.QuotedPrintableEncode(lInput, pSourceType, pQuotingRule, lEncoded, lConfig);
+                    lBytesWritten = lClient.QuotedPrintableEncode(lInput, pSourceType, pQuotingRule, lEncoded, lConfig);
 
                     string lEncodedString = new string(Encoding.UTF8.GetChars(lEncoded.GetBuffer(), 0, (int)lEncoded.Length));
                     if (lBytesWritten > 0 && lEncodedString[lEncodedString.Length - 1] == '=') throw new cTestsException($"TestQuotedPrintable.{pTestName}.e.1");

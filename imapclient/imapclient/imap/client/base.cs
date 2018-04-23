@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Text;
-using work.bacome.mailclient;
+using System.Threading.Tasks;
 using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -94,7 +96,6 @@ namespace work.bacome.imapclient
         private cBatchSizerConfiguration mFetchCacheItemsConfiguration = new cBatchSizerConfiguration(1, 1000, 10000, 1);
         private cBatchSizerConfiguration mFetchBodyConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cBatchSizerConfiguration mAppendBatchConfiguration = new cBatchSizerConfiguration(1000, int.MaxValue, 10000, 1000);
-        private int mAppendTargetBufferSize = cIMAPMessageDataStream.DefaultTargetBufferSize;
         private cIMAPClientId mClientId = new cIMAPClientId(new cIMAPIdDictionary(true));
         private cIMAPClientIdUTF8 mClientIdUTF8 = null;
 
@@ -198,6 +199,8 @@ namespace work.bacome.imapclient
             add { mIMAPSynchroniser.MessagePropertyChanged += value; }
             remove { mIMAPSynchroniser.MessagePropertyChanged -= value; }
         }
+
+        internal void Wait(Task pAsyncTask, cTrace.cContext pParentContext) => mSynchroniser.Wait(pAsyncTask, pParentContext);
 
         /// <summary>
         /// Sets <see cref="Server"/>, defaulting the port to 143 and SSL to <see langword="false"/>. 
@@ -422,19 +425,6 @@ namespace work.bacome.imapclient
             }
         }
 
-        public int AppendTargetBufferSize
-        {
-            get => mAppendTargetBufferSize;
-
-            set
-            {
-                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
-                if (value < 1) throw new ArgumentOutOfRangeException();
-                mAppendTargetBufferSize = value;
-            }
-        }
-
         /// <summary>
         /// Gets and sets the ASCII ID (RFC 2971) details. 
         /// </summary>
@@ -578,6 +568,8 @@ namespace work.bacome.imapclient
         internal iSelectedMailboxDetails SelectedMailboxDetails => mSession?.SelectedMailboxDetails;
         internal bool? HasCachedChildren(iMailboxHandle pMailboxHandle) => mSession?.HasCachedChildren(pMailboxHandle);
 
+        public override string ToString() => $"{nameof(cIMAPClient)}({mInstanceName})";
+        
         protected override void Dispose(bool pDisposing)
         {
             if (IsDisposed) return;

@@ -12,7 +12,7 @@ namespace work.bacome.mailclient
 {
     public abstract partial class cMailClient
     {
-        protected internal abstract class cCallbackSynchroniser : IDisposable
+        protected internal class cCallbackSynchroniser : IDisposable
         {
             public event PropertyChangedEventHandler PropertyChanged;
             public event EventHandler<cNetworkReceiveEventArgs> NetworkReceive;
@@ -170,7 +170,11 @@ namespace work.bacome.mailclient
 
             public bool IsDisposed => mDisposed;
 
-            protected abstract void YInvoke(object pSender, EventArgs pArgs, cTrace.cContext pParentContext);
+            protected virtual void YInvoke(object pSender, EventArgs pEventArgs, cTrace.cContext pParentContext)
+            {
+                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(YInvoke));
+                lContext.TraceError("unknown event type", pEventArgs);
+            }
 
             protected async Task YInvokeAndWaitAsync(EventArgs pEventArgs, cTrace.cContext pParentContext)
             {

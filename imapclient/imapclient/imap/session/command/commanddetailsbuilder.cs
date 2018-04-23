@@ -680,7 +680,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandDetailsBuilder), nameof(_Tests));
 
-                    cCallbackSynchroniser lES = new cIMAPCallbackSynchroniser(new object(), cTrace.cContext.None);
+                    cIMAPCallbackSynchroniser lES = new cIMAPCallbackSynchroniser();
                     cStrings lStrings = new cStrings(new List<string>());
                     cMailboxCache lMC = new cMailboxCache(lES, 0, cCommandPartFactory.Validation, new cIMAPCapabilities(lStrings, lStrings, 0), (eIMAPConnectionState pCS, cTrace.cContext pC) => { });
                     cSelectedMailbox lSelectedMailbox = new cSelectedMailbox(lES, new cMailboxCacheItem(lES, lMC, "fred"), false, true, 10, 5, 1111, 1, 0, cTrace.cContext.None);
@@ -860,15 +860,13 @@ namespace work.bacome.imapclient
             {
                 public readonly bool UTF8;
                 public readonly bool Binary;
-                public readonly int TargetBufferSize;
                 public readonly cBatchSizerConfiguration StreamReadConfiguration;
                 public readonly Action<int> Increment;
 
-                public cAppendCommandDetailsBuilder(bool pUTF8, bool pBinary, int pTargetBufferSize, cBatchSizerConfiguration pStreamReadConfiguration, Action<int> pIncrement)
+                public cAppendCommandDetailsBuilder(bool pUTF8, bool pBinary, cBatchSizerConfiguration pStreamReadConfiguration, Action<int> pIncrement)
                 {
                     UTF8 = pUTF8;
                     Binary = pBinary;
-                    TargetBufferSize = pTargetBufferSize;
                     StreamReadConfiguration = pStreamReadConfiguration ?? throw new ArgumentNullException(nameof(pStreamReadConfiguration));
                     Increment = pIncrement;
                 }

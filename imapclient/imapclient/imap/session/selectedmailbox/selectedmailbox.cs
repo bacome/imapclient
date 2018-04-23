@@ -10,14 +10,14 @@ namespace work.bacome.imapclient
         {
             private partial class cSelectedMailbox : iSelectedMailboxDetails
             {
-                private readonly cCallbackSynchroniser mSynchroniser;
+                private readonly cIMAPCallbackSynchroniser mSynchroniser;
                 private readonly cMailboxCacheItem mMailboxCacheItem;
                 private readonly bool mSelectedForUpdate;
 
                 private bool mAccessReadOnly;
                 private cSelectedMailboxCache mCache;
 
-                public cSelectedMailbox(cCallbackSynchroniser pSynchroniser, cMailboxCacheItem pMailboxCacheItem, bool pSelectedForUpdate, bool pAccessReadOnly, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
+                public cSelectedMailbox(cIMAPCallbackSynchroniser pSynchroniser, cMailboxCacheItem pMailboxCacheItem, bool pSelectedForUpdate, bool pAccessReadOnly, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cSelectedMailbox), pMailboxCacheItem, pSelectedForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq);
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));

@@ -326,5 +326,13 @@ namespace work.bacome.mailclient
 
             return lBuilder.ToString();
         }
+
+        public static string MessageId(string pIdLeft, string pIdRight)
+        {
+            if (pIdLeft == null) throw new ArgumentNullException(nameof(pIdLeft));
+            if (pIdRight == null) throw new ArgumentNullException(nameof(pIdRight));
+            if (cValidation.IsDotAtomText(pIdLeft)) return "<" + pIdLeft + "@" + pIdRight + ">";
+            else return "<" + Enquote(pIdLeft) + "@" + pIdRight + ">";
+        }
     }
 }

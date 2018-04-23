@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -31,7 +32,7 @@ namespace work.bacome.imapclient
 
                     lContext.TraceInformation("capability success");
 
-                    if (ReferenceEquals(lCapabilities, mPipeline.Capabilities)) throw new cUnexpectedServerActionException(lResult, "capability not received", 0, lContext);
+                    if (ReferenceEquals(lCapabilities, mPipeline.Capabilities)) throw new cUnexpectedIMAPServerActionException(lResult, "capability not received", 0, lContext);
 
                     ZSetCapabilities(mPipeline.Capabilities, mPipeline.AuthenticationMechanisms, lContext);
                 }

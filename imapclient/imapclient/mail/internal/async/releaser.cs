@@ -5,6 +5,14 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
 {
+    /// <summary>
+    /// For a worker thread that must wait for work supplied by work-creator thread(s);
+    ///  The worker resets, checks for and does work, then gets and awaits a release task.
+    ///  Work-creators queue work and then release.
+    /// For observer thread(s) that must wait for work to be done by a worker thread;
+    ///  The observer gets a release task, checks for work having been done, then (optionally) awaits the release task. (note that if the work is finished the release task will always be complete so there is a danger of a tight loop).
+    ///  The worker does some work and then if there is more work does a releasereset or if the work is complete does a release.
+    /// </summary>
     internal sealed class cReleaser : IDisposable
     {
         private static int mInstanceSource = 7;
@@ -14,6 +22,7 @@ namespace work.bacome.mailclient
         private readonly int mInstance;
         private readonly CancellationToken mCancellationToken;
         private readonly SemaphoreSlim mSemaphoreSlim = new SemaphoreSlim(0);
+        private readonly object mTaskLock = new object();
         private Task mTask = null;
 
         public cReleaser(string pName, CancellationToken pCancellationToken)
@@ -28,10 +37,13 @@ namespace work.bacome.mailclient
         {
             var lContext = pParentContext.NewMethod(nameof(cReleaser), nameof(ZTask), mName, mInstance);
 
-            if (mTask == null)
+            lock (mTaskLock)
             {
-                lContext.TraceVerbose("starting a new wait task");
-                mTask = mSemaphoreSlim.WaitAsync(mCancellationToken);
+                if (mTask == null)
+                {
+                    lContext.TraceVerbose("starting a new wait task");
+                    mTask = mSemaphoreSlim.WaitAsync(mCancellationToken);
+                }
             }
 
             return mTask;
@@ -50,10 +62,13 @@ namespace work.bacome.mailclient
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cReleaser));
 
-            if (mSemaphoreSlim.CurrentCount == 0)
+            lock (mTaskLock)
             {
-                lContext.TraceVerbose("releasing semaphore");
-                mSemaphoreSlim.Release();
+                if (mSemaphoreSlim.CurrentCount == 0)
+                {
+                    lContext.TraceVerbose("releasing semaphore");
+                    mSemaphoreSlim.Release();
+                }
             }
         }
 
@@ -67,10 +82,35 @@ namespace work.bacome.mailclient
         public void Reset(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cReleaser), nameof(Reset), mName, mInstance);
+
             if (mDisposed) throw new ObjectDisposedException(nameof(cReleaser));
-            if (!ZTask(lContext).IsCompleted) return;
-            mTask.Dispose();
-            mTask = null;
+
+            // note that the task cannot be disposed as in the observer/worker case it may still be in use
+
+            lock (mTaskLock)
+            {
+                if (mTask == null) return;
+                if (mTask.IsCompleted) mTask = null;
+            }
+        }
+
+        public void ReleaseReset(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cReleaser), nameof(ReleaseReset), mName, mInstance);
+
+            if (mDisposed) throw new ObjectDisposedException(nameof(cReleaser));
+
+            lock (mTaskLock)
+            {
+                if (mSemaphoreSlim.CurrentCount == 0)
+                {
+                    lContext.TraceVerbose("releasing semaphore");
+                    mSemaphoreSlim.Release();
+                }
+
+                if (mTask == null) return;
+                if (mTask.IsCompleted) mTask = null;
+            }
         }
 
         public void Dispose()

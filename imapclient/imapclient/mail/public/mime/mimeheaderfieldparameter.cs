@@ -37,7 +37,7 @@ namespace work.bacome.mailclient
     //}
 //}
 
-
+            /* WIP
         internal override void GetBytes(cHeaderFieldBytes pBytes, eHeaderFieldValuePartContext pContext)
         {
             // if the value is a non-zero-length short token
@@ -269,6 +269,6 @@ namespace work.bacome.mailclient
                 CharCount = pCharCount;
             }
         }
-
+        */
     }
 }

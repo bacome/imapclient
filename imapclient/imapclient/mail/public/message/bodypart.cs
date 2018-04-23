@@ -328,7 +328,7 @@ namespace work.bacome.mailclient
         /// </summary>
         public readonly cBodyParts Parts;
 
-        private fMessageDataFormat mFormat;
+        private fMessageDataFormat mFormat = 0;
 
         /// <summary>
         /// The MIME subtype of the body-part as a code.
@@ -340,11 +340,12 @@ namespace work.bacome.mailclient
         /// </summary>
         public readonly cMultiPartExtensionData ExtensionData;
 
-        ;?; // note if UTF8 is on and pFormat includes 8bit then utf8 should be turned on
-        internal cMultiPartBody(IList<cBodyPart> pParts, fMessageDataFormat pFormat, string pSubType, cSection pSection, cMultiPartExtensionData pExtensionData) : base(kMimeType.Multipart, pSubType, pSection)
+        internal cMultiPartBody(IList<cBodyPart> pParts, bool pUTF8Headers, string pSubType, cSection pSection, cMultiPartExtensionData pExtensionData) : base(kMimeType.Multipart, pSubType, pSection)
         {
             Parts = new cBodyParts(pParts);
-            mFormat = pFormat; // sum of the formats of the parts + utf8 if 8bit is on
+
+            foreach (var lPart in pParts) mFormat |= lPart.Format;
+            if (pUTF8Headers) mFormat = mFormat | fMessageDataFormat.eightbit | fMessageDataFormat.utf8headers; // just in case the mime headers have utf8 in them
 
             if (SubType.Equals("MIXED", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eMultiPartBodySubTypeCode.mixed;
             else if (SubType.Equals("DIGEST", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eMultiPartBodySubTypeCode.digest;

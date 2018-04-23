@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -157,7 +158,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cNamespaceDataProcessor), nameof(_Tests));
 
-                    using (cCallbackSynchroniser lES = new cCallbackSynchroniser(new object(), lContext))
+                    using (cCallbackSynchroniser lES = new cCallbackSynchroniser())
                     {
                         cNamespaceDataProcessor lNRDPASCII = new cNamespaceDataProcessor(lES, false);
                         cNamespaceDataProcessor lNRDPUTF8 = new cNamespaceDataProcessor(lES, true);

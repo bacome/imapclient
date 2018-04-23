@@ -8,6 +8,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
+        /* TEMP comment out for cachefile work
             private static readonly cCommandPart kAppendCommandPart = new cTextCommandPart("APPEND ");
 
             private async Task<cAppendResult> ZAppendAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cSessionAppendDataList pMessages, Action<int> pIncrement, cTrace.cContext pParentContext)
@@ -22,7 +23,7 @@ namespace work.bacome.imapclient
 
                 var lItem = mMailboxCache.CheckHandle(pMailboxHandle);
 
-                using (var lBuilder = new cAppendCommandDetailsBuilder((EnabledExtensions & fEnableableExtensions.utf8) != 0, _Capabilities.Binary, mAppendTargetBufferSize, mAppendStreamReadConfiguration, pIncrement))
+                using (var lBuilder = new cAppendCommandDetailsBuilder((EnabledExtensions & fEnableableExtensions.utf8) != 0, _Capabilities.Binary, mAppendStreamReadConfiguration, pIncrement))
                 {
                     if (!_Capabilities.QResync) lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select if mailbox-data delivered during the command would be ambiguous
                     lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
@@ -108,7 +109,7 @@ namespace work.bacome.imapclient
                         lContext.TraceWarning("likely malformed appenduid response");
                     }
                 }
-            }
+            } */
         }
     }
 }

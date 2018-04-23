@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace work.bacome.mailclient
 {
+    /// <summary>
+    /// Waits for any task to complete but with timeout and/or cancellation
+    /// </summary>
     internal sealed class cAwaiter : IDisposable
     {
         private bool mDisposed = false;

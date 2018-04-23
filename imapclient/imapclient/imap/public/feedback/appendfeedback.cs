@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using work.bacome.mailclient;
 
 namespace work.bacome.imapclient
 {

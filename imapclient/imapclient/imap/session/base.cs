@@ -22,7 +22,6 @@ namespace work.bacome.imapclient
             private readonly cBatchSizer mFetchCacheItemsSizer;
             private readonly cBatchSizer mFetchBodySizer;
             private readonly cStorableFlags mAppendDefaultFlags;
-            private readonly int mAppendTargetBufferSize;
             private readonly cBatchSizer mAppendBatchSizer;
             private readonly cCommandPipeline mPipeline;
 
@@ -53,7 +52,7 @@ namespace work.bacome.imapclient
                 cIMAPCallbackSynchroniser pSynchroniser, cBatchSizerConfiguration pNetworkWriteConfiguration, cBatchSizerConfiguration pLocalStreamReadConfiguration,
                 fIMAPCapabilities pIgnoreCapabilities, fMailboxCacheDataItems pMailboxCacheDataItems,
                 cBatchSizerConfiguration pFetchCacheItemsConfiguration, cBatchSizerConfiguration pFetchBodyConfiguration,
-                cStorableFlags pAppendDefaultFlags, cBatchSizerConfiguration pAppendBatchConfiguration, int pAppendTargetBufferSize, 
+                cStorableFlags pAppendDefaultFlags, cBatchSizerConfiguration pAppendBatchConfiguration, 
                 cIdleConfiguration pIdleConfiguration, 
                 Encoding pEncoding,
                 cTrace.cContext pParentContext)
@@ -64,7 +63,7 @@ namespace work.bacome.imapclient
                         pNetworkWriteConfiguration, pLocalStreamReadConfiguration,
                         pIgnoreCapabilities, pMailboxCacheDataItems,
                         pFetchCacheItemsConfiguration, pFetchBodyConfiguration,
-                        pAppendDefaultFlags, pAppendBatchConfiguration, pAppendTargetBufferSize,
+                        pAppendDefaultFlags, pAppendBatchConfiguration,
                         pIdleConfiguration);
 
                 mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
@@ -75,7 +74,6 @@ namespace work.bacome.imapclient
                 mFetchBodySizer = new cBatchSizer(pFetchBodyConfiguration);
                 mAppendDefaultFlags = pAppendDefaultFlags;
                 mAppendBatchSizer = new cBatchSizer(pAppendBatchConfiguration);
-                mAppendTargetBufferSize = pAppendTargetBufferSize;
                 mPipeline = new cCommandPipeline(pSynchroniser, ZDisconnected, pNetworkWriteConfiguration, pIdleConfiguration, lContext);
                 mEncoding = pEncoding ?? throw new ArgumentNullException(nameof(pEncoding));
 
@@ -107,7 +105,7 @@ namespace work.bacome.imapclient
 
                 mPipeline.Install(new cResponseTextCodeParserSelect(_Capabilities));
                 mPipeline.Install(new cResponseDataParserSelect());
-                mPipeline.Install(new cResponseDataParserFetch());
+                mPipeline.Install(new cResponseDataParserFetch(lUTF8Enabled));
                 mPipeline.Install(new cResponseDataParserList(lUTF8Enabled));
                 mPipeline.Install(new cResponseDataParserLSub(lUTF8Enabled));
                 if (_Capabilities.ESearch || _Capabilities.ESort) mPipeline.Install(new cResponseDataParserESearch());

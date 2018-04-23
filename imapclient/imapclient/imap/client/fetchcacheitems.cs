@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -124,7 +126,7 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchCacheItemsAsync), pMessageHandles, pItems);
 
-            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+            if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
             if (lSession == null || lSession.ConnectionState != eIMAPConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
@@ -139,7 +141,7 @@ namespace work.bacome.imapclient
             {
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
-                    var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
+                    var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
                     await lSession.FetchCacheItemsAsync(lMC, pMessageHandles, pItems, null, lContext).ConfigureAwait(false);
                 }
             }
@@ -154,7 +156,7 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZUIDFetchCacheItemsAsync), pMailboxHandle, pUIDs, pItems);
 
-            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+            if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
             if (lSession == null || lSession.ConnectionState != eIMAPConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
@@ -172,7 +174,7 @@ namespace work.bacome.imapclient
             {
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
-                    var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
+                    var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
                     lMessageHandles = await lSession.UIDFetchCacheItemsAsync(lMC, pMailboxHandle, pUIDs, pItems, null, lContext).ConfigureAwait(false);
                 }
             }

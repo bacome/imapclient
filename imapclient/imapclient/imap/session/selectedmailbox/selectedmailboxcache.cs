@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         {
             private partial class cSelectedMailboxCache : iMessageCache
             {
-                private readonly cCallbackSynchroniser mSynchroniser;
+                private readonly cIMAPCallbackSynchroniser mSynchroniser;
                 private readonly cMailboxCacheItem mMailboxCacheItem;
                 private readonly uint mUIDValidity;
                 private readonly bool mNoModSeq;
@@ -33,7 +33,7 @@ namespace work.bacome.imapclient
                 private ulong mHighestModSeq;
                 private ulong mPendingHighestModSeq = 0;
 
-                public cSelectedMailboxCache(cCallbackSynchroniser pSynchroniser, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, uint pHighestModSeq, cTrace.cContext pParentContext)
+                public cSelectedMailboxCache(cIMAPCallbackSynchroniser pSynchroniser, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, uint pHighestModSeq, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cSelectedMailboxCache), pMailboxCacheItem, pUIDValidity, pMessageCount, pRecentCount, pUIDNext, pHighestModSeq);
 
@@ -209,7 +209,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ZExists), pMessageCount);
 
-                    if (pMessageCount < mItems.Count) throw new cUnexpectedServerActionException(null, "count should only go up", 0, lContext);
+                    if (pMessageCount < mItems.Count) throw new cUnexpectedIMAPServerActionException(null, "count should only go up", 0, lContext);
 
                     int lToAdd = pMessageCount - mItems.Count;
 

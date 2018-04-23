@@ -120,6 +120,17 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
+    /// Thrown when something happens that shouldn't.
+    /// </summary>
+    public class cUnexpectedSectionCacheActionException : cMailException
+    {
+        internal cUnexpectedSectionCacheActionException(cTrace.cContext pContext, int pPlace = 1)
+        {
+            pContext.TraceError("{0}: {1}", nameof(cUnexpectedSectionCacheActionException), pPlace);
+        }
+    }
+
+    /// <summary>
     /// Thrown to indicate that <see cref="cIMAPClient.Connect"/> failure is due to the server rejecting the connection.
     /// </summary>
     public class cConnectByeException : cMailException

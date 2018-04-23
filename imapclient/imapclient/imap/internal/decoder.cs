@@ -10,6 +10,7 @@ namespace work.bacome.imapclient
 {
     internal abstract class cDecoder
     {
+        /*
         private readonly cMethodControl mMC;
         private readonly Stream mStream;
         private readonly cBatchSizer mWriteSizer;
@@ -17,6 +18,7 @@ namespace work.bacome.imapclient
         private byte[] mBuffer = null;
         private int mBufferSize = 0;
         private int mBytesInBuffer = 0;
+        */
 
         public cDecoder(cMethodControl pMC, Stream pStream, cBatchSizer pWriteSizer)
         {
@@ -27,16 +29,20 @@ namespace work.bacome.imapclient
 
         protected async Task YWriteAsync(IList<byte> pBytes, int pOffset, cTrace.cContext pContext)
         {
+            ;?;
+            /*
             if (mStream.CanTimeout) mStream.WriteTimeout = mMC.Timeout;
             else _ = mMC.Timeout; // check for timeout
+            */
 
             while (pOffset < pBytes.Count)
             {
+                /*
                 if (mBytesInBuffer == 0)
                 {
                     mBufferSize = mWriteSizer.Current;
                     if (mBuffer == null || mBufferSize > mBuffer.Length) mBuffer = new byte[mBufferSize];
-                }
+                } */
 
                 while (mBytesInBuffer < mBufferSize && pOffset < pBytes.Count) mBuffer[mBytesInBuffer++] = pBytes[pOffset++];
                 if (mBytesInBuffer < mBufferSize) return;
@@ -45,6 +51,7 @@ namespace work.bacome.imapclient
             }
         }
 
+        /*
         protected async Task YFlushAsync(cTrace.cContext pContext)
         {
             if (mBytesInBuffer == 0) return;
@@ -59,7 +66,7 @@ namespace work.bacome.imapclient
             mWriteSizer.AddSample(mBytesInBuffer, mStopwatch.ElapsedMilliseconds);
 
             mBytesInBuffer = 0;
-        }
+        } */
 
         public abstract Task WriteAsync(IList<byte> pBytes, int pOffset, cTrace.cContext pContext);
         public abstract Task FlushAsync(cTrace.cContext pContext);
