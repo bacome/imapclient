@@ -43,9 +43,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="imap\public\sectioncache\accountspecificsectioncache.cs" />
-    <Compile Include="imap\sectioncache\readwritestream.cs" />
+    <Compile Include="imap\sectioncache\accessor.cs" />
+    <Compile Include="imap\sectioncache\readerwriter.cs" />
     <Compile Include="imap\public\sectioncache\tempfilesectioncache.cs" />
-    <Compile Include="imap\sectioncache\readstream.cs" />
+    <Compile Include="imap\sectioncache\reader.cs" />
     <Compile Include="imap\client\append.cs" />
     <Compile Include="imap\public\sectioncache\sectioncache.cs" />
     <Compile Include="imap\public\sectioncache\sectioncacheitem.cs" />

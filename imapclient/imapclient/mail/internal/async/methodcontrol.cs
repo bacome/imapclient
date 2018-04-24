@@ -6,7 +6,7 @@ namespace work.bacome.mailclient
 {
     internal class cMethodControl
     {
-        //public static readonly cMethodControl None = new cMethodControl(-1, CancellationToken.None);
+        public static readonly cMethodControl None = new cMethodControl(-1, CancellationToken.None);
 
         private readonly long mTimeout;
         private readonly Stopwatch mStopwatch;

@@ -88,6 +88,7 @@ namespace work.bacome.imapclient
 
         // property backing storage
         private Encoding mEncoding = Encoding.UTF8;
+        private cSectionCache mSectionCache = new cTempfilesectioncache(1000, 1000000);
         private fIMAPCapabilities mIgnoreCapabilities = 0;
         private cIMAPAuthenticationParameters mAuthenticationParameters = null;
         private bool mMailboxReferrals = false;
@@ -112,6 +113,8 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewObject(nameof(cIMAPClient), pInstanceName);
             mIMAPSynchroniser = (cIMAPCallbackSynchroniser)mSynchroniser;
+
+            ;?; // assign section cache and get an accessor
         }
 
         public override fMessageDataFormat SupportedFormats => mSession?.SupportedFormats ?? 0;
@@ -136,6 +139,11 @@ namespace work.bacome.imapclient
                 mEncoding = value;
                 mSession?.SetEncoding(value, lContext);
             }
+        }
+
+        public cSectionCache SectionCache
+        {
+            ;?; // get; set { set disposes the old accessor and gets a new one (unless they are the same) }
         }
 
         /// <summary>
@@ -278,6 +286,10 @@ namespace work.bacome.imapclient
             }
         }
 
+
+        ;?; // wasn't the idea to specify a directory
+
+
         /// <summary>
         /// Sets <see cref="AuthenticationParameters"/> to use a userid and password combination to authenticate.
         /// </summary>
@@ -289,7 +301,7 @@ namespace work.bacome.imapclient
         /// May only be called while <see cref="IsUnconnected"/>.
         /// This method will throw if the userid and password can be used in neither <see cref="cIMAPLogin"/> nor <see cref="cSASLPlain"/>.
         /// </remarks>
-        public void SetPlainAuthenticationParameters(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false) => AuthenticationParameters = cIMAPAuthenticationParameters.Plain(pUserId, pPassword, pTLSRequirement, pTryAuthenticateEvenIfPlainIsntAdvertised);
+        public void SetPlainAuthenticationParameters(string pUserId, string pPassword, cSectionCache pSectionCache = null, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false) => AuthenticationParameters = cIMAPAuthenticationParameters.Plain(pUserId, pPassword, pSectionCache, pTLSRequirement, pTryAuthenticateEvenIfPlainIsntAdvertised);
 
         // not tested yet
         //public void SetXOAuth2Credentials(string pUserId, string pAccessToken, bool pTryAuthenticateEvenIfXOAuth2IsntAdvertised = false) => Credentials = cCredentials.XOAuth2(pUserId, pAccessToken, pTryAuthenticateEvenIfXOAuth2IsntAdvertised);
@@ -581,6 +593,8 @@ namespace work.bacome.imapclient
                     try { mSession.Dispose(); }
                     catch { }
                 }
+
+                ;?; // dispose the cache accessor
             }
 
             base.Dispose(pDisposing);

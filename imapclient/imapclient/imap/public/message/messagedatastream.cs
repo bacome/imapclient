@@ -13,8 +13,6 @@ namespace work.bacome.imapclient
     {
         private bool mDisposed = false;
 
-        private readonly object mGetReadStreamLock = new object();
-
         public readonly cIMAPClient Client;
         public readonly iMessageHandle MessageHandle;
         public readonly cSinglePartBody Part;
@@ -22,21 +20,15 @@ namespace work.bacome.imapclient
         public readonly cUID UID;
         public readonly cSection Section;
         public readonly eDecodingRequired Decoding;
-        private readonly string mFileName;
-        private readonly Stream mStream;
 
         private int mReadTimeout = Timeout.Infinite;
-        private string mTempFileName = null;
-        private Stream mFileStream = null;
 
-        private Stream mReadStream = null; // will be either the mStream or the mFileStream
-        private bool mReadStreamComplete;
+        private iSectionCacheItemReader mSectionCacheItemReader = null;
+        private cSectionCacheItem.cReader mReader = null;
+        private cSectionCacheItem.cReaderWriter mReaderWriter = null;
 
-        // build temp file task
-        private CancellationTokenSource mCancellationTokenSource = null;
-        private cReleaser mBuildTempFileReleaser = null;
-        private Task mBuildTempFileTask = null;
-        private cTrace.cContext mBuildTempFileFromFetchContext = null;
+        // background task
+        ;?;
 
         public cIMAPMessageDataStream(cIMAPMessage pMessage)
         {
@@ -52,9 +44,6 @@ namespace work.bacome.imapclient
 
             Section = cSection.All;
             Decoding = eDecodingRequired.none;
-
-            mFileName = null;
-            mStream = null;
         }
 
         public cIMAPMessageDataStream(cIMAPAttachment pAttachment, bool pDecoded = true)
@@ -73,9 +62,6 @@ namespace work.bacome.imapclient
 
             if (pDecoded) Decoding = pAttachment.Part.DecodingRequired;
             else Decoding = eDecodingRequired.none;
-
-            mFileName = null;
-            mStream = null;
         }
 
         public cIMAPMessageDataStream(cIMAPMessage pMessage, cSinglePartBody pPart, bool pDecoded = true)
@@ -95,9 +81,6 @@ namespace work.bacome.imapclient
 
             if (pDecoded) Decoding = pPart.DecodingRequired;
             else Decoding = eDecodingRequired.none;
-
-            mFileName = null;
-            mStream = null;
         }
 
         public cIMAPMessageDataStream(cIMAPMessage pMessage, cSection pSection, eDecodingRequired pDecoding)
@@ -114,9 +97,6 @@ namespace work.bacome.imapclient
 
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
             Decoding = pDecoding;
-
-            mFileName = null;
-            mStream = null;
         }
 
         public cIMAPMessageDataStream(cMailbox pMailbox, cUID pUID, cSection pSection, eDecodingRequired pDecoding)
@@ -132,49 +112,6 @@ namespace work.bacome.imapclient
             UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
             Decoding = pDecoding;
-
-            mFileName = null;
-            mStream = null;
-        }
-
-        public cIMAPMessageDataStream(cMailbox pMailbox, cUID pUID, cSection pSection, eDecodingRequired pDecoding, string pFileName)
-        {
-            // the file must contain the decoded data
-
-            if (pMailbox == null) throw new ArgumentNullException(nameof(pMailbox));
-            if (!pMailbox.IsSelected) throw new ArgumentOutOfRangeException(nameof(pMailbox), kArgumentOutOfRangeExceptionMessage.MailboxMustBeSelected);
-
-            Client = pMailbox.Client;
-            MessageHandle = null;
-            Part = null;
-            MailboxHandle = pMailbox.MailboxHandle;
-
-            UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
-            Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
-            Decoding = pDecoding;
-
-            mFileName = pFileName;
-            mStream = null;
-        }
-
-        public cIMAPMessageDataStream(cMailbox pMailbox, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream)
-        {
-            // the stream must contain the decoded data
-
-            if (pMailbox == null) throw new ArgumentNullException(nameof(pMailbox));
-            if (!pMailbox.IsSelected) throw new ArgumentOutOfRangeException(nameof(pMailbox), kArgumentOutOfRangeExceptionMessage.MailboxMustBeSelected);
-
-            Client = pMailbox.Client;
-            MessageHandle = null;
-            Part = null;
-            MailboxHandle = pMailbox.MailboxHandle;
-
-            UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
-            Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
-            Decoding = pDecoding;
-
-            mFileName = null;
-            mStream = pStream;
         }
 
         public override bool CanRead => !mDisposed;
@@ -189,11 +126,61 @@ namespace work.bacome.imapclient
         {
             get
             {
-                var lContext = Client.RootContext.NewGetProp(nameof(cIMAPMessageDataStream), nameof(Length));
+                var lContext = Client.mRootContext.NewGetProp(nameof(cIMAPMessageDataStream), nameof(Length));
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
-                var lTask = GetLengthAsync(lContext);
+                var lTask = ZGetLengthAsync(lContext);
                 Client.Wait(lTask, lContext);
                 return lTask.Result;
+            }
+        }
+
+        private async Task<long> ZGetLengthAsync(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ZGetLengthAsync));
+
+            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
+
+            if (mSectionCacheItemReader == null)
+            {
+                // if we can, use IMAP features to get the length
+
+                if (MessageHandle != null)
+                {
+                    if (Part == null)
+                    {
+                        if (Section == cSection.All && Decoding == eDecodingRequired.none)
+                        {
+                            // special case, the whole message
+
+                            if (!(await Client.FetchAsync(MessageHandle, cMessageCacheItems.Size).ConfigureAwait(false)))
+                            {
+                                if (MessageHandle.Expunged) throw new cMessageExpungedException(MessageHandle);
+                                throw new cRequestedIMAPDataNotReturnedException(MessageHandle);
+                            }
+
+                            return MessageHandle.Size.Value;
+                        }
+                    }
+                    else
+                    {
+                        var lDecodedSizeInBytes = await Client.DecodedSizeInBytesAsync(MessageHandle, Part).ConfigureAwait(false);
+                        if (lDecodedSizeInBytes != null) return lDecodedSizeInBytes.Value;
+                    }
+                }
+
+                ZSet
+            }
+
+            // measure the length by looking at the data
+
+            ZSetReadStream(lContext);
+
+            while (true)
+            {
+                Task lTask = ZGetAwaitReadTask(lContext);
+                if (mReadStreamComplete) return mReadStream.Length;
+                if (lTask == null) throw new cInternalErrorException(nameof(cIMAPMessageDataStream), nameof(GetLengthAsync));
+                await lTask.ConfigureAwait(false);
             }
         }
 
@@ -202,34 +189,18 @@ namespace work.bacome.imapclient
             get
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
-                if (mReadStream == null) return 0;
-                return mReadStream.Position;
+                if (mSectionCacheItemReader == null) return 0;
+                return mSectionCacheItemReader.ReadPosition;
             }
 
             set
             {
-                var lContext = Client.RootContext.NewSetProp(nameof(cIMAPMessageDataStream), nameof(Position), value);
-
+                var lContext = Client.mRootContext.NewSetProp(nameof(cIMAPMessageDataStream), nameof(Position), value);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
-
                 if (value < 0) throw new ArgumentOutOfRangeException();
-
-                if (value == 0)
-                {
-                    if (mReadStream != null) mReadStream.Position = 0;
-                    return;
-                }
-
-                ZSetReadStream(lContext);
-
-                if (mReadStreamComplete || mReadStream.Length >= value)
-                {
-                    mReadStream.Position = value;
-                    return;
-                }
-
-                var lTask = ZSetPositionAsync(value, lContext);
-                Client.Wait(lTask, lContext);
+                if (value == 0 && mSectionCacheItemReader == null) return;
+                ZSetSectionCacheItemReader();
+                Client.Wait(mSectionCacheItemReader.SetReadPositionAsync(cMethodControl.None, value, lContext), lContext);
             }
         }
     
@@ -285,7 +256,7 @@ namespace work.bacome.imapclient
 
         public override int Read(byte[] pBuffer, int pOffset, int pCount)
         {
-            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(Read), pCount);
+            var lContext = Client.mRootContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(Read), pCount);
             var lTask = ZReadAsync(pBuffer, pOffset, pCount, CancellationToken.None, lContext);
             Client.Wait(lTask, lContext);
             return lTask.Result;
@@ -293,7 +264,7 @@ namespace work.bacome.imapclient
 
         public override Task<int> ReadAsync(byte[] pBuffer, int pOffset, int pCount, CancellationToken pCancellationToken)
         {
-            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ReadAsync), pCount);
+            var lContext = Client.mRootContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ReadAsync), pCount);
             return ZReadAsync(pBuffer, pOffset, pCount, pCancellationToken, lContext);
         }
 
@@ -322,54 +293,6 @@ namespace work.bacome.imapclient
         }
 
         public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
-
-        internal async Task<long> GetLengthAsync(cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(GetLengthAsync));
-
-            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
-
-            if (mFileName == null && (mStream == null || !mStream.CanSeek) && (mReadStream == null || !mReadStreamComplete))
-            {
-                // if we can, use IMAP features to get the length
-
-                if (MessageHandle != null)
-                {
-                    if (Part == null)
-                    {
-                        if (Section == cSection.All && Decoding == eDecodingRequired.none)
-                        {
-                            // special case, the whole message
-
-                            if (!(await Client.FetchAsync(MessageHandle, cMessageCacheItems.Size).ConfigureAwait(false)))
-                            {
-                                if (MessageHandle.Expunged) throw new cMessageExpungedException(MessageHandle);
-                                throw new cRequestedIMAPDataNotReturnedException(MessageHandle);
-                            }
-
-                            return MessageHandle.Size.Value;
-                        }
-                    }
-                    else
-                    {
-                        var lDecodedSizeInBytes = await Client.DecodedSizeInBytesAsync(MessageHandle, Part).ConfigureAwait(false);
-                        if (lDecodedSizeInBytes != null) return lDecodedSizeInBytes.Value;
-                    }
-                }
-            }
-
-            // measure the length by looking at the data
-
-            ZSetReadStream(lContext);
-            
-            while (true)
-            {
-                Task lTask = ZGetAwaitReadTask(lContext);
-                if (mReadStreamComplete) return mReadStream.Length;
-                if (lTask == null) throw new cInternalErrorException(nameof(cIMAPMessageDataStream), nameof(GetLengthAsync));
-                await lTask.ConfigureAwait(false);
-            }
-        }
 
         private void ZSetReadStream(cTrace.cContext pParentContext)
         {
@@ -422,6 +345,10 @@ namespace work.bacome.imapclient
                 mBuildTempFileTask = ZBuildTempFileFromFetchAsync(lContext);
             }
         }
+
+
+
+
 
         private Task ZGetAwaitReadTask(cTrace.cContext pParentContext)
         {
@@ -513,6 +440,27 @@ namespace work.bacome.imapclient
                 await lTask.ConfigureAwait(false);
             }
         }
+
+
+
+        private void ZSetSectionCacheItemReader(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ZSetSectionCacheItemReader));
+
+            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
+            if (mSectionCacheItemReader != null) return;
+
+            Client.SectionC
+        }
+
+
+
+
+
+
+
+
+
 
         protected override void Dispose(bool pDisposing)
         {

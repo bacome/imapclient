@@ -1,61 +1,63 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    public abstract class cSectionCache : IDisposable
+    public abstract partial class cSectionCache
     {
-        private bool mDisposing = false;
-        private bool mDisposed = false;
-        protected internal readonly string mInstanceName;
-        protected readonly cTrace.cContext RootContext;
         private readonly object mLock = new object();
-        private readonly Dictionary<cSectionCachePersistentKey, cSectionCacheItem> mPersistentKeyItems = new Dictionary<cSectionCachePersistentKey, cSectionCacheItem>();
-        private readonly Dictionary<cSectionCacheNonPersistentKey, cSectionCacheItem> mNonPersistentKeyItems = new Dictionary<cSectionCacheNonPersistentKey, cSectionCacheItem>();
+        private readonly Dictionary<cSectionCachePersistentKey, cItem> mPersistentKeyItems = new Dictionary<cSectionCachePersistentKey, cItem>();
+        private readonly Dictionary<cSectionCacheNonPersistentKey, cItem> mNonPersistentKeyItems = new Dictionary<cSectionCacheNonPersistentKey, cItem>();
 
         public readonly bool Temporary;
         private readonly cBatchSizer mWriteSizer;
+        protected readonly string mInstanceName;
+        protected readonly cTrace.cContext mRootContext;
+
+        private int mOpenAccessorCount = 0;
 
         protected cSectionCache(bool pTemporary, cBatchSizerConfiguration pWriteConfiguration = null, string pInstanceName = "work.bacome.cSectionCache")
         {
             Temporary = pTemporary;
             mWriteSizer = new cBatchSizer(pWriteConfiguration ?? new cBatchSizerConfiguration(1000, 100000, 1000, 1000));
             mInstanceName = pInstanceName;
-            RootContext = cMailClient.Trace.NewRoot(pInstanceName);
-            RootContext.TraceInformation("cSectionCache by bacome version {0}, release date {1}", cMailClient.Version, cMailClient.ReleaseDate);
+            mRootContext = cMailClient.Trace.NewRoot(pInstanceName);
+            mRootContext.TraceInformation("cSectionCache by bacome version {0}, release date {1}", cMailClient.Version, cMailClient.ReleaseDate);
         }
 
-        // WILL be called inside the lock
-        // MAY be called while the object is disposing
+        // asks the cache if it has an item for the key
+        //  WILL be called inside the lock
+        //  DO NOT call directly (use the other TryGetExistingItem)
         //
-        protected abstract bool TryGetExistingItem(cSectionCachePersistentKey pKey, out cSectionCacheItem rItem);
+        protected abstract bool TryGetExistingItem(cSectionCachePersistentKey pKey, out cItem rItem);
 
         // asks the cache to create a new item
         //  the item will either be deleted during creation by internal code
         //   i.e.
         //    if the retrieval fails
         //    if the item is a duplicate by the time the retrieval finishes
-        //    if the cache is disposing by the time the retrieval finishes and it doesn't have a pk
+        //    if the item doesn't have a pk and the npk is no longer valid
         //  OR newitemadded will be called
         //
         // WILL be called inside the lock
-        // WILL NOT be called once the object is disposing
+        //  DO NOT call directly
         //
-        protected abstract cSectionCacheItem GetNewItem();
+        protected abstract cItem GetNewItem();
 
-        // to increase the number of files and the total size of the cache
+        // lets the cache know that a new item has been written
+        //  allows the cache to increase the number of files in use and the total size of the cache
         //  WILL be called inside the lock
-        //  WILL NOT be called once the object is disposing (even if new items are added to the cache)
         //  NOTE that when this is called the item being added could be either still open or be closed
         //
-        protected abstract void NewItemAdded(cSectionCacheItem pItem);
+        protected abstract void NewItemAdded(cItem pItem);
 
-        // required to let the cache know that if it is over budget, then now might be a good time to try doing a tidy up
+        // lets the cache know that a previously open item has been closed
+        //  if the cache is over budget, then it might be a good time to allow a cache trim to run
         //  called outside the lock
-        protected internal abstract void ItemClosed();
+        //
+        protected abstract void ItemClosed();
 
         // for use in cache trimming
         //
@@ -71,14 +73,14 @@ namespace work.bacome.imapclient
         //    note that items returned are live - so their states can change at any time, that is why the change-sequence exists
         //     from the items you should build a tuple with the things that you want to sort on later, but the first property you get and store should be the change-sequence
         //  
-        //   if the cache is temporary, sort by the ones you most want to delete and use TryDelete(change-sequence) on them
+        //   if the cache is temporary, sort by the ones you most want to delete and use TryDelete(change-sequence) on them [reducing the size of the cache only if the delete succeeds]
         //   if the cache is permanent, sort by the items you most want to delete, if there is an item use TryDelete(change-sequence) else use 
-        //    TryGetItem(pk) and then TryDelete(0)
+        //    GetExistingItem(pk) and then TryDelete(0)
         //
         //
-        protected List<cSectionCacheItem> GetAllItems()
+        protected List<cItem> GetAllItems()
         {
-            var lItems = new List<cSectionCacheItem>();
+            var lItems = new List<cItem>();
 
             lock (mLock)
             {
@@ -89,73 +91,138 @@ namespace work.bacome.imapclient
             return lItems;
         }
 
-        internal bool TryGetReader(cSectionCachePersistentKey pKey, out cSectionCacheItem.cReader rReader, cTrace.cContext pParentContext)
+        // for use in cache trimming
+        //
+        protected cItem GetExistingItem(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetReader), pKey);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetExistingItem), pKey);
 
             lock (mLock)
             {
-                if (mDisposing || mDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
+                if (ZTryGetExistingItem(pKey, true, out var lItem, lContext)) return lItem;
+            }
+
+            return null;
+        }
+
+        internal cAccessor GetAccessor(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetAccessor));
+
+            lock (mLock)
+            {
+                mOpenAccessorCount++;
+                return new cAccessor(this, lContext);
+            }
+        }
+
+        internal bool IsClosed
+        {
+            get
+            {
+                lock (mLock)
+                {
+                    return mOpenAccessorCount == 0;
+                }
+            }
+        }
+
+        private bool ZTryGetExistingItem(cSectionCachePersistentKey pKey, bool pLookInNonPersistentKeyItems, out cItem rItem, cTrace.cContext pParentContext)
+        {
+            // must be called inside the lock
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetExistingItem), pKey, pLookInNonPersistentKeyItems);
+
+            if (mPersistentKeyItems.TryGetValue(pKey, out rItem))
+            {
+                lContext.TraceVerbose("found in persistent-key list: {0}", rItem);
+                return true;
+            }
+
+            if (TryGetExistingItem(pKey, out rItem))
+            {
+                lContext.TraceVerbose("found in cache: {0}", rItem);
+                if (rItem == null || !rItem.AssignedPersistentKey) throw new cUnexpectedSectionCacheActionException(lContext);
+                mPersistentKeyItems.Add(pKey, rItem);
+                return true;
+            }
+
+            if (!pLookInNonPersistentKeyItems) return false;
+
+            foreach (var lItem in mNonPersistentKeyItems)
+            {
+                if (lItem.Key == pKey)
+                {
+                    lContext.TraceVerbose("found in non-persistent-key list: {0}", rItem);
+                    rItem = lItem.Value;
+                    mPersistentKeyItems.Add(pKey, lItem.Value);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool ZTryGetReader(cSectionCachePersistentKey pKey, out cItem.cReader rReader, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZTryGetReader), pKey);
+
+            lock (mLock)
+            {
                 if (ZTryGetExistingItem(pKey, true, out var lItem, lContext)) return lItem.TryGetReader(out rReader, lContext);
-                rReader = null;
-                return false;
             }
+
+            rReader = null;
+            return false;
         }
 
-        internal bool TryGetReader(cSectionCacheNonPersistentKey pKey, out cSectionCacheItem.cReader rReader, cTrace.cContext pParentContext)
+        private bool ZTryGetReader(cSectionCacheNonPersistentKey pKey, out cItem.cReader rReader, cTrace.cContext pParentContext)
         {
-            // if the uid is available the other one should have been called
-
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetReader), pKey);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZTryGetReader), pKey);
 
             lock (mLock)
             {
-                if (mDisposing || mDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
                 if (mNonPersistentKeyItems.TryGetValue(pKey, out var lItem)) return lItem.TryGetReader(out rReader, lContext);
-                rReader = null;
-                return false;
             }
+
+            rReader = null;
+            return false;
         }
 
-        internal cSectionCacheItem.cReaderWriter GetReaderWriter(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
+        private cItem.cReaderWriter ZGetReaderWriter(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetReaderWriter), pKey);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZGetReaderWriter), pKey);
 
             lock (mLock)
             {
-                if (mDisposing || mDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
                 var lItem = GetNewItem();
                 if (lItem == null || !lItem.CanWrite) throw new cUnexpectedSectionCacheActionException(lContext);
                 return lItem.GetReaderWriter(pKey, mWriteSizer, lContext);
             }
         }
 
-        internal cSectionCacheItem.cReaderWriter GetReaderWriter(cSectionCacheNonPersistentKey pKey, cTrace.cContext pParentContext)
+        private cItem.cReaderWriter ZGetReaderWriter(cSectionCacheNonPersistentKey pKey, cTrace.cContext pParentContext)
         {
             // if the uid is available the other one should have been called
 
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetReaderWriter), pKey);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZGetReaderWriter), pKey);
 
             lock (mLock)
             {
-                if (mDisposing || mDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
                 var lItem = GetNewItem();
                 if (lItem == null || !lItem.CanWrite) throw new cUnexpectedSectionCacheActionException(lContext);
                 return lItem.GetReaderWriter(pKey, mWriteSizer, lContext);
             }
         }
 
-        internal void Add(cSectionCachePersistentKey pKey, cSectionCacheItem pItem, cTrace.cContext pParentContext)
+        private void ZAdd(cSectionCachePersistentKey pKey, cItem pItem, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(Add), pKey, pItem);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZAdd), pKey, pItem);
 
             if (ReferenceEquals(pKey, null)) throw new ArgumentNullException(nameof(pKey));
             if (pItem == null) throw new ArgumentNullException(nameof(pItem));
 
             lock (mLock)
             {
-                if (mDisposing || mDisposed) return;
-
                 if (ZTryGetExistingItem(pKey, true, out var lItem, lContext))
                 {
                     if (lItem.TryTouch(lContext))
@@ -179,18 +246,18 @@ namespace work.bacome.imapclient
             }
         }
 
-        internal void Add(cSectionCacheNonPersistentKey pKey, cSectionCacheItem pItem, cTrace.cContext pParentContext)
+        private void ZAdd(cSectionCacheNonPersistentKey pKey, cItem pItem, cTrace.cContext pParentContext)
         {
             // if the uid is available the other one should have been called
 
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(Add), pKey, pItem);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZAdd), pKey, pItem);
 
             if (ReferenceEquals(pKey, null)) throw new ArgumentNullException(nameof(pKey));
             if (pItem == null) throw new ArgumentNullException(nameof(pItem));
 
             lock (mLock)
             {
-                if (mDisposing || mDisposed) return;
+                if (!pKey.Message.IsValid) return;
 
                 if (mNonPersistentKeyItems.TryGetValue(pKey, out var lItem))
                 {
@@ -215,15 +282,15 @@ namespace work.bacome.imapclient
             }
         }
 
-        internal bool TryAssignPersistentKey(cSectionCachePersistentKey pKey, cSectionCacheItem pItem, cTrace.cContext pParentContext)
+        private bool ZTryAssignPersistentKey(cSectionCachePersistentKey pKey, cItem pItem, cTrace.cContext pParentContext)
         {
             // note that this returns true even if the assign fails, as long as the assign was possible
 
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryAssignPersistentKey), pKey, pItem);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZTryAssignPersistentKey), pKey, pItem);
 
             lock (mLock)
             {
-                cSectionCacheItem lItem;
+                cItem lItem;
 
                 if (ZTryGetExistingItem(pKey, false, out lItem, lContext))
                 {
@@ -243,87 +310,45 @@ namespace work.bacome.imapclient
                     lContext.TraceVerbose("adding new item");
                     mPersistentKeyItems.Add(pKey, pItem);
                 }
-
-                pItem.TryAssignPersistentKey(pKey, lContext);
-
-                return true;
             }
+
+            pItem.TryAssignPersistentKey(pKey, lContext);
+            return true;
         }
 
-        internal bool IsDisposing => mDisposing;
-
-        private bool ZTryGetExistingItem(cSectionCachePersistentKey pKey, bool pLookInNonPersistentKeyItems, out cSectionCacheItem rItem, cTrace.cContext pParentContext)
+        private void ZDecrementOpenAccessorCount(cTrace.cContext pParentContext)
         {
-            // must be called inside the lock
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZTryGetExistingItem), pKey, pLookInNonPersistentKeyItems);
+            var lContext = pParentContext.NewMethod(nameof(cItem), nameof(ZDecrementOpenAccessorCount));
 
-            if (mPersistentKeyItems.TryGetValue(pKey, out rItem))
+            lock (mLock)
             {
-                lContext.TraceVerbose("found in persistent-key list: {0}", rItem);
-                return true;
-            }
+                mOpenAccessorCount--;
 
-            try
-            {
-                if (TryGetExistingItem(pKey, out rItem))
-                {
-                    lContext.TraceVerbose("found in cache: {0}", rItem);
-                    if (rItem == null || !rItem.AssignedPersistentKey) throw new cUnexpectedSectionCacheActionException(lContext);
-                    mPersistentKeyItems.Add(pKey, rItem);
-                    return true;
-                }
-            }
-            catch when (mDisposing) { }
-
-            if (!pLookInNonPersistentKeyItems) return false;
-
-            foreach (var lItem in mNonPersistentKeyItems)
-            {
-                if (lItem.Key == pKey)
-                {
-                    lContext.TraceVerbose("found in non-persistent-key list: {0}", rItem);
-                    rItem = lItem.Value;
-                    mPersistentKeyItems.Add(pKey, lItem.Value);
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        /**<summary></summary>*/
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /**<summary></summary>*/
-        protected virtual void Dispose(bool pDisposing)
-        {
-            if (mDisposed) return;
-
-            if (pDisposing)
-            {
-                var lContext = RootContext.NewMethod(nameof(cSectionCache), nameof(Dispose), pDisposing);
-
-                lock (mLock)
-                {
-                    mDisposing = true;
-                }
-
-                if (Temporary)
+                if (mOpenAccessorCount == 0 && Temporary)
                 {
                     foreach (var lItem in mPersistentKeyItems) lItem.Value.TryDelete(-1, lContext);
                     foreach (var lItem in mNonPersistentKeyItems) lItem.Value.TryDelete(-1, lContext);
                 }
                 else
                 {
-                    foreach (var lItem in mNonPersistentKeyItems) if (!lItem.Value.AssignedPersistentKey && (lItem.Key.UID == null || !TryAssignPersistentKey(new cSectionCachePersistentKey(lItem.Key), lItem.Value, lContext))) lItem.Value.TryDelete(-1, lContext);
-                }
-            }
+                    foreach (var lItem in mNonPersistentKeyItems)
+                    {
+                        if (lItem.Value.AssignedPersistentKey) continue;
 
-            mDisposed = true;
+                        if (lItem.Key.UID == null)
+                        {
+                            if (!lItem.Key.Message.IsValid) lItem.Value.TryDelete(-1, lContext);
+                        }
+                        else
+                        {
+                            if (!ZTryAssignPersistentKey(new cSectionCachePersistentKey(lItem.Key), lItem.Value, lContext)) lItem.Value.TryDelete(-1, lContext);
+                        }
+                    }
+                }
+
+                // rebuild the arrays to only include the non-deleted items, remove the npks with assigned keys from the array also
+                ;?;
+            }
         }
     }
 }

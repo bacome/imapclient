@@ -37,7 +37,7 @@ namespace work.bacome.mailclient
         private bool mDisposed = false;
         protected readonly string mInstanceName;
         protected internal readonly cCallbackSynchroniser mSynchroniser;
-        protected readonly cTrace.cContext mRootContext;
+        protected internal readonly cTrace.cContext mRootContext;
         protected readonly cCancellationManager mCancellationManager;
 
         // property backing storage
