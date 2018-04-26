@@ -1,231 +1,142 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using work.bacome.mailclient;
 
 namespace work.bacome.imapclient
 {
-    public abstract partial class cSectionCachexx
+    public class cTempFileSectionCache : cSectionCache
     {
+        private static int mTouchSeqSource = 7;
 
-        // for use in cache trim
+        private readonly object mLock = new object();
 
-        // for internal use of the cache NO!: trygetreadstream, getreadwritestream
-        protected internal bool TryGetItem(cSectionCachePersistentKey pKey, out cSectionCacheItem rItem)
+        public readonly int FileCountTrigger;
+        public readonly long ByteCountTrigger;
+        public readonly int WaitAfterTrim;
+
+        private int mFileCount = 0;
+        private long mByteCount = 0;
+
+        private Task mTrimTask = null;
+        private Task mDelayTask = null;
+
+        public cTempFileSectionCache(int pFileCountTrigger = 1000, long pByteCountTrigger = 100000000, int pWaitAfterTrim = 60000, string pInstanceName = "work.bacome.cTempFileSectionCache", cBatchSizerConfiguration pWriteConfiguration = null) : base(pInstanceName, pWriteConfiguration ?? new cBatchSizerConfiguration(1000, 100000, 1000, 1000), true)
         {
-            lock (mItemsLock)
+            var lContext = mRootContext.NewObject(nameof(cTempFileSectionCache), pFileCountTrigger, pByteCountTrigger, pWaitAfterTrim);
+
+            if (pFileCountTrigger < 1) throw new ArgumentOutOfRangeException(nameof(pFileCountTrigger));
+            if (pByteCountTrigger < 1) throw new ArgumentOutOfRangeException(nameof(pByteCountTrigger));
+            if (pWaitAfterTrim < 0) throw new ArgumentOutOfRangeException(nameof(pWaitAfterTrim));
+
+            FileCountTrigger = pFileCountTrigger;
+            ByteCountTrigger = pByteCountTrigger;
+            WaitAfterTrim = pWaitAfterTrim;
+        }
+
+        protected override cItem GetNewItem() => new cTempFileItem(this);
+
+        protected override void ItemAdded(cItem pItem)
+        {
+            if (!(pItem is cTempFileItem lItem)) throw new ArgumentOutOfRangeException(nameof(pItem));
+
+            lock (mLock)
             {
-                if (mDisposing) { rItem = null; return false; } // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< check this
+                mFileCount++;
+                mByteCount += lItem.Length;
+            }
 
-                if (mPersistentKeyItems.TryGetValue(pKey, out rItem)) return true;
+            ZTrimIfRequired();
+        }
 
-                foreach (var lPair in mNonPersistentKeyItems)
+        protected override void ItemDeleted(cItem pItem)
+        {
+            if (!(pItem is cTempFileItem lItem)) throw new ArgumentOutOfRangeException(nameof(pItem));
+
+            lock (mLock)
+            {
+                mFileCount--;
+                mByteCount -= lItem.Length;
+            }
+        }
+
+        protected override void ItemClosed()
+        {
+            ZTrimIfRequired();
+        }
+
+        private void ZTrimIfRequired()
+        {
+            lock (mLock)
+            {
+                if (mFileCount < FileCountTrigger && mByteCount < ByteCountTrigger) return; // not required
+                if (mTrimTask != null && !mTrimTask.IsCompleted) return; // currently running
+                mTrimTask = ZTrimAsync();
+            }
+        }
+
+        private async Task ZTrimAsync()
+        {
+            while (true)
+            {
+                if (mDelayTask != null) await mDelayTask.ConfigureAwait(false);
+
+                // do stuff
+                ;?;
+
+                if (WaitAfterTrim > 0) mDelayTask = Task.Delay(WaitAfterTrim);
+
+                lock (mLock)
                 {
-
+                    if (mFileCount < FileCountTrigger && mByteCount < ByteCountTrigger)
+                    {
+                        mTrimTask = null;
+                        return;
+                    }
                 }
-
-
-
-                foreach ()
-
-
-                // find in pk
-                // find in npk, moving to pk if it has one [note that the item isn't marked as having the pk set yet]
-                // call trygetexistingitem (and add to pk items, marking the item as having the pk set and marking as in the cache)
-                // if (not disposing)
-                //  call gettempitem (and add to mTempItems)
-                //   
             }
         }
 
-        // for internal use of the cache
-        internal bool TryGetItem(cSectionCacheNonPersistentKey pKey, out cSectionCacheItem rItem)
+        private class cTempFileItem : cItem
         {
-            lock (mItemsLock)
-            {
-                if (mDisposing) { rItem = null; return false; } // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< check this
+            public int mTouchSeq;
+            private readonly string mTempFileName;
+            private long? mLength = null;
 
-                // find in pk if it has one
-                // find in npk, moving to pk if it has one [note that the item isn't marked as having the pk set yet]
-                // if the item has a pk, call trygetexisting ...
-                // if (not disposing)
-                //  call gettempitem (and add to mTempItems)
+            public cTempFileItem(cTempFileSectionCache pCache) : base(pCache, true)
+            {
+                mTouchSeq = Interlocked.Increment(ref mTouchSeqSource);
+                mTempFileName = Path.GetTempFileName();
             }
-        }
 
-        internal void AddItem(cSectionCacheItem pItem)
-        {
-            // this marks it as in the cache and adds it to the cache: so the key has to come along with it
+            protected override Stream GetReadStream() => new FileStream(mTempFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            protected override Stream GetReadWriteStream() => new FileStream(mTempFileName, FileMode.Truncate, FileAccess.Write, FileShare.Read);
 
-        }
-
-        internal void ItemClosed(cSectionCacheItem pItem)
-        {
-            lock (mItemsLock)
+            protected override void Touch()
             {
-                // if it isn't marked as in the cache, delete it, remove it from the tempitems, 
-                //  sad eh? if the item isn't fully written delete it?
-                // 
+                mTouchSeq = Interlocked.Increment(ref mTouchSeqSource);
+            }
 
+            protected override void Delete()
+            {
+                File.Delete(mTempFileName);
+            }
 
-                if (mDisposing)
+            internal long Length
+            {
+                get
                 {
+                    if (mLength == null)
+                    {
+                        var lFileInfo = new FileInfo(mTempFileName);
+                        mLength = lFileInfo.Length;
+                    }
 
+                    return mLength.Value;
                 }
-                else
-                {
-                    // 
-                }
             }
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        internal bool TryGetReadStream(cSectionCachePersistentKey pKey, out Stream rStream)
-        {
-            // look in the pkey first before the npkey
-            //  => if found in the npkey it should be added to the pkey for quicker location next time
-            //  if find an item but it is deleted can't use it
-            //  if can't find in my arrays, call getexistingitem to see if it is cached but I don't know
-            //   (the cache may choose to convert (decode) an existing item if it wishes, or extract the info from a larger aggregate, whatever)
-
-            lock (mItemsLock)
-            {
-                if (mPersistentKeyItems.TryGetValue(pKey, out var lPKItem) && lPKItem.TryGetReadStreamWrapper(out var )
-            }
-
-
-        }
-
-        internal bool TryGetReadStream(cSectionCacheNonPersistentKey pKey, out Stream rStream)
-        {
-            // look in the pkey first before the npkey
-        }
-
-        internal cSectionCacheItemWrapper GetNewCacheItemWrapper(cSectionCachePersistentKey pKey)
-        {
-            var lItem = GetNewItem();
-
-        }
-
-        internal cSectionCacheItemWrapper GetNewCacheItemWrapper(cSectionCacheNonPersistentKey pKey)
-        {
-
-        }
-
-        internal void TryAdd(cSectionCachePersistentKey pKey, cSectionCacheItemWrapper pItem)
-        {
-            // mark the item as in the cache if it is successfully added
-            //  note that adding items can be done from the getreadstream accessors above 
-            //  if an item is found but it is deleted, replace it
-            //  do not mark the item as in cache unless it is added
-            //  remove the item from the list of new items
-
-            lock (mItemsLock)
-            {
-                if (mPersistentKeyItems)
-            }
-
-            ;?;
-
-        }
-
-        internal void TryAdd(cSectionCacheNonPersistentKey pKey, cSectionCacheItemWrapper pItem)
-        {
-            ;?;
-        }
-    }
-
-    public abstract partial class cSectionCacheItemxx
-    {
-        private readonly cSectionCacheItem mItem;
-        private cSectionCachePersistentKey mPersistentKey; // may be set initally or by tryassignkey
-        private readonly cSectionCacheNonPersistentKey mNonPersistentKey; // may be null (if null, mPersistentKey can't be)
-
-        private bool mInCache; // may be set on construction
-
-        ;?; // all private/internal
-
-
-        //private 
-
-
-        ;?;
-
-        public cSectionCacheItemWrapper(cSectionCache pCache, cSectionCacheItem pItem, cSectionCachePersistentKey pKey, bool p)
-        {
-            mCache = pCache ?? throw new ArgumentNullException(nameof(pCache));
-            mItem = pItem ?? throw new ArgumentNullException(nameof(pItem));
-            mPersistentKey = pKey ?? throw new ArgumentNullException(nameof(pKey));
-            mNonPersistentKey = null;
-            ;?;
-        }
-
-        public bool TryGetReadStream(out Stream rStream)
-        {
-            ;?;
-            // inside the lock
-        }
-
-        public bool TryGetWriteStream(out Stream rStream)
-        {
-            ;?;
-            // inside the lock
-
-        }
-
-        public bool TryAssignKey(cSectionCachePersistentKey pKey)
-        {
-            // inside the lock ...
-            // must check if the key is already assigned, if so return false;
-            // must check is deleted, if so return false
-            // must check if not open, and must only do the assign in a lock ensuring that it is not open
-
-            ;?;
-
-            ;?;
-        }
-
-        public bool TryDelete()
-        {
-            ;?;
-
-            // inside the lock
-            //  must check if it is deleted -> return false
-            //  ust check if not open, ...
-        }
-
-        public bool IsDeleted => mDeleted;
-
-        // when count goes to zero
-        //  if the item is not in the cache, delete it and remove it from the list of new items
-        //  otherwise
-        //   if the item has a persistentkey and we haven't set it yet call the items setpersistentkey
-        //   (this includes checking that the non-persistent key may now have a UID)
-    }
-
-    internal class cSectionCacheStream : Stream
-    {
-        private bool mDisposed = false;
-        private readonly cSectionCacheItemWrapper mItem;
-        private readonly Stream mStream; // underlying stream
-        private readonly 
-
-
     }
 }

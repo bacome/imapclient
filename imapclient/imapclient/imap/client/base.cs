@@ -82,13 +82,25 @@ namespace work.bacome.imapclient
         //    or there are errors (like duplicate headers)
         //   so at this stage the MDNSent features are commented out as they aren't useful by themselves
 
+        private static cSectionCache mGlobalSectionCache = new cTempFileSectionCache();
+
+        public static cSectionCache GlobalSectionCache
+        {
+            get => mGlobalSectionCache;
+            set => mGlobalSectionCache = value ?? throw new ArgumentNullException();
+        }
 
         // mechanics
         private readonly cIMAPCallbackSynchroniser mIMAPSynchroniser;
 
+        // section cache
+        private readonly object mSectionCacheLock = new object();
+        private bool mSectionCacheDisposing = false;
+        private cSectionCache.cAccessor mSectionCacheAccessor = null;
+
         // property backing storage
         private Encoding mEncoding = Encoding.UTF8;
-        private cSectionCache mSectionCache = new cTempfilesectioncache(1000, 1000000);
+        private cSectionCache mSectionCache = null;
         private fIMAPCapabilities mIgnoreCapabilities = 0;
         private cIMAPAuthenticationParameters mAuthenticationParameters = null;
         private bool mMailboxReferrals = false;
@@ -113,8 +125,6 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewObject(nameof(cIMAPClient), pInstanceName);
             mIMAPSynchroniser = (cIMAPCallbackSynchroniser)mSynchroniser;
-
-            ;?; // assign section cache and get an accessor
         }
 
         public override fMessageDataFormat SupportedFormats => mSession?.SupportedFormats ?? 0;
@@ -139,11 +149,6 @@ namespace work.bacome.imapclient
                 mEncoding = value;
                 mSession?.SetEncoding(value, lContext);
             }
-        }
-
-        public cSectionCache SectionCache
-        {
-            ;?; // get; set { set disposes the old accessor and gets a new one (unless they are the same) }
         }
 
         /// <summary>
@@ -245,6 +250,42 @@ namespace work.bacome.imapclient
         /// </remarks>
         public void SetServer(string pHost, int pPort, bool pSSL) => Server = new cServer(pHost, pPort, pSSL);
 
+        public cSectionCache SectionCache
+        {
+            get => mSectionCache;
+
+            set
+            {
+                lock (mSectionCacheLock)
+                {
+                    if (mSectionCacheAccessor != null)
+                    {
+                        mSectionCacheAccessor.Dispose();
+                        mSectionCacheAccessor = null;
+                    }
+
+                    mSectionCache = value;
+                }
+            }
+        }
+
+        internal cSectionCache.cAccessor SectionCacheAccessor
+        {
+            get
+            {
+                var lContext = mRootContext.NewGetProp(nameof(cIMAPClient), nameof(SectionCacheAccessor));
+
+                lock (mSectionCacheLock)
+                {
+                    if (mSectionCacheAccessor != null) return mSectionCacheAccessor;
+                    if (mSectionCacheDisposing) throw new ObjectDisposedException(nameof(cIMAPClient));
+                    if (mSectionCache == null) mSectionCacheAccessor = mGlobalSectionCache.GetAccessor(lContext);
+                    else mSectionCacheAccessor = mSectionCache.GetAccessor(lContext);
+                    return mSectionCacheAccessor;
+                }
+            }
+        }
+
         /// <summary>
         /// Gets and sets the server capabilities that the instance should ignore.
         /// </summary>
@@ -286,10 +327,6 @@ namespace work.bacome.imapclient
             }
         }
 
-
-        ;?; // wasn't the idea to specify a directory
-
-
         /// <summary>
         /// Sets <see cref="AuthenticationParameters"/> to use a userid and password combination to authenticate.
         /// </summary>
@@ -301,7 +338,7 @@ namespace work.bacome.imapclient
         /// May only be called while <see cref="IsUnconnected"/>.
         /// This method will throw if the userid and password can be used in neither <see cref="cIMAPLogin"/> nor <see cref="cSASLPlain"/>.
         /// </remarks>
-        public void SetPlainAuthenticationParameters(string pUserId, string pPassword, cSectionCache pSectionCache = null, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false) => AuthenticationParameters = cIMAPAuthenticationParameters.Plain(pUserId, pPassword, pSectionCache, pTLSRequirement, pTryAuthenticateEvenIfPlainIsntAdvertised);
+        public void SetPlainAuthenticationParameters(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false) => AuthenticationParameters = cIMAPAuthenticationParameters.Plain(pUserId, pPassword, pTLSRequirement, pTryAuthenticateEvenIfPlainIsntAdvertised);
 
         // not tested yet
         //public void SetXOAuth2Credentials(string pUserId, string pAccessToken, bool pTryAuthenticateEvenIfXOAuth2IsntAdvertised = false) => Credentials = cCredentials.XOAuth2(pUserId, pAccessToken, pTryAuthenticateEvenIfXOAuth2IsntAdvertised);
@@ -594,7 +631,16 @@ namespace work.bacome.imapclient
                     catch { }
                 }
 
-                ;?; // dispose the cache accessor
+                lock (mSectionCacheLock)
+                {
+                    mSectionCacheDisposing = true;
+                }
+
+                if (mSectionCacheAccessor != null)
+                {
+                    try { mSectionCacheAccessor.Dispose(); }
+                    catch { }
+                }
             }
 
             base.Dispose(pDisposing);

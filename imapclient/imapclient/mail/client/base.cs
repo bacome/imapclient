@@ -50,8 +50,8 @@ namespace work.bacome.mailclient
 
         internal cMailClient(string pInstanceName, cCallbackSynchroniser pSynchroniser)
         {
-            mInstanceName = pInstanceName;
-            mSynchroniser = pSynchroniser;
+            mInstanceName = pInstanceName ?? throw new ArgumentNullException(nameof(pInstanceName));
+            mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
 
             mRootContext = Trace.NewRoot(pInstanceName);
             mRootContext.TraceInformation("cMailClient by bacome version {0}, release date {1}", Version, ReleaseDate);

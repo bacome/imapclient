@@ -34,7 +34,7 @@ namespace work.bacome.imapclient
                 {
                     mCanWrite = true;
                     mCached = false;
-                    mAssignedPersistentKey = false;
+                    mAssignedPersistentKey = pCache.Temporary; // if the cache is temporary, then the backing store items are not renamed
                 }
                 else
                 {
@@ -44,14 +44,22 @@ namespace work.bacome.imapclient
                 }
             }
 
-            protected abstract Stream ReadStream { get; }
-            protected abstract Stream ReadWriteStream { get; }
-            protected abstract void AssignPersistentKey(cSectionCachePersistentKey pKey);
-            protected abstract void Touch();
-            protected abstract void Delete();
+            protected abstract Stream GetReadStream();
+            protected abstract Stream GetReadWriteStream();
 
+            protected virtual void AssignPersistentKey(cSectionCachePersistentKey pKey)
+            {
+                throw new NotImplementedException();
+            }
+
+            protected virtual void Touch() { }
+            protected virtual void Delete() { }
+
+            // for use in cache trimming
+            //
             public int ChangeSequence => mChangeSequence;
 
+            // called by cache trimming and when the cache closes
             protected internal eSectionCacheItemDeleteResult TryDelete(int pChangeSequence, cTrace.cContext pParentContext)
             {
                 lock (mLock)
@@ -79,37 +87,42 @@ namespace work.bacome.imapclient
                     try { Delete(); }
                     catch { }
 
-                    mDeleted = true;
-
                     lContext.TraceVerbose("deleted");
-                    return eSectionCacheItemDeleteResult.deleted;
+                    mDeleted = true;
                 }
+
+                if (mCached) mCache.ItemDeleted(this);
+
+                return eSectionCacheItemDeleteResult.deleted;
             }
 
+            // called by the sectioncache when the item is added to the internal list
             internal void SetCached(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cItem), nameof(SetCached), pKey);
-
+                
                 lock (mLock)
                 {
-                    if (mCanWrite || mCached) throw new InvalidOperationException();
+                    if (mCanWrite || mCached || mDeleted) throw new InvalidOperationException();
                     mPersistentKey = pKey ?? throw new ArgumentNullException(nameof(pKey));
                     mCached = true;
                 }
             }
 
+            // called by the sectioncache when the item is added to the internal list
             internal void SetCached(cSectionCacheNonPersistentKey pKey, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cItem), nameof(SetCached), pKey);
 
                 lock (mLock)
                 {
-                    if (mCanWrite || mCached) throw new InvalidOperationException();
+                    if (mCanWrite || mCached || mDeleted) throw new InvalidOperationException();
                     mNonPersistentKey = pKey ?? throw new ArgumentNullException(nameof(pKey));
                     mCached = true;
                 }
             }
 
+            // called by the sectioncache
             internal bool TryGetReader(out cReader rReader, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cItem), nameof(TryGetReader));
@@ -131,8 +144,10 @@ namespace work.bacome.imapclient
                 }
             }
 
+            // called by the sectioncache to check that the concrete implementation hasn't done something dumb
             internal bool CanWrite => mCanWrite;
 
+            // called by the sectioncache
             internal cReaderWriter GetReaderWriter(cSectionCachePersistentKey pKey, cBatchSizer pWriteSizer, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cItem), nameof(GetReaderWriter), pKey);
@@ -146,6 +161,7 @@ namespace work.bacome.imapclient
                 }
             }
 
+            // called by the sectioncache
             internal cReaderWriter GetReaderWriter(cSectionCacheNonPersistentKey pKey, cBatchSizer pWriteSizer, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cItem), nameof(GetReaderWriter), pKey);
@@ -159,8 +175,10 @@ namespace work.bacome.imapclient
                 }
             }
 
+            // called by the sectioncache to check that the concrete implementation hasn't done something dumb and in closedown
             internal bool AssignedPersistentKey => mAssignedPersistentKey;
 
+            // called by the sectioncache 
             internal void TryAssignPersistentKey(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
             {
                 lock (mLock)
@@ -173,13 +191,14 @@ namespace work.bacome.imapclient
                         {
                             AssignPersistentKey(pKey);
                             mAssignedPersistentKey = true;
-                            mChangeSequence++; // significant during the close of a persistent cache (as non-pk items should be deleted)
+                            mChangeSequence++;
                         }
                         catch { }
                     }
                 }
             }
 
+            // called by the sectioncache 
             internal bool TryTouch(cTrace.cContext pParentContext)
             {
                 lock (mLock)
@@ -202,6 +221,7 @@ namespace work.bacome.imapclient
                 }
             }
 
+            // called by the reader and the readerwriter when they are disposed
             private void ZDecrementOpenStreamCount(cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cItem), nameof(ZDecrementOpenStreamCount));

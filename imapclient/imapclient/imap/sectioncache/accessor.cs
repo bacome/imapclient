@@ -19,36 +19,28 @@ namespace work.bacome.imapclient
                 mContext = pParentContext.NewObject(nameof(cAccessor), pCache);
             }
 
-            public bool TryGetReader(cSectionCacheNonPersistentKey pKey, out cItem.cReader rReader, cTrace.cContext pParentContext)
+            public bool TryGetReader(cSectionCachePersistentKey pKey, out cItem.cReader rReader, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(ZTryGetReader), pKey);
+                var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(TryGetReader), pKey);
                 return mCache.ZTryGetReader(pKey, out rReader, lContext);
             }
 
-            private cItem.cReaderWriter ZGetReaderWriter(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
+            public bool TryGetReader(cSectionCacheNonPersistentKey pKey, out cItem.cReader rReader, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZGetReaderWriter), pKey);
-
-                lock (mLock)
-                {
-                    var lItem = GetNewItem();
-                    if (lItem == null || !lItem.CanWrite) throw new cUnexpectedSectionCacheActionException(lContext);
-                    return lItem.GetReaderWriter(pKey, mWriteSizer, lContext);
-                }
+                var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(TryGetReader), pKey);
+                return mCache.ZTryGetReader(pKey, out rReader, lContext);
             }
 
-            private cItem.cReaderWriter ZGetReaderWriter(cSectionCacheNonPersistentKey pKey, cTrace.cContext pParentContext)
+            public cItem.cReaderWriter GetReaderWriter(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
             {
-                // if the uid is available the other one should have been called
+                var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(GetReaderWriter), pKey);
+                return mCache.ZGetReaderWriter(pKey, lContext);
+            }
 
-                var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZGetReaderWriter), pKey);
-
-                lock (mLock)
-                {
-                    var lItem = GetNewItem();
-                    if (lItem == null || !lItem.CanWrite) throw new cUnexpectedSectionCacheActionException(lContext);
-                    return lItem.GetReaderWriter(pKey, mWriteSizer, lContext);
-                }
+            public cItem.cReaderWriter GetReaderWriter(cSectionCacheNonPersistentKey pKey, cTrace.cContext pParentContext)
+            {
+                var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(GetReaderWriter), pKey);
+                return mCache.ZGetReaderWriter(pKey, lContext);
             }
 
             public void Dispose()
