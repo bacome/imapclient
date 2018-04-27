@@ -323,7 +323,7 @@ namespace work.bacome.imapclient
                         if (mDisposing || mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
                         if (mStream != null) return;
 
-                        var lStream = mItem.ReadWriteStream;
+                        var lStream = mItem.GetReadWriteStream();
                         if (!lStream.CanRead || !lStream.CanSeek || !lStream.CanWrite) throw new cUnexpectedSectionCacheActionException(mContext);
 
                         mStream = lStream;

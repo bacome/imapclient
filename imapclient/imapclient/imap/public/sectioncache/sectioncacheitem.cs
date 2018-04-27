@@ -5,8 +5,6 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    public enum eSectionCacheItemDeleteResult { alreadydeleted, notdeleted, deleted }
-
     public partial class cSectionCache
     {
         public abstract partial class cItem
@@ -44,56 +42,64 @@ namespace work.bacome.imapclient
                 }
             }
 
-            protected abstract Stream GetReadStream();
-            protected abstract Stream GetReadWriteStream();
+            protected abstract Stream GetReadStream(cTrace.cContext pParentContext);
+            protected abstract Stream GetReadWriteStream(cTrace.cContext pParentContext);
 
-            protected virtual void AssignPersistentKey(cSectionCachePersistentKey pKey)
+            protected virtual void AssignPersistentKey(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
             {
                 throw new NotImplementedException();
             }
 
-            protected virtual void Touch() { }
-            protected virtual void Delete() { }
+            protected virtual void Touch(cTrace.cContext pParentContext) { }
+            protected virtual void Delete(cTrace.cContext pParentContext) { }
 
-            // for use in cache trimming
+            // returns an invariant value for sorting the item
+            //  for a temp cache this should be the 'touch sequence'
+            //  for a persistent cache this should be the unique identifier of the item (e.g. the file name)
             //
-            public int ChangeSequence => mChangeSequence;
+            protected internal abstract IComparable GetSortParameters();
 
-            // called by cache trimming and when the cache closes
-            protected internal eSectionCacheItemDeleteResult TryDelete(int pChangeSequence, cTrace.cContext pParentContext)
+            // called by cSectionCacheItem
+            internal int ChangeSequence => mChangeSequence;
+
+            // called by cache when generating lists of items
+            internal bool Deleted => mDeleted;
+
+            // called by cache trimming via cSectionCacheItem and when a cache accessor closes
+            internal bool TryDelete(int pChangeSequence, cTrace.cContext pParentContext)
             {
+                var lContext = pParentContext.NewMethod(nameof(cItem), nameof(TryDelete), pChangeSequence);
+
                 lock (mLock)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cItem), nameof(TryDelete), pChangeSequence);
-
                     if (mDeleted)
                     {
                         lContext.TraceVerbose("already deleted");
-                        return eSectionCacheItemDeleteResult.alreadydeleted;
+                        return true;
                     }
 
                     if (mOpenStreamCount != 0)
                     {
                         lContext.TraceVerbose("open");
-                        return eSectionCacheItemDeleteResult.notdeleted;
+                        return false;
                     }
 
                     if (pChangeSequence != -1 && pChangeSequence != mChangeSequence)
                     {
                         lContext.TraceVerbose("modified");
-                        return eSectionCacheItemDeleteResult.notdeleted;
+                        return false;
                     }
 
-                    try { Delete(); }
+                    try { Delete(lContext); }
                     catch { }
 
                     lContext.TraceVerbose("deleted");
                     mDeleted = true;
                 }
 
-                if (mCached) mCache.ItemDeleted(this);
+                if (mCached) mCache.ItemDeleted(this, lContext);
 
-                return eSectionCacheItemDeleteResult.deleted;
+                return true;
             }
 
             // called by the sectioncache when the item is added to the internal list
@@ -175,12 +181,14 @@ namespace work.bacome.imapclient
                 }
             }
 
-            // called by the sectioncache to check that the concrete implementation hasn't done something dumb and in closedown
+            // called by the sectioncache to check that the concrete implementation hasn't done something dumb, in closedown, and when generating lists of items
             internal bool AssignedPersistentKey => mAssignedPersistentKey;
 
             // called by the sectioncache 
             internal void TryAssignPersistentKey(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
             {
+                var lContext = pParentContext.NewMethod(nameof(cItem), nameof(TryAssignPersistentKey), pKey);
+
                 lock (mLock)
                 {
                     if (mCanWrite || !mCached) throw new InvalidOperationException();
@@ -189,7 +197,7 @@ namespace work.bacome.imapclient
                     {
                         try
                         {
-                            AssignPersistentKey(pKey);
+                            AssignPersistentKey(pKey, lContext);
                             mAssignedPersistentKey = true;
                             mChangeSequence++;
                         }
@@ -201,6 +209,8 @@ namespace work.bacome.imapclient
             // called by the sectioncache 
             internal bool TryTouch(cTrace.cContext pParentContext)
             {
+                var lContext = pParentContext.NewMethod(nameof(cItem), nameof(TryTouch));
+
                 lock (mLock)
                 {
                     if (mCanWrite || !mCached) throw new InvalidOperationException();
@@ -211,7 +221,7 @@ namespace work.bacome.imapclient
                     {
                         try
                         {
-                            Touch();
+                            Touch(lContext);
                             mChangeSequence++;
                         }
                         catch { }
@@ -232,7 +242,7 @@ namespace work.bacome.imapclient
 
                     if (!mCached || (mCache.Temporary && mCache.IsClosed))
                     {
-                        try { Delete(); }
+                        try { Delete(lContext); }
                         catch { }
                         mDeleted = true;
                         return;
@@ -240,7 +250,7 @@ namespace work.bacome.imapclient
 
                     try
                     {
-                        Touch();
+                        Touch(lContext);
                         mChangeSequence++;
                     }
                     catch { }
@@ -256,7 +266,7 @@ namespace work.bacome.imapclient
                     else mCache.ZTryAssignPersistentKey(mPersistentKey, this, lContext);
                 }
 
-                try { mCache.ItemClosed(); }
+                try { mCache.ItemClosed(lContext); }
                 catch { }
             }
         }

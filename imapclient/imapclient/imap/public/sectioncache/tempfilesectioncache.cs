@@ -1,142 +1,197 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    public class cTempFileSectionCache : cSectionCache
+    public sealed class cTempFileSectionCache : cSectionCache, IDisposable
     {
-        private static int mTouchSeqSource = 7;
+        private static int mTouchSequenceSource = 7;
+
+        private bool mDisposed = false;
 
         private readonly object mLock = new object();
 
-        public readonly int FileCountTrigger;
-        public readonly long ByteCountTrigger;
+        public readonly string InstanceName;
+        public readonly int FileCountBudget;
+        public readonly long ByteCountBudget;
         public readonly int WaitAfterTrim;
+
+        private readonly CancellationTokenSource mBackgroundCancellationTokenSource = new CancellationTokenSource();
+        private readonly cReleaser mBackgroundReleaser;
+        private readonly Task mBackgroundTask = null;
 
         private int mFileCount = 0;
         private long mByteCount = 0;
+        private bool mWorthTryingTrim = false;
 
-        private Task mTrimTask = null;
-        private Task mDelayTask = null;
-
-        public cTempFileSectionCache(int pFileCountTrigger = 1000, long pByteCountTrigger = 100000000, int pWaitAfterTrim = 60000, string pInstanceName = "work.bacome.cTempFileSectionCache", cBatchSizerConfiguration pWriteConfiguration = null) : base(pInstanceName, pWriteConfiguration ?? new cBatchSizerConfiguration(1000, 100000, 1000, 1000), true)
+        public cTempFileSectionCache(string pInstanceName, int pFileCountBudget, long pByteCountBudget, int pWaitAfterTrim, cBatchSizerConfiguration pWriteConfiguration) : base(pWriteConfiguration, true)
         {
-            var lContext = mRootContext.NewObject(nameof(cTempFileSectionCache), pFileCountTrigger, pByteCountTrigger, pWaitAfterTrim);
+            InstanceName = pInstanceName ?? throw new ArgumentNullException(nameof(pInstanceName));
 
-            if (pFileCountTrigger < 1) throw new ArgumentOutOfRangeException(nameof(pFileCountTrigger));
-            if (pByteCountTrigger < 1) throw new ArgumentOutOfRangeException(nameof(pByteCountTrigger));
+            var lContext = cMailClient.Trace.NewRoot(pInstanceName);
+
+            if (pFileCountBudget < 0) throw new ArgumentOutOfRangeException(nameof(pFileCountBudget));
+            if (pByteCountBudget < 0) throw new ArgumentOutOfRangeException(nameof(pByteCountBudget));
             if (pWaitAfterTrim < 0) throw new ArgumentOutOfRangeException(nameof(pWaitAfterTrim));
 
-            FileCountTrigger = pFileCountTrigger;
-            ByteCountTrigger = pByteCountTrigger;
+            FileCountBudget = pFileCountBudget;
+            ByteCountBudget = pByteCountBudget;
             WaitAfterTrim = pWaitAfterTrim;
+
+            mBackgroundReleaser = new cReleaser(pInstanceName, mBackgroundCancellationTokenSource.Token);
+            mBackgroundTask = ZBackgroundTaskAsync(lContext);
         }
 
-        protected override cItem GetNewItem() => new cTempFileItem(this);
+        protected override cItem GetNewItem(cTrace.cContext pParentContext) => new cTempFileItem(this);
 
-        protected override void ItemAdded(cItem pItem)
+        protected override void ItemAdded(cItem pItem, cTrace.cContext pParentContext)
         {
+            var lContext = pParentContext.NewMethod(nameof(cTempFileSectionCache), nameof(ItemAdded), pItem);
+
             if (!(pItem is cTempFileItem lItem)) throw new ArgumentOutOfRangeException(nameof(pItem));
 
             lock (mLock)
             {
                 mFileCount++;
-                mByteCount += lItem.Length;
+                mByteCount += lItem.ByteCount;
             }
 
-            ZTrimIfRequired();
+            ZTriggerTrim(lContext);
         }
 
-        protected override void ItemDeleted(cItem pItem)
+        protected override void ItemDeleted(cItem pItem, cTrace.cContext pParentContext)
         {
             if (!(pItem is cTempFileItem lItem)) throw new ArgumentOutOfRangeException(nameof(pItem));
 
             lock (mLock)
             {
                 mFileCount--;
-                mByteCount -= lItem.Length;
+                mByteCount -= lItem.ByteCount;
             }
         }
 
-        protected override void ItemClosed()
+        protected override void ItemClosed(cTrace.cContext pParentContext)
         {
-            ZTrimIfRequired();
+            var lContext = pParentContext.NewMethod(nameof(cTempFileSectionCache), nameof(ItemClosed));
+            mWorthTryingTrim = true;
+            ZTriggerTrim(lContext);
         }
 
-        private void ZTrimIfRequired()
+        private void ZTriggerTrim(cTrace.cContext pParentContext)
         {
-            lock (mLock)
-            {
-                if (mFileCount < FileCountTrigger && mByteCount < ByteCountTrigger) return; // not required
-                if (mTrimTask != null && !mTrimTask.IsCompleted) return; // currently running
-                mTrimTask = ZTrimAsync();
-            }
+            var lContext = pParentContext.NewMethod(nameof(cTempFileSectionCache), nameof(ZTriggerTrim));
+
+            if (!ZOverBudget() || !mWorthTryingTrim) return;
+
+            mWorthTryingTrim = false;
+            mBackgroundReleaser.Release(lContext);
         }
 
-        private async Task ZTrimAsync()
+        private bool ZOverBudget() => mFileCount > FileCountBudget || mByteCount > ByteCountBudget;
+
+        private async Task ZBackgroundTaskAsync(cTrace.cContext pParentContext)
         {
+            var lContext = pParentContext.NewRootMethod(nameof(cTempFileSectionCache), nameof(ZBackgroundTaskAsync));
+
             while (true)
             {
-                if (mDelayTask != null) await mDelayTask.ConfigureAwait(false);
+                await mBackgroundReleaser.GetAwaitReleaseTask(lContext).ConfigureAwait(false);
+                mBackgroundReleaser.Reset(lContext);
 
-                // do stuff
-                ;?;
+                var lItems = GetTrimItems(lContext);
 
-                if (WaitAfterTrim > 0) mDelayTask = Task.Delay(WaitAfterTrim);
-
-                lock (mLock)
+                foreach (var lItem in lItems)
                 {
-                    if (mFileCount < FileCountTrigger && mByteCount < ByteCountTrigger)
-                    {
-                        mTrimTask = null;
-                        return;
-                    }
+                    if (mBackgroundCancellationTokenSource.IsCancellationRequested) return;
+                    lItem.TryDelete(lContext);
+                    if (!ZOverBudget()) break;
                 }
+
+                if (WaitAfterTrim > 0) await Task.Delay(WaitAfterTrim, mBackgroundCancellationTokenSource.Token).ConfigureAwait(false);
             }
+        }
+
+        public override string ToString() => $"{nameof(cTempFileSectionCache)}({InstanceName})";
+
+        public void Dispose()
+        {
+            if (mDisposed) return;
+
+            if (mBackgroundCancellationTokenSource != null && !mBackgroundCancellationTokenSource.IsCancellationRequested)
+            {
+                try { mBackgroundCancellationTokenSource.Cancel(); }
+                catch { }
+            }
+
+            // must dispose first as the background task uses the other objects to be disposed
+            if (mBackgroundTask != null)
+            {
+                // wait for the task to exit before disposing it
+                try { mBackgroundTask.Wait(); }
+                catch { }
+
+                try { mBackgroundTask.Dispose(); }
+                catch { }
+            }
+
+            if (mBackgroundReleaser != null)
+            {
+                try { mBackgroundReleaser.Dispose(); }
+                catch { }
+            }
+
+            if (mBackgroundCancellationTokenSource != null)
+            {
+                try { mBackgroundCancellationTokenSource.Dispose(); }
+                catch { }
+            }
+
+            mDisposed = true;
         }
 
         private class cTempFileItem : cItem
         {
-            public int mTouchSeq;
             private readonly string mTempFileName;
-            private long? mLength = null;
+            private int mTouchSequence;
+            private long mByteCount = -1;
 
             public cTempFileItem(cTempFileSectionCache pCache) : base(pCache, true)
             {
-                mTouchSeq = Interlocked.Increment(ref mTouchSeqSource);
                 mTempFileName = Path.GetTempFileName();
+                mTouchSequence = Interlocked.Increment(ref mTouchSequenceSource);
             }
 
-            protected override Stream GetReadStream() => new FileStream(mTempFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            protected override Stream GetReadWriteStream() => new FileStream(mTempFileName, FileMode.Truncate, FileAccess.Write, FileShare.Read);
+            protected override Stream GetReadStream(cTrace.cContext pParentContext) => new FileStream(mTempFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            protected override Stream GetReadWriteStream(cTrace.cContext pParentContext) => new FileStream(mTempFileName, FileMode.Truncate, FileAccess.Write, FileShare.Read);
 
-            protected override void Touch()
+            protected override void Touch(cTrace.cContext pParentContext)
             {
-                mTouchSeq = Interlocked.Increment(ref mTouchSeqSource);
+                mTouchSequence = Interlocked.Increment(ref mTouchSequenceSource);
             }
 
-            protected override void Delete()
-            {
-                File.Delete(mTempFileName);
-            }
+            protected override void Delete(cTrace.cContext pParentContext) => File.Delete(mTempFileName);
 
-            internal long Length
+            protected internal override IComparable GetSortParameters() => mTouchSequence;
+
+            internal long ByteCount
             {
                 get
                 {
-                    if (mLength == null)
+                    if (mByteCount == -1)
                     {
                         var lFileInfo = new FileInfo(mTempFileName);
-                        mLength = lFileInfo.Length;
+                        mByteCount = lFileInfo.Length;
                     }
 
-                    return mLength.Value;
+                    return mByteCount;
                 }
             }
+
+            public override string ToString() => $"{nameof(cTempFileItem)}({mTempFileName},{mTouchSequence},{mByteCount})";
         }
     }
 }

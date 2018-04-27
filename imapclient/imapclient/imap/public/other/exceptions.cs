@@ -130,6 +130,12 @@ namespace work.bacome.imapclient
         }
     }
 
+    public class cUnexpectedSectionCacheItemFormat : cMailException
+    {
+        internal cUnexpectedSectionCacheItemFormat(string pItem) : base(pItem) { }
+        internal cUnexpectedSectionCacheItemFormat(string pItem, string pMessage) : base($"{pItem}: {pMessage}") { }
+    }
+
     /// <summary>
     /// Thrown to indicate that <see cref="cIMAPClient.Connect"/> failure is due to the server rejecting the connection.
     /// </summary>

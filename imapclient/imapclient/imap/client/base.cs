@@ -82,7 +82,7 @@ namespace work.bacome.imapclient
         //    or there are errors (like duplicate headers)
         //   so at this stage the MDNSent features are commented out as they aren't useful by themselves
 
-        private static cSectionCache mGlobalSectionCache = new cTempFileSectionCache();
+        private static cSectionCache mGlobalSectionCache = new cTempFileSectionCache("cIMAPClient.GlobalSectionCache", 1000, 100000000, 60000, new cBatchSizerConfiguration(1000, 100000, 1000, 1000));
 
         public static cSectionCache GlobalSectionCache
         {

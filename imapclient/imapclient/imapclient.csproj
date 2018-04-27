@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="imap\public\sectioncache\accountspecificsectioncache.cs" />
+    <Compile Include="imap\public\sectioncache\sectioncachetrimitem.cs" />
     <Compile Include="imap\sectioncache\accessor.cs" />
     <Compile Include="imap\sectioncache\readerwriter.cs" />
     <Compile Include="imap\public\sectioncache\tempfilesectioncache.cs" />
