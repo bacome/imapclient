@@ -1,5 +1,5 @@
 ﻿using System;
-using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient;
@@ -9,22 +9,22 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal void Fetch(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchConfiguration pConfiguration)
+        internal void Fetch(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, cSectionCache.cItem.cReaderWriter pReaderWriter, CancellationToken pCancellationToken)
         {
             // note: if it fails bytes could have been written to the stream
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
-            var lTask = ZFetchBodyAsync(pMessageHandle, pSection, pDecoding, pStream, pConfiguration, lContext);
+            var lTask = ZFetchBodyAsync(pMessageHandle, pSection, pDecoding, pReaderWriter, pCancellationToken, lContext);
             mSynchroniser.Wait(lTask, lContext);
         }
 
-        internal Task FetchAsync(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchConfiguration pConfiguration)
+        internal Task FetchAsync(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, cSectionCache.cItem.cReaderWriter pReaderWriter, CancellationToken pCancellationToken)
         {
             // note: if it fails bytes could have been written to the stream
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync));
-            return ZFetchBodyAsync(pMessageHandle, pSection, pDecoding, pStream, pConfiguration, lContext);
+            return ZFetchBodyAsync(pMessageHandle, pSection, pDecoding, pReaderWriter, pCancellationToken, lContext);
         }
 
-        private async Task ZFetchBodyAsync(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private async Task ZFetchBodyAsync(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, cSectionCache.cItem.cReaderWriter pReaderWriter, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchBodyAsync), pMessageHandle, pSection, pDecoding);
 
@@ -35,25 +35,9 @@ namespace work.bacome.imapclient
 
             if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
             if (pSection == null) throw new ArgumentNullException(nameof(pSection));
-            if (pStream == null) throw new ArgumentNullException(nameof(pStream));
+            if (pReaderWriter == null) throw new ArgumentNullException(nameof(pReaderWriter));
 
-            if (!pStream.CanWrite) throw new ArgumentOutOfRangeException(nameof(pStream));
-
-            if (pConfiguration == null)
-            {
-                using (var lToken = mCancellationManager.GetToken(lContext))
-                {
-                    var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
-                    var lWriteSizer = new cBatchSizer(LocalStreamWriteConfiguration);
-                    await lSession.FetchBodyAsync(lMC, pMessageHandle, pSection, pDecoding, pStream, null, lWriteSizer, lContext).ConfigureAwait(false);
-                }
-            }
-            else
-            {
-                var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                var lWriteSizer = new cBatchSizer(pConfiguration.WriteConfiguration ?? LocalStreamWriteConfiguration);
-                await lSession.FetchBodyAsync(lMC, pMessageHandle, pSection, pDecoding, pStream, pConfiguration.Increment, lWriteSizer, lContext).ConfigureAwait(false);
-            }
+            await lSession.FetchBodyAsync(pMessageHandle, pSection, pDecoding, pReaderWriter, pCancellationToken, lContext).ConfigureAwait(false);
         }
     }
 }

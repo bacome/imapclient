@@ -124,16 +124,9 @@ namespace work.bacome.imapclient
     /// </summary>
     public class cUnexpectedSectionCacheActionException : cMailException
     {
-        internal cUnexpectedSectionCacheActionException(cTrace.cContext pContext, int pPlace = 1)
-        {
-            pContext.TraceError("{0}: {1}", nameof(cUnexpectedSectionCacheActionException), pPlace);
-        }
-    }
-
-    public class cUnexpectedSectionCacheItemFormat : cMailException
-    {
-        internal cUnexpectedSectionCacheItemFormat(string pItem) : base(pItem) { }
-        internal cUnexpectedSectionCacheItemFormat(string pItem, string pMessage) : base($"{pItem}: {pMessage}") { }
+        internal cUnexpectedSectionCacheActionException(string pClass, int pPlace = 1) : base($"{pClass}.{pPlace}") { }
+        internal cUnexpectedSectionCacheActionException(string pClass, string pMethod, int pPlace = 1) : base($"{pClass}.{pMethod}.{pPlace}") { }
+        internal cUnexpectedSectionCacheActionException(cTrace.cContext pContext, int pPlace = 1) => pContext.TraceError("{0}: {1}", nameof(cUnexpectedSectionCacheActionException), pPlace);
     }
 
     /// <summary>

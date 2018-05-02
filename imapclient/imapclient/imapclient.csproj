@@ -42,16 +42,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="imap\client\copysectiontostream.cs" />
+    <Compile Include="imap\public\configuration\copytostreamconfiguration.cs" />
     <Compile Include="imap\public\sectioncache\accountspecificsectioncache.cs" />
-    <Compile Include="imap\public\sectioncache\sectioncachetrimitem.cs" />
+    <Compile Include="imap\public\sectioncache\sectioncacheitem.cs" />
     <Compile Include="imap\sectioncache\accessor.cs" />
+    <Compile Include="imap\sectioncache\nonpersistentkey.cs" />
     <Compile Include="imap\sectioncache\readerwriter.cs" />
     <Compile Include="imap\public\sectioncache\tempfilesectioncache.cs" />
     <Compile Include="imap\sectioncache\reader.cs" />
     <Compile Include="imap\client\append.cs" />
     <Compile Include="imap\public\sectioncache\sectioncache.cs" />
-    <Compile Include="imap\public\sectioncache\sectioncacheitem.cs" />
-    <Compile Include="imap\public\sectioncache\sectioncachekeys.cs" />
+    <Compile Include="imap\public\sectioncache\item.cs" />
+    <Compile Include="imap\public\sectioncache\sectioncachekey.cs" />
     <Compile Include="imap\public\message\messagedatastream.cs" />
     <Compile Include="mail\convertmailmessage\base.cs" />
     <Compile Include="imap\client\decodedsizeinbytes.cs" />
@@ -62,7 +65,6 @@
     <Compile Include="mail\internal\encoding\headerfieldbytes.cs" />
     <Compile Include="mail\internal\message\message.cs" />
     <Compile Include="mail\public\configuration\attachmentsaveconfiguration.cs" />
-    <Compile Include="mail\public\configuration\fetchconfiguration.cs" />
     <Compile Include="mail\public\message\attachment.cs" />
     <Compile Include="mail\public\message\message.cs" />
     <Compile Include="mail\public\other\convertmailmessagedisposables.cs" />

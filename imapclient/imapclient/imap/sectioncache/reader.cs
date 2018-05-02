@@ -38,7 +38,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cReader), nameof(GetLengthAsync), pMC);
                     if (mDisposed) throw new ObjectDisposedException(nameof(cReader));
-                    ZSetStream();
+                    ZSetStream(lContext);
                     return mStream.Length;
                 }
 
@@ -58,7 +58,7 @@ namespace work.bacome.imapclient
                     if (mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
                     if (pReadPosition < 0) throw new ArgumentOutOfRangeException(nameof(pReadPosition));
                     if (pReadPosition == 0 && mStream == null) return;
-                    ZSetStream();
+                    ZSetStream(lContext);
                     mStream.Position = pReadPosition;
                 }
 
@@ -74,7 +74,7 @@ namespace work.bacome.imapclient
                     if (pOffset + pCount > pBuffer.Length) throw new ArgumentException();
                     if (pCount == 0) return 0;
 
-                    ZSetStream();
+                    ZSetStream(lContext);
 
                     if (mStream.CanTimeout) mStream.ReadTimeout = pMC.Timeout;
                     else _ = pMC.Timeout; // check for timeout
@@ -88,7 +88,7 @@ namespace work.bacome.imapclient
 
                     if (mDisposed) throw new ObjectDisposedException(nameof(cReader));
 
-                    ZSetStream();
+                    ZSetStream(lContext);
 
                     if (mStream.CanTimeout) mStream.ReadTimeout = pMC.Timeout;
                     else _ = pMC.Timeout; // check for timeout
@@ -96,12 +96,14 @@ namespace work.bacome.imapclient
                     return mStream.ReadByte();
                 }
 
-                private void ZSetStream()
+                private void ZSetStream(cTrace.cContext pParentContext)
                 {
+                    var lContext = pParentContext.NewMethod(nameof(cReader), nameof(ZSetStream));
+
                     if (mDisposed) throw new ObjectDisposedException(nameof(cReader));
                     if (mStream != null) return;
 
-                    var lStream = mItem.ReadStream;
+                    var lStream = mItem.GetReadStream(lContext);
                     if (!lStream.CanRead || !lStream.CanSeek) throw new cUnexpectedSectionCacheActionException(mContext);
                     mStream = lStream;
                 }

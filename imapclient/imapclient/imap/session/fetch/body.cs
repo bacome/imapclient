@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient;
@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public Task FetchBodyAsync(cMethodControl pMC, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, Action<int> pIncrement, cBatchSizer pWriteSizer, cTrace.cContext pParentContext)
+            public Task FetchBodyAsync(cMethodControl pMC, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, cSectionCache.cItem.cReaderWriter pReaderWriter, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchBodyAsync), pMC, pMessageHandle, pSection, pDecoding);
 
@@ -21,11 +21,11 @@ namespace work.bacome.imapclient
 
                 mMailboxCache.CheckInSelectedMailbox(pMessageHandle); // to be repeated inside the select lock
 
-                if (pMessageHandle.UID == null) return ZFetchBodyAsync(pMC, null, null, pMessageHandle, pSection, pDecoding, pStream, pIncrement, pWriteSizer, lContext);
-                else return ZFetchBodyAsync(pMC, pMessageHandle.MessageCache.MailboxHandle, pMessageHandle.UID, null, pSection, pDecoding, pStream, pIncrement, pWriteSizer, lContext);
+                if (pMessageHandle.UID == null) return ZFetchBodyAsync(pMC, null, null, pMessageHandle, pSection, pDecoding, pReaderWriter, lContext);
+                else return ZFetchBodyAsync(pMC, pMessageHandle.MessageCache.MailboxHandle, pMessageHandle.UID, null, pSection, pDecoding, pReaderWriter, lContext);
             }
 
-            public Task UIDFetchBodyAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, Action<int> pIncrement, cBatchSizer pWriteSizer, cTrace.cContext pParentContext)
+            public Task UIDFetchBodyAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, cSectionCache.cItem.cReaderWriter pReaderWriter, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchBodyAsync), pMC, pMailboxHandle, pUID, pSection, pDecoding);
 
@@ -34,31 +34,27 @@ namespace work.bacome.imapclient
 
                 mMailboxCache.CheckIsSelectedMailbox(pMailboxHandle, pUID.UIDValidity); // to be repeated inside the select lock
 
-                return ZFetchBodyAsync(pMC, pMailboxHandle, pUID, null, pSection, pDecoding, pStream, pIncrement, pWriteSizer, lContext);
+                return ZFetchBodyAsync(pMC, pMailboxHandle, pUID, null, pSection, pDecoding, pReaderWriter, lContext);
             }
 
-            private async Task ZFetchBodyAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, Action<int> pIncrement, cBatchSizer pWriteSizer, cTrace.cContext pParentContext)
+            private async Task ZFetchBodyAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, cSectionCache.cItem.cReaderWriter pReaderWriter, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchBodyAsync), pMC, pMailboxHandle, pUID, pMessageHandle, pSection, pDecoding);
 
                 if (pSection == null) throw new ArgumentNullException(nameof(pSection));
-                if (pStream == null) throw new ArgumentNullException(nameof(pStream));
-                if (pWriteSizer == null) throw new ArgumentNullException(nameof(pWriteSizer));
-
-                if (!pStream.CanWrite) throw new ArgumentOutOfRangeException(nameof(pStream));
+                if (pReaderWriter == null) throw new ArgumentNullException(nameof(pReaderWriter));
 
                 // work out if binary can/should be used or not
                 bool lBinary = _Capabilities.Binary && pSection.TextPart == eSectionTextPart.all && pDecoding != eDecodingRequired.none;
 
                 cDecoder lDecoder;
 
-                if (lBinary || pDecoding == eDecodingRequired.none) lDecoder = new cIdentityDecoder(pMC, pStream, pWriteSizer);
-                else if (pDecoding == eDecodingRequired.base64) lDecoder = new cBase64Decoder(pMC, pStream, pWriteSizer);
-                else if (pDecoding == eDecodingRequired.quotedprintable) lDecoder = new cQuotedPrintableDecoder(pMC, pStream, pWriteSizer);
+                if (lBinary || pDecoding == eDecodingRequired.none) lDecoder = new cIdentityDecoder(pReaderWriter);
+                else if (pDecoding == eDecodingRequired.base64) lDecoder = new cBase64Decoder(pReaderWriter);
+                else if (pDecoding == eDecodingRequired.quotedprintable) lDecoder = new cQuotedPrintableDecoder(pReaderWriter);
                 else throw new cContentTransferDecodingException("required decoding not supported", lContext);
 
                 uint lOrigin = 0;
-
                 Stopwatch lStopwatch = new Stopwatch();
 
                 while (true)
@@ -82,10 +78,7 @@ namespace work.bacome.imapclient
                     int lOffset = (int)(lOrigin - lBodyOrigin);
 
                     // write the bytes
-                    await lDecoder.WriteAsync(lBody.Bytes, lOffset, lContext).ConfigureAwait(false);
-
-                    // update progress
-                    mSynchroniser.InvokeActionInt(pIncrement, lBody.Bytes.Count - lOffset, lContext);
+                    await lDecoder.WriteAsync(pMC, lBody.Bytes, lOffset,, lContext).ConfigureAwait(false);
 
                     // if the body we got was the whole body, we are done
                     if (lBody.Origin == null) break;
@@ -97,7 +90,8 @@ namespace work.bacome.imapclient
                     lOrigin = lBodyOrigin + (uint)lBody.Bytes.Count;
                 }
 
-                await lDecoder.FlushAsync(lContext).ConfigureAwait(false);
+                // end the write
+                await lDecoder.FlushAsync(pMC, lContext).ConfigureAwait(false);
             }
         }
     }

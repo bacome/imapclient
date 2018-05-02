@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
         private long mByteCount = 0;
         private bool mWorthTryingTrim = false;
 
-        public cTempFileSectionCache(string pInstanceName, int pFileCountBudget, long pByteCountBudget, int pWaitAfterTrim, cBatchSizerConfiguration pWriteConfiguration) : base(pWriteConfiguration, true)
+        public cTempFileSectionCache(string pInstanceName, int pFileCountBudget, long pByteCountBudget, int pWaitAfterTrim) : base(pWriteConfiguration, true)
         {
             InstanceName = pInstanceName ?? throw new ArgumentNullException(nameof(pInstanceName));
 

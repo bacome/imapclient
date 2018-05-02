@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using work.bacome.mailclient;
 
 namespace work.bacome.imapclient
 {

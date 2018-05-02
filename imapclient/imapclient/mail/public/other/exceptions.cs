@@ -22,7 +22,7 @@ namespace work.bacome.mailclient
     {
         internal cInternalErrorException(string pClass, int pPlace = 1) : base($"{pClass}.{pPlace}") { }
         internal cInternalErrorException(string pClass, string pMethod, int pPlace = 1) : base($"{pClass}.{pMethod}.{pPlace}") { }
-        internal cInternalErrorException(cTrace.cContext pContext, int pPlace = 1) => pContext.TraceError($"{nameof(cInternalErrorException)}.{pPlace}");
+        internal cInternalErrorException(cTrace.cContext pContext, int pPlace = 1) => pContext.TraceError("{0}: {1}", nameof(cInternalErrorException), pPlace);
     }
 
     /// <summary>

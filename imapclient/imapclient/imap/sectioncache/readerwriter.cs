@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,8 +19,7 @@ namespace work.bacome.imapclient
                 private bool mDisposed = false;
                 private readonly cItem mItem;
                 private readonly cSectionCachePersistentKey mPersistentKey;
-                private readonly cSectionCacheNonPersistentKey mNonPersistentKey;
-                private readonly cBatchSizer mWriteSizer;
+                private readonly cNonPersistentKey mNonPersistentKey;
                 private readonly cTrace.cContext mContext;
                 private int mCount = 1;
 
@@ -30,13 +28,7 @@ namespace work.bacome.imapclient
 
                 // write
                 private eWriteState mWriteState = eWriteState.notstarted;
-                private cMethodControl mWriteMC;
-                private CancellationTokenSource mWriteCancellationTokenSource;
-                private Stopwatch mStopwatch;
-                private int mBytesInBuffer;
-                private long mWritePosition;
-                private int mBufferSize;
-                private byte[] mBuffer;
+                private long mWritePosition = 0;
 
                 // stream management
                 private readonly object mLock = new object();
@@ -45,21 +37,19 @@ namespace work.bacome.imapclient
                 private CancellationTokenSource mCancellationTokenSource = null;
                 private cReleaser mReleaser = null;
 
-                public cReaderWriter(cItem pItem, cSectionCachePersistentKey pKey, cBatchSizer pWriteSizer, cTrace.cContext pParentContext)
+                public cReaderWriter(cItem pItem, cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
                 {
                     mItem = pItem ?? throw new ArgumentNullException(nameof(pItem));
                     mPersistentKey = pKey ?? throw new ArgumentNullException(nameof(pKey));
                     mNonPersistentKey = null;
-                    mWriteSizer = pWriteSizer ?? throw new ArgumentNullException(nameof(pWriteSizer));
                     mContext = pParentContext.NewObject(nameof(cReaderWriter), pItem, pKey);
                 }
 
-                public cReaderWriter(cItem pItem, cSectionCacheNonPersistentKey pKey, cBatchSizer pWriteSizer, cTrace.cContext pParentContext)
+                public cReaderWriter(cItem pItem, cNonPersistentKey pKey, cTrace.cContext pParentContext)
                 {
                     mItem = pItem ?? throw new ArgumentNullException(nameof(pItem));
                     mPersistentKey = null;
                     mNonPersistentKey = pKey ?? throw new ArgumentNullException(nameof(pKey));
-                    mWriteSizer = pWriteSizer ?? throw new ArgumentNullException(nameof(pWriteSizer));
                     mContext = pParentContext.NewObject(nameof(cReaderWriter), pItem, pKey);
                 }
 
@@ -187,7 +177,7 @@ namespace work.bacome.imapclient
 
                 public async Task<int> ReadByteAsync(cMethodControl pMC, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(ReadByteAsync));
+                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(ReadByteAsync), pMC);
 
                     if (mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
 
@@ -224,47 +214,54 @@ namespace work.bacome.imapclient
                     finally { mSemaphore.Release(); }
                 }
 
-                public void WriteBegin(cMethodControl pMC, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(WriteBegin), pMC);
+                public async Task Copy
 
+                public void WriteBegin()
+                {
                     if (mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
                     if (mWriteState != eWriteState.notstarted) throw new InvalidOperationException();
-                    mWriteState = eWriteState.writing;
-
                     ZSetStream();
-
-                    mWriteMC = pMC;
-                    mWriteCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(mCancellationTokenSource.Token, pMC.CancellationToken);
-                    mStopwatch = new Stopwatch();
-                    mBytesInBuffer = 0;
-                    mWritePosition = 0;
+                    mWriteState = eWriteState.writing;
                 }
 
-                public async Task WriteByteAsync(byte pByte, cTrace.cContext pParentContext)
+                public async Task WriteAsync(cMethodControl pMC, byte[] pBuffer, int pCount, cTrace.cContext pParentContext)
                 {
+                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(WriteAsync), pMC, pCount);
+                    
                     if (mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
                     if (mWriteState != eWriteState.writing) throw new InvalidOperationException();
+                    if (pCount == 0) return;
 
-                    if (mBytesInBuffer == 0)
+                    await mSemaphore.WaitAsync(pMC.Timeout, pMC.CancellationToken).ConfigureAwait(false);
+
+                    try
                     {
-                        mBufferSize = mWriteSizer.Current;
-                        if (mBuffer == null || mBufferSize > mBuffer.Length) mBuffer = new byte[mBufferSize];
+                        lContext.TraceVerbose("writing");
+
+                        if (mStream.CanTimeout) mStream.WriteTimeout = pMC.Timeout;
+                        else _ = pMC.Timeout; // check for timeout
+
+                        mStream.Position = mWritePosition;
+                        await mStream.WriteAsync(pBuffer, 0, pCount, pMC.CancellationToken).ConfigureAwait(false);
+                        mWritePosition = mStream.Position;
                     }
+                    finally { mSemaphore.Release(); }
 
-                    mBuffer[mBytesInBuffer++] = pByte;
-
-                    if (mBytesInBuffer == mBufferSize) await ZWriteAsync(pParentContext);
+                    // let any pending read know that there is more data to consider
+                    mReleaser.Release(lContext);
                 }
 
-                public async Task WriteEndAsync(cTrace.cContext pParentContext)
+                public async Task WriteEndAsync(cMethodControl pMC, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(WriteEndAsync));
+                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(WriteEndAsync), pMC);
 
                     if (mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
                     if (mWriteState != eWriteState.writing) throw new InvalidOperationException();
 
-                    if (mBytesInBuffer > 0) await ZWriteAsync(pParentContext).ConfigureAwait(false);
+                    if (mStream.CanTimeout) mStream.WriteTimeout = pMC.Timeout;
+                    else _ = pMC.Timeout; // check for timeout
+
+                    await mStream.FlushAsync(pMC.CancellationToken).ConfigureAwait(false);
 
                     mWriteState = eWriteState.complete;
 
@@ -272,45 +269,12 @@ namespace work.bacome.imapclient
                     mReleaser.Release(lContext);
 
                     // submit to cache
-                    if (ReferenceEquals(mPersistentKey, null))
+                    if (mPersistentKey == null)
                     {
                         if (mNonPersistentKey.UID == null) mItem.mCache.ZAdd(mNonPersistentKey, mItem, lContext);
                         else mItem.mCache.ZAdd(new cSectionCachePersistentKey(mNonPersistentKey), mItem, lContext);
                     }
                     else mItem.mCache.ZAdd(mPersistentKey, mItem, lContext);
-                }
-
-                private async Task ZWriteAsync(cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(ZWriteAsync));
-
-                    if (mBytesInBuffer == 0) throw new InvalidOperationException();
-
-                    await mSemaphore.WaitAsync(mWriteMC.Timeout, mWriteCancellationTokenSource.Token).ConfigureAwait(false);
-
-                    try
-                    {
-                        lContext.TraceVerbose("writing {0} bytes", mBytesInBuffer);
-
-                        if (mStream.CanTimeout) mStream.WriteTimeout = mWriteMC.Timeout;
-                        else _ = mWriteMC.Timeout; // check for timeout
-
-                        mStopwatch.Restart();
-                        mStream.Position = mWritePosition;
-                        await mStream.WriteAsync(mBuffer, 0, mBytesInBuffer, mWriteMC.CancellationToken).ConfigureAwait(false);
-                        mWritePosition = mStream.Position;
-                        mStopwatch.Stop();
-
-                    }
-                    finally { mSemaphore.Release(); }
-
-                    // let any pending read know that there is more data to consider
-                    mReleaser.Release(lContext);
-
-                    // store the time taken so the next write is a better size
-                    mWriteSizer.AddSample(mBytesInBuffer, mStopwatch.ElapsedMilliseconds);
-
-                    mBytesInBuffer = 0;
                 }
 
                 private void ZSetStream()
@@ -323,7 +287,7 @@ namespace work.bacome.imapclient
                         if (mDisposing || mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
                         if (mStream != null) return;
 
-                        var lStream = mItem.GetReadWriteStream();
+                        var lStream = mItem.GetReadWriteStream(mContext);
                         if (!lStream.CanRead || !lStream.CanSeek || !lStream.CanWrite) throw new cUnexpectedSectionCacheActionException(mContext);
 
                         mStream = lStream;
@@ -342,18 +306,6 @@ namespace work.bacome.imapclient
                         mDisposing = true;
                     }
 
-                    if (mCancellationTokenSource != null)
-                    {
-                        try { mCancellationTokenSource.Cancel(); }
-                        catch { }
-                    }
-
-                    if (mWriteCancellationTokenSource != null)
-                    {
-                        try { mWriteCancellationTokenSource.Cancel(); }
-                        catch { }
-                    }
-
                     if (mStream != null)
                     {
                         try { mStream.Dispose(); }
@@ -362,15 +314,21 @@ namespace work.bacome.imapclient
 
                     if (Interlocked.Decrement(ref mCount) == 0) mItem.ZDecrementOpenStreamCount(mContext);
 
-                    if (mReleaser != null)
+                    if (mSemaphore != null)
                     {
-                        try { mReleaser.Dispose(); }
+                        try { mSemaphore.Dispose(); }
                         catch { }
                     }
 
-                    if (mWriteCancellationTokenSource != null)
+                    if (mCancellationTokenSource != null)
                     {
-                        try { mWriteCancellationTokenSource.Dispose(); }
+                        try { mCancellationTokenSource.Cancel(); }
+                        catch { }
+                    }
+
+                    if (mReleaser != null)
+                    {
+                        try { mReleaser.Dispose(); }
                         catch { }
                     }
 

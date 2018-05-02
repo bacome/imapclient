@@ -25,7 +25,7 @@ namespace work.bacome.imapclient
                 return mCache.ZTryGetReader(pKey, out rReader, lContext);
             }
 
-            public bool TryGetReader(cSectionCacheNonPersistentKey pKey, out cItem.cReader rReader, cTrace.cContext pParentContext)
+            public bool TryGetReader(cNonPersistentKey pKey, out cItem.cReader rReader, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(TryGetReader), pKey);
                 return mCache.ZTryGetReader(pKey, out rReader, lContext);
@@ -37,7 +37,7 @@ namespace work.bacome.imapclient
                 return mCache.ZGetReaderWriter(pKey, lContext);
             }
 
-            public cItem.cReaderWriter GetReaderWriter(cSectionCacheNonPersistentKey pKey, cTrace.cContext pParentContext)
+            public cItem.cReaderWriter GetReaderWriter(cNonPersistentKey pKey, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(GetReaderWriter), pKey);
                 return mCache.ZGetReaderWriter(pKey, lContext);

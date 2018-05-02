@@ -33,6 +33,10 @@ namespace work.bacome.mailclient
         // tracing
         internal static readonly cTrace Trace = new cTrace("work.bacome.cMailClient");
 
+        // arbitrary statics
+        internal static readonly int mLocalStreamBufferSize = 10000;
+        internal static readonly int mFeedbackFrequency = 100;
+
         // mechanics
         private bool mDisposed = false;
         protected readonly string mInstanceName;
@@ -44,8 +48,6 @@ namespace work.bacome.mailclient
         private int mTimeout = -1;
         private cServer mServer = null;
         private cBatchSizerConfiguration mNetworkWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
-        private cBatchSizerConfiguration mLocalStreamReadConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
-        private cBatchSizerConfiguration mLocalStreamWriteConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
         private ReadOnlyCollection<cSASLAuthentication> mFailedSASLAuthentications = null;
 
         internal cMailClient(string pInstanceName, cCallbackSynchroniser pSynchroniser)
@@ -229,42 +231,6 @@ namespace work.bacome.mailclient
         }
 
         /// <summary>
-        /// Gets and sets the stream-read batch-size configuration for client-side streams. You might want to limit this to increase the speed with which you can cancel operations. May only be set while <see cref="IsUnconnected"/>.
-        /// </summary>
-        /// <remarks>
-        /// Limits the size of the buffer used when reading from the client-side stream (e.g. when reading from local disk). Measured in bytes.
-        /// The default value is min=1000b, max=100000b, maxtime=1s, initial=1000b.
-        /// </remarks>
-        public cBatchSizerConfiguration LocalStreamReadConfiguration
-        {
-            get => mLocalStreamReadConfiguration;
-
-            set
-            {
-                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
-                mLocalStreamReadConfiguration = value ?? throw new ArgumentNullException();
-            }
-        }
-
-        /// <summary>
-        /// Gets and sets the stream-write batch-size configuration for client-side streams. You might want to limit this to increase the speed with which you can cancel these operations. May only be set while <see cref="IsUnconnected"/>.
-        /// </summary>
-        /// <remarks>
-        /// Limits the size of the buffer used when writing to the client-side stream (e.g. when writing to local disk). Measured in bytes.
-        /// The default value is min=1000b, max=100000b, maxtime=1s, initial=1000b.
-        /// </remarks>
-        public cBatchSizerConfiguration LocalStreamWriteConfiguration
-        {
-            get => mLocalStreamWriteConfiguration;
-
-            set
-            {
-                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
-                mLocalStreamWriteConfiguration = value ?? throw new ArgumentNullException();
-            }
-        }
-
-        /// <summary>
         /// Gets the set of SASL authentication objects that failed during the last attempt to <see cref="Connect"/>. May be <see langword="null"/> or empty.
         /// </summary>
         /// <remarks>
@@ -296,9 +262,15 @@ namespace work.bacome.mailclient
 
         public bool IsDisposed => mDisposed;
 
-        internal void InvokeActionLong(Action<long> pAction, long pLong)
+        internal void InvokeActionInt(Action<int> pAction, int pInt, cTrace.cContext pParentContext)
         {
-            var lContext = mRootContext.NewMethod(nameof(cMailClient), nameof(InvokeActionLong), pLong);
+            var lContext = pParentContext.NewMethod(nameof(cMailClient), nameof(InvokeActionInt), pInt);
+            mSynchroniser.InvokeActionInt(pAction, pInt, lContext);
+        }
+
+        internal void InvokeActionLong(Action<long> pAction, long pLong, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cMailClient), nameof(InvokeActionLong), pLong);
             mSynchroniser.InvokeActionLong(pAction, pLong, lContext);
         }
 

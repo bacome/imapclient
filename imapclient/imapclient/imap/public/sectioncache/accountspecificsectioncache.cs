@@ -83,7 +83,13 @@ namespace work.bacome.imapclient
 
                     string lMailboxPath;
                     string lDelimiter;
-                    string l
+                    string lUIDValidity;
+                    string lUID;
+                    string lPart;
+                    string lTestPart;
+                    string lNameCount;
+                    List<string> lNames = new List<string>();
+                    string lDecodingRequired;
 
                     using (var lStream = new FileStream(lFSI.FullName, FileMode.Open, FileAccess.Read, FileShare.None))
                     {
@@ -105,6 +111,12 @@ namespace work.bacome.imapclient
                     {
                         throw new cUnexpectedSectionCacheItemFormat();
                     }
+
+
+
+                    cSectionCachePersistentKey lKey = new cSectionCachePersistentKey(pAccountId, lMailboxName...);
+
+                    // build dictionary pk -> filename
                 }
                 else if (lFSI.Name.EndsWith(".sci")) lSCIs.Add(lFSI.Name.Substring(1, lFSI.Name.Length - 4));
                 else throw new cUnexpectedSectionCacheItemFormat(pDirectory, "contains unrecognised file types");
@@ -120,8 +132,8 @@ namespace work.bacome.imapclient
             }
             else if (!lAccountFile) throw new cUnexpectedSectionCacheItemFormat(pDirectory, "no account file");
 
-            // delete all sci s with no sck
-            // delete all sck s with no sci
+            // delete all sci s with no sck (these are npks left over i'd guess)
+            // (delete all sck s with no sci) // maybe scks with no scis could be ignored at open time [probs yes]
 
             mBackgroundReleaser = new cReleaser(lInstanceName, mBackgroundCancellationTokenSource.Token);
             mBackgroundTask = ZBackgroundTaskAsync(lContext);
