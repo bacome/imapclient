@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
             return ZCopySectionToStreamAsync(pReader, pStream, pConfiguration, lContext);
         }
 
-        private Task ZCopySectionToStreamAsync(iSectionCacheItemReader pReader, Stream pStream, cCopySectionToStreamConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private async Task ZCopySectionToStreamAsync(iSectionCacheItemReader pReader, Stream pStream, cCopySectionToStreamConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZCopySectionToStreamAsync));
 
@@ -36,17 +36,19 @@ namespace work.bacome.imapclient
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
                     var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
-                    return ZZCopySectionToStreamAsync(lMC, pReader, pStream, pConfiguration.Increment, lContext);
+                    await ZZCopySectionToStreamAsync(lMC, pReader, pStream, null, lContext).ConfigureAwait(false);
                 }
             }
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                return ZZCopySectionToStreamAsync(lMC, pReader, pStream, null, lContext);
+                var lIncrementer = new cIncrementer(mSynchroniser, pConfiguration.Increment, pConfiguration.MaxCallbackFrequency);
+                await ZZCopySectionToStreamAsync(lMC, pReader, pStream, lIncrementer, lContext);
+                lIncrementer.Increment(lContext);
             }
         }
 
-        private async Task ZZCopySectionToStreamAsync(cMethodControl pMC, iSectionCacheItemReader pReader, Stream pStream, Action<int> pIncrement, cTrace.cContext pParentContext)
+        private async Task ZZCopySectionToStreamAsync(cMethodControl pMC, iSectionCacheItemReader pReader, Stream pStream, cIncrementer pIncrementer, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZCopySectionToStreamAsync), pMC);
 
@@ -62,10 +64,7 @@ namespace work.bacome.imapclient
 
                 await pStream.WriteAsync(lBuffer, 0, lBytesRead, pMC.CancellationToken);
 
-                ;?;
-
-                ;?; // now I'm going to ask for the sizer back because feedback shouldn't be sent so often it floods the system.
-                mSynchroniser.InvokeActionInt(pIncrement, lBytesRead, lContext);
+                pIncrementer.Increment(lBytesRead, lContext);
             }
         }
     }

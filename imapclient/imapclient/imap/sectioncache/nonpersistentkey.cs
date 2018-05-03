@@ -1,4 +1,5 @@
 ﻿using System;
+using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 
 namespace work.bacome.imapclient
@@ -7,21 +8,21 @@ namespace work.bacome.imapclient
     {
         internal class cNonPersistentKey : IEquatable<cNonPersistentKey>
         {
-            public readonly cAccountId AccountId;
-            public readonly cIMAPMessage Message;
+            public readonly iMessageHandle MessageHandle;
             public readonly cSection Section;
             public readonly eDecodingRequired Decoding;
 
-            internal cNonPersistentKey(cAccountId pAccountId, cIMAPMessage pMessage, cSection pSection, eDecodingRequired pDecoding)
+            internal cNonPersistentKey(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding)
             {
-                AccountId = pAccountId ?? throw new ArgumentNullException(nameof(pAccountId));
-                Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
+                MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
                 Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
                 Decoding = pDecoding;
             }
 
-            public cMailboxName MailboxName => Message.MessageHandle.MessageCache.MailboxHandle.MailboxName;
-            public cUID UID => Message.MessageHandle.UID;
+            public cAccountId AccountId => MessageHandle.MessageCache.MailboxHandle.MailboxCache.AccountId;
+            public iMailboxHandle MailboxHandle => MessageHandle.MessageCache.MailboxHandle;
+            public cMailboxName MailboxName => MessageHandle.MessageCache.MailboxHandle.MailboxName;
+            public cUID UID => MessageHandle.UID;
 
             /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
             public bool Equals(cNonPersistentKey pObject) => this == pObject;
@@ -43,8 +44,7 @@ namespace work.bacome.imapclient
                 {
                     int lHash = 17;
 
-                    lHash = lHash * 23 + AccountId.GetHashCode();
-                    lHash = lHash * 23 + Message.GetHashCode();
+                    lHash = lHash * 23 + MessageHandle.GetHashCode();
                     lHash = lHash * 23 + Section.GetHashCode();
                     lHash = lHash * 23 + Decoding.GetHashCode();
 
@@ -53,7 +53,7 @@ namespace work.bacome.imapclient
             }
 
             /// <inheritdoc />
-            public override string ToString() => $"{nameof(cNonPersistentKey)}({AccountId},{Message},{Section},{Decoding})";
+            public override string ToString() => $"{nameof(cNonPersistentKey)}({MessageHandle},{Section},{Decoding})";
 
             /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
             public static bool operator ==(cNonPersistentKey pA, cNonPersistentKey pB)
@@ -61,12 +61,11 @@ namespace work.bacome.imapclient
                 if (ReferenceEquals(pA, pB)) return true;
                 if (ReferenceEquals(pA, null)) return false;
                 if (ReferenceEquals(pB, null)) return false;
-                return pA.AccountId == pB.AccountId && pA.Message == pB.Message && pA.Section == pB.Section && pA.Decoding == pB.Decoding;
+                return pA.MessageHandle == pB.MessageHandle && pA.Section == pB.Section && pA.Decoding == pB.Decoding;
             }
 
             /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
             public static bool operator !=(cNonPersistentKey pA, cNonPersistentKey pB) => !(pA == pB);
         }
-
     }
 }

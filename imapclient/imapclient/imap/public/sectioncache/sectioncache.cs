@@ -62,48 +62,53 @@ namespace work.bacome.imapclient
         //  NOTE that the following should be done on a separate thread, single threaded
         //
         //  if the cache is over budget
-        //   if the cache is a permanent one, then there will be two lists to delete from
-        //    the full list of items in the cache from the backing store and
-        //    the list of items that the class knows about (which should be a subset of the full list)
-        //   if the cache is a temporary one, then there will be one list - the list that the class knows about
+        //   getsectioncacheitems (a)
+        //   sort the cache's internal list by the order in which the items should be deleted
+        //   foreach item in the internal list
+        //    if the cache is under budget break;
+        //    use the dictionary from (a) to get the item (b)
+        //    if there is no item in the dictionary use getsectioncacheitem to get one (b)
+        //    b.trydelete
         //
-        //   use GetTrimItems to get a snapshot of the items that the class knows about
-        //    note that items returned are live - so their states can change at any time, that is why the change-sequence exists
-        //     from the items you should build a tuple with the things that you want to sort on later
-        //  
-        //   if the cache is temporary, sort by the ones you most want to delete and use TryDelete() on them in order until the cache is under budget
-        //   if the cache is permanent, sort by the ones you most want to delete, if there is an item use TryDelete() else use GetTrimItem(pk) and then TryDelete() in order until the cache is under budget
-        //
-        //
-        protected List<cSectionCacheItem> GetItems(cTrace.cContext pParentContext)
+        protected Dictionary<object, cSectionCacheItem> GetSectionCacheItems(cTrace.cContext pParentContext)
         {
-            var lItems = new List<cSectionCacheItem>();
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetSectionCacheItems));
+
+            var lResult = new Dictionary<object, cSectionCacheItem>();
 
             lock (mLock)
             {
                 foreach (var lPair in mNonPersistentKeyItems)
                 {
                     var lItem = lPair.Value;
-                    if (!lItem.Deleted && !lItem.AssignedPersistentKey) lItems.Add(new cSectionCacheItem(lItem, false));
+
+                    if (!lItem.Deleted && !lItem.AssignedPersistentKey)
+                    {
+                        var lSCItem = new cSectionCacheItem(lItem, false);
+                        lResult.Add(lSCItem.ItemKey ?? throw new cUnexpectedSectionCacheActionException(lContext, 1), lSCItem);
+                    }
                 }
 
                 foreach (var lPair in mPersistentKeyItems)
                 {
                     var lItem = lPair.Value;
-                    if (!lItem.Deleted) lItems.Add(new cSectionCacheItem(lItem, false));
+
+                    if (!lItem.Deleted)
+                    {
+                        var lSCItem = new cSectionCacheItem(lItem, false);
+                        lResult.Add(lSCItem.ItemKey ?? throw new cUnexpectedSectionCacheActionException(lContext, 1), lSCItem);
+                    }
                 }
             }
 
-            lItems.Sort();
-
-            return lItems;
+            return lResult;
         }
 
         // for use in cache trimming
         //
-        protected cSectionCacheItem GetItem(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
+        protected cSectionCacheItem GetSectionCacheItem(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetItem), pKey);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetSectionCacheItem), pKey);
 
             lock (mLock)
             {
@@ -138,9 +143,9 @@ namespace work.bacome.imapclient
         }
 
         // called by accessor
-        private bool ZTryGetReader(cSectionCachePersistentKey pKey, out cItem.cReader rReader, cTrace.cContext pParentContext)
+        private bool ZTryGetItemReader(cSectionCachePersistentKey pKey, out cItem.cReader rReader, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZTryGetReader), pKey);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZTryGetItemReader), pKey);
 
             lock (mLock)
             {
@@ -152,9 +157,9 @@ namespace work.bacome.imapclient
         }
 
         // called by accessor
-        private bool ZTryGetReader(cNonPersistentKey pKey, out cItem.cReader rReader, cTrace.cContext pParentContext)
+        private bool ZTryGetItemReader(cNonPersistentKey pKey, out cItem.cReader rReader, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZTryGetReader), pKey);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZTryGetItemReader), pKey);
 
             lock (mLock)
             {
@@ -166,9 +171,9 @@ namespace work.bacome.imapclient
         }
 
         // called by accessor
-        private cItem.cReaderWriter ZGetReaderWriter(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
+        private cItem.cReaderWriter ZGetItemReaderWriter(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZGetReaderWriter), pKey);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZGetItemReaderWriter), pKey);
 
             var lItem = GetNewItem(lContext);
             if (lItem == null || !lItem.CanWrite) throw new cUnexpectedSectionCacheActionException(lContext);
@@ -176,11 +181,11 @@ namespace work.bacome.imapclient
         }
 
         // called by accessor
-        private cItem.cReaderWriter ZGetReaderWriter(cNonPersistentKey pKey, cTrace.cContext pParentContext)
+        private cItem.cReaderWriter ZGetItemReaderWriter(cNonPersistentKey pKey, cTrace.cContext pParentContext)
         {
             // if the uid is available the other one should have been called
 
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZGetReaderWriter), pKey);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZGetItemReaderWriter), pKey);
 
             var lItem = GetNewItem(lContext);
             if (lItem == null || !lItem.CanWrite) throw new cUnexpectedSectionCacheActionException(lContext);
@@ -225,7 +230,7 @@ namespace work.bacome.imapclient
                     {
                         if (lPair.Key.UID == null)
                         {
-                            if (lPair.Key.Message.IsValid || !lPair.Value.TryDelete(-1, lContext)) lNonPersistentKeyItems.Add(lPair.Key, lPair.Value);
+                            if (!lPair.Value.TryDelete(-1, lContext)) lNonPersistentKeyItems.Add(lPair.Key, lPair.Value);
                         }
                         else
                         {
@@ -242,9 +247,9 @@ namespace work.bacome.imapclient
         }
 
         // called by readerwriter when the write is finished
-        private void ZAdd(cSectionCachePersistentKey pKey, cItem pItem, cTrace.cContext pParentContext)
+        private void ZAddItem(cSectionCachePersistentKey pKey, cItem pItem, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZAdd), pKey, pItem);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZAddItem), pKey, pItem);
 
             if (pKey == null) throw new ArgumentNullException(nameof(pKey));
             if (pItem == null) throw new ArgumentNullException(nameof(pItem));
@@ -276,19 +281,17 @@ namespace work.bacome.imapclient
         }
 
         // called by readerwriter when the write is finished
-        private void ZAdd(cNonPersistentKey pKey, cItem pItem, cTrace.cContext pParentContext)
+        private void ZAddItem(cNonPersistentKey pKey, cItem pItem, cTrace.cContext pParentContext)
         {
             // if the uid is available the other one should have been called
 
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZAdd), pKey, pItem);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZAddItem), pKey, pItem);
 
             if (pKey == null) throw new ArgumentNullException(nameof(pKey));
             if (pItem == null) throw new ArgumentNullException(nameof(pItem));
 
             lock (mLock)
             {
-                if (!pKey.Message.IsValid) return;
-
                 if (mNonPersistentKeyItems.TryGetValue(pKey, out var lItem))
                 {
                     if (lItem.TryTouch(lContext))

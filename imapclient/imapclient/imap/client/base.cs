@@ -82,25 +82,11 @@ namespace work.bacome.imapclient
         //    or there are errors (like duplicate headers)
         //   so at this stage the MDNSent features are commented out as they aren't useful by themselves
 
-        private static cSectionCache mGlobalSectionCache = new cTempFileSectionCache("cIMAPClient.GlobalSectionCache", 1000, 100000000, 60000, new cBatchSizerConfiguration(1000, 100000, 1000, 1000));
-
-        public static cSectionCache GlobalSectionCache
-        {
-            get => mGlobalSectionCache;
-            set => mGlobalSectionCache = value ?? throw new ArgumentNullException();
-        }
-
         // mechanics
         private readonly cIMAPCallbackSynchroniser mIMAPSynchroniser;
 
-        // section cache
-        private readonly object mSectionCacheLock = new object();
-        private bool mSectionCacheDisposing = false;
-        private cSectionCache.cAccessor mSectionCacheAccessor = null;
-
         // property backing storage
         private Encoding mEncoding = Encoding.UTF8;
-        private cSectionCache mSectionCache = null;
         private fIMAPCapabilities mIgnoreCapabilities = 0;
         private cIMAPAuthenticationParameters mAuthenticationParameters = null;
         private bool mMailboxReferrals = false;
@@ -249,42 +235,6 @@ namespace work.bacome.imapclient
         /// May only be called while <see cref="IsUnconnected"/>.
         /// </remarks>
         public void SetServer(string pHost, int pPort, bool pSSL) => Server = new cServer(pHost, pPort, pSSL);
-
-        public cSectionCache SectionCache
-        {
-            get => mSectionCache;
-
-            set
-            {
-                lock (mSectionCacheLock)
-                {
-                    if (mSectionCacheAccessor != null)
-                    {
-                        mSectionCacheAccessor.Dispose();
-                        mSectionCacheAccessor = null;
-                    }
-
-                    mSectionCache = value;
-                }
-            }
-        }
-
-        internal cSectionCache.cAccessor SectionCacheAccessor
-        {
-            get
-            {
-                var lContext = mRootContext.NewGetProp(nameof(cIMAPClient), nameof(SectionCacheAccessor));
-
-                lock (mSectionCacheLock)
-                {
-                    if (mSectionCacheAccessor != null) return mSectionCacheAccessor;
-                    if (mSectionCacheDisposing) throw new ObjectDisposedException(nameof(cIMAPClient));
-                    if (mSectionCache == null) mSectionCacheAccessor = mGlobalSectionCache.GetAccessor(lContext);
-                    else mSectionCacheAccessor = mSectionCache.GetAccessor(lContext);
-                    return mSectionCacheAccessor;
-                }
-            }
-        }
 
         /// <summary>
         /// Gets and sets the server capabilities that the instance should ignore.
@@ -631,16 +581,7 @@ namespace work.bacome.imapclient
                     catch { }
                 }
 
-                lock (mSectionCacheLock)
-                {
-                    mSectionCacheDisposing = true;
-                }
-
-                if (mSectionCacheAccessor != null)
-                {
-                    try { mSectionCacheAccessor.Dispose(); }
-                    catch { }
-                }
+                ZDisposeSectionCache();
             }
 
             base.Dispose(pDisposing);

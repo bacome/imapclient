@@ -4,7 +4,7 @@ using System.Threading;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Contains an operation specific timeout, cancellation token and progress-increment callback. Intended for use when retrieving large message sections.
+    /// Contains an operation specific timeout, cancellation token, progress-increment callback and frequency. Intended for use when retrieving large message sections.
     /// </summary>
     /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
     public class cCopySectionToStreamConfiguration
@@ -21,6 +21,8 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
         public readonly Action<int> Increment;
 
+        public readonly int MaxCallbackFrequency;
+
         /// <summary>
         /// Initialises a new instance with the specified timeout. Intended for use with synchronous APIs.
         /// </summary>
@@ -31,26 +33,24 @@ namespace work.bacome.imapclient
             Timeout = pTimeout;
             CancellationToken = CancellationToken.None;
             Increment = null;
+            MaxCallbackFrequency = 100;
         }
 
-        /// <summary>
-        /// Initialises a new instance with the specified cancellation token and progress-increment callback. Intended for use with asynchronous APIs.
-        /// </summary>
-        /// <param name="pCancellationToken">May be <see cref="CancellationToken.None"/>.</param>
-        /// <param name="pIncrement">May be <see langword="null"/>.</param>
-        public cCopySectionToStreamConfiguration(CancellationToken pCancellationToken, Action<int> pIncrement)
+        public cCopySectionToStreamConfiguration(CancellationToken pCancellationToken, Action<int> pIncrement, int pMaxCallbackFrequency = 100)
         {
             Timeout = -1;
             CancellationToken = pCancellationToken;
             Increment = pIncrement;
+            MaxCallbackFrequency = pMaxCallbackFrequency;
         }
 
-        public cCopySectionToStreamConfiguration(int pTimeout, CancellationToken pCancellationToken, Action<int> pIncrement)
+        public cCopySectionToStreamConfiguration(int pTimeout, CancellationToken pCancellationToken, Action<int> pIncrement, int pMaxCallbackFrequency = 100)
         {
             if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
             Timeout = pTimeout;
             CancellationToken = pCancellationToken;
             Increment = pIncrement;
+            MaxCallbackFrequency = pMaxCallbackFrequency;
         }
     }
 }

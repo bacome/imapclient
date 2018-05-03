@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
@@ -11,9 +12,9 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task FetchBodyAsync(cSectionCache.cNonPersistentKey pKey, cSectionCache.cItem.cReaderWriter pReaderWriter, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+            public async Task UIDFetchBodyAsync(iMailboxHandle pMailboxHandle, cSectionCachePersistentKey pKey, cSectionCache.cItem.cReaderWriter pReaderWriter, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchBodyAsync), pKey);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchBodyAsync), pMailboxHandle, pKey);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eIMAPConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
@@ -21,7 +22,7 @@ namespace work.bacome.imapclient
                 if (_ConnectedAccountId != pKey.AccountId) throw new InvalidOperationException(kInvalidOperationExceptionMessage.WrongAccount);
                 if (pReaderWriter == null) throw new ArgumentNullException(nameof(pReaderWriter));
 
-                mMailboxCache.CheckInSelectedMailbox(pKey.MessageHandle); // to be repeated inside the select lock
+                mMailboxCache.CheckIsSelectedMailbox(pMailboxHandle, pKey.UID.UIDValidity); // to be repeated inside the select lock
 
                 pReaderWriter.WriteBegin(lContext);
 
@@ -36,7 +37,7 @@ namespace work.bacome.imapclient
                     int lLength = mFetchBodySizer.Current;
 
                     lStopwatch.Restart();
-                    var lBody = await ZFetchBodyAsync(pKey.MessageHandle, lBinary, pKey.Section, lOrigin, (uint)lLength, pCancellationToken, lContext).ConfigureAwait(false);
+                    var lBody = await ZUIDFetchBodyAsync(pMailboxHandle, pKey.UID, lBinary, pKey.Section, lOrigin, (uint)lLength, pCancellationToken, lContext).ConfigureAwait(false);
                     lStopwatch.Stop();
 
                     // store the time taken so the next fetch is a better size

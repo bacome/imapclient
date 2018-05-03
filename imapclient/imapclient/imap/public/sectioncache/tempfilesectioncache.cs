@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
         private long mByteCount = 0;
         private bool mWorthTryingTrim = false;
 
-        public cTempFileSectionCache(string pInstanceName, int pFileCountBudget, long pByteCountBudget, int pWaitAfterTrim) : base(pWriteConfiguration, true)
+        public cTempFileSectionCache(string pInstanceName, int pFileCountBudget, long pByteCountBudget, int pWaitAfterTrim) : base(true)
         {
             InstanceName = pInstanceName ?? throw new ArgumentNullException(nameof(pInstanceName));
 
@@ -41,6 +41,8 @@ namespace work.bacome.imapclient
             FileCountBudget = pFileCountBudget;
             ByteCountBudget = pByteCountBudget;
             WaitAfterTrim = pWaitAfterTrim;
+
+            ;?; // a list of filename -> touch
 
             mBackgroundReleaser = new cReleaser(pInstanceName, mBackgroundCancellationTokenSource.Token);
             mBackgroundTask = ZBackgroundTaskAsync(lContext);

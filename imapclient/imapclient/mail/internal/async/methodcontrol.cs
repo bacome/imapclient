@@ -12,6 +12,22 @@ namespace work.bacome.mailclient
         private readonly Stopwatch mStopwatch;
         public readonly CancellationToken CancellationToken;
 
+        public cMethodControl(int pTimeout)
+        {
+            if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
+            mTimeout = pTimeout;
+            if (pTimeout == -1) mStopwatch = null;
+            else mStopwatch = Stopwatch.StartNew();
+            CancellationToken = CancellationToken.None;
+        }
+
+        public cMethodControl(CancellationToken pCancellationToken)
+        {
+            mTimeout = -1;
+            mStopwatch = null;
+            CancellationToken = pCancellationToken;
+        }
+
         public cMethodControl(int pTimeout, CancellationToken pCancellationToken)
         {
             if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));

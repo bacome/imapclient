@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="imap\client\copysectiontostream.cs" />
+    <Compile Include="imap\client\sectioncache.cs" />
     <Compile Include="imap\public\configuration\copytostreamconfiguration.cs" />
     <Compile Include="imap\public\sectioncache\accountspecificsectioncache.cs" />
     <Compile Include="imap\public\sectioncache\sectioncacheitem.cs" />
@@ -54,8 +55,10 @@
     <Compile Include="imap\client\append.cs" />
     <Compile Include="imap\public\sectioncache\sectioncache.cs" />
     <Compile Include="imap\public\sectioncache\item.cs" />
-    <Compile Include="imap\public\sectioncache\sectioncachekey.cs" />
+    <Compile Include="imap\public\sectioncache\sectioncachepersistentkey.cs" />
     <Compile Include="imap\public\message\messagedatastream.cs" />
+    <Compile Include="imap\session\fetch\uidbody.cs" />
+    <Compile Include="imap\support\mailboxcache.cs" />
     <Compile Include="mail\convertmailmessage\base.cs" />
     <Compile Include="imap\client\decodedsizeinbytes.cs" />
     <Compile Include="mail\client\quotedprintableencode.cs" />
@@ -64,6 +67,7 @@
     <Compile Include="mail\internal\encoding\encodingrequired.cs" />
     <Compile Include="mail\internal\encoding\headerfieldbytes.cs" />
     <Compile Include="mail\internal\message\message.cs" />
+    <Compile Include="mail\internal\other\incrementer.cs" />
     <Compile Include="mail\public\configuration\attachmentsaveconfiguration.cs" />
     <Compile Include="mail\public\message\attachment.cs" />
     <Compile Include="mail\public\message\message.cs" />
@@ -330,7 +334,7 @@
     <Compile Include="imap\session\connect.cs" />
     <Compile Include="imap\session\fetch\cacheitems.cs" />
     <Compile Include="imap\session\fetch\body.cs" />
-    <Compile Include="imap\session\fetch\uidattributes.cs" />
+    <Compile Include="imap\session\fetch\uidcacheitems.cs" />
     <Compile Include="imap\session\command\commanddetailsbuilder.cs" />
     <Compile Include="imap\session\command\commandtag.cs" />
     <Compile Include="mail\internal\other\batchsizer.cs" />

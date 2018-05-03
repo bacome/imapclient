@@ -18,8 +18,6 @@ namespace work.bacome.imapclient
                 private bool mDisposing = false;
                 private bool mDisposed = false;
                 private readonly cItem mItem;
-                private readonly cSectionCachePersistentKey mPersistentKey;
-                private readonly cNonPersistentKey mNonPersistentKey;
                 private readonly cTrace.cContext mContext;
                 private int mCount = 1;
 
@@ -37,20 +35,10 @@ namespace work.bacome.imapclient
                 private CancellationTokenSource mCancellationTokenSource = null;
                 private cReleaser mReleaser = null;
 
-                public cReaderWriter(cItem pItem, cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
+                public cReaderWriter(cItem pItem, cTrace.cContext pParentContext)
                 {
                     mItem = pItem ?? throw new ArgumentNullException(nameof(pItem));
-                    mPersistentKey = pKey ?? throw new ArgumentNullException(nameof(pKey));
-                    mNonPersistentKey = null;
-                    mContext = pParentContext.NewObject(nameof(cReaderWriter), pItem, pKey);
-                }
-
-                public cReaderWriter(cItem pItem, cNonPersistentKey pKey, cTrace.cContext pParentContext)
-                {
-                    mItem = pItem ?? throw new ArgumentNullException(nameof(pItem));
-                    mPersistentKey = null;
-                    mNonPersistentKey = pKey ?? throw new ArgumentNullException(nameof(pKey));
-                    mContext = pParentContext.NewObject(nameof(cReaderWriter), pItem, pKey);
+                    mContext = pParentContext.NewObject(nameof(cReaderWriter), pItem);
                 }
 
                 public async Task<long> GetLengthAsync(cMethodControl pMC, cTrace.cContext pParentContext)
@@ -59,7 +47,7 @@ namespace work.bacome.imapclient
 
                     if (mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
 
-                    ZSetStream();
+                    ZSetStream(lContext);
 
                     if (mWriteState == eWriteState.complete) return mStream.Length;
 
@@ -83,9 +71,9 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                public async Task SetReadPositionAsync(cMethodControl pMC, long pReadPosition, cTrace.cContext pParentContext)
+                public async Task SetReadPositionAsync(long pReadPosition, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(SetReadPositionAsync), pMC, pReadPosition);
+                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(SetReadPositionAsync), pReadPosition);
 
                     if (mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
 
@@ -97,18 +85,15 @@ namespace work.bacome.imapclient
                         return;
                     }
 
-                    ZSetStream();
+                    ZSetStream(lContext);
 
                     if (ZTrySetReadPosition(pReadPosition)) return;
 
-                    using (var lAwaiter = new cAwaiter(pMC))
+                    while (true)
                     {
-                        while (true)
-                        {
-                            Task lTask = mReleaser.GetAwaitReleaseTask(lContext);
-                            if (ZTrySetReadPosition(pReadPosition)) return;
-                            await lAwaiter.AwaitAny(lTask).ConfigureAwait(false);
-                        }
+                        Task lTask = mReleaser.GetAwaitReleaseTask(lContext);
+                        if (ZTrySetReadPosition(pReadPosition)) return;
+                        await lTask.ConfigureAwait(false);
                     }
                 }
 
@@ -130,9 +115,9 @@ namespace work.bacome.imapclient
                     return false;
                 }
 
-                public async Task<int> ReadAsync(cMethodControl pMC, byte[] pBuffer, int pOffset, int pCount, cTrace.cContext pParentContext)
+                public async Task<int> ReadAsync(byte[] pBuffer, int pOffset, int pCount, int pTimeout, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(ReadAsync), pMC, pOffset, pCount);
+                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(ReadAsync), pOffset, pCount, pTimeout);
 
                     if (mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
 
@@ -142,11 +127,13 @@ namespace work.bacome.imapclient
                     if (pOffset + pCount > pBuffer.Length) throw new ArgumentException();
                     if (pCount == 0) return 0;
 
-                    ZSetStream();
+                    var lMC = new cMethodControl(pTimeout, pCancellationToken);
+
+                    ZSetStream(lContext);
 
                     if (mStream.Length == mReadPosition || mWriteState != eWriteState.complete)
                     {
-                        using (var lAwaiter = new cAwaiter(pMC))
+                        using (var lAwaiter = new cAwaiter(lMC))
                         {
                             while (true)
                             {
@@ -157,17 +144,17 @@ namespace work.bacome.imapclient
                         }
                     }
 
-                    await mSemaphore.WaitAsync(pMC.Timeout, pMC.CancellationToken).ConfigureAwait(false);
+                    await mSemaphore.WaitAsync(lMC.Timeout, lMC.CancellationToken).ConfigureAwait(false);
 
                     try
                     {
                         lContext.TraceVerbose("reading bytes");
 
-                        if (mStream.CanTimeout) mStream.ReadTimeout = pMC.Timeout;
-                        else _ = pMC.Timeout; // check for timeout
+                        if (mStream.CanTimeout) mStream.ReadTimeout = lMC.Timeout;
+                        else _ = lMC.Timeout; // check for timeout
 
                         mStream.Position = mReadPosition;
-                        var lBytesRead = await mStream.ReadAsync(pBuffer, pOffset, pCount, pMC.CancellationToken).ConfigureAwait(false);
+                        var lBytesRead = await mStream.ReadAsync(pBuffer, pOffset, pCount, lMC.CancellationToken).ConfigureAwait(false);
                         mReadPosition = mStream.Position;
 
                         return lBytesRead;
@@ -175,17 +162,19 @@ namespace work.bacome.imapclient
                     finally { mSemaphore.Release(); }
                 }
 
-                public async Task<int> ReadByteAsync(cMethodControl pMC, cTrace.cContext pParentContext)
+                public async Task<int> ReadByteAsync(int pTimeout, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(ReadByteAsync), pMC);
+                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(ReadByteAsync), pTimeout);
 
                     if (mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
 
-                    ZSetStream();
+                    var lMC = new cMethodControl(pTimeout);
+
+                    ZSetStream(lContext);
 
                     if (mStream.Length == mReadPosition || mWriteState != eWriteState.complete)
                     {
-                        using (var lAwaiter = new cAwaiter(pMC))
+                        using (var lAwaiter = new cAwaiter(lMC))
                         {
                             while (true)
                             {
@@ -196,14 +185,14 @@ namespace work.bacome.imapclient
                         }
                     }
 
-                    await mSemaphore.WaitAsync(pMC.Timeout, pMC.CancellationToken).ConfigureAwait(false);
+                    await mSemaphore.WaitAsync(lMC.Timeout).ConfigureAwait(false);
 
                     try
                     {
                         lContext.TraceVerbose("reading byte");
 
-                        if (mStream.CanTimeout) mStream.ReadTimeout = pMC.Timeout;
-                        else _ = pMC.Timeout; // check for timeout
+                        if (mStream.CanTimeout) mStream.ReadTimeout = lMC.Timeout;
+                        else _ = lMC.Timeout; // check for timeout
 
                         mStream.Position = mReadPosition;
                         var lResult = mStream.ReadByte();
@@ -214,35 +203,31 @@ namespace work.bacome.imapclient
                     finally { mSemaphore.Release(); }
                 }
 
-                public async Task Copy
-
-                public void WriteBegin()
+                public void WriteBegin(cTrace.cContext pParentContext)
                 {
+                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(WriteBegin));
                     if (mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
                     if (mWriteState != eWriteState.notstarted) throw new InvalidOperationException();
-                    ZSetStream();
+                    ZSetStream(lContext);
                     mWriteState = eWriteState.writing;
                 }
 
-                public async Task WriteAsync(cMethodControl pMC, byte[] pBuffer, int pCount, cTrace.cContext pParentContext)
+                public async Task WriteAsync(byte[] pBuffer, int pCount, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(WriteAsync), pMC, pCount);
+                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(WriteAsync), pCount);
                     
                     if (mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
                     if (mWriteState != eWriteState.writing) throw new InvalidOperationException();
                     if (pCount == 0) return;
 
-                    await mSemaphore.WaitAsync(pMC.Timeout, pMC.CancellationToken).ConfigureAwait(false);
+                    await mSemaphore.WaitAsync(pCancellationToken).ConfigureAwait(false);
 
                     try
                     {
                         lContext.TraceVerbose("writing");
 
-                        if (mStream.CanTimeout) mStream.WriteTimeout = pMC.Timeout;
-                        else _ = pMC.Timeout; // check for timeout
-
                         mStream.Position = mWritePosition;
-                        await mStream.WriteAsync(pBuffer, 0, pCount, pMC.CancellationToken).ConfigureAwait(false);
+                        await mStream.WriteAsync(pBuffer, 0, pCount, pCancellationToken).ConfigureAwait(false);
                         mWritePosition = mStream.Position;
                     }
                     finally { mSemaphore.Release(); }
@@ -251,34 +236,40 @@ namespace work.bacome.imapclient
                     mReleaser.Release(lContext);
                 }
 
-                public async Task WriteEndAsync(cMethodControl pMC, cTrace.cContext pParentContext)
+                public async Task WriteEndAsync(cSectionCachePersistentKey pKey, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(WriteEndAsync), pMC);
+                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(WriteEndAsync), pKey);
+                    await ZWriteEndAsync(pCancellationToken, lContext).ConfigureAwait(false);
+                    mItem.mCache.ZAddItem(pKey, mItem, lContext);
+                }
+
+                public async Task WriteEndAsync(cNonPersistentKey pKey, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(WriteEndAsync), pKey);
+                    await ZWriteEndAsync(pCancellationToken, lContext).ConfigureAwait(false);
+                    if (pKey.UID == null) mItem.mCache.ZAddItem(pKey, mItem, lContext);
+                    else mItem.mCache.ZAddItem(new cSectionCachePersistentKey(pKey), mItem, lContext);
+                }
+
+                private async Task ZWriteEndAsync(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(ZWriteEndAsync));
 
                     if (mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
                     if (mWriteState != eWriteState.writing) throw new InvalidOperationException();
 
-                    if (mStream.CanTimeout) mStream.WriteTimeout = pMC.Timeout;
-                    else _ = pMC.Timeout; // check for timeout
-
-                    await mStream.FlushAsync(pMC.CancellationToken).ConfigureAwait(false);
+                    await mStream.FlushAsync(pCancellationToken).ConfigureAwait(false);
 
                     mWriteState = eWriteState.complete;
 
                     // let any pending read know that there is no more data to consider
                     mReleaser.Release(lContext);
-
-                    // submit to cache
-                    if (mPersistentKey == null)
-                    {
-                        if (mNonPersistentKey.UID == null) mItem.mCache.ZAdd(mNonPersistentKey, mItem, lContext);
-                        else mItem.mCache.ZAdd(new cSectionCachePersistentKey(mNonPersistentKey), mItem, lContext);
-                    }
-                    else mItem.mCache.ZAdd(mPersistentKey, mItem, lContext);
                 }
 
-                private void ZSetStream()
+                private void ZSetStream(cTrace.cContext pParentContext)
                 {
+                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(ZSetStream));
+
                     if (mDisposing || mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
                     if (mStream != null) return;
 
@@ -287,8 +278,8 @@ namespace work.bacome.imapclient
                         if (mDisposing || mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
                         if (mStream != null) return;
 
-                        var lStream = mItem.GetReadWriteStream(mContext);
-                        if (!lStream.CanRead || !lStream.CanSeek || !lStream.CanWrite) throw new cUnexpectedSectionCacheActionException(mContext);
+                        var lStream = mItem.GetReadWriteStream(lContext);
+                        if (!lStream.CanRead || !lStream.CanSeek || !lStream.CanWrite) throw new cUnexpectedSectionCacheActionException(lContext);
 
                         mStream = lStream;
                         mSemaphore = new SemaphoreSlim(1, 1);

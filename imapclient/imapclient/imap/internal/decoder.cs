@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
@@ -15,35 +16,39 @@ namespace work.bacome.imapclient
 
         public cDecoder(cSectionCache.cItem.cReaderWriter pReaderWriter)
         {
-            pReaderWriter.WriteBegin();
             mReaderWriter = pReaderWriter;
         }
 
-        protected async Task YWriteAsync(cMethodControl pMC, IList<byte> pBytes, int pOffset, cTrace.cContext pParentContext)
+        public abstract Task WriteAsync(IList<byte> pBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext);
+
+        protected async Task YWriteAsync(IList<byte> pBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cDecoder), nameof(YWriteAsync), pMC, pOffset);
+            var lContext = pParentContext.NewMethod(nameof(cDecoder), nameof(YWriteAsync), pOffset);
 
             while (pOffset < pBytes.Count)
             {
                 int lBytesInBuffer = 0;
                 while (lBytesInBuffer < cMailClient.mLocalStreamBufferSize && pOffset < pBytes.Count) mBuffer[lBytesInBuffer++] = pBytes[pOffset++];
-                await mReaderWriter.WriteAsync(pMC, mBuffer, lBytesInBuffer, lContext).ConfigureAwait(false);
+                await mReaderWriter.WriteAsync(mBuffer, lBytesInBuffer, pCancellationToken, lContext).ConfigureAwait(false);
             }
         }
 
-        public abstract Task WriteAsync(cMethodControl pMC, IList<byte> pBytes, int pOffset, cTrace.cContext pParentContext);
+        public virtual Task FlushAsync(CancellationToken pCancellationToken, cTrace.cContext pParentContext) => Task.WhenAll(); // TODO => Task.CompletedTask;
 
-        public virtual async Task FlushAsync(cMethodControl pMC, cTrace.cContext pParentContext)
+        public static cDecoder GetDecoder(bool pBinary, eDecodingRequired pDecoding, cSectionCache.cItem.cReaderWriter pReaderWriter, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cDecoder), nameof(FlushAsync), pMC);
-            await mReaderWriter.WriteEndAsync(pMC, lContext).ConfigureAwait(false);
+            var lContext = pParentContext.NewMethod(nameof(cDecoder), nameof(GetDecoder), pBinary, pDecoding);
+            if (pBinary || pDecoding == eDecodingRequired.none) return new cIdentityDecoder(pReaderWriter);
+            if (pDecoding == eDecodingRequired.base64) return new cBase64Decoder(pReaderWriter);
+            if (pDecoding == eDecodingRequired.quotedprintable) return new cQuotedPrintableDecoder(pReaderWriter);
+            throw new cContentTransferDecodingException("required decoding not supported", lContext);
         }
     }
 
     internal class cIdentityDecoder : cDecoder
     {
         public cIdentityDecoder(cSectionCache.cItem.cReaderWriter pReaderWriter) : base(pReaderWriter) { }
-        public override Task WriteAsync(cMethodControl pMC, IList<byte> pBytes, int pOffset, cTrace.cContext pParentContext) => YWriteAsync(pMC, pBytes, pOffset, pParentContext);
+        public override Task WriteAsync(IList<byte> pBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext) => YWriteAsync(pBytes, pOffset, pCancellationToken, pParentContext);
     }
 
     internal abstract class cLineDecoder : cDecoder
@@ -53,9 +58,9 @@ namespace work.bacome.imapclient
 
         public cLineDecoder(cSectionCache.cItem.cReaderWriter pReaderWriter) : base(pReaderWriter) { }
 
-        public async sealed override Task WriteAsync(cMethodControl pMC, IList<byte> pBytes, int pOffset, cTrace.cContext pParentContext)
+        public async sealed override Task WriteAsync(IList<byte> pBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cLineDecoder), nameof(WriteAsync), pMC, pOffset);
+            var lContext = pParentContext.NewMethod(nameof(cLineDecoder), nameof(WriteAsync), pOffset);
 
             while (pOffset < pBytes.Count)
             {
@@ -67,7 +72,7 @@ namespace work.bacome.imapclient
 
                     if (lByte == cASCII.LF)
                     {
-                        await YWriteLineAsync(pMC, mLine, true, lContext).ConfigureAwait(false);
+                        await YWriteLineAsync(mLine, true, pCancellationToken, lContext).ConfigureAwait(false);
                         mLine.Clear();
                         continue;
                     }
@@ -80,16 +85,14 @@ namespace work.bacome.imapclient
             }
         }
 
-        public async sealed override Task FlushAsync(cMethodControl pMC, cTrace.cContext pParentContext)
+        public sealed override Task FlushAsync(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cLineDecoder), nameof(FlushAsync), pMC);
+            var lContext = pParentContext.NewMethod(nameof(cLineDecoder), nameof(FlushAsync));
             if (mBufferedCR) mLine.Add(cASCII.CR);
-            await YWriteLineAsync(pMC, mLine, false, lContext).ConfigureAwait(false);
-            await base.FlushAsync(pMC, lContext).ConfigureAwait(false);
-
+            return YWriteLineAsync(mLine, false, pCancellationToken, lContext);
         }
 
-        protected abstract Task YWriteLineAsync(cMethodControl pMC, List<byte> pLine, bool pCRLF, cTrace.cContext pParentContext);
+        protected abstract Task YWriteLineAsync(List<byte> pLine, bool pCRLF, CancellationToken pCancellationToken, cTrace.cContext pParentContext);
     }
 
     internal class cBase64Decoder : cLineDecoder
@@ -98,9 +101,9 @@ namespace work.bacome.imapclient
 
         public cBase64Decoder(cSectionCache.cItem.cReaderWriter pReaderWriter) : base(pReaderWriter) { }
 
-        protected async override Task YWriteLineAsync(cMethodControl pMC, List<byte> pLine, bool pCRLF, cTrace.cContext pParentContext)
+        protected async override Task YWriteLineAsync(List<byte> pLine, bool pCRLF, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cBase64Decoder), nameof(YWriteLineAsync), pMC, pCRLF);
+            var lContext = pParentContext.NewMethod(nameof(cBase64Decoder), nameof(YWriteLineAsync), pCRLF);
 
             // build the buffer to decode
             mBytes.Clear();
@@ -112,7 +115,7 @@ namespace work.bacome.imapclient
             // decode
             if (!cBase64.TryDecode(mBytes, out var lBytes, out var lError)) throw new cContentTransferDecodingException(lError, lContext);
 
-            await YWriteAsync(pMC, lBytes, 0, lContext).ConfigureAwait(false);
+            await YWriteAsync(lBytes, 0, pCancellationToken, lContext).ConfigureAwait(false);
         }
     }
 
@@ -124,9 +127,9 @@ namespace work.bacome.imapclient
 
         public cQuotedPrintableDecoder(cSectionCache.cItem.cReaderWriter pReaderWriter) : base(pReaderWriter) { }
 
-        protected async override Task YWriteLineAsync(cMethodControl pMC, List<byte> pLine, bool pCRLF, cTrace.cContext pParentContext)
+        protected async override Task YWriteLineAsync(List<byte> pLine, bool pCRLF, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cQuotedPrintableDecoder), nameof(YWriteLineAsync), pMC, pCRLF);
+            var lContext = pParentContext.NewMethod(nameof(cQuotedPrintableDecoder), nameof(YWriteLineAsync), pCRLF);
 
             byte lByte;
 
@@ -177,7 +180,7 @@ namespace work.bacome.imapclient
             // potentially add a line break 
             if (pCRLF && !lSoftLineBreak) mBytes.AddRange(kNewLine);
 
-            await YWriteAsync(pMC, mBytes, 0, lContext).ConfigureAwait(false);
+            await YWriteAsync(mBytes, 0, pCancellationToken, lContext).ConfigureAwait(false);
         }
 
         private bool ZGetHexEncodedNibble(List<byte> pLine, int pByte, out int rNibble)
@@ -202,12 +205,14 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cQuotedPrintableDecoder), nameof(_Tests));
 
+            cIMAPClient lClient = new cIMAPClient("test_decoder");
+            cSectionCache.cAccessor lAccessor;
             var lAccountId = new cAccountId("localhost", "anything");
             var lMailboxName = new cMailboxName("anything", null);
             uint lUID = 1;
 
             using (var lCache = new cTempFileSectionCache("test_decoder", 1, 1, 60000))
-            using (var lAccessor = lCache.GetAccessor(lContext))
+            using (lAccessor = lCache.GetAccessor(lContext))
             {
                 if (LTest(true, "testNow's the time =    \r\n", "for all folk to come=\t \t \r\n", " to the aid of their country.   \t\r\n") != "Now's the time for all folk to come to the aid of their country.\r\n") throw new cTestsException($"{nameof(cQuotedPrintableDecoder)}.1");
                 if (LTest(false, "testNow's the time =    \r\n", "for all folk to come=\t \t \r\n", " to the aid of their country.   \t") != "Now's the time for all folk to come to the aid of their country.") throw new cTestsException($"{nameof(cQuotedPrintableDecoder)}.2");
@@ -215,12 +220,12 @@ namespace work.bacome.imapclient
 
             string LTest(bool pCopyFirst, params string[] pLines)
             {
-
-
                 using (var lReaderWriter = lAccessor.GetReaderWriter(new cSectionCachePersistentKey(lAccountId, lMailboxName, new cUID(1, lUID++), new cSection("1"), eDecodingRequired.none), lContext))
                 using (var lMemoryStream = new MemoryStream())
                 {
-                    if (pCopyFirst) lReaderWriter;
+                    Task lTask = null;
+
+                    if (pCopyFirst) lTask = lClient.CopySectionToStreamAsync(lReaderWriter, lMemoryStream, null);
 
                     cDecoder lDecoder = new cQuotedPrintableDecoder(lReaderWriter);
 
@@ -234,29 +239,11 @@ namespace work.bacome.imapclient
 
                     lDecoder.FlushAsync(cMethodControl.None, lContext).Wait();
 
-                    if (!pCopyFirst) XmlWriterTraceListener;
+                    if (!pCopyFirst) lTask = lClient.CopySectionToStreamAsync(lReaderWriter, lMemoryStream, null);
+
+                    lTask.Wait();
 
                     return new string(System.Text.Encoding.UTF8.GetChars(lMemoryStream.GetBuffer(), 0, (int)lMemoryStream.Length));
-                }
-
-
-
-
-                using (var lStream = new MemoryStream())
-                {
-                    cDecoder lDecoder = new cQuotedPrintableDecoder(lMC, lStream, lWriteSizer);
-
-                    int lOffset = 4;
-
-                    foreach (var lLine in pLines)
-                    {
-                        lDecoder.WriteAsync(new cBytes(lLine), lOffset, lContext).Wait();
-                        lOffset = 0;
-                    }
-
-                    lDecoder.FlushAsync(lContext).Wait();
-
-                    return new string(System.Text.Encoding.UTF8.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
                 }
             }
         }

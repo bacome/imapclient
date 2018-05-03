@@ -11,26 +11,30 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private partial class cMailboxCache
+            private partial class cMailboxCache : iMailboxCache
             {
                 private readonly cIMAPCallbackSynchroniser mSynchroniser;
                 private readonly fMailboxCacheDataItems mMailboxCacheDataItems;
                 private readonly cCommandPartFactory mCommandPartFactory;
                 private readonly cIMAPCapabilities mCapabilities;
+                private readonly cAccountId mAccountId;
                 private readonly Action<eIMAPConnectionState, cTrace.cContext> mSetState;
                 private readonly ConcurrentDictionary<string, cMailboxCacheItem> mDictionary = new ConcurrentDictionary<string, cMailboxCacheItem>();
 
                 private int mSequence = 7;
                 private cSelectedMailbox mSelectedMailbox = null;
 
-                public cMailboxCache(cIMAPCallbackSynchroniser pSynchroniser, fMailboxCacheDataItems pMailboxCacheDataItems, cCommandPartFactory pCommandPartFactory, cIMAPCapabilities pCapabilities, Action<eIMAPConnectionState, cTrace.cContext> pSetState)
+                public cMailboxCache(cIMAPCallbackSynchroniser pSynchroniser, fMailboxCacheDataItems pMailboxCacheDataItems, cCommandPartFactory pCommandPartFactory, cIMAPCapabilities pCapabilities, cAccountId pAccountId, Action<eIMAPConnectionState, cTrace.cContext> pSetState)
                 {
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                     mMailboxCacheDataItems = pMailboxCacheDataItems;
                     mCommandPartFactory = pCommandPartFactory ?? throw new ArgumentNullException(nameof(pCommandPartFactory));
                     mCapabilities = pCapabilities ?? throw new ArgumentNullException(nameof(pCapabilities));
+                    mAccountId = pAccountId ?? throw new ArgumentNullException(nameof(pAccountId));
                     mSetState = pSetState ?? throw new ArgumentNullException(nameof(pSetState));
                 }
+
+                public cAccountId AccountId => mAccountId;
 
                 public iMailboxHandle GetHandle(cMailboxName pMailboxName) => ZItem(pMailboxName);
 

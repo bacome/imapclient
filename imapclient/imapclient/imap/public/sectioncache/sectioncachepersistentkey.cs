@@ -1,4 +1,5 @@
 ﻿using System;
+using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 
 namespace work.bacome.imapclient
@@ -11,15 +12,15 @@ namespace work.bacome.imapclient
         public readonly cSection Section;
         public readonly eDecodingRequired Decoding;
 
-        internal cSectionCachePersistentKey(cAccountId pAccountId, cMailboxName pMailboxName, cUID pUID, cSection pSection, eDecodingRequired pDecoding)
+        internal cSectionCachePersistentKey(iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding)
         {
-            AccountId = pAccountId ?? throw new ArgumentNullException(nameof(pAccountId));
-            MailboxName = pMailboxName ?? throw new ArgumentNullException(nameof(pMailboxName));
+            if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
+            AccountId = pMailboxHandle.MailboxCache.AccountId;
+            MailboxName = pMailboxHandle.MailboxName;
             UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
             Decoding = pDecoding;
         }
-
 
         internal cSectionCachePersistentKey(cSectionCache.cNonPersistentKey pKey)
         {

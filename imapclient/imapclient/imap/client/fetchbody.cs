@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
@@ -9,35 +8,19 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal void Fetch(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, cSectionCache.cItem.cReaderWriter pReaderWriter, CancellationToken pCancellationToken)
+        internal Task FetchAsync(cSectionCache.cNonPersistentKey pKey, cSectionCache.cItem.cReaderWriter pReaderWriter, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
-            // note: if it fails bytes could have been written to the stream
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
-            var lTask = ZFetchBodyAsync(pMessageHandle, pSection, pDecoding, pReaderWriter, pCancellationToken, lContext);
-            mSynchroniser.Wait(lTask, lContext);
-        }
-
-        internal Task FetchAsync(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, cSectionCache.cItem.cReaderWriter pReaderWriter, CancellationToken pCancellationToken)
-        {
-            // note: if it fails bytes could have been written to the stream
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync));
-            return ZFetchBodyAsync(pMessageHandle, pSection, pDecoding, pReaderWriter, pCancellationToken, lContext);
-        }
-
-        private async Task ZFetchBodyAsync(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, cSectionCache.cItem.cReaderWriter pReaderWriter, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchBodyAsync), pMessageHandle, pSection, pDecoding);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync), pKey);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
             if (lSession == null || lSession.ConnectionState != eIMAPConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
-            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
-            if (pSection == null) throw new ArgumentNullException(nameof(pSection));
+            if (pKey == null) throw new ArgumentNullException(nameof(pKey));
             if (pReaderWriter == null) throw new ArgumentNullException(nameof(pReaderWriter));
 
-            await lSession.FetchBodyAsync(pMessageHandle, pSection, pDecoding, pReaderWriter, pCancellationToken, lContext).ConfigureAwait(false);
+            return lSession.FetchBodyAsync(pKey, pReaderWriter, pCancellationToken, lContext);
         }
     }
 }

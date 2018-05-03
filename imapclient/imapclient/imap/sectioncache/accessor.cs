@@ -19,28 +19,28 @@ namespace work.bacome.imapclient
                 mContext = pParentContext.NewObject(nameof(cAccessor), pCache);
             }
 
-            public bool TryGetReader(cSectionCachePersistentKey pKey, out cItem.cReader rReader, cTrace.cContext pParentContext)
+            public bool TryGetItemReader(cSectionCachePersistentKey pKey, out cItem.cReader rReader, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(TryGetReader), pKey);
-                return mCache.ZTryGetReader(pKey, out rReader, lContext);
+                var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(TryGetItemReader), pKey);
+                return mCache.ZTryGetItemReader(pKey, out rReader, lContext);
             }
 
-            public bool TryGetReader(cNonPersistentKey pKey, out cItem.cReader rReader, cTrace.cContext pParentContext)
+            public bool TryGetItemReader(cNonPersistentKey pKey, out cItem.cReader rReader, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(TryGetReader), pKey);
-                return mCache.ZTryGetReader(pKey, out rReader, lContext);
+                var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(TryGetItemReader), pKey);
+                return mCache.ZTryGetItemReader(pKey, out rReader, lContext);
             }
 
-            public cItem.cReaderWriter GetReaderWriter(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
+            public cItem.cReaderWriter GetItemReaderWriter(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(GetReaderWriter), pKey);
-                return mCache.ZGetReaderWriter(pKey, lContext);
+                var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(GetItemReaderWriter), pKey);
+                return mCache.ZGetItemReaderWriter(pKey, lContext);
             }
 
-            public cItem.cReaderWriter GetReaderWriter(cNonPersistentKey pKey, cTrace.cContext pParentContext)
+            public cItem.cReaderWriter GetItemReaderWriter(cNonPersistentKey pKey, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(GetReaderWriter), pKey);
-                return mCache.ZGetReaderWriter(pKey, lContext);
+                var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(GetItemReaderWriter), pKey);
+                return mCache.ZGetItemReaderWriter(pKey, lContext);
             }
 
             public void Dispose()

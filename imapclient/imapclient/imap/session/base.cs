@@ -101,7 +101,7 @@ namespace work.bacome.imapclient
                 mStatusAttributes = mMailboxCacheDataItems & fMailboxCacheDataItems.allstatus;
                 if (!_Capabilities.CondStore) mStatusAttributes &= ~fMailboxCacheDataItems.highestmodseq;
 
-                mMailboxCache = new cMailboxCache(mSynchroniser, mMailboxCacheDataItems, mCommandPartFactory, _Capabilities, ZSetState);
+                mMailboxCache = new cMailboxCache(mSynchroniser, mMailboxCacheDataItems, mCommandPartFactory, _Capabilities, _ConnectedAccountId, ZSetState);
 
                 mPipeline.Install(new cResponseTextCodeParserSelect(_Capabilities));
                 mPipeline.Install(new cResponseDataParserSelect());
