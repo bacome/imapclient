@@ -128,6 +128,13 @@ namespace work.bacome.imapclient
         internal cUnexpectedSectionCacheActionException(string pClass, string pMethod, int pPlace = 1) : base($"{pClass}.{pMethod}.{pPlace}") { }
         internal cUnexpectedSectionCacheActionException(cTrace.cContext pContext, int pPlace = 1) => pContext.TraceError("{0}: {1}", nameof(cUnexpectedSectionCacheActionException), pPlace);
     }
+    /// <summary>
+    /// Thrown when the section cache cannot continue.
+    /// </summary>
+    public class cSectionCacheException : cMailException
+    {
+        internal cSectionCacheException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cSectionCacheException), pMessage, pInner);
+    }
 
     /// <summary>
     /// Thrown to indicate that <see cref="cIMAPClient.Connect"/> failure is due to the server rejecting the connection.

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
@@ -15,9 +16,7 @@ namespace work.bacome.imapclient
     /// IMAP hierarchy delimitiers have few grammatical restrictions, but must be ASCII, and not NUL, CR or LF.
     /// Be careful to correctly specify the hierarchy delimiter, it is used in preparing the mailbox name for sending to the server.
     /// </remarks>
-    /// <seealso cref="cIMAPClient.Mailbox(cMailboxName)"/>
-    /// <seealso cref="cIMAPClient.Create(cMailboxName, bool)"/>
-    /// <seealso cref="iMailboxHandle.MailboxName"/>
+    [DataContract]
     public class cMailboxName : IComparable<cMailboxName>, IEquatable<cMailboxName>
     {
         internal const string InboxString = "INBOX";
@@ -26,6 +25,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// The mailbox path including the full hierarchy.
         /// </summary>
+        [DataMember]
         public readonly string Path;
 
         /// <summary>
@@ -34,12 +34,21 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// Will be <see langword="null"/> if the server has no hierarchy in its names.
         /// </remarks>
+        [DataMember]
         public readonly char? Delimiter;
+
+        ;?; // have to work out how to do validation - can I throw in 
 
         private cMailboxName(string pPath, char? pDelimiter, bool pValid)
         {
             Path = pPath;
             Delimiter = pDelimiter;
+        }
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            ;?; // validation (try)
         }
 
         /// <summary>

@@ -84,8 +84,9 @@ namespace work.bacome.imapclient
 
                     if (!lItem.Deleted && !lItem.AssignedPersistentKey)
                     {
-                        var lSCItem = new cSectionCacheItem(lItem, false);
-                        lResult.Add(lSCItem.ItemKey ?? throw new cUnexpectedSectionCacheActionException(lContext, 1), lSCItem);
+                        var lValue = new cSectionCacheItem(lItem, false); // must be done before getting the key
+                        var lKey = lItem.GetItemKey() ?? throw new cUnexpectedSectionCacheActionException(lContext, 1); // must be done after snapshotting the changeseq
+                        lResult[lKey] = lValue;
                     }
                 }
 
@@ -95,8 +96,9 @@ namespace work.bacome.imapclient
 
                     if (!lItem.Deleted)
                     {
-                        var lSCItem = new cSectionCacheItem(lItem, false);
-                        lResult.Add(lSCItem.ItemKey ?? throw new cUnexpectedSectionCacheActionException(lContext, 1), lSCItem);
+                        var lValue = new cSectionCacheItem(lItem, false); // must be done before getting the key
+                        var lKey = lItem.GetItemKey() ?? throw new cUnexpectedSectionCacheActionException(lContext, 2); // must be done after snapshotting the changeseq
+                        lResult[lKey] = lValue; // the key/ value pair could be in both dictionaries
                     }
                 }
             }
@@ -171,25 +173,12 @@ namespace work.bacome.imapclient
         }
 
         // called by accessor
-        private cItem.cReaderWriter ZGetItemReaderWriter(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
+        private cItem.cReaderWriter ZGetItemReaderWriter(cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZGetItemReaderWriter), pKey);
-
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZGetItemReaderWriter));
             var lItem = GetNewItem(lContext);
             if (lItem == null || !lItem.CanWrite) throw new cUnexpectedSectionCacheActionException(lContext);
-            return lItem.GetReaderWriter(pKey, lContext);
-        }
-
-        // called by accessor
-        private cItem.cReaderWriter ZGetItemReaderWriter(cNonPersistentKey pKey, cTrace.cContext pParentContext)
-        {
-            // if the uid is available the other one should have been called
-
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZGetItemReaderWriter), pKey);
-
-            var lItem = GetNewItem(lContext);
-            if (lItem == null || !lItem.CanWrite) throw new cUnexpectedSectionCacheActionException(lContext);
-            return lItem.GetReaderWriter(pKey, lContext);
+            return lItem.GetReaderWriter(lContext);
         }
 
         // called by cacheitem when the open count goes to zero
@@ -247,12 +236,13 @@ namespace work.bacome.imapclient
         }
 
         // called by readerwriter when the write is finished
-        private void ZAddItem(cSectionCachePersistentKey pKey, cItem pItem, cTrace.cContext pParentContext)
+        private void ZAddItem(cSectionCachePersistentKey pKey, cItem pItem, long pLength, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZAddItem), pKey, pItem);
 
             if (pKey == null) throw new ArgumentNullException(nameof(pKey));
             if (pItem == null) throw new ArgumentNullException(nameof(pItem));
+            if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
 
             lock (mLock)
             {
@@ -273,7 +263,7 @@ namespace work.bacome.imapclient
                     mPersistentKeyItems.Add(pKey, pItem);
                 }
 
-                pItem.SetCached(pKey, lContext);
+                pItem.SetCached(pLength, pKey, lContext);
 
                 try { ItemAdded(pItem, lContext); }
                 catch { }
@@ -281,7 +271,7 @@ namespace work.bacome.imapclient
         }
 
         // called by readerwriter when the write is finished
-        private void ZAddItem(cNonPersistentKey pKey, cItem pItem, cTrace.cContext pParentContext)
+        private void ZAddItem(cNonPersistentKey pKey, cItem pItem, long pLength, cTrace.cContext pParentContext)
         {
             // if the uid is available the other one should have been called
 
@@ -289,6 +279,7 @@ namespace work.bacome.imapclient
 
             if (pKey == null) throw new ArgumentNullException(nameof(pKey));
             if (pItem == null) throw new ArgumentNullException(nameof(pItem));
+            if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
 
             lock (mLock)
             {
@@ -309,7 +300,7 @@ namespace work.bacome.imapclient
                     mNonPersistentKeyItems.Add(pKey, pItem);
                 }
 
-                pItem.SetCached(pKey, lContext);
+                pItem.SetCached(pLength, pKey, lContext);
 
                 try { ItemAdded(pItem, lContext); }
                 catch { }

@@ -12,7 +12,7 @@ namespace work.bacome.mailclient
     {
         internal cMailException() { }
         internal cMailException(string pMessage) : base(pMessage) { }
-        internal cMailException(string pMessage, Exception pInnerException) : base(pMessage, pInnerException) { }
+        internal cMailException(string pMessage, Exception pInner) : base(pMessage, pInner) { }
     }
 
     /// <summary>
@@ -133,7 +133,7 @@ namespace work.bacome.mailclient
             Attachment = pAttachment;
         }
 
-        internal cMailMessageFormException(MailMessage pMailMessage, AttachmentBase pAttachment, string pMessage, Exception pInnerException) : base(pMessage, pInnerException)
+        internal cMailMessageFormException(MailMessage pMailMessage, AttachmentBase pAttachment, string pMessage, Exception pInner) : base(pMessage, pInner)
         {
             MailMessage = pMailMessage;
             Attachment = pAttachment;

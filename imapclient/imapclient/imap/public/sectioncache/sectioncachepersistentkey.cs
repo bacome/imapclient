@@ -12,6 +12,15 @@ namespace work.bacome.imapclient
         public readonly cSection Section;
         public readonly eDecodingRequired Decoding;
 
+        public cSectionCachePersistentKey(cAccountId pAccountId, cMailboxName pMailboxName, cUID pUID, cSection pSection, eDecodingRequired pDecoding)
+        {
+            AccountId = pAccountId ?? throw new ArgumentNullException(nameof(pAccountId)); ;
+            MailboxName = pMailboxName ?? throw new ArgumentNullException(nameof(pMailboxName));
+            UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
+            Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
+            Decoding = pDecoding;
+        }
+
         internal cSectionCachePersistentKey(iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding)
         {
             if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));

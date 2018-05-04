@@ -115,7 +115,7 @@ namespace work.bacome.mailclient.support
         public cContext NewRoot(string pInstanceName, bool pContextTraceDelay = false)
         {
             if (mTraceSource == null) return cContext.None;
-            return new cContext.cRoot(this, pInstanceName, pContextTraceDelay);
+            return cContext.NewRoot(this, pInstanceName, pContextTraceDelay);
         }
 
         /// <summary>
@@ -129,6 +129,7 @@ namespace work.bacome.mailclient.support
         {
             /**<summary>A tracing context that does not create contexts or emit messages. Can be used to suppress tracing.</summary>*/
             public readonly static cContext None = new cNone();
+            public static cContext NewRoot(cTrace pTrace, string pInstanceName, bool pContextTraceDelay) => new cRoot(pTrace, pInstanceName, pContextTraceDelay);
 
             internal cContext() { }
 
@@ -139,6 +140,31 @@ namespace work.bacome.mailclient.support
             /// <param name="pContextTraceDelay"></param>
             /// <returns></returns>
             public abstract cContext NewRoot(string pInstanceName, bool pContextTraceDelay = false);
+
+            /// <summary>
+            /// Returns a new root-context with a context-create trace message in 'object constructor' format.
+            /// </summary>
+            /// <param name="pContextTraceDelay"></param>
+            /// <param name="pClass">The name of the class.</param>
+            /// <param name="pVersion">The version of the constructor.</param>
+            /// <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
+            /// <returns></returns>
+            /// <remarks>For use when creating a new root-context in a constructor.</remarks>
+            public abstract cContext NewRootObjectV(bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs);
+
+            /// <summary>
+            /// Returns a new root-context with a context-create trace message in 'method' format.
+            /// </summary>
+            /// <param name="pContextTraceDelay"></param>
+            /// <param name="pClass">The name of the class.</param>
+            /// <param name="pMethod">The name of the method.</param>
+            /// <param name="pVersion">The version of the method.</param>
+            /// <param name="pArgs">The parameters to the method that should be in the trace message.</param>
+            /// <returns></returns>
+            /// <remarks>
+            /// For use when creating a new root-context in a method.
+            /// </remarks>
+            public abstract cContext NewRootMethodV(bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs);
 
             /// <summary>
             /// Returns a new sub-context with a free format context-create trace message.
@@ -198,13 +224,50 @@ namespace work.bacome.mailclient.support
             /// <summary>
             /// Returns a new root-context with a context-create trace message in 'object constructor' format.
             /// </summary>
-            /// <param name="pContextTraceDelay"></param>
             /// <param name="pClass">The name of the class.</param>
+            /// <param name="pVersion">The version of the constructor.</param>
+            /// <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
             /// <returns></returns>
             /// <remarks>
             /// For use when creating a new root-context in a constructor.
             /// </remarks>
-            public abstract cContext NewRootObject(bool pContextTraceDelay, string pClass);
+            public cContext NewRootObjectV(string pClass, int pVersion, params object[] pArgs) => NewRootObjectV(false, pClass, pVersion, pArgs);
+
+            /// <summary>
+            /// Returns a new root-context with a context-create trace message in 'object constructor' format.
+            /// </summary>
+            /// <param name="pContextTraceDelay"></param>
+            /// <param name="pClass">The name of the class.</param>
+            /// <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
+            /// <returns></returns>
+            /// <remarks>
+            /// For use when creating a new root-context in a constructor.
+            /// </remarks>
+            public cContext NewRootObject(bool pContextTraceDelay, string pClass, params object[] pArgs) => NewRootObjectV(pContextTraceDelay, pClass, 1, pArgs);
+
+            /// <summary>
+            /// Returns a new root-context with a context-create trace message in 'object constructor' format.
+            /// </summary>
+            /// <param name="pClass">The name of the class.</param>
+            /// <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
+            /// <returns></returns>
+            /// <remarks>
+            /// For use when creating a new root-context in a constructor.
+            /// </remarks>
+            public cContext NewRootObject(string pClass, params object[] pArgs) => NewRootObjectV(false, pClass, 1, pArgs);
+
+            /// <summary>
+            /// Returns a new root-context with a context-create trace message in 'method' format.
+            /// </summary>
+            /// <param name="pClass">The name of the class.</param>
+            /// <param name="pMethod">The name of the method.</param>
+            /// <param name="pVersion">The version of the method.</param>
+            /// <param name="pArgs">The parameters to the method that should be in the trace message.</param>
+            /// <returns></returns>
+            /// <remarks>
+            /// For use when creating a new root-context in a method.
+            /// </remarks>
+            public cContext NewRootMethodV(string pClass, string pMethod, int pVersion, params object[] pArgs) => NewRootMethodV(false, pClass, pMethod, 1, pArgs);
 
             /// <summary>
             /// Returns a new root-context with a context-create trace message in 'method' format.
@@ -212,11 +275,24 @@ namespace work.bacome.mailclient.support
             /// <param name="pContextTraceDelay"></param>
             /// <param name="pClass">The name of the class.</param>
             /// <param name="pMethod">The name of the method.</param>
+            /// <param name="pArgs">The parameters to the method that should be in the trace message.</param>
             /// <returns></returns>
             /// <remarks>
             /// For use when creating a new root-context in a method.
             /// </remarks>
-            public abstract cContext NewRootMethod(bool pContextTraceDelay, string pClass, string pMethod);
+            public cContext NewRootMethod(bool pContextTraceDelay, string pClass, string pMethod, params object[] pArgs) => NewRootMethodV(pContextTraceDelay, pClass, pMethod, 1, pArgs);
+
+            /// <summary>
+            /// Returns a new root-context with a context-create trace message in 'method' format.
+            /// </summary>
+            /// <param name="pClass">The name of the class.</param>
+            /// <param name="pMethod">The name of the method.</param>
+            /// <param name="pArgs">The parameters to the method that should be in the trace message.</param>
+            /// <returns></returns>
+            /// <remarks>
+            /// For use when creating a new root-context in a method.
+            /// </remarks>
+            public cContext NewRootMethod(string pClass, string pMethod, params object[] pArgs) => NewRootMethodV(false, pClass, pMethod, 1, pArgs);
 
             /// <summary>
             /// Returns a new sub-context with a free format context-create trace message.
@@ -224,30 +300,7 @@ namespace work.bacome.mailclient.support
             /// <param name="pMessage">The trace message in <see cref="String.Format(string, object[])"/> format.</param>
             /// <param name="pArgs">The objects to place in the context-create trace message text.</param>
             /// <returns></returns>
-            public virtual cContext NewGeneric(string pMessage, params object[] pArgs) => NewGeneric(false, pMessage, pArgs);
-
-            /// <summary>
-            /// Returns a new sub-context with a context-create trace message in 'object constructor' format.
-            /// </summary>
-            /// <param name="pClass">The name of the class.</param>
-            /// <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
-            /// <returns></returns>
-            /// <remarks>
-            /// For use when creating a context for a constructor.
-            /// </remarks>
-            public virtual cContext NewObject(string pClass, params object[] pArgs) => NewObjectV(false, pClass, 1, pArgs);
-
-            /// <summary>
-            /// Returns a new sub-context with a context-create trace message in 'object constructor' format.
-            /// </summary>
-            /// <param name="pContextTraceDelay"></param>
-            /// <param name="pClass">The name of the class.</param>
-            /// <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
-            /// <returns></returns>
-            /// <remarks>
-            /// For use when creating a context for a constructor.
-            /// </remarks>
-            public virtual cContext NewObject(bool pContextTraceDelay, string pClass, params object[] pArgs) => NewObjectV(pContextTraceDelay, pClass, 1, pArgs);
+            public cContext NewGeneric(string pMessage, params object[] pArgs) => NewGeneric(false, pMessage, pArgs);
 
             /// <summary>
             /// Returns a new sub-context with a context-create trace message in 'object constructor' format.
@@ -259,7 +312,30 @@ namespace work.bacome.mailclient.support
             /// <remarks>
             /// For use when creating a context for a constructor.
             /// </remarks>
-            public virtual cContext NewObjectV(string pClass, int pVersion, params object[] pArgs) => NewObjectV(false, pClass, pVersion, pArgs);
+            public cContext NewObjectV(string pClass, int pVersion, params object[] pArgs) => NewObjectV(false, pClass, pVersion, pArgs);
+
+            /// <summary>
+            /// Returns a new sub-context with a context-create trace message in 'object constructor' format.
+            /// </summary>
+            /// <param name="pContextTraceDelay"></param>
+            /// <param name="pClass">The name of the class.</param>
+            /// <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
+            /// <returns></returns>
+            /// <remarks>
+            /// For use when creating a context for a constructor.
+            /// </remarks>
+            public cContext NewObject(bool pContextTraceDelay, string pClass, params object[] pArgs) => NewObjectV(pContextTraceDelay, pClass, 1, pArgs);
+
+            /// <summary>
+            /// Returns a new sub-context with a context-create trace message in 'object constructor' format.
+            /// </summary>
+            /// <param name="pClass">The name of the class.</param>
+            /// <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
+            /// <returns></returns>
+            /// <remarks>
+            /// For use when creating a context for a constructor.
+            /// </remarks>
+            public cContext NewObject(string pClass, params object[] pArgs) => NewObjectV(false, pClass, 1, pArgs);
 
             /// <summary>
             /// Returns a new sub-context with a context-create trace message in 'property setter' format.
@@ -271,7 +347,7 @@ namespace work.bacome.mailclient.support
             /// <remarks>
             /// For use when creating a context for a property setter.
             /// </remarks>
-            public virtual cContext NewSetProp(string pClass, string pProperty, object pValue) => NewSetProp(false, pClass, pProperty, pValue);
+            public cContext NewSetProp(string pClass, string pProperty, object pValue) => NewSetProp(false, pClass, pProperty, pValue);
 
             /// <summary>
             /// Returns a new sub-context with a context-create trace message in 'property getter' format.
@@ -282,32 +358,7 @@ namespace work.bacome.mailclient.support
             /// <remarks>
             /// For use when creating a context for a property getter.
             /// </remarks>
-            public virtual cContext NewGetProp(string pClass, string pProperty) => NewGetProp(false, pClass, pProperty);
-
-            /// <summary>
-            /// Returns a new sub-context with a context-create trace message in 'method' format.
-            /// </summary>
-            /// <param name="pClass">The name of the class.</param>
-            /// <param name="pMethod">The name of the method.</param>
-            /// <param name="pArgs">The parameters to the method that should be in the trace message.</param>
-            /// <returns></returns>
-            /// <remarks>
-            /// For use when creating a context for a method.
-            /// </remarks>
-            public virtual cContext NewMethod(string pClass, string pMethod, params object[] pArgs) => NewMethodV(false, pClass, pMethod, 1, pArgs);
-
-            /// <summary>
-            /// Returns a new sub-context with a context-create trace message in 'method' format.
-            /// </summary>
-            /// <param name="pContextTraceDelay"></param>
-            /// <param name="pClass">The name of the class.</param>
-            /// <param name="pMethod">The name of the method.</param>
-            /// <param name="pArgs">The parameters to the method that should be in the trace message.</param>
-            /// <returns></returns>
-            /// <remarks>
-            /// For use when creating a context for a method.
-            /// </remarks>
-            public virtual cContext NewMethod(bool pContextTraceDelay, string pClass, string pMethod, params object[] pArgs) => NewMethodV(pContextTraceDelay, pClass, pMethod, 1, pArgs);
+            public cContext NewGetProp(string pClass, string pProperty) => NewGetProp(false, pClass, pProperty);
 
             /// <summary>
             /// Returns a new sub-context with a context-create trace message in 'method' format.
@@ -320,31 +371,36 @@ namespace work.bacome.mailclient.support
             /// <remarks>
             /// For use when creating a context for a method.
             /// </remarks>
-            public virtual cContext NewMethodV(string pClass, string pMethod, int pVersion, params object[] pArgs) => NewMethodV(false, pClass, pMethod, pVersion, pArgs);
+            public cContext NewMethodV(string pClass, string pMethod, int pVersion, params object[] pArgs) => NewMethodV(false, pClass, pMethod, pVersion, pArgs);
 
             /// <summary>
-            /// Returns a new root-context with a context-create trace message in 'object constructor' format.
+            /// Returns a new sub-context with a context-create trace message in 'method' format.
             /// </summary>
+            /// <param name="pContextTraceDelay"></param>
             /// <param name="pClass">The name of the class.</param>
+            /// <param name="pMethod">The name of the method.</param>
+            /// <param name="pArgs">The parameters to the method that should be in the trace message.</param>
             /// <returns></returns>
             /// <remarks>
-            /// For use when creating a new root-context in a constructor.
+            /// For use when creating a context for a method.
             /// </remarks>
-            public virtual cContext NewRootObject(string pClass) => NewRootObject(false, pClass);
+            public cContext NewMethod(bool pContextTraceDelay, string pClass, string pMethod, params object[] pArgs) => NewMethodV(pContextTraceDelay, pClass, pMethod, 1, pArgs);
 
             /// <summary>
-            /// Returns a new root-context with a context-create trace message in 'method' format.
+            /// Returns a new sub-context with a context-create trace message in 'method' format.
             /// </summary>
             /// <param name="pClass">The name of the class.</param>
             /// <param name="pMethod">The name of the method.</param>
+            /// <param name="pArgs">The parameters to the method that should be in the trace message.</param>
             /// <returns></returns>
             /// <remarks>
-            /// For use when creating a new root-context in a method.
+            /// For use when creating a context for a method.
             /// </remarks>
-            public virtual cContext NewRootMethod(string pClass, string pMethod) => NewRootMethod(false, pClass, pMethod);
+            public cContext NewMethod(string pClass, string pMethod, params object[] pArgs) => NewMethodV(false, pClass, pMethod, 1, pArgs);
 
             /**<summary>Indicates whether the writing of context-create trace messages is being delayed for the context and its sub-contexts.</summary>*/
             public abstract bool ContextTraceDelay { get; }
+
             /**<summary></summary>*/
             protected abstract void TraceContext();
 
@@ -432,26 +488,13 @@ namespace work.bacome.mailclient.support
                 public cNone() { }
 
                 public override cContext NewRoot(string pInstanceName, bool pContextTraceDelay) => this;
-
+                public override cContext NewRootObjectV(bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs) => this;
+                public override cContext NewRootMethodV(bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs) => this;
                 public override cContext NewGeneric(bool pContextTraceDelay, string pMessage, params object[] pArgs) => this;
-                public override cContext NewObject(bool pContextTraceDelay, string pClass, params object[] pArgs) => this;
+                public override cContext NewObjectV(bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs) => this;
                 public override cContext NewSetProp(bool pContextTraceDelay, string pClass, string pProperty, object pValue) => this;
                 public override cContext NewGetProp(bool pContextTraceDelay, string pClass, string pProperty) => this;
-                public override cContext NewMethod(bool pContextTraceDelay, string pClass, string pMethod, params object[] pArgs) => this;
-                public override cContext NewRootObject(bool pContextTraceDelay, string pClass) => this;
-                public override cContext NewRootMethod(bool pContextTraceDelay, string pClass, string pMethod) => this;
-
-                public override cContext NewGeneric(string pMessage, params object[] pArgs) => this;
-                public override cContext NewObject(string pClass, params object[] pArgs) => this;
-                public override cContext NewObjectV(bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs) => this;
-                public override cContext NewObjectV(string pClass, int pVersion, params object[] pArgs) => this;
-                public override cContext NewSetProp(string pClass, string pProperty, object pValue) => this;
-                public override cContext NewGetProp(string pClass, string pProperty) => this;
-                public override cContext NewMethod(string pClass, string pMethod, params object[] pArgs) => this;
                 public override cContext NewMethodV(bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs) => this;
-                public override cContext NewMethodV(string pClass, string pMethod, int pVersion, params object[] pArgs) => this;
-                public override cContext NewRootObject(string pClass) => this;
-                public override cContext NewRootMethod(string pClass, string pMethod) => this;
 
                 public override bool ContextTraceDelay => true;
                 protected override void TraceContext() { }
@@ -466,15 +509,33 @@ namespace work.bacome.mailclient.support
                 catch { return $"malformed trace message: '{pMessage}' with {pArgs.Length} parameters"; }
             }
 
-            /// <summary>
-            /// Represents a root-context.
-            /// </summary>
-            /// <seealso cref="cTrace"/>
-            public class cRoot : cContext
+            private string ZVersionArgs(int pVersion, object[] pArgs)
+            {
+                StringBuilder lVersionArgs = new StringBuilder();
+
+                lVersionArgs.Append(pVersion);
+                lVersionArgs.Append("(");
+
+                bool lComma = false;
+
+                foreach (object lArg in pArgs)
+                {
+                    if (lComma) lVersionArgs.Append(',');
+                    else lComma = true;
+                    try { lVersionArgs.Append(lArg); }
+                    catch { lVersionArgs.Append('?'); }
+                }
+
+                lVersionArgs.Append(')');
+
+                return lVersionArgs.ToString();
+            }
+
+            private class cRoot : cContext
             {
                 private static int mInstanceNumberRoot = 7;
 
-                private cTrace mTraceSource = null;
+                private cTrace mTrace = null;
                 private string mInstanceName;
                 private int mInstanceNumber;
                 private bool mContextTraceDelay;
@@ -482,21 +543,21 @@ namespace work.bacome.mailclient.support
                 private object mLock;
                 private volatile bool mLogged = false;
 
-                internal cRoot(cTrace pTraceSource, string pInstanceName, bool pContextTraceDelay)
+                public cRoot(cTrace pTrace, string pInstanceName, bool pContextTraceDelay)
                 {
-                    ZCtor(pTraceSource, pInstanceName, pContextTraceDelay);
+                    ZCtor(pTrace, pInstanceName, pContextTraceDelay);
                 }
 
                 [ConditionalAttribute("TRACE")]
-                private void ZCtor(cTrace pTraceSource, string pInstanceName, bool pContextTraceDelay)
+                private void ZCtor(cTrace pTrace, string pInstanceName, bool pContextTraceDelay)
                 {
-                    if (pTraceSource.mTraceSource == null) return;
+                    if (pTrace.mTraceSource == null) return;
 
-                    mTraceSource = pTraceSource;
+                    mTrace = pTrace;
                     mInstanceName = pInstanceName;
                     mInstanceNumber = Interlocked.Increment(ref mInstanceNumberRoot);
 
-                    if (mTraceSource.ContextTraceMustBeDelayed) mContextTraceDelay = true;
+                    if (mTrace.ContextTraceMustBeDelayed) mContextTraceDelay = true;
                     else mContextTraceDelay = pContextTraceDelay;
 
                     mLock = new object();
@@ -507,14 +568,28 @@ namespace work.bacome.mailclient.support
                 /// <inheritdoc/>
                 public override cContext NewRoot(string pInstanceName, bool pContextTraceDelay)
                 {
-                    if (mTraceSource == null) return this;
-                    return new cRoot(mTraceSource, $"{mInstanceName}.{pInstanceName}", pContextTraceDelay);
+                    if (mTrace == null) return this;
+                    return new cRoot(mTrace, $"{mInstanceName}.{pInstanceName}", pContextTraceDelay);
+                }
+
+                /// <inheritdoc/>
+                public override cContext NewRootObjectV(bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs)
+                {
+                    if (mTrace == null) return this;
+                    return new cRoot(mTrace, $"{mInstanceName}.{pClass}.{ZVersionArgs(pVersion, pArgs)}", mContextTraceDelay || pContextTraceDelay);
+                }
+
+                /// <inheritdoc/>
+                public override cContext NewRootMethodV(bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs)
+                {
+                    if (mTrace == null) return this;
+                    return new cRoot(mTrace, $"{mInstanceName}.{pClass}.{pMethod}.{ZVersionArgs(pVersion, pArgs)}", mContextTraceDelay || pContextTraceDelay);
                 }
 
                 /// <inheritdoc/>
                 public override cContext NewGeneric(bool pContextTraceDelay, string pMessage, params object[] pArgs)
                 {
-                    if (mTraceSource == null) return this;
+                    if (mTrace == null) return this;
                     bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
                     var lResult = new cSubGeneric(this, this, 1, lContextTraceDelay, pMessage, pArgs);
                     if (!lContextTraceDelay) lResult.TraceContext();
@@ -524,7 +599,7 @@ namespace work.bacome.mailclient.support
                 /// <inheritdoc/>
                 public override cContext NewObjectV(bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs)
                 {
-                    if (mTraceSource == null) return this;
+                    if (mTrace == null) return this;
                     bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
                     var lResult = new cSubObjectV(this, this, 1, lContextTraceDelay, pClass, pVersion, pArgs);
                     if (!lContextTraceDelay) lResult.TraceContext();
@@ -534,7 +609,7 @@ namespace work.bacome.mailclient.support
                 /// <inheritdoc/>
                 public override cContext NewSetProp(bool pContextTraceDelay, string pClass, string pProperty, object pValue)
                 {
-                    if (mTraceSource == null) return this;
+                    if (mTrace == null) return this;
                     bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
                     var lResult = new cSubSetProp(this, this, 1, lContextTraceDelay, pClass, pProperty, pValue);
                     if (!lContextTraceDelay) lResult.TraceContext();
@@ -544,7 +619,7 @@ namespace work.bacome.mailclient.support
                 /// <inheritdoc/>
                 public override cContext NewGetProp(bool pContextTraceDelay, string pClass, string pProperty)
                 {
-                    if (mTraceSource == null) return this;
+                    if (mTrace == null) return this;
                     bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
                     var lResult = new cSubGetProp(this, this, 1, lContextTraceDelay, pClass, pProperty);
                     if (!lContextTraceDelay) lResult.TraceContext();
@@ -554,25 +629,11 @@ namespace work.bacome.mailclient.support
                 /// <inheritdoc/>
                 public override cContext NewMethodV(bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs)
                 {
-                    if (mTraceSource == null) return this;
+                    if (mTrace == null) return this;
                     bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
                     var lResult = new cSubMethodV(this, this, 1, lContextTraceDelay, pClass, pMethod, pVersion, pArgs);
                     if (!lContextTraceDelay) lResult.TraceContext();
                     return lResult;
-                }
-
-                /// <inheritdoc/>
-                public override cContext NewRootObject(bool pContextTraceDelay, string pClass)
-                {
-                    if (mTraceSource == null) return this;
-                    return new cRoot(mTraceSource, $"{mInstanceName}.{pClass}", mContextTraceDelay || pContextTraceDelay);
-                }
-
-                /// <inheritdoc/>
-                public override cContext NewRootMethod(bool pContextTraceDelay, string pClass, string pMethod)
-                {
-                    if (mTraceSource == null) return this;
-                    return new cRoot(mTraceSource, $"{mInstanceName}.{pClass}.{pMethod}", mContextTraceDelay || pContextTraceDelay);
                 }
 
                 /// <inheritdoc/>
@@ -586,7 +647,7 @@ namespace work.bacome.mailclient.support
                     lock (mLock) 
                     {
                         if (mLogged) return;
-                        mTraceSource.TraceContext(mInstanceName, mInstanceNumber, 1, $"{mInstanceName}({mInstanceNumber})");
+                        mTrace.TraceContext(mInstanceName, mInstanceNumber, 1, $"{mInstanceName}({mInstanceNumber})");
                         mLogged = true;
                     }
                 }
@@ -594,10 +655,10 @@ namespace work.bacome.mailclient.support
                 /// <inheritdoc/>
                 public override void TraceEvent(TraceEventType pTraceEventType, string pMessage, params object[] pArgs)
                 {
-                    if (mTraceSource == null) return;
-                    if (!mTraceSource.Emits(pTraceEventType)) return;
+                    if (mTrace == null) return;
+                    if (!mTrace.Emits(pTraceEventType)) return;
                     TraceContext();
-                    mTraceSource.TraceEvent(pTraceEventType, mInstanceName, mInstanceNumber, 1, ZStringFormat(pMessage, pArgs));
+                    mTrace.TraceEvent(pTraceEventType, mInstanceName, mInstanceNumber, 1, ZStringFormat(pMessage, pArgs));
                 }
 
                 /// <inheritdoc/>
@@ -605,8 +666,8 @@ namespace work.bacome.mailclient.support
                 {
                     get 
                     {
-                        if (mTraceSource == null) return false;
-                        return mTraceSource.Emits(TraceEventType.Verbose);
+                        if (mTrace == null) return false;
+                        return mTrace.Emits(TraceEventType.Verbose);
                     }
                 }
 
@@ -628,7 +689,9 @@ namespace work.bacome.mailclient.support
                         mContextTraceDelay = pParent.ContextTraceDelay || pContextTraceDelay;
                     }
 
-                    public override cContext NewRoot(string pInstanceName, bool pContextTraceDelay) => new cRoot(mRoot.mTraceSource, $"{mRoot.mInstanceName}.{pInstanceName}", pContextTraceDelay);
+                    public override cContext NewRoot(string pInstanceName, bool pContextTraceDelay) => new cRoot(mRoot.mTrace, $"{mRoot.mInstanceName}.{pInstanceName}", pContextTraceDelay);
+                    public override cContext NewRootObjectV(bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs) => new cRoot(mRoot.mTrace, $"{mRoot.mInstanceName}.{pClass}.{ZVersionArgs(pVersion, pArgs)}", mContextTraceDelay || pContextTraceDelay);
+                    public override cContext NewRootMethodV(bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs) => new cRoot(mRoot.mTrace, $"{mRoot.mInstanceName}.{pClass}.{pMethod}.{ZVersionArgs(pVersion, pArgs)}", mContextTraceDelay || pContextTraceDelay);
 
                     public override cContext NewGeneric(bool pContextTraceDelay, string pMessage, params object[] pArgs)
                     {
@@ -670,9 +733,6 @@ namespace work.bacome.mailclient.support
                         return lResult;
                     }
 
-                    public override cContext NewRootObject(bool pContextTraceDelay, string pClass) => new cRoot(mRoot.mTraceSource, $"{mRoot.mInstanceName}.{pClass}", mContextTraceDelay || pContextTraceDelay);
-                    public override cContext NewRootMethod(bool pContextTraceDelay, string pClass, string pMethod) => new cRoot(mRoot.mTraceSource, $"{mRoot.mInstanceName}.{pClass}.{pMethod}", mContextTraceDelay || pContextTraceDelay);
-
                     public override bool ContextTraceDelay => mContextTraceDelay;
 
                     protected override void TraceContext()
@@ -683,7 +743,7 @@ namespace work.bacome.mailclient.support
                         {
                             if (mLogged) return;
                             mParent.TraceContext();
-                            mRoot.mTraceSource.TraceContext(mRoot.mInstanceName, mRoot.mInstanceNumber, mLevel, Context);
+                            mRoot.mTrace.TraceContext(mRoot.mInstanceName, mRoot.mInstanceNumber, mLevel, Context);
                             mLogged = true;
                         }
                     }
@@ -692,12 +752,12 @@ namespace work.bacome.mailclient.support
 
                     public override void TraceEvent(TraceEventType pTraceEventType, string pMessage, params object[] pArgs)
                     {
-                        if (!mRoot.mTraceSource.Emits(pTraceEventType)) return;
+                        if (!mRoot.mTrace.Emits(pTraceEventType)) return;
                         TraceContext();
-                        mRoot.mTraceSource.TraceEvent(pTraceEventType, mRoot.mInstanceName, mRoot.mInstanceNumber, mLevel, ZStringFormat(pMessage, pArgs));
+                        mRoot.mTrace.TraceEvent(pTraceEventType, mRoot.mInstanceName, mRoot.mInstanceNumber, mLevel, ZStringFormat(pMessage, pArgs));
                     }
 
-                    public override bool EmitsVerbose => mRoot.mTraceSource.Emits(TraceEventType.Verbose); 
+                    public override bool EmitsVerbose => mRoot.mTrace.Emits(TraceEventType.Verbose); 
                 }
 
                 private class cSubGeneric : cSub
@@ -714,64 +774,20 @@ namespace work.bacome.mailclient.support
                     protected override string Context => ZStringFormat(mMessage, mArgs);
                 }
 
-                private abstract class cSubArgs : cSub
+                private class cSubObjectV : cSub
                 {
-                    protected object[] mArgs;
+                    private string mClass;
+                    private int mVersion;
+                    private object[] mArgs;
 
-                    public cSubArgs(cRoot pRoot, cContext pParent, int pParentLevel, bool pContextTraceDelay, object[] pArgs) : base(pRoot, pParent, pParentLevel, pContextTraceDelay)
+                    public cSubObjectV(cRoot pRoot, cContext pParent, int pParentLevel, bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs) : base(pRoot, pParent, pParentLevel, pContextTraceDelay)
                     {
+                        mClass = pClass;
+                        mVersion = pVersion;
                         mArgs = pArgs;
                     }
 
-                    public string Arguments
-                    {
-                        get
-                        {
-                            if (mArgs.Length == 0) return "()";
-
-                            StringBuilder lArgs = new StringBuilder("(");
-
-                            bool lComma = false;
-
-                            foreach (object lArg in mArgs)
-                            {
-                                if (lComma) lArgs.Append(',');
-                                else lComma = true;
-                                try { lArgs.Append(lArg); }
-                                catch { lArgs.Append('?'); }
-                            }
-
-                            lArgs.Append(')');
-
-                            return lArgs.ToString();
-                        }
-                    }
-                }
-
-                private class cSubObject : cSubArgs
-                {
-                    protected string mClass;
-
-                    public cSubObject(cRoot pRoot, cContext pParent, int pParentLevel, bool pContextTraceDelay, string pClass, params object[] pArgs) : base(pRoot, pParent, pParentLevel, pContextTraceDelay, pArgs)
-                    {
-                        mClass = pClass;
-                    }
-
-                    protected virtual string ClassName => $"{mClass}";
-
-                    protected override string Context => ClassName + Arguments;
-                }
-
-                private class cSubObjectV : cSubObject
-                {
-                    private int mVersion;
-
-                    public cSubObjectV(cRoot pRoot, cContext pParent, int pParentLevel, bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs) : base(pRoot, pParent, pParentLevel, pContextTraceDelay, pClass, pArgs)
-                    {
-                        mVersion = pVersion;
-                    }
-
-                    protected override string ClassName => $"{mClass}.{mVersion}";
+                    protected override string Context => $"{mClass}.{ZVersionArgs(mVersion, mArgs)}";
                 }
 
                 private class cSubSetProp : cSub
@@ -804,32 +820,22 @@ namespace work.bacome.mailclient.support
                     protected override string Context => $"{mClass}.{mProperty}";
                 }
 
-                private class cSubMethod : cSubArgs
+                private class cSubMethodV : cSub
                 {
                     protected string mClass;
                     protected string mMethod;
+                    private int mVersion;
+                    private object[] mArgs;
 
-                    public cSubMethod(cRoot pRoot, cContext pParent, int pParentLevel, bool pContextTraceDelay, string pClass, string pMethod, params object[] pArgs) : base(pRoot, pParent, pParentLevel, pContextTraceDelay, pArgs)
+                    public cSubMethodV(cRoot pRoot, cContext pParent, int pParentLevel, bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs) : base(pRoot, pParent, pParentLevel, pContextTraceDelay)
                     {
                         mClass = pClass;
                         mMethod = pMethod;
-                    }
-
-                    protected virtual string MethodName => $"{mClass}.{mMethod}";
-
-                    protected override string Context => MethodName + Arguments;
-                }
-
-                private class cSubMethodV : cSubMethod
-                {
-                    private int mVersion;
-
-                    public cSubMethodV(cRoot pRoot, cContext pParent, int pParentLevel, bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs) : base(pRoot, pParent, pParentLevel, pContextTraceDelay, pClass, pMethod, pArgs)
-                    {
                         mVersion = pVersion;
+                        mArgs = pArgs;
                     }
 
-                    protected override string MethodName => $"{mClass}.{mMethod}.{mVersion}";
+                    protected override string Context => $"{mClass}.{mMethod}.{ZVersionArgs(mVersion, mArgs)}";
                 }
             }
         }

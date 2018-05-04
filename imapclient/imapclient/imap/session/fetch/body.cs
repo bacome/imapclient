@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
@@ -11,22 +12,20 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task FetchBodyAsync(cSectionCache.cNonPersistentKey pKey, cSectionCache.cItem.cReaderWriter pReaderWriter, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+            public async Task FetchBodyAsync(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, iFetchBodyTarget pTarget, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchBodyAsync), pKey);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchBodyAsync), pMessageHandle, pSection, pDecoding);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eIMAPConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
-                if (pKey == null) throw new ArgumentNullException(nameof(pKey));
-                if (_ConnectedAccountId != pKey.AccountId) throw new InvalidOperationException(kInvalidOperationExceptionMessage.WrongAccount);
-                if (pReaderWriter == null) throw new ArgumentNullException(nameof(pReaderWriter));
 
-                mMailboxCache.CheckInSelectedMailbox(pKey.MessageHandle); // to be repeated inside the select lock
+                mMailboxCache.CheckInSelectedMailbox(pMessageHandle); // to be repeated inside the select lock
 
-                pReaderWriter.WriteBegin(lContext);
+                if (pSection == null) throw new ArgumentNullException(nameof(pSection));
+                if (pTarget == null) throw new ArgumentNullException(nameof(pTarget));
 
-                bool lBinary = _Capabilities.Binary && pKey.Section.TextPart == eSectionTextPart.all && pKey.Decoding != eDecodingRequired.none;
-                cDecoder lDecoder = cDecoder.GetDecoder(lBinary, pKey.Decoding, pReaderWriter, lContext);
+                bool lBinary = _Capabilities.Binary && pSection.TextPart == eSectionTextPart.all && pDecoding != eDecodingRequired.none;
+                cDecoder lDecoder = cDecoder.GetDecoder(lBinary, pDecoding, pTarget, lContext);
 
                 uint lOrigin = 0;
                 Stopwatch lStopwatch = new Stopwatch();
@@ -36,7 +35,7 @@ namespace work.bacome.imapclient
                     int lLength = mFetchBodySizer.Current;
 
                     lStopwatch.Restart();
-                    var lBody = await ZFetchBodyAsync(pKey.MessageHandle, lBinary, pKey.Section, lOrigin, (uint)lLength, pCancellationToken, lContext).ConfigureAwait(false);
+                    var lBody = await ZFetchBodyAsync(pMessageHandle, lBinary, pSection, lOrigin, (uint)lLength, pCancellationToken, lContext).ConfigureAwait(false);
                     lStopwatch.Stop();
 
                     // store the time taken so the next fetch is a better size
@@ -48,7 +47,7 @@ namespace work.bacome.imapclient
                     int lOffset = (int)(lOrigin - lBodyOrigin);
 
                     // write the bytes
-                    await lDecoder.WriteAsync(pMC, lBody.Bytes, lOffset, lContext).ConfigureAwait(false);
+                    await lDecoder.WriteAsync(lBody.Bytes, lOffset, pCancellationToken, lContext).ConfigureAwait(false);
 
                     // if the body we got was the whole body, we are done
                     if (lBody.Origin == null) break;
@@ -61,10 +60,7 @@ namespace work.bacome.imapclient
                 }
 
                 // finish the write
-                await lDecoder.FlushAsync(pMC, lContext).ConfigureAwait(false);
-
-                // submit the item to cache
-                await pReaderWriter.WriteEndAsync(pMC, pKey, lContext).ConfigureAwait(false);
+                await lDecoder.FlushAsync(pCancellationToken, lContext).ConfigureAwait(false);
             }
         }
     }

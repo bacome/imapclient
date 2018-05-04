@@ -14,6 +14,7 @@ namespace work.bacome.imapclient
 
             private bool mCanWrite;
             private bool mCached;
+            private long mLength;
             private bool mAssignedPersistentKey;
 
             // incremented when something significant changes about the cache item that should stop it from being deleted if the change wasn't taken into account by the decision to delete
@@ -24,23 +25,37 @@ namespace work.bacome.imapclient
             private cSectionCachePersistentKey mPersistentKey = null;
             private cNonPersistentKey mNonPersistentKey = null;
 
-            protected cItem(cSectionCache pCache, bool pNewItem)
+            protected cItem(cSectionCache pCache, long pLength)
+            {
+                mCache = pCache ?? throw new ArgumentNullException(nameof(pCache));
+                if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
+
+                mCanWrite = false;
+                mCached = true;
+                mLength = pLength;
+                mAssignedPersistentKey = true;
+            }
+
+            protected cItem(cSectionCache pCache)
             {
                 mCache = pCache ?? throw new ArgumentNullException(nameof(pCache));
 
-                if (pNewItem)
+                mCanWrite = true;
+                mCached = false;
+                mLength = -1;
+                mAssignedPersistentKey = pCache.Temporary; // if the cache is temporary, then we don't call assignpersistentkey
+            }
+
+            public long Length
+            {
+                get
                 {
-                    mCanWrite = true;
-                    mCached = false;
-                    mAssignedPersistentKey = pCache.Temporary; // if the cache is temporary, then the backing store items are not renamed
-                }
-                else
-                {
-                    mCanWrite = false;
-                    mCached = true;
-                    mAssignedPersistentKey = true;
+                    if (!mCached) throw new InvalidOperationException();
+                    return mLength;
                 }
             }
+
+            public bool Deleted => mDeleted;
 
             // called by cache when generating lists of items
             protected internal abstract object GetItemKey();
@@ -58,9 +73,6 @@ namespace work.bacome.imapclient
 
             // called by cSectionCacheItem
             internal int ChangeSequence => mChangeSequence;
-
-            // called by cache when generating lists of items
-            internal bool Deleted => mDeleted;
 
             // called by cache trimming via cSectionCacheItem and when a cache accessor closes
             internal bool TryDelete(int pChangeSequence, cTrace.cContext pParentContext)
@@ -100,28 +112,36 @@ namespace work.bacome.imapclient
             }
 
             // called by the sectioncache when the item is added to the internal list
-            internal void SetCached(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
+            internal void SetCached(long pLength, cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cItem), nameof(SetCached), pKey);
+                var lContext = pParentContext.NewMethod(nameof(cItem), nameof(SetCached), pKey, pLength);
+
+                if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
+                if (pKey == null) throw new ArgumentNullException(nameof(pKey));
                 
                 lock (mLock)
                 {
                     if (mCanWrite || mCached || mDeleted) throw new InvalidOperationException();
-                    mPersistentKey = pKey ?? throw new ArgumentNullException(nameof(pKey));
                     mCached = true;
+                    mLength = pLength;
+                    mPersistentKey = pKey;
                 }
             }
 
             // called by the sectioncache when the item is added to the internal list
-            internal void SetCached(cNonPersistentKey pKey, cTrace.cContext pParentContext)
+            internal void SetCached(long pLength, cNonPersistentKey pKey, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cItem), nameof(SetCached), pKey);
+
+                if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
+                if (pKey == null) throw new ArgumentNullException(nameof(pKey));
 
                 lock (mLock)
                 {
                     if (mCanWrite || mCached || mDeleted) throw new InvalidOperationException();
-                    mNonPersistentKey = pKey ?? throw new ArgumentNullException(nameof(pKey));
                     mCached = true;
+                    mLength = pLength;
+                    mNonPersistentKey = pKey;
                 }
             }
 
@@ -151,30 +171,16 @@ namespace work.bacome.imapclient
             internal bool CanWrite => mCanWrite;
 
             // called by the sectioncache
-            internal cReaderWriter GetReaderWriter(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
+            internal cReaderWriter GetReaderWriter(cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cItem), nameof(GetReaderWriter), pKey);
+                var lContext = pParentContext.NewMethod(nameof(cItem), nameof(GetReaderWriter));
 
                 lock (mLock)
                 {
                     if (!mCanWrite || mDeleted) throw new InvalidOperationException();
                     mCanWrite = false;
                     mOpenStreamCount++;
-                    return new cReaderWriter(this, pKey, lContext);
-                }
-            }
-
-            // called by the sectioncache
-            internal cReaderWriter GetReaderWriter(cNonPersistentKey pKey, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cItem), nameof(GetReaderWriter), pKey);
-
-                lock (mLock)
-                {
-                    if (!mCanWrite || mDeleted) throw new InvalidOperationException();
-                    mCanWrite = false;
-                    mOpenStreamCount++;
-                    return new cReaderWriter(this, pKey, lContext);
+                    return new cReaderWriter(this, lContext);
                 }
             }
 

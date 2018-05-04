@@ -11,9 +11,9 @@ namespace work.bacome.imapclient
     {
         public abstract partial class cItem
         {
-            internal sealed class cReaderWriter : iSectionCacheItemReader, IDisposable
+            internal sealed class cReaderWriter : iSectionCacheItemReader, iFetchBodyTarget, IDisposable
             {
-                private enum eWriteState { notstarted, writing, complete }
+                private enum eWritingState { notstarted, inprogress, completedok, failed }
 
                 private bool mDisposing = false;
                 private bool mDisposed = false;
@@ -25,8 +25,9 @@ namespace work.bacome.imapclient
                 private long mReadPosition = 0;
 
                 // write
-                private eWriteState mWriteState = eWriteState.notstarted;
+                private eWritingState mWritingState = eWritingState.notstarted;
                 private long mWritePosition = 0;
+                private Exception mWriteException = null;
 
                 // stream management
                 private readonly object mLock = new object();
@@ -49,14 +50,14 @@ namespace work.bacome.imapclient
 
                     ZSetStream(lContext);
 
-                    if (mWriteState == eWriteState.complete) return mStream.Length;
+                    if (mWritingState == eWritingState.completedok) return mStream.Length;
 
                     using (var lAwaiter = new cAwaiter(pMC))
                     {
                         while (true)
                         {
-                            Task lTask = mReleaser.GetAwaitReleaseTask(lContext);
-                            if (mWriteState == eWriteState.complete) return mStream.Length;
+                            Task lTask = ZGetAwaitWriteTask(lContext);
+                            if (mWritingState == eWritingState.completedok) return mStream.Length;
                             await lAwaiter.AwaitAny(lTask).ConfigureAwait(false);
                         }
                     }
@@ -87,32 +88,25 @@ namespace work.bacome.imapclient
 
                     ZSetStream(lContext);
 
-                    if (ZTrySetReadPosition(pReadPosition)) return;
-
                     while (true)
                     {
-                        Task lTask = mReleaser.GetAwaitReleaseTask(lContext);
-                        if (ZTrySetReadPosition(pReadPosition)) return;
+                        Task lTask = ZGetAwaitWriteTask(lContext);
+
+                        if (mStream.Length > pReadPosition)
+                        {
+                            mReadPosition = pReadPosition;
+                            return;
+                        }
+
+                        if (mWritingState == eWritingState.completedok)
+                        {
+                            if (pReadPosition > mStream.Length) throw new ArgumentOutOfRangeException(nameof(pReadPosition));
+                            mReadPosition = pReadPosition;
+                            return;
+                        }
+
                         await lTask.ConfigureAwait(false);
                     }
-                }
-
-                private bool ZTrySetReadPosition(long pReadPosition)
-                {
-                    if (mStream.Length > pReadPosition)
-                    {
-                        mReadPosition = pReadPosition;
-                        return true;
-                    }
-
-                    if (mWriteState == eWriteState.complete)
-                    {
-                        if (pReadPosition > mStream.Length) throw new ArgumentOutOfRangeException(nameof(pReadPosition));
-                        mReadPosition = pReadPosition;
-                        return true;
-                    }
-
-                    return false;
                 }
 
                 public async Task<int> ReadAsync(byte[] pBuffer, int pOffset, int pCount, int pTimeout, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
@@ -129,21 +123,7 @@ namespace work.bacome.imapclient
 
                     var lMC = new cMethodControl(pTimeout, pCancellationToken);
 
-                    ZSetStream(lContext);
-
-                    if (mStream.Length == mReadPosition || mWriteState != eWriteState.complete)
-                    {
-                        using (var lAwaiter = new cAwaiter(lMC))
-                        {
-                            while (true)
-                            {
-                                Task lTask = mReleaser.GetAwaitReleaseTask(lContext);
-                                if (mStream.Length > mReadPosition || mWriteState == eWriteState.complete) break;
-                                await lAwaiter.AwaitAny(lTask).ConfigureAwait(false);
-                            }
-                        }
-                    }
-
+                    await ZWaitForDataToReadAsync(lMC, lContext).ConfigureAwait(false);
                     await mSemaphore.WaitAsync(lMC.Timeout, lMC.CancellationToken).ConfigureAwait(false);
 
                     try
@@ -170,21 +150,7 @@ namespace work.bacome.imapclient
 
                     var lMC = new cMethodControl(pTimeout);
 
-                    ZSetStream(lContext);
-
-                    if (mStream.Length == mReadPosition || mWriteState != eWriteState.complete)
-                    {
-                        using (var lAwaiter = new cAwaiter(lMC))
-                        {
-                            while (true)
-                            {
-                                Task lTask = mReleaser.GetAwaitReleaseTask(lContext);
-                                if (mStream.Length > mReadPosition || mWriteState == eWriteState.complete) break;
-                                await lAwaiter.AwaitAny(lTask).ConfigureAwait(false);
-                            }
-                        }
-                    }
-
+                    await ZWaitForDataToReadAsync(lMC, lContext).ConfigureAwait(false);
                     await mSemaphore.WaitAsync(lMC.Timeout).ConfigureAwait(false);
 
                     try
@@ -203,13 +169,40 @@ namespace work.bacome.imapclient
                     finally { mSemaphore.Release(); }
                 }
 
+                private async Task ZWaitForDataToReadAsync(cMethodControl pMC, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(ZWaitForDataToReadAsync), pMC);
+
+                    ZSetStream(lContext);
+
+                    if (mStream.Length == mReadPosition && mWritingState != eWritingState.completedok)
+                    {
+                        using (var lAwaiter = new cAwaiter(pMC))
+                        {
+                            while (true)
+                            {
+                                Task lTask = ZGetAwaitWriteTask(lContext);
+                                if (mStream.Length > mReadPosition || mWritingState == eWritingState.completedok) break;
+                                await lAwaiter.AwaitAny(lTask).ConfigureAwait(false);
+                            }
+                        }
+                    }
+                }
+
+                private Task ZGetAwaitWriteTask(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(ZGetAwaitWriteTask));
+                    if (mWritingState == eWritingState.failed) throw new IOException(nameof(cReaderWriter), mWriteException);
+                    return mReleaser.GetAwaitReleaseTask(lContext);
+                }
+
                 public void WriteBegin(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(WriteBegin));
                     if (mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
-                    if (mWriteState != eWriteState.notstarted) throw new InvalidOperationException();
+                    if (mWritingState != eWritingState.notstarted) throw new InvalidOperationException();
                     ZSetStream(lContext);
-                    mWriteState = eWriteState.writing;
+                    mWritingState = eWritingState.inprogress;
                 }
 
                 public async Task WriteAsync(byte[] pBuffer, int pCount, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
@@ -217,7 +210,7 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(WriteAsync), pCount);
                     
                     if (mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
-                    if (mWriteState != eWriteState.writing) throw new InvalidOperationException();
+                    if (mWritingState != eWritingState.inprogress) throw new InvalidOperationException();
                     if (pCount == 0) return;
 
                     await mSemaphore.WaitAsync(pCancellationToken).ConfigureAwait(false);
@@ -233,22 +226,35 @@ namespace work.bacome.imapclient
                     finally { mSemaphore.Release(); }
 
                     // let any pending read know that there is more data to consider
+                    mReleaser.ReleaseReset(lContext);
+                }
+
+                public void WritingFailed(Exception pException, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(WritingFailed));
+
+                    if (mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
+
+                    mWriteException = pException;
+                    mWritingState = eWritingState.failed;
+
+                    // let any pending read know that there is no more data to consider
                     mReleaser.Release(lContext);
                 }
 
-                public async Task WriteEndAsync(cSectionCachePersistentKey pKey, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+                public async Task WritingCompletedOKAsync(cSectionCachePersistentKey pKey, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(WriteEndAsync), pKey);
+                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(WritingCompletedOKAsync), pKey);
                     await ZWriteEndAsync(pCancellationToken, lContext).ConfigureAwait(false);
-                    mItem.mCache.ZAddItem(pKey, mItem, lContext);
+                    mItem.mCache.ZAddItem(pKey, mItem, mWritePosition, lContext);
                 }
 
-                public async Task WriteEndAsync(cNonPersistentKey pKey, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+                public async Task WritingCompletedOKAsync(cNonPersistentKey pKey, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(WriteEndAsync), pKey);
+                    var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(WritingCompletedOKAsync), pKey);
                     await ZWriteEndAsync(pCancellationToken, lContext).ConfigureAwait(false);
-                    if (pKey.UID == null) mItem.mCache.ZAddItem(pKey, mItem, lContext);
-                    else mItem.mCache.ZAddItem(new cSectionCachePersistentKey(pKey), mItem, lContext);
+                    if (pKey.UID == null) mItem.mCache.ZAddItem(pKey, mItem, mWritePosition, lContext);
+                    else mItem.mCache.ZAddItem(new cSectionCachePersistentKey(pKey), mItem, mWritePosition, lContext);
                 }
 
                 private async Task ZWriteEndAsync(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
@@ -256,11 +262,11 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cReaderWriter), nameof(ZWriteEndAsync));
 
                     if (mDisposed) throw new ObjectDisposedException(nameof(cReaderWriter));
-                    if (mWriteState != eWriteState.writing) throw new InvalidOperationException();
+                    if (mWritingState != eWritingState.inprogress) throw new InvalidOperationException();
 
                     await mStream.FlushAsync(pCancellationToken).ConfigureAwait(false);
 
-                    mWriteState = eWriteState.complete;
+                    mWritingState = eWritingState.completedok;
 
                     // let any pending read know that there is no more data to consider
                     mReleaser.Release(lContext);

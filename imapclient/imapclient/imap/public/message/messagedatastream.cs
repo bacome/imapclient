@@ -20,13 +20,15 @@ namespace work.bacome.imapclient
         public readonly cSection Section;
         public readonly eDecodingRequired Decoding;
 
-        private int mReadTimeout = Timeout.Infinite;
+        private int mReadTimeout;
 
         private iSectionCacheItemReader mSectionCacheItemReader = null;
         private cSectionCache.cItem.cReader mReader = null;
         private cSectionCache.cItem.cReaderWriter mReaderWriter = null;
-        private CancellationTokenSource mCancellationTokenSource = null;
-        private Task mTask = null;        
+
+        // background fetch task
+        private CancellationTokenSource mBackgroundCancellationTokenSource = null;
+        private Task mBackgroundTask = null;        
 
         public cIMAPMessageDataStream(cIMAPMessage pMessage)
         {
@@ -42,6 +44,8 @@ namespace work.bacome.imapclient
 
             Section = cSection.All;
             Decoding = eDecodingRequired.none;
+
+            mReadTimeout = Client.Timeout;
         }
 
         public cIMAPMessageDataStream(cIMAPAttachment pAttachment, bool pDecoded = true)
@@ -60,6 +64,8 @@ namespace work.bacome.imapclient
 
             if (pDecoded) Decoding = pAttachment.Part.DecodingRequired;
             else Decoding = eDecodingRequired.none;
+
+            mReadTimeout = Client.Timeout;
         }
 
         public cIMAPMessageDataStream(cIMAPMessage pMessage, cSinglePartBody pPart, bool pDecoded = true)
@@ -79,6 +85,8 @@ namespace work.bacome.imapclient
 
             if (pDecoded) Decoding = pPart.DecodingRequired;
             else Decoding = eDecodingRequired.none;
+
+            mReadTimeout = Client.Timeout;
         }
 
         public cIMAPMessageDataStream(cIMAPMessage pMessage, cSection pSection, eDecodingRequired pDecoding)
@@ -95,6 +103,8 @@ namespace work.bacome.imapclient
 
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
             Decoding = pDecoding;
+
+            mReadTimeout = Client.Timeout;
         }
 
         public cIMAPMessageDataStream(cMailbox pMailbox, cUID pUID, cSection pSection, eDecodingRequired pDecoding)
@@ -110,6 +120,8 @@ namespace work.bacome.imapclient
             UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
             Decoding = pDecoding;
+
+            mReadTimeout = Client.Timeout;
         }
 
         public override bool CanRead => !mDisposed;
@@ -277,7 +289,6 @@ namespace work.bacome.imapclient
             if (pOffset + pCount > pBuffer.Length) throw new ArgumentException();
 
             ZSetSectionCacheItemReader(lContext);
-
             return mSectionCacheItemReader.ReadAsync(pBuffer, pOffset, pCount, mReadTimeout, pCancellationToken, lContext);
         }
 
@@ -299,11 +310,11 @@ namespace work.bacome.imapclient
                 }
                 else
                 {
-                    mReaderWriter = Client.GetSectionCacheItemReaderWriter(lKey, lContext);
+                    mReaderWriter = Client.GetSectionCacheItemReaderWriter(lContext);
                     mSectionCacheItemReader = mReaderWriter;
 
-                    mCancellationTokenSource = new CancellationTokenSource();
-                    mTask = Client.FetchAsync(lKey, mReaderWriter, mCancellationTokenSource.Token, lContext);
+                    mBackgroundCancellationTokenSource = new CancellationTokenSource();
+                    mBackgroundTask = ZBackgroundFetchAsync(lKey, lContext);
                 }
             }
             else
@@ -330,12 +341,48 @@ namespace work.bacome.imapclient
                 }
                 else
                 {
-                    mReaderWriter = Client.GetSectionCacheItemReaderWriter(lKey, lContext);
+                    mReaderWriter = Client.GetSectionCacheItemReaderWriter(lContext);
                     mSectionCacheItemReader = mReaderWriter;
 
-                    mCancellationTokenSource = new CancellationTokenSource();
-                    mTask = Client.UIDFetchAsync(lMailboxHandle, lKey, mReaderWriter, mCancellationTokenSource.Token, lContext);
+                    mBackgroundCancellationTokenSource = new CancellationTokenSource();
+                    mBackgroundTask = ZBackgroundFetchAsync(lMailboxHandle, lUID, lKey, lContext);
                 }
+            }
+        }
+
+        private async Task ZBackgroundFetchAsync(cSectionCache.cNonPersistentKey pKey, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewRootMethod(nameof(cIMAPMessageDataStream), nameof(ZBackgroundFetchAsync), pKey);
+
+            CancellationToken lCancellationToken = mBackgroundCancellationTokenSource.Token;
+
+            try
+            {
+                mReaderWriter.WriteBegin(lContext);
+                await Client.FetchAsync(MessageHandle, Section, Decoding, mReaderWriter, lCancellationToken, lContext);
+                await mReaderWriter.WritingCompletedOKAsync(pKey, lCancellationToken, lContext);
+            }
+            catch (Exception e)
+            {
+                mReaderWriter.WritingFailed(e, lContext);
+            }
+        }
+
+        private async Task ZBackgroundFetchAsync(iMailboxHandle pMailboxHandle, cUID pUID, cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewRootMethod(nameof(cIMAPMessageDataStream), nameof(ZBackgroundFetchAsync), pMailboxHandle, pUID, pKey);
+
+            CancellationToken lCancellationToken = mBackgroundCancellationTokenSource.Token;
+
+            try
+            {
+                mReaderWriter.WriteBegin(lContext);
+                await Client.UIDFetchAsync(pMailboxHandle, pUID, Section, Decoding, mReaderWriter, lCancellationToken, lContext);
+                await mReaderWriter.WritingCompletedOKAsync(pKey, lCancellationToken, lContext);
+            }
+            catch (Exception e)
+            {
+                mReaderWriter.WritingFailed(e, lContext);
             }
         }
 
@@ -345,22 +392,22 @@ namespace work.bacome.imapclient
 
             if (pDisposing)
             {
-                if (mCancellationTokenSource != null)
+                if (mBackgroundCancellationTokenSource != null)
                 {
-                    try { mCancellationTokenSource.Cancel(); }
+                    try { mBackgroundCancellationTokenSource.Cancel(); }
                     catch { }
                 }
 
-                if (mTask != null)
+                if (mBackgroundTask != null)
                 {
-                    try { mTask.Wait(); }
+                    try { mBackgroundTask.Wait(); }
                     catch { }
-                    mTask.Dispose();
+                    mBackgroundTask.Dispose();
                 }
 
-                if (mCancellationTokenSource != null)
+                if (mBackgroundCancellationTokenSource != null)
                 {
-                    try { mCancellationTokenSource.Dispose(); }
+                    try { mBackgroundCancellationTokenSource.Dispose(); }
                     catch { }
                 }
 

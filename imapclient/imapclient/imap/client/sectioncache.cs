@@ -54,20 +54,12 @@ namespace work.bacome.imapclient
             return lAccessor.TryGetItemReader(pKey, out rReader, lContext);
         }
 
-        internal cSectionCache.cItem.cReaderWriter GetSectionCacheItemReaderWriter(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
+        internal cSectionCache.cItem.cReaderWriter GetSectionCacheItemReaderWriter(cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetSectionCacheItemReaderWriter), pKey);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetSectionCacheItemReaderWriter));
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
             var lAccessor = ZGetSectionCacheAccessor(lContext);
-            return lAccessor.GetItemReaderWriter(pKey, lContext);
-        }
-
-        internal cSectionCache.cItem.cReaderWriter GetSectionCacheItemReaderWriter(cSectionCache.cNonPersistentKey pKey, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetSectionCacheItemReaderWriter), pKey);
-            if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-            var lAccessor = ZGetSectionCacheAccessor(lContext);
-            return lAccessor.GetItemReaderWriter(pKey, lContext);
+            return lAccessor.GetItemReaderWriter(lContext);
         }
 
         private cSectionCache.cAccessor ZGetSectionCacheAccessor(cTrace.cContext pParentContext)

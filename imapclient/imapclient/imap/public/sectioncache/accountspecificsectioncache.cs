@@ -9,6 +9,43 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
+    /*
+     * TODO:
+     *  there should be a lock file in the directory to make sure that one instance is running at a time
+     *  there should be an index file which is the serialized list of cAccountSpecific.cIndexItem(Filename, cPersistnetKey, datetime = touch) called index
+     *  for new items there should be a parallel index emtry file which continas one serialised cAccountSpecificSectionCacheIndexItem .sci
+     *  the data woudl be .scd
+     *  
+     *  the creation of an .sci (caused by assignpk) should trigger the background process
+     *  
+     *  the background process should create and serialise the index into 'index.new'
+     *  after this is done the index should be deleted
+     *  then the index.new renamed to index
+     *  then all .sci that have an entry in index should be deleted
+     *  
+     *  at startup the index (or index.new if index doesn't exist) is de-serialised into the internal list (checking that the refered to .scd is actually there)
+     *  and all .sci with a .scd are added to the list, using the filedatetime as the touch
+     *  and all .sci without an .scd are deleted
+     *  all .scd not in the list are deleted
+     *  
+     *  only .scd/ .sci with a numeric prefix that can be converted to a long are considered
+     *  the maximum number is determined and is used to generate new file names
+     *  
+     *  => the cfileitem should be constructable from the cindexitem and fileitem should be converatble to cindexitem (only if the item has a pk)
+     *  
+     *  
+     *  in the 
+     * 
+     * 
+     * 
+     * 
+     * NOTE:
+     *  for the serialisation to be easier, the elements of pk that need to be serialised should be seralisable
+     *   this means
+     *    mailboxname, uid, section and (I assume already done) eDecodingRequired
+     * 
+     * 
+     * 
     public sealed class cAccountSpecificSectionCache : cSectionCache, IDisposable
     {
         private bool mDisposed = false;
@@ -25,12 +62,12 @@ namespace work.bacome.imapclient
         private readonly cReleaser mBackgroundReleaser;
         private readonly Task mBackgroundTask = null;
 
+        private List<cFileItem> mItems = new List<cFileItem>();
         private int mFileCount = 0;
         private long mByteCount = 0;
         private bool mWorthTryingTrim = false;
 
-        ;?;
-        public cAccountSpecificSectionCache(cAccountId pAccountId, string pDirectory, int pFileCountBudget, long pByteCountBudget, int pWaitAfterTrim, cBatchSizerConfiguration pWriteConfiguration) : base(pWriteConfiguration, false)
+        public cAccountSpecificSectionCache(cAccountId pAccountId, string pDirectory, int pFileCountBudget, long pByteCountBudget, int pWaitAfterTrim) : base(false)
         {
             AccountId = pAccountId ?? throw new ArgumentNullException(nameof(pAccountId));
             Directory = pDirectory ?? throw new ArgumentNullException(nameof(pDirectory));
@@ -195,6 +232,53 @@ namespace work.bacome.imapclient
 
 
 
+        private class cFileItem : cItem, IComparable<cFileItem>
+        {
+            public readonly string FileName;
+            public cSectionCachePersistentKey SectionCacheKey;
+            private DateTime mTouched;
+            private DateTime mSnapshotTouched;
 
-    }
+            public cFileItem(cAccountSpecificSectionCache pCache, string pFileName, c) : base(pCache)
+            {
+                ;?; // allocate a new filename
+                FileName = Path.GetTempFileName();
+                mTouchSequence = Interlocked.Increment(ref mTouchSequenceSource);
+                mSnapshotTouchSequence = mTouchSequence;
+            }
+
+            public cFileItem(cAccountSpecificSectionCache pCache) : base(pCache)
+            {
+                ;?; // allocate a new filename
+                FileName = Path.GetTempFileName();
+                mTouchSequence = Interlocked.Increment(ref mTouchSequenceSource);
+                mSnapshotTouchSequence = mTouchSequence;
+            }
+
+            protected override Stream GetReadStream(cTrace.cContext pParentContext) => new FileStream(FileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            protected override Stream GetReadWriteStream(cTrace.cContext pParentContext) => new FileStream(FileName, FileMode.Truncate, FileAccess.Write, FileShare.Read);
+
+            protected override void Touch(cTrace.cContext pParentContext)
+            {
+                mTouchSequence = Interlocked.Increment(ref mTouchSequenceSource);
+            }
+
+            protected override void Delete(cTrace.cContext pParentContext) => File.Delete(FileName);
+
+            protected internal override object GetItemKey() => FileName;
+
+            public void SnapshotTouchSequenceForSort()
+            {
+                mSnapshotTouchSequence = mTouchSequence;
+            }
+
+            public int CompareTo(cTempFileItem pOther)
+            {
+                if (pOther == null) return 1;
+                return mSnapshotTouchSequence.CompareTo(pOther.mSnapshotTouchSequence);
+            }
+
+            public override string ToString() => $"{nameof(cTempFileItem)}({FileName},{mTouchSequence})";
+        }
+    } */
 }

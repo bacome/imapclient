@@ -15,8 +15,6 @@ namespace work.bacome.imapclient
             else mChangeSequence = pItem.ChangeSequence;
         }
 
-        internal object ItemKey => mItem.GetItemKey();
-
         public void TryDelete(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(TryDelete));

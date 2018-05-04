@@ -31,16 +31,10 @@ namespace work.bacome.imapclient
                 return mCache.ZTryGetItemReader(pKey, out rReader, lContext);
             }
 
-            public cItem.cReaderWriter GetItemReaderWriter(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
+            public cItem.cReaderWriter GetItemReaderWriter(cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(GetItemReaderWriter), pKey);
-                return mCache.ZGetItemReaderWriter(pKey, lContext);
-            }
-
-            public cItem.cReaderWriter GetItemReaderWriter(cNonPersistentKey pKey, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(GetItemReaderWriter), pKey);
-                return mCache.ZGetItemReaderWriter(pKey, lContext);
+                var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(GetItemReaderWriter));
+                return mCache.ZGetItemReaderWriter(lContext);
             }
 
             public void Dispose()

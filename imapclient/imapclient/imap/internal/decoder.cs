@@ -11,12 +11,12 @@ namespace work.bacome.imapclient
 {
     internal abstract class cDecoder
     {
-        private readonly cSectionCache.cItem.cReaderWriter mReaderWriter;
+        private readonly iFetchBodyTarget mTarget;
         private readonly byte[] mBuffer = new byte[cMailClient.mLocalStreamBufferSize];
 
-        public cDecoder(cSectionCache.cItem.cReaderWriter pReaderWriter)
+        public cDecoder(iFetchBodyTarget pTarget)
         {
-            mReaderWriter = pReaderWriter;
+            mTarget = pTarget;
         }
 
         public abstract Task WriteAsync(IList<byte> pBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext);
@@ -29,25 +29,25 @@ namespace work.bacome.imapclient
             {
                 int lBytesInBuffer = 0;
                 while (lBytesInBuffer < cMailClient.mLocalStreamBufferSize && pOffset < pBytes.Count) mBuffer[lBytesInBuffer++] = pBytes[pOffset++];
-                await mReaderWriter.WriteAsync(mBuffer, lBytesInBuffer, pCancellationToken, lContext).ConfigureAwait(false);
+                await mTarget.WriteAsync(mBuffer, lBytesInBuffer, pCancellationToken, lContext).ConfigureAwait(false);
             }
         }
 
         public virtual Task FlushAsync(CancellationToken pCancellationToken, cTrace.cContext pParentContext) => Task.WhenAll(); // TODO => Task.CompletedTask;
 
-        public static cDecoder GetDecoder(bool pBinary, eDecodingRequired pDecoding, cSectionCache.cItem.cReaderWriter pReaderWriter, cTrace.cContext pParentContext)
+        public static cDecoder GetDecoder(bool pBinary, eDecodingRequired pDecoding, iFetchBodyTarget pTarget, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cDecoder), nameof(GetDecoder), pBinary, pDecoding);
-            if (pBinary || pDecoding == eDecodingRequired.none) return new cIdentityDecoder(pReaderWriter);
-            if (pDecoding == eDecodingRequired.base64) return new cBase64Decoder(pReaderWriter);
-            if (pDecoding == eDecodingRequired.quotedprintable) return new cQuotedPrintableDecoder(pReaderWriter);
+            if (pBinary || pDecoding == eDecodingRequired.none) return new cIdentityDecoder(pTarget);
+            if (pDecoding == eDecodingRequired.base64) return new cBase64Decoder(pTarget);
+            if (pDecoding == eDecodingRequired.quotedprintable) return new cQuotedPrintableDecoder(pTarget);
             throw new cContentTransferDecodingException("required decoding not supported", lContext);
         }
     }
 
     internal class cIdentityDecoder : cDecoder
     {
-        public cIdentityDecoder(cSectionCache.cItem.cReaderWriter pReaderWriter) : base(pReaderWriter) { }
+        public cIdentityDecoder(iFetchBodyTarget pTarget) : base(pTarget) { }
         public override Task WriteAsync(IList<byte> pBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext) => YWriteAsync(pBytes, pOffset, pCancellationToken, pParentContext);
     }
 
@@ -56,7 +56,7 @@ namespace work.bacome.imapclient
         private List<byte> mLine = new List<byte>();
         private bool mBufferedCR = false;
 
-        public cLineDecoder(cSectionCache.cItem.cReaderWriter pReaderWriter) : base(pReaderWriter) { }
+        public cLineDecoder(iFetchBodyTarget pTarget) : base(pTarget) { }
 
         public async sealed override Task WriteAsync(IList<byte> pBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
@@ -99,7 +99,7 @@ namespace work.bacome.imapclient
     {
         private readonly List<byte> mBytes = new List<byte>();
 
-        public cBase64Decoder(cSectionCache.cItem.cReaderWriter pReaderWriter) : base(pReaderWriter) { }
+        public cBase64Decoder(iFetchBodyTarget pTarget) : base(pTarget) { }
 
         protected async override Task YWriteLineAsync(List<byte> pLine, bool pCRLF, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
@@ -125,7 +125,7 @@ namespace work.bacome.imapclient
 
         private readonly List<byte> mBytes = new List<byte>();
 
-        public cQuotedPrintableDecoder(cSectionCache.cItem.cReaderWriter pReaderWriter) : base(pReaderWriter) { }
+        public cQuotedPrintableDecoder(iFetchBodyTarget pTarget) : base(pTarget) { }
 
         protected async override Task YWriteLineAsync(List<byte> pLine, bool pCRLF, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {

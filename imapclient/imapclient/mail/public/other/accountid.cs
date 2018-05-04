@@ -12,6 +12,7 @@ namespace work.bacome.mailclient
         /// <summary>
         /// The punycode decoded host that contains the account.
         /// </summary>
+        ///
         public readonly string Host;
 
         /// <summary>
