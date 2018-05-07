@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace work.bacome.mailclient
 {
@@ -29,6 +30,8 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Represents a message section specification.
     /// </summary>
+    [Serializable]
+    [DataContract]
     public class cSection : IEquatable<cSection>
     {
         /// <summary>
@@ -52,11 +55,13 @@ namespace work.bacome.mailclient
         /// <remarks>
         /// A dot separated list of integers specifying the body-part, or <see langword="null"/> for the whole message.
         /// </remarks>
+        [DataMember]
         public readonly string Part;
 
         /// <summary>
         /// The text part of the section specification.
         /// </summary>
+        [DataMember]
         public readonly eSectionTextPart TextPart;
 
         /// <summary>
@@ -66,6 +71,7 @@ namespace work.bacome.mailclient
         /// Will not be <see langword="null"/> nor empty if <see cref="TextPart"/> is <see cref="eSectionTextPart.headerfields"/> or <see cref="eSectionTextPart.headerfieldsnot"/>.
         /// Will be <see langword="null"/> otherwise.
         /// </remarks>
+        [DataMember]
         public readonly cHeaderFieldNames Names;
 
         /// <summary>
@@ -115,6 +121,23 @@ namespace work.bacome.mailclient
             if (pNames == null) throw new ArgumentNullException(nameof(pNames));
             if (pNames.Count == 0) throw new ArgumentOutOfRangeException(nameof(pNames));
             Names = pNames;
+        }
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            if (Part != null && !ZValidPart(Part)) throw new cDeserialiseException($"{nameof(cSection)}.{nameof(Part)}.validpart");
+
+            if (Names == null)
+            {
+                if (TextPart == eSectionTextPart.headerfields || TextPart == eSectionTextPart.headerfieldsnot) throw new cDeserialiseException($"{nameof(cSection)}.{nameof(TextPart)}.headerfields");
+                if (Part == null && TextPart == eSectionTextPart.mime) throw new cDeserialiseException($"{nameof(cSection)}.{nameof(TextPart)}.mime");
+            }
+            else
+            {
+                if (TextPart != eSectionTextPart.headerfields && TextPart != eSectionTextPart.headerfieldsnot) throw new cDeserialiseException($"{nameof(cSection)}.{nameof(TextPart)}.notheaderfields");
+                if (Names.Count == 0) throw new cDeserialiseException($"{nameof(cSection)}.{nameof(Names)}.count");
+            }
         }
 
         private bool ZValidPart(string pPart)

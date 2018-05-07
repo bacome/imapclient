@@ -15,7 +15,6 @@ namespace work.bacome.mailclient
     {
         // rfc4505
 
-            ;?;
         public static readonly object AnonymousCredentialId = new object(); // should have a tostring -> anonymous
 
         private const string kName = "ANONYMOUS";

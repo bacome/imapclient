@@ -48,11 +48,14 @@ namespace work.bacome.imapclient
             mBackgroundTask = ZBackgroundTaskAsync(lContext);
         }
 
-        protected override cItem GetNewItem(cTrace.cContext pParentContext)
+        protected override void GetNewItem(out cItem rItem, out Stream rStream, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTempFileSectionCache), nameof(GetNewItem));
             if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
-            return new cTempFileItem(this);
+
+            string lFileName = Path.GetTempFileName();
+            rItem = new cTempFileItem(this, lFileName);
+            rStream = new FileStream(lFileName, FileMode.Truncate, FileAccess.ReadWrite, FileShare.Read);
         }
 
         protected override void ItemAdded(cItem pItem, cTrace.cContext pParentContext)
@@ -150,7 +153,7 @@ namespace work.bacome.imapclient
                         {
                             if (!ZOverBudget()) break;
 
-                            if (lSectionCacheItems.TryGetValue(lItem.FileName, out var lSectionCacheItem))
+                            if (lSectionCacheItems.TryGetValue(lItem.GetItemKey(), out var lSectionCacheItem))
                             {
                                 lSectionCacheItem.TryDelete(lContext);
                                 if (mBackgroundCancellationTokenSource.IsCancellationRequested) return;
@@ -208,28 +211,27 @@ namespace work.bacome.imapclient
 
         private class cTempFileItem : cItem, IComparable<cTempFileItem>
         {
-            public readonly string FileName;
+            private readonly string mFileName;
             private int mTouchSequence;
             private int mSnapshotTouchSequence;
 
-            public cTempFileItem(cTempFileSectionCache pCache) : base(pCache)
+            public cTempFileItem(cTempFileSectionCache pCache, string pFileName) : base(pCache)
             {
-                FileName = Path.GetTempFileName();
+                mFileName = pFileName;
                 mTouchSequence = Interlocked.Increment(ref mTouchSequenceSource);
                 mSnapshotTouchSequence = mTouchSequence;
             }
 
-            protected override Stream GetReadStream(cTrace.cContext pParentContext) => new FileStream(FileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            protected override Stream GetReadWriteStream(cTrace.cContext pParentContext) => new FileStream(FileName, FileMode.Truncate, FileAccess.Write, FileShare.Read);
+            protected override Stream GetReadStream(cTrace.cContext pParentContext) => new FileStream(mFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
 
             protected override void Touch(cTrace.cContext pParentContext)
             {
                 mTouchSequence = Interlocked.Increment(ref mTouchSequenceSource);
             }
 
-            protected override void Delete(cTrace.cContext pParentContext) => File.Delete(FileName);
+            protected override void Delete(cTrace.cContext pParentContext) => File.Delete(mFileName);
 
-            protected internal override object GetItemKey() => FileName;
+            protected internal override object GetItemKey() => mFileName;
 
             public void SnapshotTouchSequenceForSort()
             {
@@ -242,7 +244,7 @@ namespace work.bacome.imapclient
                 return mSnapshotTouchSequence.CompareTo(pOther.mSnapshotTouchSequence);
             }
 
-            public override string ToString() => $"{nameof(cTempFileItem)}({FileName},{mTouchSequence})";
+            public override string ToString() => $"{nameof(cTempFileItem)}({mFileName},{mTouchSequence})";
         }
     }
 }

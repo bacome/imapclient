@@ -4,6 +4,8 @@ namespace work.bacome.mailclient
 {
     internal static class kInvalidOperationExceptionMessage
     {
+        public const string IsInvalid = "is invalid";
+
         public const string AlreadyConnected = "already connected";
         public const string AlreadyEnabled = "already enabled";
         public const string AlreadyChallenged = "already challenged";

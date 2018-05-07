@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
@@ -29,6 +30,8 @@ namespace work.bacome.mailclient
     /// Header field names are case insensitive and have a limited grammar - see RFC 5322. 
     /// (Header field names may only include <see cref="cCharset.FText"/> characters.)
     /// </remarks>
+    [Serializable]
+    [DataContract]
     public class cHeaderFieldNames : IReadOnlyList<string>, IEquatable<cHeaderFieldNames>
     {
         // immutable (for passing in and out)
@@ -41,6 +44,7 @@ namespace work.bacome.mailclient
         public static readonly cHeaderFieldNames Importance = new cHeaderFieldNames(kHeaderFieldName.Importance);
 
         // ordered (case insensitive) list of names (the ordering is required for the hashcode and == implementations)
+        [DataMember]
         private readonly cHeaderFieldNameList mNames;
 
         private cHeaderFieldNames() => mNames = new cHeaderFieldNameList();
@@ -54,6 +58,25 @@ namespace work.bacome.mailclient
 
         /// <inheritdoc cref="cHeaderFieldNames(string[])"/>
         public cHeaderFieldNames(IEnumerable<string> pNames) => mNames = new cHeaderFieldNameList(from n in pNames orderby n.ToUpperInvariant() select n);
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            if (mNames == null) throw new cDeserialiseException($"{nameof(cHeaderFieldNames)}.{nameof(mNames)}.null");
+
+            bool lFirst = true;
+            string lLastName = null;
+
+            foreach (var lName in mNames)
+            {
+                string lThisName = lName.ToUpperInvariant();
+
+                if (lFirst) lFirst = false;
+                else if (lThisName.CompareTo(lLastName) != 1) throw new cDeserialiseException($"{nameof(cHeaderFieldNames)}.{nameof(mNames)}.order");
+
+                lLastName = lThisName;
+            }
+        }
 
         /// <summary>
         /// Determines whether the collection contains the specifed name (case insensitive).
@@ -160,12 +183,15 @@ namespace work.bacome.mailclient
     /// A header field name list.
     /// </summary>
     /// <inheritdoc cref="cHeaderFieldNames" select="remarks"/>
+    [Serializable]
+    [DataContract]
     public class cHeaderFieldNameList : IReadOnlyList<string>
     {
         // implements case insensitivity
         //  implements only one copy of each header field
         //  implements the grammar for header field names
 
+        [DataMember]
         private readonly List<string> mNames;
 
         /// <summary>
@@ -211,6 +237,14 @@ namespace work.bacome.mailclient
         {
             if (pUnique) mNames = new List<string>(pNames);
             else mNames = new List<string>(pNames.Distinct(StringComparer.InvariantCultureIgnoreCase));
+        }
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            if (mNames == null) throw new cDeserialiseException($"{nameof(cHeaderFieldNameList)}.{nameof(mNames)}.null");
+            foreach (var lName in mNames) if (!ZIsValidName(lName)) throw new cDeserialiseException($"{nameof(cHeaderFieldNameList)}.{nameof(mNames)}.isvalidname");
+            if (mNames.Distinct(StringComparer.InvariantCultureIgnoreCase).Count() != mNames.Count) throw new cDeserialiseException($"{nameof(cHeaderFieldNameList)}.{nameof(mNames)}.distinct");
         }
 
         /// <summary>

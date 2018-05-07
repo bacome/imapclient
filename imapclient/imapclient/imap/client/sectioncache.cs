@@ -38,7 +38,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        internal bool TryGetSectionCacheItemReader(cSectionCachePersistentKey pKey, out cSectionCache.cItem.cReader rReader, cTrace.cContext pParentContext)
+        internal bool TryGetSectionCacheItemReader(cSectionCachePersistentKey pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(TryGetSectionCacheItemReader), pKey);
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
@@ -46,7 +46,7 @@ namespace work.bacome.imapclient
             return lAccessor.TryGetItemReader(pKey, out rReader, lContext);
         }
 
-        internal bool TryGetSectionCacheItemReader(cSectionCache.cNonPersistentKey pKey, out cSectionCache.cItem.cReader rReader, cTrace.cContext pParentContext)
+        internal bool TryGetSectionCacheItemReader(cSectionCacheNonPersistentKey pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(TryGetSectionCacheItemReader), pKey);
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 using work.bacome.mailclient;
 
 namespace work.bacome.imapclient
@@ -6,11 +7,15 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Represents an IMAP message UID
     /// </summary>
+    [Serializable]
+    [DataContract]
     public class cUID : IComparable<cUID>, IEquatable<cUID>
     {
         /**<summary>The UIDValidity of the instance.</summary>*/
+        [DataMember]
         public readonly uint UIDValidity;
         /**<summary>The UID of the instance.</summary>*/
+        [DataMember]
         public readonly uint UID;
 
         /// <summary>
@@ -24,6 +29,13 @@ namespace work.bacome.imapclient
             if (pUID == 0) throw new ArgumentOutOfRangeException(nameof(pUID));
             UIDValidity = pUIDValidity;
             UID = pUID;
+        }
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            if (UIDValidity == 0) throw new cDeserialiseException($"{nameof(cUID)}.{nameof(UIDValidity)}.zero");
+            if (UID == 0) throw new cDeserialiseException($"{nameof(cUID)}.{nameof(UID)}.zero");
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.CompareTo(object)"/>

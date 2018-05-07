@@ -754,7 +754,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        public bool IsValid() => ReferenceEquals(Client.MailboxCache, MailboxHandle.MailboxCache);
+        public bool IsValid => ReferenceEquals(Client.MailboxCache, MailboxHandle.MailboxCache);
 
         /// <summary>
         /// Gets the mailbox's child mailboxes.
@@ -1127,32 +1127,11 @@ namespace work.bacome.imapclient
             => Client.AppendAsync(MailboxHandle, cMailMessageList.FromMessages(pMessages), pFlags, pReceived, pConfiguration);
             */
 
-        /// <summary>
-        /// Fetches a section of a message into a stream. The mailbox must be selected.
-        /// </summary>
-        /// <param name="pUID"></param>
-        /// <param name="pSection"></param>
-        /// <param name="pDecoding"></param>
-        /// <param name="pStream"></param>
-        /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
-        /// <remarks>
-        /// Will throw if <paramref name="pUID"/> does not exist in the mailbox.
-        /// If <see cref="cIMAPCapabilities.Binary"/> is in use and the entire body-part (<see cref="cSection.TextPart"/> is <see cref="eSectionTextPart.all"/>) is being fetched then
-        /// unless <paramref name="pDecoding"/> is <see cref="eDecodingRequired.none"/> the server will do the decoding that it determines is required (i.e. the decoding specified is ignored).
-        /// </remarks>
-        public void UIDFetch(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchConfiguration pConfiguration = null) => Client.UIDFetch(MailboxHandle, pUID, pSection, pDecoding, pStream, pConfiguration);
-
-        /// <summary>
-        /// Asynchronously fetches a section of a message into a stream. The mailbox must be selected.
-        /// </summary>
-        /// <param name="pUID"></param>
-        /// <param name="pSection"></param>
-        /// <param name="pDecoding"></param>
-        /// <param name="pStream"></param>
-        /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
-        /// <returns></returns>
-        /// <inheritdoc cref="UIDFetch(cUID, cSection, eDecodingRequired, Stream, cBodyFetchConfiguration)" select="remarks"/>
-        public Task UIDFetchAsync(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchConfiguration pConfiguration = null) => Client.UIDFetchAsync(MailboxHandle, pUID, pSection, pDecoding, pStream, pConfiguration);
+        public Stream MessageDataStream(cUID pUID, cSection pSection, eDecodingRequired pDecoding)
+        {
+            if (!IsValid) throw new InvalidOperationException(kInvalidOperationExceptionMessage.IsInvalid);
+            return new cIMAPMessageDataStream(Client, MailboxHandle, pUID, pSection, pDecoding);
+        }
 
         /// <summary>
         /// Stores flags for a message. The mailbox must be selected.

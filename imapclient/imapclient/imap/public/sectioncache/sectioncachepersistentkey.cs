@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
             Decoding = pDecoding;
         }
 
-        internal cSectionCachePersistentKey(cSectionCache.cNonPersistentKey pKey)
+        internal cSectionCachePersistentKey(cSectionCacheNonPersistentKey pKey)
         {
             if (pKey == null) throw new ArgumentNullException(nameof(pKey));
             if (pKey.UID == null) throw new ArgumentOutOfRangeException(nameof(pKey));
@@ -47,7 +47,7 @@ namespace work.bacome.imapclient
         public bool Equals(cSectionCachePersistentKey pObject) => this == pObject;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
-        internal bool Equals(cSectionCache.cNonPersistentKey pObject)
+        internal bool Equals(cSectionCacheNonPersistentKey pObject)
         {
             if (pObject == null) return false;
             return AccountId == pObject.AccountId && MailboxName == pObject.MailboxName && UID == pObject.UID && Section == pObject.Section && Decoding == pObject.Decoding;

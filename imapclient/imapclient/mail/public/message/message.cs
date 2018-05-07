@@ -150,6 +150,9 @@ namespace work.bacome.mailclient
             return lBuilder.ToString();
         }
 
+        public abstract Stream 
+
+
         /// <summary>
         /// Returns the content of the specified <see cref="cTextBodyPart"/>.
         /// </summary>

@@ -7,12 +7,12 @@ namespace work.bacome.imapclient
 {
     public partial class cSectionCache
     {
-        public abstract partial class cItem
+        protected internal abstract partial class cItem
         {
             private readonly object mLock = new object();
             private readonly cSectionCache mCache;
 
-            private bool mCanWrite;
+            private int mOpenStreamCount;
             private bool mCached;
             private long mLength;
             private bool mAssignedPersistentKey;
@@ -20,17 +20,16 @@ namespace work.bacome.imapclient
             // incremented when something significant changes about the cache item that should stop it from being deleted if the change wasn't taken into account by the decision to delete
             private int mChangeSequence = 0;
 
-            private int mOpenStreamCount = 0;
             private bool mDeleted = false;
             private cSectionCachePersistentKey mPersistentKey = null;
-            private cNonPersistentKey mNonPersistentKey = null;
+            private cSectionCacheNonPersistentKey mNonPersistentKey = null;
 
             protected cItem(cSectionCache pCache, long pLength)
             {
                 mCache = pCache ?? throw new ArgumentNullException(nameof(pCache));
                 if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
 
-                mCanWrite = false;
+                mOpenStreamCount = 0;
                 mCached = true;
                 mLength = pLength;
                 mAssignedPersistentKey = true;
@@ -40,7 +39,7 @@ namespace work.bacome.imapclient
             {
                 mCache = pCache ?? throw new ArgumentNullException(nameof(pCache));
 
-                mCanWrite = true;
+                mOpenStreamCount = 1;
                 mCached = false;
                 mLength = -1;
                 mAssignedPersistentKey = pCache.Temporary; // if the cache is temporary, then we don't call assignpersistentkey
@@ -61,7 +60,6 @@ namespace work.bacome.imapclient
             protected internal abstract object GetItemKey();
 
             protected abstract Stream GetReadStream(cTrace.cContext pParentContext);
-            protected abstract Stream GetReadWriteStream(cTrace.cContext pParentContext);
 
             protected virtual void AssignPersistentKey(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
             {
@@ -111,6 +109,9 @@ namespace work.bacome.imapclient
                 return true;
             }
 
+            // called by the sectioncache to check that the implementation hasn't done something dumb
+            internal bool Cached => mCached;
+
             // called by the sectioncache when the item is added to the internal list
             internal void SetCached(long pLength, cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
             {
@@ -121,7 +122,7 @@ namespace work.bacome.imapclient
                 
                 lock (mLock)
                 {
-                    if (mCanWrite || mCached || mDeleted) throw new InvalidOperationException();
+                    if (mCached || mDeleted) throw new InvalidOperationException();
                     mCached = true;
                     mLength = pLength;
                     mPersistentKey = pKey;
@@ -129,7 +130,7 @@ namespace work.bacome.imapclient
             }
 
             // called by the sectioncache when the item is added to the internal list
-            internal void SetCached(long pLength, cNonPersistentKey pKey, cTrace.cContext pParentContext)
+            internal void SetCached(long pLength, cSectionCacheNonPersistentKey pKey, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cItem), nameof(SetCached), pKey);
 
@@ -138,7 +139,7 @@ namespace work.bacome.imapclient
 
                 lock (mLock)
                 {
-                    if (mCanWrite || mCached || mDeleted) throw new InvalidOperationException();
+                    if (mCached || mDeleted) throw new InvalidOperationException();
                     mCached = true;
                     mLength = pLength;
                     mNonPersistentKey = pKey;
@@ -146,13 +147,13 @@ namespace work.bacome.imapclient
             }
 
             // called by the sectioncache
-            internal bool TryGetReader(out cReader rReader, cTrace.cContext pParentContext)
+            internal bool TryGetReader(out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cItem), nameof(TryGetReader));
 
                 lock (mLock)
                 {
-                    if (mCanWrite || !mCached) throw new InvalidOperationException();
+                    if (!mCached) throw new InvalidOperationException();
 
                     if (mDeleted)
                     {
@@ -161,26 +162,39 @@ namespace work.bacome.imapclient
                         return false;
                     }
 
-                    rReader = new cReader(this, lContext);
+                    ;?; // dispose protection
+
+                    Stream lStream;
+
+                    try
+                    {
+                        lStream = GetReadStream(lContext);
+
+                        if (LSTR)
+
+
+                    }
+                    catch
+                    {
+                        lContext.TraceError("failed to get readerwriter:\n{0}", e);
+                        lStream = null;
+                    }
+
+                    ;????????;
+
+                    if (lStream == null)
+                    {
+                        lContext.TraceVerbose("getreadstream failed: assuming deleted");
+                        mDeleted = true;
+                        rReader = null;
+                        return false;
+                    }
+
+                    if (!lStream.CanRead || !lStream.CanSeek) throw new cUnexpectedSectionCacheActionException(lContext);
+
                     mOpenStreamCount++;
+                    rReader = new cSectionCacheItemReader(lStream, ZDecrementOpenStreamCount, lContext);
                     return true;
-                }
-            }
-
-            // called by the sectioncache to check that the concrete implementation hasn't done something dumb
-            internal bool CanWrite => mCanWrite;
-
-            // called by the sectioncache
-            internal cReaderWriter GetReaderWriter(cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cItem), nameof(GetReaderWriter));
-
-                lock (mLock)
-                {
-                    if (!mCanWrite || mDeleted) throw new InvalidOperationException();
-                    mCanWrite = false;
-                    mOpenStreamCount++;
-                    return new cReaderWriter(this, lContext);
                 }
             }
 
@@ -194,7 +208,7 @@ namespace work.bacome.imapclient
 
                 lock (mLock)
                 {
-                    if (mCanWrite || !mCached) throw new InvalidOperationException();
+                    if (!mCached) throw new InvalidOperationException();
 
                     if (!mDeleted && !mAssignedPersistentKey && mOpenStreamCount == 0)
                     {
@@ -216,7 +230,7 @@ namespace work.bacome.imapclient
 
                 lock (mLock)
                 {
-                    if (mCanWrite || !mCached) throw new InvalidOperationException();
+                    if (!mCached) throw new InvalidOperationException();
 
                     if (mDeleted) return false;
 
@@ -241,7 +255,7 @@ namespace work.bacome.imapclient
 
                 lock (mLock)
                 {
-                    if (--mOpenStreamCount != 0) return;
+                    if (mDeleted || --mOpenStreamCount != 0) return;
 
                     if (!mCached || (mCache.Temporary && mCache.IsClosed))
                     {

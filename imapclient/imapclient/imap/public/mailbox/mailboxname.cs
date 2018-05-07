@@ -16,17 +16,15 @@ namespace work.bacome.imapclient
     /// IMAP hierarchy delimitiers have few grammatical restrictions, but must be ASCII, and not NUL, CR or LF.
     /// Be careful to correctly specify the hierarchy delimiter, it is used in preparing the mailbox name for sending to the server.
     /// </remarks>
+    [Serializable]
     [DataContract]
     public class cMailboxName : IComparable<cMailboxName>, IEquatable<cMailboxName>
     {
         internal const string InboxString = "INBOX";
         internal static readonly ReadOnlyCollection<byte> InboxBytes = new cBytes(InboxString);
 
-        /// <summary>
-        /// The mailbox path including the full hierarchy.
-        /// </summary>
         [DataMember]
-        public readonly string Path;
+        private string mPath;
 
         /// <summary>
         /// The hierarchy delimiter used in this mailbox name. May be <see langword="null"/>. 
@@ -37,18 +35,32 @@ namespace work.bacome.imapclient
         [DataMember]
         public readonly char? Delimiter;
 
-        ;?; // have to work out how to do validation - can I throw in 
-
         private cMailboxName(string pPath, char? pDelimiter, bool pValid)
         {
-            Path = pPath;
+            mPath = pPath;
             Delimiter = pDelimiter;
         }
+
+        /// <summary>
+        /// The mailbox path including the full hierarchy.
+        /// </summary>
+        public string Path => mPath;
 
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            ;?; // validation (try)
+            if (string.IsNullOrEmpty(mPath)) throw new cDeserialiseException($"{nameof(cMailboxName)}.{nameof(mPath)}.isnullorempty");
+            if (Delimiter != null && !cTools.IsValidDelimiter(Delimiter.Value)) throw new cDeserialiseException($"{nameof(cMailboxName)}.{nameof(Delimiter)}.isvaliddelimiter");
+
+            if (mPath[mPath.Length - 1] == Delimiter) throw new cDeserialiseException($"{nameof(cMailboxName)}.{nameof(mPath)}.endswithdelimiter");
+
+            if (mPath.Equals(InboxString, StringComparison.InvariantCultureIgnoreCase))
+            {
+                mPath = InboxString;
+                return;
+            }
+
+            if (!cCommandPartFactory.Validation.TryAsListMailbox(mPath, Delimiter, out _)) throw new cDeserialiseException($"{nameof(cMailboxName)}.{nameof(mPath)}.tryaslistmailbox");
         }
 
         /// <summary>
@@ -62,18 +74,18 @@ namespace work.bacome.imapclient
             if (string.IsNullOrEmpty(pPath)) throw new ArgumentNullException(nameof(pPath));
             if (pDelimiter != null &&  !cTools.IsValidDelimiter(pDelimiter.Value)) throw new ArgumentOutOfRangeException(nameof(pDelimiter));
 
+            if (pPath[pPath.Length - 1] == pDelimiter) throw new ArgumentOutOfRangeException(nameof(pPath));
+
             if (pPath.Equals(InboxString, StringComparison.InvariantCultureIgnoreCase))
             {
-                Path = InboxString;
+                mPath = InboxString;
                 Delimiter = pDelimiter;
                 return;
             }
-
-            if (pPath[pPath.Length - 1] == pDelimiter) throw new ArgumentOutOfRangeException(nameof(pPath));
                 
             if (!cCommandPartFactory.Validation.TryAsListMailbox(pPath, pDelimiter, out _)) throw new ArgumentOutOfRangeException(nameof(pPath));
 
-            Path = pPath;
+            mPath = pPath;
             Delimiter = pDelimiter;
         }
 
@@ -85,9 +97,9 @@ namespace work.bacome.imapclient
             get
             {
                 if (Delimiter == null) return null;
-                int lParentPathEnd = Path.LastIndexOf(Delimiter.Value);
+                int lParentPathEnd = mPath.LastIndexOf(Delimiter.Value);
                 if (lParentPathEnd == -1) return null;
-                return Path.Substring(0, lParentPathEnd);
+                return mPath.Substring(0, lParentPathEnd);
             }
         }
 
@@ -98,24 +110,24 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Delimiter == null) return Path;
-                int lParentPathEnd = Path.LastIndexOf(Delimiter.Value);
-                if (lParentPathEnd == -1) return Path;
-                return Path.Substring(lParentPathEnd + 1);
+                if (Delimiter == null) return mPath;
+                int lParentPathEnd = mPath.LastIndexOf(Delimiter.Value);
+                if (lParentPathEnd == -1) return mPath;
+                return mPath.Substring(lParentPathEnd + 1);
             }
         }
 
         /// <summary>
         /// Indicates whether this is 'INBOX'.
         /// </summary>
-        public bool IsInbox => ReferenceEquals(Path, InboxString);
+        public bool IsInbox => ReferenceEquals(mPath, InboxString);
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.CompareTo"/>
         public int CompareTo(cMailboxName pOther)
         {
             if (pOther == null) return 1;
 
-            var lCompareTo = Path.CompareTo(pOther.Path);
+            var lCompareTo = mPath.CompareTo(pOther.mPath);
 
             if (lCompareTo != 0) return lCompareTo;
 
@@ -144,14 +156,14 @@ namespace work.bacome.imapclient
             unchecked
             {
                 int lHash = 17;
-                lHash = lHash * 23 + Path.GetHashCode();
+                lHash = lHash * 23 + mPath.GetHashCode();
                 if (Delimiter != null) lHash = lHash * 23 + Delimiter.GetHashCode();
                 return lHash;
             }
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cMailboxName)}({Path},{Delimiter})";
+        public override string ToString() => $"{nameof(cMailboxName)}({mPath},{Delimiter})";
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cMailboxName pA, cMailboxName pB)
@@ -159,7 +171,7 @@ namespace work.bacome.imapclient
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
             if (ReferenceEquals(pB, null)) return false;
-            return pA.Path == pB.Path && pA.Delimiter == pB.Delimiter;
+            return pA.mPath == pB.mPath && pA.Delimiter == pB.Delimiter;
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>

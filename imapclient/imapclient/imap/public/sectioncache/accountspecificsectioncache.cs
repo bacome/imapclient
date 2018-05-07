@@ -21,7 +21,6 @@ namespace work.bacome.imapclient
      *  the background process should create and serialise the index into 'index.new'
      *  after this is done the index should be deleted
      *  then the index.new renamed to index
-     *  then all .sci that have an entry in index should be deleted
      *  
      *  at startup the index (or index.new if index doesn't exist) is de-serialised into the internal list (checking that the refered to .scd is actually there)
      *  and all .sci with a .scd are added to the list, using the filedatetime as the touch
@@ -33,18 +32,6 @@ namespace work.bacome.imapclient
      *  
      *  => the cfileitem should be constructable from the cindexitem and fileitem should be converatble to cindexitem (only if the item has a pk)
      *  
-     *  
-     *  in the 
-     * 
-     * 
-     * 
-     * 
-     * NOTE:
-     *  for the serialisation to be easier, the elements of pk that need to be serialised should be seralisable
-     *   this means
-     *    mailboxname, uid, section and (I assume already done) eDecodingRequired
-     * 
-     * 
      * 
     public sealed class cAccountSpecificSectionCache : cSectionCache, IDisposable
     {

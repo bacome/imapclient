@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
         private int mReadTimeout;
 
         private iSectionCacheItemReader mSectionCacheItemReader = null;
-        private cSectionCache.cItem.cReader mReader = null;
+        private cSectionCacheItemReader mReader = null;
         private cSectionCache.cItem.cReaderWriter mReaderWriter = null;
 
         // background fetch task
@@ -68,27 +68,6 @@ namespace work.bacome.imapclient
             mReadTimeout = Client.Timeout;
         }
 
-        public cIMAPMessageDataStream(cIMAPMessage pMessage, cSinglePartBody pPart, bool pDecoded = true)
-        {
-            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
-            if (!pMessage.IsValid) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.IsInvalid);
-            pMessage.CheckPart(pPart);
-
-            Client = pMessage.Client;
-            MessageHandle = pMessage.MessageHandle;
-            Part = pPart;
-
-            MailboxHandle = null;
-            UID = null;
-
-            Section = pPart.Section;
-
-            if (pDecoded) Decoding = pPart.DecodingRequired;
-            else Decoding = eDecodingRequired.none;
-
-            mReadTimeout = Client.Timeout;
-        }
-
         public cIMAPMessageDataStream(cIMAPMessage pMessage, cSection pSection, eDecodingRequired pDecoding)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
@@ -107,16 +86,32 @@ namespace work.bacome.imapclient
             mReadTimeout = Client.Timeout;
         }
 
-        public cIMAPMessageDataStream(cMailbox pMailbox, cUID pUID, cSection pSection, eDecodingRequired pDecoding)
+        internal cIMAPMessageDataStream(cIMAPClient pClient, iMessageHandle pMessageHandle, cSinglePartBody pPart, bool pDecoded)
         {
-            if (pMailbox == null) throw new ArgumentNullException(nameof(pMailbox));
-            if (!pMailbox.IsSelected) throw new ArgumentOutOfRangeException(nameof(pMailbox), kArgumentOutOfRangeExceptionMessage.MailboxMustBeSelected);
+            Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
+            MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
+            if (!ReferenceEquals(pClient.SelectedMailboxDetails?.MessageCache, pMessageHandle.MessageCache)) throw new ArgumentOutOfRangeException(nameof(pMessageHandle));
 
-            Client = pMailbox.Client;
+            Part = pPart ?? throw new ArgumentNullException(nameof(pPart));
+
+            MailboxHandle = null;
+            UID = null;
+
+            Section = pPart.Section;
+
+            if (pDecoded) Decoding = pPart.DecodingRequired;
+            else Decoding = eDecodingRequired.none;
+
+            mReadTimeout = Client.Timeout;
+        }
+
+        internal cIMAPMessageDataStream(cIMAPClient pClient, iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding)
+        {
+            Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             MessageHandle = null;
             Part = null;
-            MailboxHandle = pMailbox.MailboxHandle;
-
+            MailboxHandle = pMailboxHandle ?? throw new ArgumentNullException(nameof(pMailboxHandle));
+            if (!ReferenceEquals(pClient.MailboxCache, pMailboxHandle.MailboxCache)) throw new ArgumentOutOfRangeException(nameof(pMailboxHandle));
             UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
             Decoding = pDecoding;
@@ -302,7 +297,7 @@ namespace work.bacome.imapclient
 
             if (UID == null && MessageHandle.UID == null)
             {
-                var lKey = new cSectionCache.cNonPersistentKey(MessageHandle, Section, Decoding);
+                var lKey = new cSectionCacheNonPersistentKey(MessageHandle, Section, Decoding);
 
                 if (Client.TryGetSectionCacheItemReader(lKey, out mReader, lContext))
                 {
@@ -350,7 +345,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        private async Task ZBackgroundFetchAsync(cSectionCache.cNonPersistentKey pKey, cTrace.cContext pParentContext)
+        private async Task ZBackgroundFetchAsync(cSectionCacheNonPersistentKey pKey, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewRootMethod(nameof(cIMAPMessageDataStream), nameof(ZBackgroundFetchAsync), pKey);
 

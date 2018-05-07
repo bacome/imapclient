@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using work.bacome.mailclient;
+using System.IO;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
         private readonly object mLock = new object();
         public readonly bool Temporary;
         private Dictionary<cSectionCachePersistentKey, cItem> mPersistentKeyItems;
-        private Dictionary<cNonPersistentKey, cItem> mNonPersistentKeyItems;
+        private Dictionary<cSectionCacheNonPersistentKey, cItem> mNonPersistentKeyItems;
 
         private int mOpenAccessorCount = 0;
 
@@ -18,7 +18,7 @@ namespace work.bacome.imapclient
         {
             Temporary = pTemporary;
             mPersistentKeyItems = new Dictionary<cSectionCachePersistentKey, cItem>();
-            mNonPersistentKeyItems = new Dictionary<cNonPersistentKey, cItem>();
+            mNonPersistentKeyItems = new Dictionary<cSectionCacheNonPersistentKey, cItem>();
         }
 
         // asks the cache if it has an item for the key
@@ -38,7 +38,7 @@ namespace work.bacome.imapclient
         //    if the item doesn't have a pk and the npk is no longer valid
         //  OR itemadded will be called
         //
-        protected abstract cItem GetNewItem(cTrace.cContext pParentContext);
+        protected abstract void GetNewItem(out cItem rItem, out Stream rStream, cTrace.cContext pParentContext);
 
         // lets the cache know that a new item has been written
         //  allows the cache to increase the number of files in use and the total size of the cache
@@ -145,7 +145,7 @@ namespace work.bacome.imapclient
         }
 
         // called by accessor
-        private bool ZTryGetItemReader(cSectionCachePersistentKey pKey, out cItem.cReader rReader, cTrace.cContext pParentContext)
+        private bool ZTryGetItemReader(cSectionCachePersistentKey pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZTryGetItemReader), pKey);
 
@@ -159,7 +159,7 @@ namespace work.bacome.imapclient
         }
 
         // called by accessor
-        private bool ZTryGetItemReader(cNonPersistentKey pKey, out cItem.cReader rReader, cTrace.cContext pParentContext)
+        private bool ZTryGetItemReader(cSectionCacheNonPersistentKey pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZTryGetItemReader), pKey);
 
@@ -176,9 +176,22 @@ namespace work.bacome.imapclient
         private cItem.cReaderWriter ZGetItemReaderWriter(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZGetItemReaderWriter));
-            var lItem = GetNewItem(lContext);
-            if (lItem == null || !lItem.CanWrite) throw new cUnexpectedSectionCacheActionException(lContext);
-            return lItem.GetReaderWriter(lContext);
+
+            Stream lStream = null;
+
+            try
+            {
+                GetNewItem(out var lItem, out lStream, lContext);
+                if (lItem == null || lItem.Cached) throw new cUnexpectedSectionCacheActionException(lContext, 1);
+                if (lStream == null || !lStream.CanRead || !lStream.CanSeek || !lStream.CanWrite) throw new cUnexpectedSectionCacheActionException(lContext, 2);
+                return new cItem.cReaderWriter(this, lItem, lStream, lContext);
+            }
+            catch (Exception e)
+            {
+                lContext.TraceError("failed to get readerwriter:\n{0}", e);
+                if (lStream != null) lStream.Dispose();
+                throw;
+            }
         }
 
         // called by cacheitem when the open count goes to zero
@@ -207,13 +220,13 @@ namespace work.bacome.imapclient
                     foreach (var lPair in mPersistentKeyItems) if (!lPair.Value.TryDelete(-1, lContext)) lPersistentKeyItems.Add(lPair.Key, lPair.Value);
                     mPersistentKeyItems = lPersistentKeyItems;
 
-                    var lNonPersistentKeyItems = new Dictionary<cNonPersistentKey, cItem>();
+                    var lNonPersistentKeyItems = new Dictionary<cSectionCacheNonPersistentKey, cItem>();
                     foreach (var lPair in mNonPersistentKeyItems) if (!lPair.Value.TryDelete(-1, lContext)) lNonPersistentKeyItems.Add(lPair.Key, lPair.Value);
                     mNonPersistentKeyItems = lNonPersistentKeyItems;
                 }
                 else
                 {
-                    var lNonPersistentKeyItems = new Dictionary<cNonPersistentKey, cItem>();
+                    var lNonPersistentKeyItems = new Dictionary<cSectionCacheNonPersistentKey, cItem>();
 
                     foreach (var lPair in mNonPersistentKeyItems)
                     {
@@ -271,7 +284,7 @@ namespace work.bacome.imapclient
         }
 
         // called by readerwriter when the write is finished
-        private void ZAddItem(cNonPersistentKey pKey, cItem pItem, long pLength, cTrace.cContext pParentContext)
+        private void ZAddItem(cSectionCacheNonPersistentKey pKey, cItem pItem, long pLength, cTrace.cContext pParentContext)
         {
             // if the uid is available the other one should have been called
 

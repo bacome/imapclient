@@ -486,6 +486,11 @@ namespace work.bacome.imapclient
             return await base.PlainTextAsync().ConfigureAwait(false);
         }
 
+
+        public 
+
+
+
         public override string Fetch(cTextBodyPart pPart)
         {
             CheckPart(pPart);
