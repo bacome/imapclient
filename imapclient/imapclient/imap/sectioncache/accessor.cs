@@ -4,43 +4,33 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    public partial class cSectionCache
+    public abstract partial class cSectionCache
     {
         internal sealed class cAccessor : IDisposable
         {
             private bool mDisposed = false;
-            private readonly cTrace.cContext mContext;
             private readonly cSectionCache mCache;
+            private readonly Action<cTrace.cContext> mDecrementOpenAccessorCount;
+            private readonly cTrace.cContext mContextToUseWhenDisposing;
             private int mCount = 1;
 
-            public cAccessor(cSectionCache pCache, cTrace.cContext pParentContext)
+            public cAccessor(cSectionCache pCache, Action<cTrace.cContext> pDecrementOpenAccessorCount, cTrace.cContext pContextToUseWhenDisposing)
             {
-                mContext = pParentContext.NewObject(nameof(cAccessor), pCache);
                 mCache = pCache ?? throw new ArgumentNullException(nameof(pCache));
+                mDecrementOpenAccessorCount = pDecrementOpenAccessorCount ?? throw new ArgumentNullException(nameof(pDecrementOpenAccessorCount));
+                mContextToUseWhenDisposing = pContextToUseWhenDisposing;
             }
 
-            public bool TryGetItemReader(cSectionCachePersistentKey pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(TryGetItemReader), pKey);
-                return mCache.ZTryGetItemReader(pKey, out rReader, lContext);
-            }
-
-            public bool TryGetItemReader(cSectionCacheNonPersistentKey pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(TryGetItemReader), pKey);
-                return mCache.ZTryGetItemReader(pKey, out rReader, lContext);
-            }
-
-            public cItem.cReaderWriter GetItemReaderWriter(cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cAccessor), nameof(GetItemReaderWriter));
-                return mCache.ZGetItemReaderWriter(lContext);
-            }
+            public bool TryGetItemReader(cSectionCachePersistentKey pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext) => mCache.ZTryGetItemReader(pKey, out rReader, pParentContext);
+            public bool TryGetItemReader(cSectionCacheNonPersistentKey pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext) => mCache.ZTryGetItemReader(pKey, out rReader, pParentContext);
+            public cSectionCacheItem GetNewItem(cTrace.cContext pParentContext) => mCache.GetNewItem(pParentContext);
+            public void AddItem(cSectionCachePersistentKey pKey, cSectionCacheItem pItem, cTrace.cContext pParentContext) => mCache.ZAddItem(pKey, pItem, pParentContext);
+            public void AddItem(cSectionCacheNonPersistentKey pKey, cSectionCacheItem pItem, cTrace.cContext pParentContext) => mCache.ZAddItem(pKey, pItem, pParentContext);
 
             public void Dispose()
             {
                 if (mDisposed) return;
-                if (Interlocked.Decrement(ref mCount) == 0) mCache.ZDecrementOpenAccessorCount(mContext);
+                if (Interlocked.Decrement(ref mCount) == 0) mDecrementOpenAccessorCount(mContextToUseWhenDisposing);
                 mDisposed = true;
             }
         }

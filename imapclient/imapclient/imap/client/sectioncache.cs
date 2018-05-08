@@ -38,33 +38,9 @@ namespace work.bacome.imapclient
             }
         }
 
-        internal bool TryGetSectionCacheItemReader(cSectionCachePersistentKey pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
+        internal cSectionCache.cAccessor GetSectionCacheAccessor(cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(TryGetSectionCacheItemReader), pKey);
-            if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-            var lAccessor = ZGetSectionCacheAccessor(lContext);
-            return lAccessor.TryGetItemReader(pKey, out rReader, lContext);
-        }
-
-        internal bool TryGetSectionCacheItemReader(cSectionCacheNonPersistentKey pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(TryGetSectionCacheItemReader), pKey);
-            if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-            var lAccessor = ZGetSectionCacheAccessor(lContext);
-            return lAccessor.TryGetItemReader(pKey, out rReader, lContext);
-        }
-
-        internal cSectionCache.cItem.cReaderWriter GetSectionCacheItemReaderWriter(cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetSectionCacheItemReaderWriter));
-            if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-            var lAccessor = ZGetSectionCacheAccessor(lContext);
-            return lAccessor.GetItemReaderWriter(lContext);
-        }
-
-        private cSectionCache.cAccessor ZGetSectionCacheAccessor(cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZGetSectionCacheAccessor));
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetSectionCacheAccessor));
             
             lock (mSectionCacheLock)
             {

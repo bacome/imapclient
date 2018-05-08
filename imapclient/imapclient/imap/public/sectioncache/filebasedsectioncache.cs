@@ -8,29 +8,24 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    public sealed class cTempFileSectionCache : cSectionCache, IDisposable
+    public abstract class cFileBasedSectionCache : cSectionCache, IDisposable
     {
-        private static int mTouchSequenceSource = 7;
-
-        private bool mDisposed = false;
-
-        private readonly object mLock = new object();
-
         public readonly string InstanceName;
-        public readonly int FileCountBudget;
         public readonly long ByteCountBudget;
+        public readonly int FileCountBudget;
         public readonly int WaitAfterTrim;
 
-        private readonly CancellationTokenSource mBackgroundCancellationTokenSource = new CancellationTokenSource();
-        private readonly cReleaser mBackgroundReleaser;
-        private readonly Task mBackgroundTask = null;
+        ;?; // this gets added to as keys are assigned ... if there is an entry in here when the key is assigned then the filename should be changed to point at the one here
+        ;?; // if a sub class has a way of finding items ... ;?;
+        private readonly Dictionary<cSectionCachePersistentKey, cFileBasedSectionCacheItem> mPersistentKeyItems = new Dictionary<cSectionCachePersistentKey, cFileBasedSectionCacheItem>();
+        private readonly Dictionary<object, cFileBasedSectionCacheItem> mAllItems = new Dictionary<object, cFileBasedSectionCacheItem>();
+        private readonly object mLock = new object();
 
-        private List<cTempFileItem> mItems = new List<cTempFileItem>();
-        private int mFileCount = 0;
         private long mByteCount = 0;
-        private bool mWorthTryingTrim = false;
+        private int mFileCount = 0;
+        private bool mWorthTryingTrim;
 
-        public cTempFileSectionCache(string pInstanceName, int pFileCountBudget, long pByteCountBudget, int pWaitAfterTrim) : base(true)
+        public cFileBasedSectionCache(string pInstanceName, long pByteCountBudget, int pFileCountBudget, int pWaitAfterTrim, Dictionary<cSectionCachePersistentKey, FileInfo> pExistingItems) : base(pExistingItems == null)
         {
             InstanceName = pInstanceName ?? throw new ArgumentNullException(nameof(pInstanceName));
 
@@ -44,59 +39,128 @@ namespace work.bacome.imapclient
             ByteCountBudget = pByteCountBudget;
             WaitAfterTrim = pWaitAfterTrim;
 
+            if (pExistingItems == null)
+            {
+                mWorthTryingTrim = false;
+            }
+            else
+            {
+                foreach (var lPair in pExistingItems)
+                {
+                    if (lPair.Value == null) throw new ArgumentOutOfRangeException(nameof(pExistingItems), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
+                    var lItem = new cItem(this, lPair.Value);
+                    mPersistentKeyItems.Add(lPair.Key, lItem);
+                    mAllItems.Add(lItem.GetItemKey(), lItem);
+                    mByteCount += lItem.AccountingLength;
+                    mFileCount++;
+                }
+
+                mWorthTryingTrim = true;
+            }
+
+
+
+
             mBackgroundReleaser = new cReleaser(pInstanceName, mBackgroundCancellationTokenSource.Token);
             mBackgroundTask = ZBackgroundTaskAsync(lContext);
         }
 
-        protected override cSectionCacheItem GetNewItem(cTrace.cContext pParentContext)
+        protected abstract string GetNewFileName(cTrace.cContext pParentContext);
+
+        sealed protected override bool TryGetExistingItem(cSectionCachePersistentKey pKey, out cSectionCacheItem rItem, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cTempFileSectionCache), nameof(GetNewItem));
-            if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
-
-            string lFileName = Path.GetTempFileName();
-            rItem = new cTempFileItem(this, lFileName);
-            rStream = new FileStream(lFileName, FileMode.Truncate, FileAccess.ReadWrite, FileShare.Read);
-        }
-
-        protected override void ItemAdded(cItem pItem, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cTempFileSectionCache), nameof(ItemAdded), pItem);
-
-            if (!(pItem is cTempFileItem lItem)) throw new cInternalErrorException(nameof(cTempFileSectionCache), nameof(ItemAdded));
+            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCache), nameof(TryGetExistingItem));
 
             lock (mLock)
             {
-                mItems.Add(lItem);
-                mFileCount++;
-                mByteCount += pItem.Length;
+                if (mPersistentKeyItems.TryGetValue(pKey, out var lItem))
+                {
+                    rItem = lItem;
+                    return true;
+                }
             }
+
+            rItem = null;
+            return false;
+        }
+
+        sealed protected override cSectionCacheItem GetNewItem(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCache), nameof(GetNewItem));
+
+            while (true)
+            {
+                string lFileName = GetNewFileName(lContext);
+
+                var lStream = new FileStream(lFileName, FileMode.Truncate, FileAccess.ReadWrite, FileShare.Read);
+
+                cFileBasedSectionCacheItem lItem;
+
+                try
+                {
+                    lock (mLock)
+                    {
+                        if (mAllItems.TryGetValue(lFileName, out lItem) && !lItem.Deleted) lContext.TraceWarning("allocated an in-use file name {0}", lFileName);
+                        else
+                        {
+                            lItem = new cFileBasedSectionCacheItem(this, lFileName, lStream);
+                            mAllItems.Add(lFileName, lItem);
+                            return lItem;
+                        }
+                    }
+                }
+                catch
+                {
+                    lStream.Dispose();
+                    throw;
+                }
+
+                lStream.Dispose();
+                lItem.TryDelete(-1, lContext);
+            }
+        }
+
+        protected internal override void ItemAdded(cSectionCacheItem pItem, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCache), nameof(ItemAdded), pItem);
+
+            if (!(pItem is cFileBasedSectionCacheItem lItem)) throw new cInternalErrorException(nameof(cFileBasedSectionCache), nameof(ItemAdded));
+
+            lock (mLock)
+            {
+                mAllItems.Add(lItem.ItemKey, lItem);
+            }
+
+            ;?; // add to internal lists
+
+            Interlocked.Add(ref mByteCount, lItem.AccountingLength);
+            Interlocked.Increment(ref mFileCount);
 
             ZTriggerTrim(lContext);
         }
 
-        protected override void ItemDeleted(cItem pItem, cTrace.cContext pParentContext)
+        sealed protected internal override void ItemDeleted(cSectionCacheItem pItem, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cTempFileSectionCache), nameof(ItemDeleted), pItem);
+            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCache), nameof(ItemDeleted), pItem);
 
-            if (!(pItem is cTempFileItem lItem)) throw new ArgumentOutOfRangeException(nameof(pItem));
+            if (!(pItem is cFileBasedSectionCacheItem lItem)) throw new cInternalErrorException(nameof(cFileBasedSectionCache), nameof(ItemDeleted));
 
-            lock (mLock)
-            {
-                mFileCount--;
-                mByteCount -= lItem.Length;
-            }
+            ;?;
+
+            Interlocked.Add(ref mByteCount, -lItem.AccountingLength);
+            Interlocked.Decrement(ref mByteCount);
         }
 
-        protected override void ItemClosed(cTrace.cContext pParentContext)
+        protected internal override void ItemClosed(cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cTempFileSectionCache), nameof(ItemClosed));
+            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCache), nameof(ItemClosed));
             mWorthTryingTrim = true;
             ZTriggerTrim(lContext);
         }
 
         private void ZTriggerTrim(cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cTempFileSectionCache), nameof(ZTriggerTrim));
+            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCache), nameof(ZTriggerTrim));
 
             if (!ZOverBudget() || !mWorthTryingTrim) return;
 
@@ -108,7 +172,9 @@ namespace work.bacome.imapclient
 
         private async Task ZBackgroundTaskAsync(cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewRootMethod(nameof(cTempFileSectionCache), nameof(ZBackgroundTaskAsync));
+            ;?; // also delete items where the message is invalid
+
+            var lContext = pParentContext.NewRootMethod(nameof(cFileBasedSectionCache), nameof(ZBackgroundTaskAsync));
 
             try
             {
@@ -171,7 +237,8 @@ namespace work.bacome.imapclient
             catch (Exception e) when (!mBackgroundCancellationTokenSource.IsCancellationRequested && lContext.TraceException("the section cache background task is stopping due to an unexpected error", e)) { }
         }
 
-        public override string ToString() => $"{nameof(cTempFileSectionCache)}({InstanceName})";
+
+        public override string ToString() => $"{nameof(cFileBasedSectionCache)}({InstanceName})";
 
         public void Dispose()
         {
@@ -207,44 +274,6 @@ namespace work.bacome.imapclient
             }
 
             mDisposed = true;
-        }
-
-        private class cTempFileItem : cSectionCacheItem, IComparable<cTempFileItem>
-        {
-            private readonly string mFileName;
-            private int mTouchSequence;
-            private int mSnapshotTouchSequence;
-
-            public cTempFileItem(cTempFileSectionCache pCache, string pFileName) : base(pCache)
-            {
-                mFileName = pFileName;
-                mTouchSequence = Interlocked.Increment(ref mTouchSequenceSource);
-                mSnapshotTouchSequence = mTouchSequence;
-            }
-
-            protected override Stream GetReadStream(cTrace.cContext pParentContext) => new FileStream(mFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-
-            protected override void Touch(cTrace.cContext pParentContext)
-            {
-                mTouchSequence = Interlocked.Increment(ref mTouchSequenceSource);
-            }
-
-            protected override void Delete(cTrace.cContext pParentContext) => File.Delete(mFileName);
-
-            protected internal override object GetItemKey() => mFileName;
-
-            public void SnapshotTouchSequenceForSort()
-            {
-                mSnapshotTouchSequence = mTouchSequence;
-            }
-
-            public int CompareTo(cTempFileItem pOther)
-            {
-                if (pOther == null) return 1;
-                return mSnapshotTouchSequence.CompareTo(pOther.mSnapshotTouchSequence);
-            }
-
-            public override string ToString() => $"{nameof(cTempFileItem)}({mFileName},{mTouchSequence})";
         }
     }
 }

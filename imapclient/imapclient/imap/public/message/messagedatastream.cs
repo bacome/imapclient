@@ -24,7 +24,9 @@ namespace work.bacome.imapclient
 
         private iSectionCacheItemReader mSectionCacheItemReader = null;
         private cSectionCacheItemReader mReader = null;
-        private cSectionCache.cItem.cReaderWriter mReaderWriter = null;
+        private cSectionCache.cAccessor mAccessor = null;
+        private cSectionCacheItem mSectionCacheItem = null;
+        private cSectionCacheItemReaderWriter mReaderWriter = null;
 
         // background fetch task
         private CancellationTokenSource mBackgroundCancellationTokenSource = null;
@@ -295,17 +297,21 @@ namespace work.bacome.imapclient
 
             if (mSectionCacheItemReader != null) return;
 
+            var lAccessor = Client.GetSectionCacheAccessor(lContext);
+
             if (UID == null && MessageHandle.UID == null)
             {
                 var lKey = new cSectionCacheNonPersistentKey(MessageHandle, Section, Decoding);
 
-                if (Client.TryGetSectionCacheItemReader(lKey, out mReader, lContext))
+                if (lAccessor.TryGetItemReader(lKey, out mReader, lContext))
                 {
                     mSectionCacheItemReader = mReader;
                 }
                 else
                 {
-                    mReaderWriter = Client.GetSectionCacheItemReaderWriter(lContext);
+                    mSectionCacheItem = lAccessor.GetNewItem(lContext);
+                    if (mSectionCacheItem == null) throw new cUnexpectedSectionCacheActionException(lContext);
+                    mReaderWriter = mSectionCacheItem.GetReaderWriter(lContext);
                     mSectionCacheItemReader = mReaderWriter;
 
                     mBackgroundCancellationTokenSource = new CancellationTokenSource();
@@ -330,13 +336,15 @@ namespace work.bacome.imapclient
 
                 var lKey = new cSectionCachePersistentKey(lMailboxHandle, lUID, Section, Decoding);
 
-                if (Client.TryGetSectionCacheItemReader(lKey, out mReader, lContext))
+                if (lAccessor.TryGetItemReader(lKey, out mReader, lContext))
                 {
                     mSectionCacheItemReader = mReader;
                 }
                 else
                 {
-                    mReaderWriter = Client.GetSectionCacheItemReaderWriter(lContext);
+                    mSectionCacheItem = lAccessor.GetNewItem(lContext);
+                    if (mSectionCacheItem == null) throw new cUnexpectedSectionCacheActionException(lContext);
+                    mReaderWriter = mSectionCacheItem.GetReaderWriter(lContext);
                     mSectionCacheItemReader = mReaderWriter;
 
                     mBackgroundCancellationTokenSource = new CancellationTokenSource();
@@ -355,12 +363,15 @@ namespace work.bacome.imapclient
             {
                 mReaderWriter.WriteBegin(lContext);
                 await Client.FetchAsync(MessageHandle, Section, Decoding, mReaderWriter, lCancellationToken, lContext);
-                await mReaderWriter.WritingCompletedOKAsync(pKey, lCancellationToken, lContext);
+                await mReaderWriter.WritingCompletedOKAsync(lCancellationToken, lContext);
             }
             catch (Exception e)
             {
                 mReaderWriter.WritingFailed(e, lContext);
+                return;
             }
+
+            mAccessor.AddItem(pKey, mSectionCacheItem, lContext);
         }
 
         private async Task ZBackgroundFetchAsync(iMailboxHandle pMailboxHandle, cUID pUID, cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
@@ -373,12 +384,15 @@ namespace work.bacome.imapclient
             {
                 mReaderWriter.WriteBegin(lContext);
                 await Client.UIDFetchAsync(pMailboxHandle, pUID, Section, Decoding, mReaderWriter, lCancellationToken, lContext);
-                await mReaderWriter.WritingCompletedOKAsync(pKey, lCancellationToken, lContext);
+                await mReaderWriter.WritingCompletedOKAsync(lCancellationToken, lContext);
             }
             catch (Exception e)
             {
                 mReaderWriter.WritingFailed(e, lContext);
+                return;
             }
+
+            mAccessor.AddItem(pKey, mSectionCacheItem, lContext);
         }
 
         protected override void Dispose(bool pDisposing)

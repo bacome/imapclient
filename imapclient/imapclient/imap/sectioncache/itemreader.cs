@@ -19,17 +19,17 @@ namespace work.bacome.imapclient
     internal sealed class cSectionCacheItemReader : iSectionCacheItemReader, IDisposable
     {
         private bool mDisposed = false;
-        private readonly cTrace.cContext mContext;
         private readonly Stream mStream;
         private readonly Action<cTrace.cContext> mDecrementOpenStreamCount;
+        private readonly cTrace.cContext mContextToUseWhenDisposing;
         private int mCount = 1;
 
-        public cSectionCacheItemReader(Stream pStream, Action<cTrace.cContext> pDecrementOpenStreamCount, cTrace.cContext pParentContext)
+        public cSectionCacheItemReader(Stream pStream, Action<cTrace.cContext> pDecrementOpenStreamCount, cTrace.cContext pContextToUseWhenDisposing)
         {
-            mContext = pParentContext.NewObject(nameof(cSectionCacheItemReader));
             mStream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!mStream.CanRead || !mStream.CanSeek) throw new ArgumentOutOfRangeException(nameof(pStream));
             mDecrementOpenStreamCount = pDecrementOpenStreamCount ?? throw new ArgumentNullException(nameof(pDecrementOpenStreamCount));
+            mContextToUseWhenDisposing = pContextToUseWhenDisposing;
         }
 
         public Task<long> GetLengthAsync(cMethodControl pMC, cTrace.cContext pParentContext)
@@ -93,7 +93,7 @@ namespace work.bacome.imapclient
                 catch { }
             }
 
-            if (Interlocked.Decrement(ref mCount) == 0) mDecrementOpenStreamCount(mContext);
+            if (Interlocked.Decrement(ref mCount) == 0) mDecrementOpenStreamCount(mContextToUseWhenDisposing);
 
             mDisposed = true;
         }
