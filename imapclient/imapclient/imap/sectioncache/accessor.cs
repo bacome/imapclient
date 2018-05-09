@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
 
             public bool TryGetItemReader(cSectionCachePersistentKey pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext) => mCache.ZTryGetItemReader(pKey, out rReader, pParentContext);
             public bool TryGetItemReader(cSectionCacheNonPersistentKey pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext) => mCache.ZTryGetItemReader(pKey, out rReader, pParentContext);
-            public cSectionCacheItem GetNewItem(cTrace.cContext pParentContext) => mCache.GetNewItem(pParentContext);
+            public cSectionCacheItem GetNewItem(cTrace.cContext pParentContext) => mCache.ZGetNewItem(pParentContext);
             public void AddItem(cSectionCachePersistentKey pKey, cSectionCacheItem pItem, cTrace.cContext pParentContext) => mCache.ZAddItem(pKey, pItem, pParentContext);
             public void AddItem(cSectionCacheNonPersistentKey pKey, cSectionCacheItem pItem, cTrace.cContext pParentContext) => mCache.ZAddItem(pKey, pItem, pParentContext);
 

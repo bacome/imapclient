@@ -1,7 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Threading;
-using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
@@ -19,6 +17,7 @@ namespace work.bacome.imapclient
 
         private int mOpenStreamCount = 0;
         private bool mDeleted = false;
+        private bool mIndexed = false;
         private cSectionCachePersistentKey mPersistentKey = null;
         private cSectionCacheNonPersistentKey mNonPersistentKey = null;
 
@@ -37,12 +36,15 @@ namespace work.bacome.imapclient
             mCached = false;
         }
 
-        internal bool IsExistingItem => mReadWriteStream == null;
+        protected internal abstract object ItemKey { get; }
+        protected abstract Stream GetReadStream(cTrace.cContext pParentContext);
 
-        public bool Deleted => mDeleted;
+        protected internal virtual bool PersistentKeyAssigned { get => false; }
+        protected virtual void Touch(cTrace.cContext pParentContext) { }
+        protected virtual void Delete(cTrace.cContext pParentContext) { }
 
         // for use by the derived class if it notices that an item has been deleted without its knowledge
-        protected void SetDeleted(cTrace.cContext pParentContext)
+        public void SetDeleted(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(SetDeleted));
 
@@ -58,11 +60,22 @@ namespace work.bacome.imapclient
             if (lCached)
             {
                 try { Cache.ItemDeleted(this, lContext); }
-                catch { }
+                catch (Exception e) { lContext.TraceException("itemdeleted event failure", e); }
             }
         }
 
-        public cSectionCachePersistentKey PersistentKey
+        public bool Deleted => mDeleted;
+
+        internal bool Indexed => mIndexed;
+
+        internal void SetIndexed(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(SetIndexed));
+            if (mIndexed) throw new InvalidOperationException();
+            mIndexed = true;
+        }
+
+        internal cSectionCachePersistentKey PersistentKey
         {
             get
             {
@@ -72,15 +85,6 @@ namespace work.bacome.imapclient
                 return mPersistentKey;
             }
         }
-
-        protected internal abstract object ItemKey { get; }
-
-        protected internal abstract bool PersistentKeyAssigned { get; }
-
-        protected abstract Stream GetReadStream(cTrace.cContext pParentContext);
-
-        protected virtual void Touch(cTrace.cContext pParentContext) { }
-        protected virtual void Delete(cTrace.cContext pParentContext) { }
 
         internal cSectionCacheItemReaderWriter GetReaderWriter(cTrace.cContext pParentContext)
         {
@@ -118,7 +122,7 @@ namespace work.bacome.imapclient
             if (!lDeleted)
             {
                 try { Cache.ItemAdded(this, lContext); }
-                catch { }
+                catch (Exception e) { lContext.TraceException("itemadded event failure", e); }
             }
         }
 
@@ -141,7 +145,7 @@ namespace work.bacome.imapclient
             if (!lDeleted)
             {
                 try { Cache.ItemAdded(this, lContext); }
-                catch { }
+                catch (Exception e) { lContext.TraceException("itemadded event failure", e); }
             }
         }
 
@@ -174,7 +178,7 @@ namespace work.bacome.imapclient
                 }
 
                 try { Delete(lContext); }
-                catch { }
+                catch (Exception e) { lContext.TraceException("delete failure", e); }
 
                 lContext.TraceVerbose("deleted");
                 mDeleted = true;
@@ -185,7 +189,7 @@ namespace work.bacome.imapclient
             if (lCached)
             {
                 try { Cache.ItemDeleted(this, lContext); }
-                catch { }
+                catch (Exception e) { lContext.TraceException("itemdeleted event failure", e); }
             }
 
             return true;
@@ -215,12 +219,12 @@ namespace work.bacome.imapclient
                 }
                 catch (Exception e)
                 {
-                    lContext.TraceError("failed to get reader:\n{0}", e);
+                    lContext.TraceException("failed to get reader", e);
 
                     if (lStream != null)
                     {
                         try { lStream.Dispose(); }
-                        catch { }
+                        catch (Exception f) { lContext.TraceException("stream dispose failure", f); }
                     }
 
                     mDeleted = true;
@@ -252,7 +256,7 @@ namespace work.bacome.imapclient
                         Touch(lContext);
                         mChangeSequence++;
                     }
-                    catch { }
+                    catch (Exception e) { lContext.TraceException("touch failure", e); }
                 }
 
                 return true;
@@ -270,13 +274,13 @@ namespace work.bacome.imapclient
                 if (mReadWriteStream != null)
                 {
                     try { mReadWriteStream.Dispose(); }
-                    catch { }
+                    catch (Exception e) { lContext.TraceException("readwritestream dispose failure", e); }
                 }
 
-                if (!mCached || (Cache.IsClosed && (Cache.Temporary || !PersistentKeyAssigned)))
+                if (!mCached || (Cache.IsClosed && !PersistentKeyAssigned))
                 {
                     try { Delete(lContext); }
-                    catch { }
+                    catch (Exception e) { lContext.TraceException("delete failure", e); }
                     mDeleted = true;
                     return;
                 }
@@ -286,11 +290,8 @@ namespace work.bacome.imapclient
                     Touch(lContext);
                     mChangeSequence++;
                 }
-                catch { }
+                catch (Exception e) { lContext.TraceException("touch failure", e); }
             }
-
-            try { Cache.ItemClosed(lContext); }
-            catch { }
         }
     }
 }

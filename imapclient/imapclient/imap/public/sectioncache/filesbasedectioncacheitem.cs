@@ -5,14 +5,11 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-
     public class cFileBasedSectionCacheItem : cSectionCacheItem
     {
         private readonly string mFileName;
         private FileInfo mFileInfo;
         private long mAccountingLength;
-        ;?;
-        private DateTime mSnapshotLastAccessTime;
 
         protected internal cFileBasedSectionCacheItem(cSectionCache pCache, FileInfo pFileInfo) : base(pCache)
         {
@@ -21,21 +18,31 @@ namespace work.bacome.imapclient
             mAccountingLength = mFileInfo.Length;
         }
 
-        protected internal cFileBasedSectionCacheItem(cSectionCache pCache, string pFileName, Stream pReadWriteStream) : base(pCache, pReadWriteStream)
+        protected internal cFileBasedSectionCacheItem(cSectionCache pCache, Stream pReadWriteStream, string pFileName) : base(pCache, pReadWriteStream)
         {
             mFileName = pFileName;
             mFileInfo = null;
             mAccountingLength = -1;
         }
 
-        private FileInfo FileInfo
+        sealed protected internal override object ItemKey => mFileName;
+
+        sealed protected override Stream GetReadStream(cTrace.cContext pParentContext)
         {
-            get
-            {
-                if (mFileInfo == null) mFileInfo = new FileInfo(mFileName);
-                return mFileInfo;
-            }
+            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCacheItem), nameof(GetReadStream));
+            var lStream = new FileStream(mFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            if (lStream.Length == mAccountingLength) return lStream; // still a risk that it isn't the right file
+            lStream.Dispose();
+            SetDeleted(lContext);
+            return null;
         }
+
+        // persisent cache should add a flag for permanentkeyassigned
+        //  should be set on the std constructor and by itemadded
+
+        sealed protected override void Touch(cTrace.cContext pParentContext) => FileInfo.LastAccessTimeUtc = DateTime.UtcNow;
+
+        sealed protected override void Delete(cTrace.cContext pParentContext) => File.Delete(mFileName);
 
         protected internal long AccountingLength
         {
@@ -51,34 +58,21 @@ namespace work.bacome.imapclient
             }
         }
 
-        sealed protected internal override object ItemKey => mFileName;
-
-        protected internal override bool PersistentKeyAssigned => false;
-
-        sealed protected override Stream GetReadStream(cTrace.cContext pParentContext)
+        private FileInfo FileInfo
         {
-            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCacheItem), nameof(GetReadStream));
-            var lStream = new FileStream(mFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            if (lStream.Length == mAccountingLength) return lStream; // still a risk that it isn't the right file
-            lStream.Dispose();
-            SetDeleted(lContext);
-            return null;
+            get
+            {
+                if (mFileInfo == null) mFileInfo = new FileInfo(mFileName);
+                return mFileInfo;
+            }
         }
 
-        protected override void Touch(cTrace.cContext pParentContext) => FileInfo.LastAccessTimeUtc = DateTime.UtcNow;
-
-        sealed protected override void Delete(cTrace.cContext pParentContext) => File.Delete(mFileName);
-
-        internal void SnapshotLastAccessTimeForSort()
-        {
-            mSnapshotLastAccessTime = FileInfo.LastAccessTimeUtc;
-        }
-
+        /* TODO: remove
         public int CompareTo(cFileBasedSectionCacheItem pOther)
         {
             if (pOther == null) return 1;
             return mSnapshotLastAccessTime.CompareTo(pOther.mSnapshotLastAccessTime);
-        }
+        } */
 
         public override string ToString() => $"{nameof(cFileBasedSectionCacheItem)}({mFileName})";
     }

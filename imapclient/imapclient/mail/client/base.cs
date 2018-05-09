@@ -38,7 +38,7 @@ namespace work.bacome.mailclient
 
         // mechanics
         private bool mDisposed = false;
-        protected readonly string mInstanceName;
+        public readonly string InstanceName;
         protected internal readonly cCallbackSynchroniser mSynchroniser;
         protected internal readonly cTrace.cContext mRootContext;
         protected readonly cCancellationManager mCancellationManager;
@@ -51,7 +51,7 @@ namespace work.bacome.mailclient
 
         internal cMailClient(string pInstanceName, cCallbackSynchroniser pSynchroniser)
         {
-            mInstanceName = pInstanceName ?? throw new ArgumentNullException(nameof(pInstanceName));
+            InstanceName = pInstanceName ?? throw new ArgumentNullException(nameof(pInstanceName));
             mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
 
             mRootContext = Trace.NewRoot(pInstanceName);
@@ -146,11 +146,6 @@ namespace work.bacome.mailclient
             get => mSynchroniser.SynchronizationContext;
             set => mSynchroniser.SynchronizationContext = value;
         }
-
-        /// <summary>
-        /// Gets the instance name used in the tracing done by the instance.
-        /// </summary>
-        public string InstanceName => mInstanceName;
 
         /// <summary>
         /// Gets and sets the timeout for calls where no operation specific value for a timeout can be (or has been) specified.

@@ -6,16 +6,20 @@ namespace work.bacome.imapclient
 {
     internal class cSectionCacheNonPersistentKey : IEquatable<cSectionCacheNonPersistentKey>
     {
+        public readonly cIMAPClient Client;
         public readonly iMessageHandle MessageHandle;
         public readonly cSection Section;
         public readonly eDecodingRequired Decoding;
 
-        internal cSectionCacheNonPersistentKey(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding)
+        internal cSectionCacheNonPersistentKey(cIMAPClient pClient, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding)
         {
+            Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
             Decoding = pDecoding;
         }
+
+        public bool IsValid => ReferenceEquals(Client.SelectedMailboxDetails?.MessageCache, MessageHandle.MessageCache);
 
         public cAccountId AccountId => MessageHandle.MessageCache.MailboxHandle.MailboxCache.AccountId;
         public iMailboxHandle MailboxHandle => MessageHandle.MessageCache.MailboxHandle;

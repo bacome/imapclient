@@ -301,7 +301,7 @@ namespace work.bacome.imapclient
 
             if (UID == null && MessageHandle.UID == null)
             {
-                var lKey = new cSectionCacheNonPersistentKey(MessageHandle, Section, Decoding);
+                var lKey = new cSectionCacheNonPersistentKey(Client, MessageHandle, Section, Decoding);
 
                 if (lAccessor.TryGetItemReader(lKey, out mReader, lContext))
                 {
