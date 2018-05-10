@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
@@ -12,68 +11,56 @@ namespace work.bacome.imapclient
         public readonly long ByteCountBudget;
         public readonly int FileCountBudget;
 
-        private readonly Dictionary<object, cFileBasedSectionCacheItem> mAllItems = new Dictionary<object, cFileBasedSectionCacheItem>();
+        private readonly Dictionary<string, cFileBasedSectionCacheItem> mAllCachedItems = new Dictionary<string, cFileBasedSectionCacheItem>();
         private readonly Dictionary<cSectionCachePersistentKey, cFileBasedSectionCacheItem> mPersistentKeyItems = new Dictionary<cSectionCachePersistentKey, cFileBasedSectionCacheItem>();
         private readonly object mLock = new object();
 
         private long mByteCount = 0;
         private int mFileCount = 0;
 
-        public cFileBasedSectionCache(string pInstanceName, int pDelayAfterTidy, long pByteCountBudget, int pFileCountBudget) : base(pInstanceName, pDelayAfterTidy)
+        public cFileBasedSectionCache(string pInstanceName, int pMaintenanceFrequency, long pByteCountBudget, int pFileCountBudget) : base(pInstanceName, pMaintenanceFrequency)
         {
             if (pByteCountBudget < 0) throw new ArgumentOutOfRangeException(nameof(pByteCountBudget));
             if (pFileCountBudget < 0) throw new ArgumentOutOfRangeException(nameof(pFileCountBudget));
 
             FileCountBudget = pFileCountBudget;
             ByteCountBudget = pByteCountBudget;
-
-            if (pExistingItems == null)
-            {
-                mWorthTryingTrim = false;
-            }
-            else
-            {
-                foreach (var lPair in pExistingItems)
-                {
-                    if (lPair.Value == null) throw new ArgumentOutOfRangeException(nameof(pExistingItems), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
-                    var lItem = new cItem(this, lPair.Value);
-                    mPersistentKeyItems.Add(lPair.Key, lItem);
-                    mAllItems.Add(lItem.GetItemKey(), lItem);
-                    mByteCount += lItem.AccountingLength;
-                    mFileCount++;
-                }
-
-                mWorthTryingTrim = true;
-            }
         }
 
-        protected abstract string GetNewFileName(cTrace.cContext pParentContext);
+        protected abstract string YGetNewFileName(cTrace.cContext pParentContext);
 
-        sealed protected override cSectionCacheItem GetNewItem(cTrace.cContext pParentContext)
+        ;?; // and a new override
+
+        protected virtual cFileBasedSectionCacheItem GetNewItem(string pFileName, Stream pStream, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCache), nameof(GetNewItem));
+            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCache), nameof(GetNewItem), pFileName);
+            return new cFileBasedSectionCacheItem(this, pFileName, pStream);
+        }
+
+        protected virtual Dictionary<cSectionCachePersistentKey, FileInfo> GetExistingItems(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCache), nameof(GetExistingItems));
+            return new Dictionary<cSectionCachePersistentKey, FileInfo>();
+        }
+
+        sealed protected override cSectionCacheItem YGetNewItem(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCache), nameof(YGetNewItem));
 
             while (true)
             {
-                string lFileName = GetNewFileName(lContext);
+                string lFileName = YGetNewFileName(lContext);
 
                 var lStream = new FileStream(lFileName, FileMode.Truncate, FileAccess.ReadWrite, FileShare.Read);
 
-                cFileBasedSectionCacheItem lItem;
+                cFileBasedSectionCacheItem lExistingItem = null;
 
                 try
                 {
                     lock (mLock)
                     {
-                        if (mAllItems.TryGetValue(lFileName, out lItem) && !lItem.Deleted) lContext.TraceWarning("allocated an in-use file name {0}", lFileName);
-                        else
-                        {
-                            ;?;
-                            // need  a 
-                            lItem = new cFileBasedSectionCacheItem(this, lStream, lFileName);
-                            mAllItems.Add(lFileName, lItem);
-                            return lItem;
-                        }
+                        if (mAllCachedItems.TryGetValue(lFileName, out lExistingItem) && !lExistingItem.Deleted) lContext.TraceWarning("allocated an in-use file name {0}", lFileName);
+                        else return GetNewItem(lFileName, lStream, lContext);
                     }
                 }
                 catch
@@ -83,7 +70,7 @@ namespace work.bacome.imapclient
                 }
 
                 lStream.Dispose();
-                lItem.SetDeleted(lContext);
+                lExistingItem.SetDeleted(lContext);
             }
         }
 
@@ -104,45 +91,33 @@ namespace work.bacome.imapclient
             return false;
         }
 
-        // permanent cache should override this to write the key -> file mapping and mark the item as permanentkeyassigned
-        protected internal override void ItemAdded(cSectionCacheItem pItem, cTrace.cContext pParentContext)
+        protected sealed override void Reconcile(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCache), nameof(ItemAdded), pItem);
-
-            if (!(pItem is cFileBasedSectionCacheItem lNewItem)) throw new cInternalErrorException(nameof(cFileBasedSectionCache), nameof(ItemAdded));
+            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCache), nameof(Reconcile));
 
             lock (mLock)
             {
-                // if the file points to an existing item, mark that item as deleted
-                if (mAllItems.TryGetValue(lNewItem.filename, out var lExistingItem) && !lExistingItem.Deleted) lExistingItem.SetDeleted(lContext);
-
-                // store
-                mAllItems[lNewItem.Filename] = lNewItem;
-
-                // if there is an existing item representing this key, the new one now takes over
-                if (lNewItem.PersistentKey != null) mPersistentKeyItems[lNewItem.PersistentKey] = lNewItem;
+                GetExistingItems
             }
 
-            Interlocked.Add(ref mByteCount, lNewItem.AccountingLength);
-            Interlocked.Increment(ref mFileCount);
+
+            base.Reconcile(pCancellationToken, pParentContext);
         }
 
-        sealed protected internal override void ItemDeleted(cSectionCacheItem pItem, cTrace.cContext pParentContext)
+        protected override void Maintenance(Dictionary<string, cSectionCacheItemSnapshot> pSnapshots, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCache), nameof(ItemDeleted), pItem);
-
-            if (!(pItem is cFileBasedSectionCacheItem lItem)) throw new cInternalErrorException(nameof(cFileBasedSectionCache), nameof(ItemDeleted));
-
-            Interlocked.Add(ref mByteCount, -lItem.AccountingLength);
-            Interlocked.Decrement(ref mByteCount);
-        }
-
-        protected override void Tidy(Dictionary<object, cSectionCacheItemSnapshot> pSnapshots, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCache), nameof(Tidy));
+            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCache), nameof(Maintenance));
 
             if (ZOverBudget())
             {
+                foreach (var lItem in mAllItems)
+                {
+
+                }
+
+
+
+
                 List<cTempFileItem> lItems = new List<cTempFileItem>();
 
                 lock (mLock)
@@ -184,6 +159,33 @@ namespace work.bacome.imapclient
             }
         }
 
+
+
+
+
+        internal void ItemEncached(cFileBasedSectionCacheItem pItem, long pLength, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCache), nameof(ItemEncached), pItem);
+
+            lock (mLock)
+            {
+                mAllCachedItems[pItem.ItemKey] = pItem;
+                if (pItem.PersistentKey != null) mPersistentKeyItems[pItem.PersistentKey] = pItem;
+            }
+
+            Interlocked.Add(ref mByteCount, pLength);
+            Interlocked.Increment(ref mFileCount);
+        }
+
+        internal void ItemDecached(long pLength, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCache), nameof(ItemDecached), pLength);
+            Interlocked.Add(ref mByteCount, -pLength);
+            Interlocked.Decrement(ref mByteCount);
+        }
+
+
+
         protected void AddFiles(Dictionary<cSectionCachePersistentKey, FileInfo> pFiles)
         {
             lock (mLock)
@@ -218,5 +220,10 @@ namespace work.bacome.imapclient
         private bool ZOverBudget() => mFileCount > FileCountBudget || mByteCount > ByteCountBudget;
 
         public override string ToString() => $"{nameof(cFileBasedSectionCache)}({InstanceName})";
+
+        private class cSnapshot
+        {
+            public readonly c
+        }
     }
 }

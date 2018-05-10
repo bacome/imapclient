@@ -51,7 +51,6 @@
     <Compile Include="imap\public\sectioncache\filebasedsectioncache.cs" />
     <Compile Include="imap\public\sectioncache\filesbasedectioncacheitem.cs" />
     <Compile Include="imap\public\sectioncache\sectioncacheitemsnapshot.cs" />
-    <Compile Include="imap\sectioncache\accessor.cs" />
     <Compile Include="imap\sectioncache\nonpersistentkey.cs" />
     <Compile Include="imap\sectioncache\itemreaderwriter.cs" />
     <Compile Include="imap\public\sectioncache\tempfilesectioncache.cs" />

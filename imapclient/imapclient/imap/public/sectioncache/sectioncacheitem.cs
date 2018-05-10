@@ -8,9 +8,11 @@ namespace work.bacome.imapclient
     {
         private readonly object mLock = new object();
 
-        internal readonly cSectionCache Cache;
+        public readonly cSectionCache Cache;
+        public readonly string ItemKey;
         private readonly Stream mReadWriteStream;
         private bool mCached;
+        private bool mPersistentKeyAssigned;
 
         // incremented when something significant changes about the cache item that should stop it from being deleted if the change wasn't taken into account by the decision to delete
         private int mChangeSequence = 0;
@@ -21,61 +23,85 @@ namespace work.bacome.imapclient
         private cSectionCachePersistentKey mPersistentKey = null;
         private cSectionCacheNonPersistentKey mNonPersistentKey = null;
 
-        public cSectionCacheItem(cSectionCache pCache)
+        public cSectionCacheItem(cSectionCache pCache, string pItemKey)
         {
             Cache = pCache ?? throw new ArgumentNullException(nameof(pCache));
+            ItemKey = pItemKey ?? throw new ArgumentNullException(nameof(pItemKey));
             mReadWriteStream = null;
             mCached = true;
+            mPersistentKeyAssigned = true;
         }
 
-        public cSectionCacheItem(cSectionCache pCache, Stream pReadWriteStream)
+        public cSectionCacheItem(cSectionCache pCache, string pItemKey, Stream pReadWriteStream)
         {
             Cache = pCache ?? throw new ArgumentNullException(nameof(pCache));
+            ItemKey = pItemKey ?? throw new ArgumentNullException(nameof(pItemKey));
             mReadWriteStream = pReadWriteStream ?? throw new ArgumentNullException(nameof(pReadWriteStream));
             if (!pReadWriteStream.CanRead || !pReadWriteStream.CanSeek || !pReadWriteStream.CanWrite) throw new ArgumentOutOfRangeException(nameof(pReadWriteStream));
             mCached = false;
+            mPersistentKeyAssigned = false;
         }
 
-        protected internal abstract object ItemKey { get; }
-        protected abstract Stream GetReadStream(cTrace.cContext pParentContext);
+        protected abstract Stream YGetReadStream(cTrace.cContext pParentContext);
+        protected abstract void YDelete(cTrace.cContext pParentContext);
 
-        protected internal virtual bool PersistentKeyAssigned { get => false; }
-        protected virtual void Touch(cTrace.cContext pParentContext) { }
-        protected virtual void Delete(cTrace.cContext pParentContext) { }
+        protected virtual void ItemEncached(long pLength, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(ItemEncached), pLength);
+        }
 
-        // for use by the derived class if it notices that an item has been deleted without its knowledge
+        protected virtual void ItemDecached(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(ItemDecached));
+        }
+
+        // the persistent key should be set here also if it can only be set while the item is closed
+        protected virtual void Touch(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(Touch));
+        }
+
+        // called periodically and in cache closedown if the persistent key is not assigned but one is available
+        protected virtual void AssignPersistentKey(bool pItemClosed, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(AssignPersistentKey), pItemClosed);
+        }
+
+        public bool Deleted => mDeleted;
+
+        // for use by the derived classes if they delete or notice that this item has been deleted
+        //  e.g. if re-naming the file on touch the item must be deleted
         public void SetDeleted(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(SetDeleted));
-
-            bool lCached;
 
             lock (mLock)
             {
                 if (mDeleted) return;
                 mDeleted = true;
-                lCached = mCached;
-            }
 
-            if (lCached)
-            {
-                try { Cache.ItemDeleted(this, lContext); }
-                catch (Exception e) { lContext.TraceException("itemdeleted event failure", e); }
+                if (mCached)
+                {
+                    try { ItemDecached(lContext); }
+                    catch (Exception e) { lContext.TraceException("itemdecached event failure", e); }
+
+                    Cache.Changed(lContext);
+                }
             }
         }
 
-        public bool Deleted => mDeleted;
+        public bool PersistentKeyAssigned => mPersistentKeyAssigned;
 
-        internal bool Indexed => mIndexed;
-
-        internal void SetIndexed(cTrace.cContext pParentContext)
+        // for use by the derived class when it sets the persistent key
+        protected void SetPersistentKeyAssigned(cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(SetIndexed));
-            if (mIndexed) throw new InvalidOperationException();
-            mIndexed = true;
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(SetDeleted));
+            if (mPersistentKeyAssigned || !mCached) throw new InvalidOperationException();
+            mPersistentKeyAssigned = true;
+            Cache.Changed(lContext);
         }
 
-        internal cSectionCachePersistentKey PersistentKey
+        protected internal cSectionCachePersistentKey PersistentKey
         {
             get
             {
@@ -109,20 +135,19 @@ namespace work.bacome.imapclient
 
             if (pKey == null) throw new ArgumentNullException(nameof(pKey));
 
-            bool lDeleted;
-
             lock (mLock)
             {
                 if (mCached) throw new InvalidOperationException();
                 mCached = true;
                 mPersistentKey = pKey;
-                lDeleted = mDeleted;
-            }
 
-            if (!lDeleted)
-            {
-                try { Cache.ItemAdded(this, lContext); }
-                catch (Exception e) { lContext.TraceException("itemadded event failure", e); }
+                if (!mDeleted)
+                {
+                    try { ItemEncached(mReadWriteStream.Length, lContext); }
+                    catch (Exception e) { lContext.TraceException("itemcached event failure", e); }
+
+                    Cache.Changed(lContext);
+                }
             }
         }
 
@@ -132,67 +157,29 @@ namespace work.bacome.imapclient
 
             if (pKey == null) throw new ArgumentNullException(nameof(pKey));
 
-            bool lDeleted;
-
             lock (mLock)
             {
                 if (mCached) throw new InvalidOperationException();
                 mCached = true;
                 mNonPersistentKey = pKey;
-                lDeleted = mDeleted;
-            }
 
-            if (!lDeleted)
-            {
-                try { Cache.ItemAdded(this, lContext); }
-                catch (Exception e) { lContext.TraceException("itemadded event failure", e); }
+                if (!mDeleted)
+                {
+                    try { ItemEncached(mReadWriteStream.Length, lContext); }
+                    catch (Exception e) { lContext.TraceException("itemcached event failure", e); }
+
+                    Cache.Changed(lContext);
+                }
             }
         }
 
-        internal int ChangeSequence => mChangeSequence;
+        internal bool Indexed => mIndexed;
 
-        internal bool TryDelete(int pChangeSequence, cTrace.cContext pParentContext)
+        internal void SetIndexed(cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(TryDelete), pChangeSequence);
-
-            bool lCached;
-
-            lock (mLock)
-            {
-                if (mDeleted)
-                {
-                    lContext.TraceVerbose("already deleted");
-                    return true;
-                }
-
-                if (mOpenStreamCount != 0)
-                {
-                    lContext.TraceVerbose("open");
-                    return false;
-                }
-
-                if (pChangeSequence != -1 && pChangeSequence != mChangeSequence)
-                {
-                    lContext.TraceVerbose("modified");
-                    return false;
-                }
-
-                try { Delete(lContext); }
-                catch (Exception e) { lContext.TraceException("delete failure", e); }
-
-                lContext.TraceVerbose("deleted");
-                mDeleted = true;
-
-                lCached = mCached;
-            }
-
-            if (lCached)
-            {
-                try { Cache.ItemDeleted(this, lContext); }
-                catch (Exception e) { lContext.TraceException("itemdeleted event failure", e); }
-            }
-
-            return true;
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(SetIndexed));
+            if (mIndexed) throw new InvalidOperationException();
+            mIndexed = true;
         }
 
         internal bool TryGetReader(out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
@@ -214,7 +201,7 @@ namespace work.bacome.imapclient
 
                 try
                 {
-                    lStream = GetReadStream(lContext);
+                    lStream = YGetReadStream(lContext);
                     if (lStream == null || !lStream.CanRead || !lStream.CanSeek) throw new cUnexpectedSectionCacheActionException(lContext);
                 }
                 catch (Exception e)
@@ -257,11 +244,74 @@ namespace work.bacome.imapclient
                         mChangeSequence++;
                     }
                     catch (Exception e) { lContext.TraceException("touch failure", e); }
+
+                    Cache.Changed(lContext);
                 }
 
                 return true;
             }
         }
+
+        internal void TryAssignPersistentKey(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(TryAssignPersistentKey));
+
+            lock (mLock)
+            {
+                if (!mCached || mPersistentKey == null) throw new InvalidOperationException();
+
+                if (mDeleted || mPersistentKeyAssigned) return;
+                
+                try { AssignPersistentKey(mOpenStreamCount == 0, lContext); }
+                catch (Exception e) { lContext.TraceException("assignpersistentkey failure", e); }
+
+                if (mPersistentKeyAssigned) mChangeSequence++;
+            }
+        }
+
+        internal bool TryDelete(int pChangeSequence, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(TryDelete), pChangeSequence);
+
+            lock (mLock)
+            {
+                if (mDeleted)
+                {
+                    lContext.TraceVerbose("already deleted");
+                    return true;
+                }
+
+                if (mOpenStreamCount != 0)
+                {
+                    lContext.TraceVerbose("open");
+                    return false;
+                }
+
+                if (pChangeSequence != -1 && pChangeSequence != mChangeSequence)
+                {
+                    lContext.TraceVerbose("modified");
+                    return false;
+                }
+
+                try { YDelete(lContext); }
+                catch (Exception e) { lContext.TraceException("delete failure", e); }
+
+                lContext.TraceVerbose("deleted");
+                mDeleted = true;
+
+                if (mCached)
+                {
+                    try { ItemDecached(lContext); }
+                    catch (Exception e) { lContext.TraceException("itemdecached event failure", e); }
+
+                    Cache.Changed(lContext);
+                }
+            }
+
+            return true;
+        }
+
+        internal int ChangeSequence => mChangeSequence;
 
         private void ZDecrementOpenStreamCount(cTrace.cContext pParentContext)
         {
@@ -271,17 +321,29 @@ namespace work.bacome.imapclient
             {
                 if (mDeleted || --mOpenStreamCount != 0) return;
 
-                if (mReadWriteStream != null)
+                if (!mCached)
                 {
-                    try { mReadWriteStream.Dispose(); }
-                    catch (Exception e) { lContext.TraceException("readwritestream dispose failure", e); }
+                    lContext.TraceVerbose("item closed but not cached");
+
+                    try { YDelete(lContext); }
+                    catch (Exception e) { lContext.TraceException("delete failure", e); }
+
+                    lContext.TraceVerbose("deleted");
+                    mDeleted = true;
+
+                    return;
                 }
 
-                if (!mCached || (Cache.IsClosed && !PersistentKeyAssigned))
+                if (Cache.IsDisposed && !mPersistentKeyAssigned)
                 {
-                    try { Delete(lContext); }
+                    lContext.TraceVerbose("item closed but cache disposed and no persistent key");
+
+                    try { YDelete(lContext); }
                     catch (Exception e) { lContext.TraceException("delete failure", e); }
+
+                    lContext.TraceVerbose("deleted");
                     mDeleted = true;
+
                     return;
                 }
 
@@ -291,7 +353,11 @@ namespace work.bacome.imapclient
                     mChangeSequence++;
                 }
                 catch (Exception e) { lContext.TraceException("touch failure", e); }
+
+                Cache.Changed(lContext);
             }
         }
+
+        public override string ToString() => $"{nameof(cSectionCacheItem)}({Cache},{ItemKey})";
     }
 }

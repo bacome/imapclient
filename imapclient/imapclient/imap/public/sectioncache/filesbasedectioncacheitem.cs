@@ -1,79 +1,56 @@
 ﻿using System;
 using System.IO;
-using System.Threading;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
     public class cFileBasedSectionCacheItem : cSectionCacheItem
     {
-        private readonly string mFileName;
         private FileInfo mFileInfo;
-        private long mAccountingLength;
+        private long mLength;
 
-        protected internal cFileBasedSectionCacheItem(cSectionCache pCache, FileInfo pFileInfo) : base(pCache)
+        protected internal cFileBasedSectionCacheItem(cFileBasedSectionCache pCache, FileInfo pFileInfo) : base(pCache, pFileInfo.FullName)
         {
-            mFileName = pFileInfo.FullName;
             mFileInfo = pFileInfo;
-            mAccountingLength = mFileInfo.Length;
+            mLength = mFileInfo.Length;
         }
 
-        protected internal cFileBasedSectionCacheItem(cSectionCache pCache, Stream pReadWriteStream, string pFileName) : base(pCache, pReadWriteStream)
+        protected internal cFileBasedSectionCacheItem(cFileBasedSectionCache pCache, string pFileName, Stream pReadWriteStream) : base(pCache, pFileName, pReadWriteStream)
         {
-            mFileName = pFileName;
             mFileInfo = null;
-            mAccountingLength = -1;
+            mLength = -1;
         }
 
-        sealed protected internal override object ItemKey => mFileName;
-
-        sealed protected override Stream GetReadStream(cTrace.cContext pParentContext)
+        sealed protected override Stream YGetReadStream(cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCacheItem), nameof(GetReadStream));
-            var lStream = new FileStream(mFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            if (lStream.Length == mAccountingLength) return lStream; // still a risk that it isn't the right file
+            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCacheItem), nameof(YGetReadStream));
+            var lStream = new FileStream(ItemKey, FileMode.Open, FileAccess.Read, FileShare.Read);
+            if (lStream.Length == mLength) return lStream; // still a risk that it isn't the right file
             lStream.Dispose();
             SetDeleted(lContext);
             return null;
         }
 
-        // persisent cache should add a flag for permanentkeyassigned
-        //  should be set on the std constructor and by itemadded
+        // override to delete the index file as well
+        protected override void YDelete(cTrace.cContext pParentContext) => File.Delete(ItemKey);
 
-        sealed protected override void Touch(cTrace.cContext pParentContext) => FileInfo.LastAccessTimeUtc = DateTime.UtcNow;
-
-        sealed protected override void Delete(cTrace.cContext pParentContext) => File.Delete(mFileName);
-
-        protected internal long AccountingLength
+        // override to write the index file (_after_ doing this)
+        protected override void ItemEncached(long pLength, cTrace.cContext pParentContext)
         {
-            get
-            {
-                if (mAccountingLength == -1)
-                {
-                    var lAccountingLength = FileInfo.Length;
-                    Interlocked.CompareExchange(ref mAccountingLength, lAccountingLength, -1);
-                }
-
-                return mAccountingLength;
-            }
+            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCacheItem), nameof(ItemEncached));
+            mFileInfo = new FileInfo(ItemKey);
+            mLength = pLength;
+            ((cFileBasedSectionCache)Cache).ItemEncached(this, pLength, lContext);
         }
 
-        private FileInfo FileInfo
+        protected override void ItemDecached(cTrace.cContext pParentContext)
         {
-            get
-            {
-                if (mFileInfo == null) mFileInfo = new FileInfo(mFileName);
-                return mFileInfo;
-            }
+            var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCacheItem), nameof(ItemDecached));
+            ((cFileBasedSectionCache)Cache).ItemDecached(mLength, lContext);
         }
 
-        /* TODO: remove
-        public int CompareTo(cFileBasedSectionCacheItem pOther)
-        {
-            if (pOther == null) return 1;
-            return mSnapshotLastAccessTime.CompareTo(pOther.mSnapshotLastAccessTime);
-        } */
+        protected override void Touch(cTrace.cContext pParentContext) => mFileInfo.LastAccessTimeUtc = DateTime.UtcNow;
 
-        public override string ToString() => $"{nameof(cFileBasedSectionCacheItem)}({mFileName})";
+        protected internal DateTime LastAccessTimeUtc => mFileInfo.LastAccessTimeUtc;
     }
 }

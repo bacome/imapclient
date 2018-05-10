@@ -10,27 +10,26 @@ namespace work.bacome.imapclient
     public abstract partial class cSectionCache : IDisposable
     {
         private bool mDisposed = false;
+        private bool mDisposing = false;
         public readonly string InstanceName;
-        public readonly int DelayAfterTidy;
+        public readonly int MaintenanceFrequency;
         protected readonly cTrace.cContext mRootContext;
         private readonly object mLock = new object();
         private Dictionary<cSectionCachePersistentKey, cSectionCacheItem> mPersistentKeyItems;
         private Dictionary<cSectionCacheNonPersistentKey, cSectionCacheItem> mNonPersistentKeyItems;
-        private int mOpenAccessorCount = 0;
+        private int mChangeSequence = 0;
 
         private readonly CancellationTokenSource mBackgroundCancellationTokenSource = new CancellationTokenSource();
-        private readonly cReleaser mBackgroundReleaser;
         private readonly Task mBackgroundTask = null;
 
-        protected cSectionCache(string pInstanceName, int pDelayAfterTidy)
+        protected cSectionCache(string pInstanceName, int pMaintenanceFrequency)
         {
             InstanceName = pInstanceName ?? throw new ArgumentNullException(nameof(pInstanceName));
-            if (pDelayAfterTidy < 0) throw new ArgumentOutOfRangeException(nameof(pDelayAfterTidy));
-            DelayAfterTidy = pDelayAfterTidy;
+            if (MaintenanceFrequency < 1) throw new ArgumentOutOfRangeException(nameof(pMaintenanceFrequency));
+            MaintenanceFrequency = pMaintenanceFrequency;
             mRootContext = cMailClient.Trace.NewRoot(pInstanceName);
             mPersistentKeyItems = new Dictionary<cSectionCachePersistentKey, cSectionCacheItem>();
             mNonPersistentKeyItems = new Dictionary<cSectionCacheNonPersistentKey, cSectionCacheItem>();
-            mBackgroundReleaser = new cReleaser(pInstanceName, mBackgroundCancellationTokenSource.Token);
             mBackgroundTask = ZBackgroundTaskAsync(mBackgroundCancellationTokenSource.Token, mRootContext);
         }
 
@@ -42,10 +41,9 @@ namespace work.bacome.imapclient
         //    if the item doesn't have a pk and the npk is no longer valid
         //  OR itemadded will be called
         //
-        protected abstract cSectionCacheItem GetNewItem(cTrace.cContext pParentContext);
+        protected abstract cSectionCacheItem YGetNewItem(cTrace.cContext pParentContext);
 
         // asks the cache if it has an item for the key
-        //  WILL be called inside the lock
         //  DO NOT call directly (use the other TryGetExistingItem)
         //
         protected virtual bool TryGetExistingItem(cSectionCachePersistentKey pKey, out cSectionCacheItem rItem, cTrace.cContext pParentContext)
@@ -55,17 +53,12 @@ namespace work.bacome.imapclient
             return false;
         }
 
-        // lets the cache know that a new item has been written
-        //  allows the cache to increase the number of files in use and the total size of the cache
-        //  NOTE that when this is called the item being added could be either still open or be closed
-        //  WILL be called inside the lock 
+        // reconcile the actually cached items with the sectioncacheitems modifying the cacheitems as required
         //
-        protected internal virtual void ItemAdded(cSectionCacheItem pItem, cTrace.cContext pParentContext) { }
-
-        // lets the cache know that a cached item has been deleted
-        //  allows the cache to decrease the number of files in use and the total size of the cache
-        //
-        protected internal virtual void ItemDeleted(cSectionCacheItem pItem, cTrace.cContext pParentContext) { }
+        protected virtual void Reconcile(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(Reconcile));
+        }
 
         // to trim the cache if it is required
         //  if the cache is over budget
@@ -77,17 +70,12 @@ namespace work.bacome.imapclient
         //    call snapshot.trydelete [won't delete the item if it has been touched since the snapshot]
         //    [if the item is deleted expect itemdeleted to be called]
         //
-        protected virtual void Tidy(Dictionary<object, cSectionCacheItemSnapshot> pSnapshots, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        protected virtual void Maintenance(Dictionary<string, cSectionCacheItemSnapshot> pSnapshots, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(Tidy));
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(Maintenance));
         }
 
-        protected void TriggerTidy(cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TriggerTidy));
-            if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
-            mBackgroundReleaser.Release(lContext);
-        }
+        public bool IsDisposed => mDisposed || mDisposing;
 
         // for use in tidy
         //
@@ -103,28 +91,15 @@ namespace work.bacome.imapclient
             return null;
         }
 
-        internal bool IsClosed => mOpenAccessorCount == 0;
-
-        internal cAccessor GetAccessor(cTrace.cContext pParentContext)
+        internal void Changed(cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetAccessor));
-
-            if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
-
-            cAccessor lAccessor;
-
-            lock (mLock)
-            {
-                lAccessor = new cAccessor(this, ZDecrementOpenAccessorCount, lContext);
-                mOpenAccessorCount++;
-            }
-
-            return lAccessor;
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(Changed));
+            Interlocked.Increment(ref mChangeSequence);
         }
 
-        private bool ZTryGetItemReader(cSectionCachePersistentKey pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
+        internal bool TryGetItemReader(cSectionCachePersistentKey pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZTryGetItemReader), pKey);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemReader), pKey);
 
             if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
 
@@ -137,9 +112,9 @@ namespace work.bacome.imapclient
             return false;
         }
 
-        private bool ZTryGetItemReader(cSectionCacheNonPersistentKey pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
+        internal bool TryGetItemReader(cSectionCacheNonPersistentKey pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZTryGetItemReader), pKey);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemReader), pKey);
 
             if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
 
@@ -152,11 +127,16 @@ namespace work.bacome.imapclient
             return false;
         }
 
-        private cSectionCacheItem ZGetNewItem(cTrace.cContext pParentContext)
+        internal cSectionCacheItem GetNewItem(cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZGetNewItem));
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetNewItem));
+
             if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
-            return GetNewItem(lContext);
+
+            lock (mLock)
+            {
+                return YGetNewItem(lContext);
+            }
         }
 
         private void ZAddItem(cSectionCachePersistentKey pKey, cSectionCacheItem pItem, cTrace.cContext pParentContext)
@@ -186,8 +166,6 @@ namespace work.bacome.imapclient
                 mPersistentKeyItems[pKey] = pItem;
                 pItem.SetCached(pKey, lContext);
             }
-
-            mBackgroundReleaser.Release(lContext);
         }
 
         private void ZAddItem(cSectionCacheNonPersistentKey pKey, cSectionCacheItem pItem, cTrace.cContext pParentContext)
@@ -216,27 +194,6 @@ namespace work.bacome.imapclient
 
                 mNonPersistentKeyItems[pKey] = pItem;
                 pItem.SetCached(pKey, lContext);
-            }
-
-            mBackgroundReleaser.Release(lContext);
-        }
-
-        // called by accessor when it is disposed
-        private void ZDecrementOpenAccessorCount(cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(ZDecrementOpenAccessorCount));
-
-            lock (mLock)
-            {
-                if (--mOpenAccessorCount != 0) return;
-
-                var lPersistentKeyItems = new Dictionary<cSectionCachePersistentKey, cSectionCacheItem>();
-                foreach (var lPair in mPersistentKeyItems) if (!lPair.Value.Deleted && !lPair.Value.PersistentKeyAssigned && !lPair.Value.TryDelete(-1, lContext)) lPersistentKeyItems.Add(lPair.Key, lPair.Value);
-                mPersistentKeyItems = lPersistentKeyItems;
-
-                var lNonPersistentKeyItems = new Dictionary<cSectionCacheNonPersistentKey, cSectionCacheItem>();
-                foreach (var lPair in mNonPersistentKeyItems) if (!lPair.Value.Deleted && !lPair.Value.PersistentKeyAssigned && !lPair.Value.TryDelete(-1, lContext)) lNonPersistentKeyItems.Add(lPair.Key, lPair.Value);
-                mNonPersistentKeyItems = lNonPersistentKeyItems;
             }
         }
 
@@ -276,101 +233,159 @@ namespace work.bacome.imapclient
             return false;
         }
 
-        private async Task ZBackgroundTaskAsync( CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        private async Task ZBackgroundTaskAsync(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewRootMethod(nameof(cSectionCache), nameof(ZBackgroundTaskAsync));
+
+            var lLastChangeSequence = mChangeSequence;
 
             try
             {
                 while (true)
                 {
-                    lContext.TraceVerbose("waiting for release");
-                    await mBackgroundReleaser.GetAwaitReleaseTask(lContext).ConfigureAwait(false);
-
-                    mBackgroundReleaser.Reset(lContext);
-
-                    var lSnapshots = new Dictionary<object, cSectionCacheItemSnapshot>();
-                    var lToDeletes = new List<cSectionCacheItemSnapshot>();
-
                     lock (mLock)
                     {
-                        foreach (var lPair in mPersistentKeyItems)
+                        try { Reconcile(pCancellationToken, lContext); }
+                        catch (Exception e)
                         {
-                            var lItem = lPair.Value;
-
-                            if (!lItem.Deleted)
-                            {
-                                var lSnapshot = new cSectionCacheItemSnapshot(lItem, false); // must be done before getting the key
-                                lSnapshots.Add(lItem.ItemKey, lSnapshot); 
-                            }
-                        }
-
-                        foreach (var lPair in mNonPersistentKeyItems)
-                        {
-                            var lItem = lPair.Value;
-
-                            if (!lItem.Deleted && !lItem.Indexed)
-                            {
-                                var lSnapshot = new cSectionCacheItemSnapshot(lItem, false); // must be done before getting the key
-                                lSnapshots.Add(lItem.ItemKey, lSnapshot); 
-
-                                if (lItem.PersistentKey == null)
-                                {
-                                    if (!lPair.Key.IsValid)
-                                    {
-                                        lContext.TraceVerbose("found invalid item: {0}", lItem);
-                                        lToDeletes.Add(lSnapshot);
-                                    }
-                                }
-                                else
-                                {
-                                    // try indexing it
-                                    if (ZTryGetExistingItem(lItem.PersistentKey, false, out var lExistingItem, lContext))
-                                    {
-                                        if (lExistingItem.TryTouch(lContext))
-                                        {
-                                            lContext.TraceVerbose("found duplicate un-indexed item: {0}", lItem);
-                                            lToDeletes.Add(lSnapshot);
-                                        }
-                                        else
-                                        {
-                                            lContext.TraceVerbose("indexing item: {0}", lItem);
-                                            mPersistentKeyItems[lItem.PersistentKey] = lItem;
-                                            lItem.SetIndexed(lContext);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        lContext.TraceVerbose("indexing item: {0}", lItem);
-                                        mPersistentKeyItems[lItem.PersistentKey] = lItem;
-                                        lItem.SetIndexed(lContext);
-                                    }
-
-                                    if (pCancellationToken.IsCancellationRequested) return;
-                                }
-                            }
+                            ;?;
                         }
                     }
 
-                    if (pCancellationToken.IsCancellationRequested) return;
-
-                    foreach (var lSnapshot in lToDeletes)
+                    if (mChangeSequence != lLastChangeSequence)
                     {
-                        lSnapshot.TryDelete(lContext);
-                        if (pCancellationToken.IsCancellationRequested) return;
+                        lLastChangeSequence = mChangeSequence;
+                        ZMaintenance(pCancellationToken, lContext);
                     }
 
-                    Tidy(lSnapshots, pCancellationToken, lContext);
-
-                    if (DelayAfterTidy > 0)
-                    {
-                        lContext.TraceVerbose("waiting: {0}", DelayAfterTidy);
-                        await Task.Delay(DelayAfterTidy, pCancellationToken).ConfigureAwait(false);
-                    }
+                    lContext.TraceVerbose("waiting: {0}", MaintenanceFrequency);
+                    await Task.Delay(MaintenanceFrequency, pCancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception e) when (!pCancellationToken.IsCancellationRequested && lContext.TraceException("the background task is stopping due to an unexpected error", e)) { }
         }
+
+        private void ZMaintenance(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewRootMethod(nameof(cSectionCache), nameof(ZMaintenance));
+
+            // delete duplicates and invalids, index items that can be, tidy up the npk array
+
+            var lToDelete = new List<cSectionCacheItem>();
+
+            lock (mLock)
+            {
+                var lNonPersistentKeyItems = new Dictionary<cSectionCacheNonPersistentKey, cSectionCacheItem>();
+
+                foreach (var lPair in mNonPersistentKeyItems)
+                {
+                    var lItem = lPair.Value;
+
+                    if (lItem.Deleted || lItem.Indexed) continue;
+
+                    if (lItem.PersistentKey == null)
+                    {
+                        lNonPersistentKeyItems.Add(lPair.Key, lItem);
+
+                        if (mDisposing)
+                        {
+                            lContext.TraceVerbose("found item with no peristent key while disposing: {0}", lItem);
+                            lToDelete.Add(lItem);
+                        }
+                        else if (!lPair.Key.IsValid)
+                        {
+                            lContext.TraceVerbose("found item with invalid key: {0}", lItem);
+                            lToDelete.Add(lItem);
+                        }
+
+                        continue;
+                    }
+
+                    if (ZTryGetExistingItem(lItem.PersistentKey, false, out var lExistingItem, lContext))
+                    {
+                        var lTouched = lExistingItem.TryTouch(lContext);
+
+                        if (pCancellationToken.IsCancellationRequested) return;
+
+                        if (lTouched)
+                        {
+                            lNonPersistentKeyItems.Add(lPair.Key, lItem);
+                            lContext.TraceVerbose("found duplicate item: {0}", lItem);
+                            lToDelete.Add(lItem);
+                            continue;
+                        }
+                    }
+
+                    lContext.TraceVerbose("indexing item: {0}", lItem);
+                    mPersistentKeyItems[lItem.PersistentKey] = lItem;
+                    lItem.SetIndexed(lContext);
+                }
+
+                mNonPersistentKeyItems = lNonPersistentKeyItems;
+            }
+
+            if (pCancellationToken.IsCancellationRequested) return;
+
+            foreach (var lItem in lToDelete)
+            {
+                ;?; // the reconcile could then add it back?
+                lItem.TryDelete(-1, lContext);
+                if (pCancellationToken.IsCancellationRequested) return;
+            }
+
+            // assign pk loop, tidy up the pk array
+
+            var lToAssignPersistentKey = new List<cSectionCacheItem>();
+
+            lock (mLock)
+            {
+                var lPersistentKeyItems = new Dictionary<cSectionCachePersistentKey, cSectionCacheItem>();
+
+                foreach (var lPair in mPersistentKeyItems)
+                {
+                    var lItem = lPair.Value;
+                    if (lItem.Deleted) continue;
+                    lPersistentKeyItems.Add(lPair.Key, lItem);
+                    if (!lItem.PersistentKeyAssigned) lToAssignPersistentKey.Add(lItem);
+                }
+
+                mPersistentKeyItems = lPersistentKeyItems;
+            }
+
+            if (pCancellationToken.IsCancellationRequested) return;
+
+            foreach (var lItem in lToAssignPersistentKey)
+            {
+                lItem.TryAssignPersistentKey(lContext);
+                if (!lItem.PersistentKeyAssigned && mDisposing) lItem.TryDelete(-1, lContext);
+                if (pCancellationToken.IsCancellationRequested) return;
+            }
+
+            // generate snapshot for cache maintenance
+
+            var lSnapshots = new Dictionary<string, cSectionCacheItemSnapshot>();
+
+            lock (mLock)
+            {
+                foreach (var lPair in mPersistentKeyItems)
+                {
+                    var lItem = lPair.Value;
+                    if (!lItem.Deleted) lSnapshots.Add(lItem.ItemKey, new cSectionCacheItemSnapshot(lItem, false)); 
+                }
+
+                foreach (var lPair in mNonPersistentKeyItems)
+                {
+                    var lItem = lPair.Value;
+                    if (!lItem.Deleted && !lItem.Indexed) lSnapshots.Add(lItem.ItemKey, new cSectionCacheItemSnapshot(lItem, false));
+                }
+            }
+
+            if (pCancellationToken.IsCancellationRequested) return;
+
+            Maintenance(lSnapshots, pCancellationToken, lContext);
+        }
+
+        public override string ToString() => $"{nameof(cSectionCache)}({InstanceName})";
 
         public void Dispose()
         {
@@ -384,13 +399,14 @@ namespace work.bacome.imapclient
 
             if (pDisposing)
             {
+                mDisposing = true;
+
                 if (mBackgroundCancellationTokenSource != null && !mBackgroundCancellationTokenSource.IsCancellationRequested)
                 {
                     try { mBackgroundCancellationTokenSource.Cancel(); }
                     catch { }
                 }
 
-                // must dispose first as the background task uses the other objects to be disposed
                 if (mBackgroundTask != null)
                 {
                     // wait for the task to exit before disposing it
@@ -401,17 +417,19 @@ namespace work.bacome.imapclient
                     catch { }
                 }
 
-                if (mBackgroundReleaser != null)
-                {
-                    try { mBackgroundReleaser.Dispose(); }
-                    catch { }
-                }
-
                 if (mBackgroundCancellationTokenSource != null)
                 {
                     try { mBackgroundCancellationTokenSource.Dispose(); }
                     catch { }
                 }
+
+                try
+                {
+                    var lContext = mRootContext.NewMethod(nameof(cSectionCache), nameof(Dispose));
+                    try { ZMaintenance(CancellationToken.None, lContext); }
+                    catch (Exception e) { lContext.TraceException(e); }
+                }
+                catch { }
             }
 
             mDisposed = true;
