@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using work.bacome.mailclient.support;
@@ -11,12 +11,8 @@ namespace work.bacome.imapclient
         public readonly long ByteCountBudget;
         public readonly int FileCountBudget;
 
-        private readonly Dictionary<string, cFileBasedSectionCacheItem> mAllCachedItems = new Dictionary<string, cFileBasedSectionCacheItem>();
-        private readonly Dictionary<cSectionCachePersistentKey, cFileBasedSectionCacheItem> mPersistentKeyItems = new Dictionary<cSectionCachePersistentKey, cFileBasedSectionCacheItem>();
-        private readonly object mLock = new object();
-
-        private long mByteCount = 0;
-        private int mFileCount = 0;
+        private readonly ConcurrentDictionary<string, cFileBasedSectionCacheItem> mNewItems = new ConcurrentDictionary<string, cFileBasedSectionCacheItem>();
+        private readonly ConcurrentDictionary<cSectionCachePersistentKey, cFileBasedSectionCacheItem> mPersistentKeyAssignedItems = new ConcurrentDictionary<cSectionCachePersistentKey, cFileBasedSectionCacheItem>();
 
         public cFileBasedSectionCache(string pInstanceName, int pMaintenanceFrequency, long pByteCountBudget, int pFileCountBudget) : base(pInstanceName, pMaintenanceFrequency)
         {
@@ -50,6 +46,10 @@ namespace work.bacome.imapclient
             while (true)
             {
                 string lFileName = YGetNewFileName(lContext);
+
+                // note that if the cache is running short on space and files are all in use, and you are unlucky that a trim is running, this may fail => do it in a loop
+                //  OR: 
+                ;?;
 
                 var lStream = new FileStream(lFileName, FileMode.Truncate, FileAccess.ReadWrite, FileShare.Read);
 
@@ -170,7 +170,7 @@ namespace work.bacome.imapclient
             lock (mLock)
             {
                 mAllCachedItems[pItem.ItemKey] = pItem;
-                if (pItem.PersistentKey != null) mPersistentKeyItems[pItem.PersistentKey] = pItem;
+                if (pItem.PersistentKey != null) mPersistentKeyItems[pItem.PersistentKey] = pItem;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< // NO: this isn't pkasgiedn
             }
 
             Interlocked.Add(ref mByteCount, pLength);

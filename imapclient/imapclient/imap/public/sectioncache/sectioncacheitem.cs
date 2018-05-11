@@ -1,15 +1,19 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
     public abstract class cSectionCacheItem
     {
+        private static int mItemSequenceSource = 7;
+
         private readonly object mLock = new object();
 
         public readonly cSectionCache Cache;
         public readonly string ItemKey;
+        public readonly int ItemSequence;
         private readonly Stream mReadWriteStream;
         private bool mCached;
         private bool mPersistentKeyAssigned;
@@ -27,6 +31,7 @@ namespace work.bacome.imapclient
         {
             Cache = pCache ?? throw new ArgumentNullException(nameof(pCache));
             ItemKey = pItemKey ?? throw new ArgumentNullException(nameof(pItemKey));
+            ItemSequence = Interlocked.Increment(ref mItemSequenceSource);
             mReadWriteStream = null;
             mCached = true;
             mPersistentKeyAssigned = true;
@@ -36,6 +41,7 @@ namespace work.bacome.imapclient
         {
             Cache = pCache ?? throw new ArgumentNullException(nameof(pCache));
             ItemKey = pItemKey ?? throw new ArgumentNullException(nameof(pItemKey));
+            ItemSequence = Interlocked.Increment(ref mItemSequenceSource);
             mReadWriteStream = pReadWriteStream ?? throw new ArgumentNullException(nameof(pReadWriteStream));
             if (!pReadWriteStream.CanRead || !pReadWriteStream.CanSeek || !pReadWriteStream.CanWrite) throw new ArgumentOutOfRangeException(nameof(pReadWriteStream));
             mCached = false;
@@ -45,17 +51,19 @@ namespace work.bacome.imapclient
         protected abstract Stream YGetReadStream(cTrace.cContext pParentContext);
         protected abstract void YDelete(cTrace.cContext pParentContext);
 
+        // the persistent key should be set here if it can be set while the item is open
         protected virtual void ItemEncached(long pLength, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(ItemEncached), pLength);
         }
 
+        ;?; // might not be required
         protected virtual void ItemDecached(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(ItemDecached));
         }
 
-        // the persistent key should be set here also if it can only be set while the item is closed
+        // the persistent key should be set here if it can only be set while the item is closed
         protected virtual void Touch(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(Touch));
@@ -69,23 +77,31 @@ namespace work.bacome.imapclient
 
         public bool Deleted => mDeleted;
 
-        // for use by the derived classes if they delete or notice that this item has been deleted
-        //  e.g. if re-naming the file on touch the item must be deleted
-        public void SetDeleted(cTrace.cContext pParentContext)
+        // for use by the derived classes if they delete (probably by renaming) or notice that this item has been deleted
+        public void SetDeleted(int pChangeSequence, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(SetDeleted));
 
             lock (mLock)
             {
-                if (mDeleted) return;
+                if (mDeleted)
+                {
+                    lContext.TraceVerbose("already deleted");
+                    return;
+                }
+
+                if (pChangeSequence != -1 && pChangeSequence != mChangeSequence)
+                {
+                    lContext.TraceVerbose("modified");
+                    return;
+                }
+
                 mDeleted = true;
 
                 if (mCached)
                 {
                     try { ItemDecached(lContext); }
                     catch (Exception e) { lContext.TraceException("itemdecached event failure", e); }
-
-                    Cache.Changed(lContext);
                 }
             }
         }
@@ -96,9 +112,9 @@ namespace work.bacome.imapclient
         protected void SetPersistentKeyAssigned(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(SetDeleted));
-            if (mPersistentKeyAssigned || !mCached) throw new InvalidOperationException();
+            if (!mCached) throw new InvalidOperationException();
+            if (mPersistentKeyAssigned) return;
             mPersistentKeyAssigned = true;
-            Cache.Changed(lContext);
         }
 
         protected internal cSectionCachePersistentKey PersistentKey
@@ -138,6 +154,7 @@ namespace work.bacome.imapclient
             lock (mLock)
             {
                 if (mCached) throw new InvalidOperationException();
+
                 mCached = true;
                 mPersistentKey = pKey;
 
@@ -145,8 +162,6 @@ namespace work.bacome.imapclient
                 {
                     try { ItemEncached(mReadWriteStream.Length, lContext); }
                     catch (Exception e) { lContext.TraceException("itemcached event failure", e); }
-
-                    Cache.Changed(lContext);
                 }
             }
         }
@@ -160,6 +175,7 @@ namespace work.bacome.imapclient
             lock (mLock)
             {
                 if (mCached) throw new InvalidOperationException();
+
                 mCached = true;
                 mNonPersistentKey = pKey;
 
@@ -167,8 +183,6 @@ namespace work.bacome.imapclient
                 {
                     try { ItemEncached(mReadWriteStream.Length, lContext); }
                     catch (Exception e) { lContext.TraceException("itemcached event failure", e); }
-
-                    Cache.Changed(lContext);
                 }
             }
         }
@@ -178,7 +192,6 @@ namespace work.bacome.imapclient
         internal void SetIndexed(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(SetIndexed));
-            if (mIndexed) throw new InvalidOperationException();
             mIndexed = true;
         }
 
@@ -202,6 +215,7 @@ namespace work.bacome.imapclient
                 try
                 {
                     lStream = YGetReadStream(lContext);
+                    ;?; // handle null specially
                     if (lStream == null || !lStream.CanRead || !lStream.CanSeek) throw new cUnexpectedSectionCacheActionException(lContext);
                 }
                 catch (Exception e)
@@ -215,6 +229,10 @@ namespace work.bacome.imapclient
                     }
 
                     mDeleted = true;
+
+                    try { ItemDecached(lContext); }
+                    catch (Exception e2) { lContext.TraceException("itemdecached event failure", e2); }
+
                     rReader = null;
                     return false;
                 }
@@ -244,8 +262,6 @@ namespace work.bacome.imapclient
                         mChangeSequence++;
                     }
                     catch (Exception e) { lContext.TraceException("touch failure", e); }
-
-                    Cache.Changed(lContext);
                 }
 
                 return true;
@@ -303,8 +319,6 @@ namespace work.bacome.imapclient
                 {
                     try { ItemDecached(lContext); }
                     catch (Exception e) { lContext.TraceException("itemdecached event failure", e); }
-
-                    Cache.Changed(lContext);
                 }
             }
 
@@ -353,11 +367,9 @@ namespace work.bacome.imapclient
                     mChangeSequence++;
                 }
                 catch (Exception e) { lContext.TraceException("touch failure", e); }
-
-                Cache.Changed(lContext);
             }
         }
 
-        public override string ToString() => $"{nameof(cSectionCacheItem)}({Cache},{ItemKey})";
+        public override string ToString() => $"{nameof(cSectionCacheItem)}({Cache},{ItemKey},{ItemSequence})";
     }
 }

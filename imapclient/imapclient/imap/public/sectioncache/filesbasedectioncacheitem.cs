@@ -26,6 +26,7 @@ namespace work.bacome.imapclient
             var lContext = pParentContext.NewMethod(nameof(cFileBasedSectionCacheItem), nameof(YGetReadStream));
             var lStream = new FileStream(ItemKey, FileMode.Open, FileAccess.Read, FileShare.Read);
             if (lStream.Length == mLength) return lStream; // still a risk that it isn't the right file
+            ;?; // check the datetime also
             lStream.Dispose();
             SetDeleted(lContext);
             return null;
