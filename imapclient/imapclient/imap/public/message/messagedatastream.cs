@@ -24,7 +24,6 @@ namespace work.bacome.imapclient
 
         private iSectionCacheItemReader mSectionCacheItemReader = null;
         private cSectionCacheItemReader mReader = null;
-        private cSectionCache.cAccessor mAccessor = null;
         private cSectionCacheItem mSectionCacheItem = null;
         private cSectionCacheItemReaderWriter mReaderWriter = null;
 
@@ -297,20 +296,19 @@ namespace work.bacome.imapclient
 
             if (mSectionCacheItemReader != null) return;
 
-            var lAccessor = Client.GetSectionCacheAccessor(lContext);
+            var lSectionCache = Client.SectionCache;
 
             if (UID == null && MessageHandle.UID == null)
             {
                 var lKey = new cSectionCacheNonPersistentKey(Client, MessageHandle, Section, Decoding);
 
-                if (lAccessor.TryGetItemReader(lKey, out mReader, lContext))
+                if (lSectionCache.TryGetItemReader(lKey, out mReader, lContext))
                 {
                     mSectionCacheItemReader = mReader;
                 }
                 else
                 {
-                    mSectionCacheItem = lAccessor.GetNewItem(lContext);
-                    if (mSectionCacheItem == null) throw new cUnexpectedSectionCacheActionException(lContext);
+                    mSectionCacheItem = lSectionCache.GetNewItem(lContext);
                     mReaderWriter = mSectionCacheItem.GetReaderWriter(lContext);
                     mSectionCacheItemReader = mReaderWriter;
 
@@ -336,14 +334,13 @@ namespace work.bacome.imapclient
 
                 var lKey = new cSectionCachePersistentKey(lMailboxHandle, lUID, Section, Decoding);
 
-                if (lAccessor.TryGetItemReader(lKey, out mReader, lContext))
+                if (lSectionCache.TryGetItemReader(lKey, out mReader, lContext))
                 {
                     mSectionCacheItemReader = mReader;
                 }
                 else
                 {
-                    mSectionCacheItem = lAccessor.GetNewItem(lContext);
-                    if (mSectionCacheItem == null) throw new cUnexpectedSectionCacheActionException(lContext);
+                    mSectionCacheItem = lSectionCache.GetNewItem(lContext);
                     mReaderWriter = mSectionCacheItem.GetReaderWriter(lContext);
                     mSectionCacheItemReader = mReaderWriter;
 
@@ -363,7 +360,7 @@ namespace work.bacome.imapclient
             {
                 mReaderWriter.WriteBegin(lContext);
                 await Client.FetchAsync(MessageHandle, Section, Decoding, mReaderWriter, lCancellationToken, lContext);
-                await mReaderWriter.WritingCompletedOKAsync(lCancellationToken, lContext);
+                await mReaderWriter.WritingCompletedOKAsync(pKey, lCancellationToken, lContext);
             }
             catch (Exception e)
             {
@@ -384,7 +381,7 @@ namespace work.bacome.imapclient
             {
                 mReaderWriter.WriteBegin(lContext);
                 await Client.UIDFetchAsync(pMailboxHandle, pUID, Section, Decoding, mReaderWriter, lCancellationToken, lContext);
-                await mReaderWriter.WritingCompletedOKAsync(lCancellationToken, lContext);
+                await mReaderWriter.WritingCompletedOKAsync(pKey, lCancellationToken, lContext);
             }
             catch (Exception e)
             {

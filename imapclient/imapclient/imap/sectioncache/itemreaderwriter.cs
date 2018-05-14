@@ -36,7 +36,7 @@ namespace work.bacome.imapclient
         internal cSectionCacheItemReaderWriter(Stream pStream, Action<cTrace.cContext> pDecrementOpenStreamCount, cTrace.cContext pContextToUseWhenDisposing)
         {
             mStream = pStream ?? throw new ArgumentNullException(nameof(pStream));
-            if (!mStream.CanRead || !mStream.CanSeek || !mStream.CanWrite) throw new ArgumentOutOfRangeException(nameof(pStream));
+            if (!mStream.CanRead || !mStream.CanSeek || !mStream.CanWrite || mStream.Position != 0) throw new ArgumentOutOfRangeException(nameof(pStream));
             mDecrementOpenStreamCount = pDecrementOpenStreamCount ?? throw new ArgumentNullException(nameof(pDecrementOpenStreamCount));
             mContextToUseWhenDisposing = pContextToUseWhenDisposing;
             mReleaser = new cReleaser(nameof(cSectionCacheItemReaderWriter), mCancellationTokenSource.Token);
@@ -195,6 +195,7 @@ namespace work.bacome.imapclient
             var lContext = pParentContext.NewMethod(nameof(cSectionCacheItemReaderWriter), nameof(WriteBegin));
             if (mDisposed) throw new ObjectDisposedException(nameof(cSectionCacheItemReaderWriter));
             if (mWritingState != eWritingState.notstarted) throw new InvalidOperationException();
+            if (mStream.Position != 0) throw new cUnexpectedSectionCacheActionException(lContext);
             mWritingState = eWritingState.inprogress;
         }
 

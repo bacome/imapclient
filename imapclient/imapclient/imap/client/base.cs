@@ -82,6 +82,9 @@ namespace work.bacome.imapclient
         //    or there are errors (like duplicate headers)
         //   so at this stage the MDNSent features are commented out as they aren't useful by themselves
 
+        private static cSectionCache mDefaultSectionCache = new cTempFileSectionCache("cIMAPClient.DefaultSectionCache", 60000, 100000000, 1000, 2);
+        public static cSectionCache GlobalSectionCache { get; set; } = null;
+
         // mechanics
         private readonly cIMAPCallbackSynchroniser mIMAPSynchroniser;
 
@@ -92,6 +95,7 @@ namespace work.bacome.imapclient
         private bool mMailboxReferrals = false;
         private fMailboxCacheDataItems mMailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.uidnext | fMailboxCacheDataItems.uidvalidity | fMailboxCacheDataItems.unseencount;
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
+        private cSectionCache mSectionCache = null;
         private cBatchSizerConfiguration mFetchCacheItemsConfiguration = new cBatchSizerConfiguration(1, 1000, 10000, 1);
         private cBatchSizerConfiguration mFetchBodyConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cBatchSizerConfiguration mAppendBatchConfiguration = new cBatchSizerConfiguration(1000, int.MaxValue, 10000, 1000);
@@ -363,6 +367,12 @@ namespace work.bacome.imapclient
             }
         }
 
+        public cSectionCache SectionCache
+        {
+            get => mSectionCache ?? GlobalSectionCache ?? mDefaultSectionCache;
+            set => mSectionCache = value;
+        }
+
         /// <summary>
         /// Gets and sets the fetch-cache-items batch-size configuration. You might want to limit this to increase the speed with which you can cancel the fetch.
         /// </summary>
@@ -567,7 +577,7 @@ namespace work.bacome.imapclient
         internal iSelectedMailboxDetails SelectedMailboxDetails => mSession?.SelectedMailboxDetails;
         internal bool? HasCachedChildren(iMailboxHandle pMailboxHandle) => mSession?.HasCachedChildren(pMailboxHandle);
 
-        public override string ToString() => $"{nameof(cIMAPClient)}({mInstanceName})";
+        public override string ToString() => $"{nameof(cIMAPClient)}({InstanceName})";
         
         protected override void Dispose(bool pDisposing)
         {
@@ -580,8 +590,6 @@ namespace work.bacome.imapclient
                     try { mSession.Dispose(); }
                     catch { }
                 }
-
-                ZDisposeSectionCache();
             }
 
             base.Dispose(pDisposing);
