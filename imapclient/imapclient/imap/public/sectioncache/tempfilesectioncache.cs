@@ -24,6 +24,8 @@ namespace work.bacome.imapclient
             ByteCountBudget = pByteCountBudget;
             FileCountBudget = pFileCountBudget;
             Tries = pTries;
+
+            StartMaintenance();
         }
 
         protected override cSectionCacheItem YGetNewItem(cTrace.cContext pParentContext)

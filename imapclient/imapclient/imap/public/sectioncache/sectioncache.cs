@@ -18,12 +18,12 @@ namespace work.bacome.imapclient
         protected readonly cTrace.cContext mRootContext;
 
         private readonly CancellationTokenSource mBackgroundCancellationTokenSource = new CancellationTokenSource();
-        private readonly Task mBackgroundTask = null;
 
         private readonly ConcurrentDictionary<cSectionCachePersistentKey, cSectionCacheItem> mPersistentKeyItems = new ConcurrentDictionary<cSectionCachePersistentKey, cSectionCacheItem>();
         private readonly ConcurrentDictionary<cSectionCacheNonPersistentKey, cSectionCacheItem> mNonPersistentKeyItems = new ConcurrentDictionary<cSectionCacheNonPersistentKey, cSectionCacheItem>();
 
         private int mItemSequence = 7;
+        private Task mBackgroundTask = null;
 
         protected cSectionCache(string pInstanceName, int pMaintenanceFrequency)
         {
@@ -31,6 +31,12 @@ namespace work.bacome.imapclient
             if (MaintenanceFrequency < 1000) throw new ArgumentOutOfRangeException(nameof(pMaintenanceFrequency));
             MaintenanceFrequency = pMaintenanceFrequency;
             mRootContext = cMailClient.Trace.NewRoot(pInstanceName);
+        }
+
+        // should be called by the derived class to start the maintenance task
+        protected void StartMaintenance()
+        {
+            if (mBackgroundTask != null) throw new InvalidOperationException();
             mBackgroundTask = ZBackgroundTaskAsync(mBackgroundCancellationTokenSource.Token, mRootContext);
         }
 
@@ -61,6 +67,7 @@ namespace work.bacome.imapclient
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemReader), pKey);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
+            if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext, 1);
             if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
 
             bool lSomeThingChanged = true;
@@ -73,7 +80,7 @@ namespace work.bacome.imapclient
 
                 if (TryGetExistingItem(pKey, out var lExistingItem, lContext))
                 {
-                    if (lExistingItem == null || !lExistingItem.Cached) throw new cUnexpectedSectionCacheActionException(lContext);
+                    if (lExistingItem == null || !lExistingItem.Cached) throw new cUnexpectedSectionCacheActionException(lContext, 2);
 
                     if (lExistingItem.ItemKey != lPKItem.ItemKey)
                     {
@@ -123,6 +130,7 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemReader), pKey);
             if (IsDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
+            if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext);
             if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
             if (mNonPersistentKeyItems.TryGetValue(pKey, out var lItem)) return lItem.TryGetReader(out rReader, lContext);
             rReader = null;
@@ -133,6 +141,7 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetNewItem));
             if (IsDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
+            if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext);
             if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
             var lItem = YGetNewItem(lContext);
             if (lItem == null || !lItem.CanGetReaderWriter) throw new cUnexpectedSectionCacheActionException(lContext);
@@ -148,6 +157,7 @@ namespace work.bacome.imapclient
             if (pItem.Cache != this || pItem.Cached) throw new ArgumentOutOfRangeException(nameof(pItem));
 
             if (IsDisposed) return;
+            if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext);
             if (mBackgroundTask.IsCompleted) return;
 
             if (mPersistentKeyItems.TryGetValue(pKey, out var lPKItem))
@@ -169,6 +179,7 @@ namespace work.bacome.imapclient
             if (pItem.Cache != this || pItem.Cached) throw new ArgumentOutOfRangeException(nameof(pItem));
 
             if (IsDisposed) return;
+            if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext);
             if (mBackgroundTask.IsCompleted) return;
 
             if (mNonPersistentKeyItems.TryGetValue(pKey, out var lNPKItem))

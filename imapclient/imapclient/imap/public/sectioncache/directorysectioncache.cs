@@ -13,9 +13,9 @@ namespace work.bacome.imapclient
 {
     public class cDirectorySectionCache : cSectionCache
     {
-        private const string kData = "scd"; // data file extension
-        private const string kInfo = "sci"; // info file extension
-        private const string kList = "scl"; // list file extension
+        private const string kData = ".scd"; // data file extension
+        private const string kInfo = ".sci"; // info file extension
+        private const string kList = ".scl"; // list file extension
 
         private static readonly char[] kChars =
             new char[]
@@ -35,6 +35,8 @@ namespace work.bacome.imapclient
 
         private Dictionary<cPersistentKey, cInfo> mItems = new Dictionary<cPersistentKey, cInfo>();
 
+        private readonly List<string> mFullNamesToDelete = new List<string>();
+
         public cDirectorySectionCache(string pInstanceName, int pMaintenanceFrequency, string pDirectory, long pByteCountBudget, int pFileCountBudget, int pTries) : base(pInstanceName, pMaintenanceFrequency)
         {
             if (pByteCountBudget < 0) throw new ArgumentOutOfRangeException(nameof(pByteCountBudget));
@@ -45,14 +47,16 @@ namespace work.bacome.imapclient
             ByteCountBudget = pByteCountBudget;
             FileCountBudget = pFileCountBudget;
             Tries = pTries;
+
+            StartMaintenance();
         }
 
         protected override cSectionCacheItem YGetNewItem(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cDirectorySectionCache), nameof(YGetNewItem));
-            ZNewFile(kData, out var lFileName, out var lFullName, out var lStream);
+            ZNewFile(kData, out var lItemKey, out var lFullName, out var lStream);
             var lFileInfo = new FileInfo(lFullName);
-            return new cItem(this, lFileName, lStream, lFileInfo.CreationTimeUtc);
+            return new cItem(this, lItemKey, lStream, lFileInfo.CreationTimeUtc);
         }
 
         protected override bool TryGetExistingItem(cSectionCachePersistentKey pKey, out cSectionCacheItem rItem, cTrace.cContext pParentContext)
@@ -63,7 +67,7 @@ namespace work.bacome.imapclient
 
             if (lPersistentKey != null && mItems.TryGetValue(lPersistentKey, out var lInfo))
             {
-                rItem = new cItem(this, lInfo.FileName, lInfo.CreationTimeUTC, lInfo.Length);
+                rItem = new cItem(this, lInfo.ItemKey, lInfo.CreationTimeUTC, lInfo.Length);
                 return true;
             }
 
@@ -74,13 +78,117 @@ namespace work.bacome.imapclient
         protected override void Maintenance(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cDirectorySectionCache), nameof(Maintenance));
-            ;?;
+
+            foreach (var lFullName in mFullNamesToDelete) File.Delete(lFullName);
+            mFullNamesToDelete.Clear();
+
+            var lFileInfos1 = DirectoryInfo.GetFiles("*.sc?", SearchOption.TopDirectoryOnly);
+
+            Dictionary<string, FileInfo> lItemKeyToDataFileInfo = new Dictionary<string, FileInfo>();
+            List<string> lListFileFullNames = new List<string>();
+            Dictionary<string, cInfo> lNewList = new Dictionary<string, cInfo>();
+
+            foreach (var lFileInfo in lFileInfos1)
+            {
+                var lExtension = lFileInfo.Extension;
+
+                if (lExtension == kData)
+                {
+                    var lItemKey = Path.GetFileNameWithoutExtension(lFileInfo.Name);
+                    lItemKeyToDataFileInfo.Add(lItemKey, lFileInfo);
+                }
+                else if (lExtension == kInfo)
+                {
+                    ;?;
+                }
+                else if (lExtension == kList) lListFileFullNames.Add(lFileInfo.FullName);
+            }
+
+            BinaryFormatter lFormatter = new BinaryFormatter();
+
+            foreach (var lListFileFullName in lListFileFullNames)
+            {
+                try
+                {
+                    using (var lStream = new FileStream(lListFileFullName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    {
+                        var lListing = lFormatter.Deserialize(lStream) as List<cInfo>;
+
+                        foreach (var lInfo in lListing)
+                        {
+                            if (lItemKeyToDataFileInfo.TryGetValue(lInfo.ItemKey, out var lDataFileInfo))
+                            {
+                                if (lDataFileInfo.CreationTimeUtc == lInfo.CreationTimeUTC && lDataFileInfo.Length == lInfo.Length)
+                                {
+                                    lNewList[lInfo.ItemKey] = lInfo;
+                                }
+                            }
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            // second dir here
+
+            foreach (var linfo in infos)
+            {
+                // check if there is an entry in the newlist already (indexkey), if so skip it
+                // check that there is a datafile in either 1 or 2 (indexkey)
+                //  if not, delete it (fullname)
+                // read the content
+                //  check that the data file matches the content, if so 
+            }
+
+
+
+
+            var lFileInfos2 = DirectoryInfo.GetFiles("*.sc?", SearchOption.TopDirectoryOnly);
+            var lFileInfos2 = 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
         }
 
-        private void ZNewFile(string pExtension, out string rFileName, out string rFullName, out Stream rStream)
+        private void ZNewFile(string pExtension, out string rItemKey, out string rFullName, out Stream rStream)
         {
             int lTries = 0;
 
@@ -88,9 +196,8 @@ namespace work.bacome.imapclient
             {
                 try
                 {
-                    rFileName = ZRandomFileName();
-                    ;?; // does full path end with a slash (TOCHECK)
-                    rFullName = DirectoryInfo.FullName + "\\" + rFileName + "." + pExtension;
+                    rItemKey = ZRandomItemKey();
+                    rFullName = Path.Combine(DirectoryInfo.FullName, rItemKey + pExtension);
                     rStream = new FileStream(rFullName, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read);
                     return;
                 }
@@ -100,7 +207,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        private string ZRandomFileName()
+        private string ZRandomItemKey()
         {
             byte[] lRandomBytes = new byte[4];
             mRandom.NextBytes(lRandomBytes);
@@ -137,19 +244,18 @@ namespace work.bacome.imapclient
             private readonly DateTime mCreationTimeUTC;
             private long mLength;
 
-            public cItem(cDirectorySectionCache pCache, string pFileName, DateTime pCreationTimeUTC, long pLength) : base(pCache, pFileName)
+            public cItem(cDirectorySectionCache pCache, string pItemKey, DateTime pCreationTimeUTC, long pLength) : base(pCache, pItemKey)
             {
-                ;?; // slahes
-                mDataFileFullName = pCache.Directory + "\\" + pFileName + "." + kData;
-                mInfoFileFullName = pCache.Directory + "\\" + pFileName + "." + kInfo;
+                mDataFileFullName = Path.Combine(pCache.DirectoryInfo.FullName, pItemKey + kData);
+                mInfoFileFullName = Path.Combine(pCache.DirectoryInfo.FullName, pItemKey + kInfo);
                 mCreationTimeUTC = pCreationTimeUTC;
                 mLength = pLength;
             }
 
-            public cItem(cDirectorySectionCache pCache, string pFileName, Stream pReadWriteStream, DateTime pCreationTimeUTC) : base(pCache, pFileName, pReadWriteStream)
+            public cItem(cDirectorySectionCache pCache, string pItemKey, Stream pReadWriteStream, DateTime pCreationTimeUTC) : base(pCache, pItemKey, pReadWriteStream)
             {
-                mDataFileFullName = pCache.Directory + "\\" + pFileName + "." + kData;
-                mInfoFileFullName = pCache.Directory + "\\" + pFileName + "." + kInfo;
+                mDataFileFullName = Path.Combine(pCache.DirectoryInfo.FullName, pItemKey + kData);
+                mInfoFileFullName = Path.Combine(pCache.DirectoryInfo.FullName, pItemKey + kInfo);
                 mCreationTimeUTC = pCreationTimeUTC;
                 mLength = 0;
             }
@@ -255,7 +361,7 @@ namespace work.bacome.imapclient
         private class cInfo
         {
             [DataMember]
-            public readonly string FileName;
+            public readonly string ItemKey; 
             [DataMember]
             public readonly cPersistentKey PersistentKey;
             [DataMember]
@@ -263,9 +369,9 @@ namespace work.bacome.imapclient
             [DataMember]
             public readonly long Length;
 
-            public cInfo(string pFileName, cPersistentKey pPersistentKey, DateTime pCreationTimeUTC, long pLength)
+            public cInfo(string pItemKey, cPersistentKey pPersistentKey, DateTime pCreationTimeUTC, long pLength)
             {
-                FileName = pFileName;
+                ItemKey = pItemKey;
                 PersistentKey = pPersistentKey;
                 CreationTimeUTC = pCreationTimeUTC;
                 Length = pLength;
@@ -274,7 +380,7 @@ namespace work.bacome.imapclient
             [OnDeserialized]
             private void OnDeserialised(StreamingContext pSC)
             {
-                if (FileName == null) new cDeserialiseException($"{nameof(cInfo)}.{nameof(FileName)}.null");
+                if (ItemKey == null) new cDeserialiseException($"{nameof(cInfo)}.{nameof(ItemKey)}.null");
                 if (PersistentKey == null) new cDeserialiseException($"{nameof(cInfo)}.{nameof(PersistentKey)}.null");
             }
         }
