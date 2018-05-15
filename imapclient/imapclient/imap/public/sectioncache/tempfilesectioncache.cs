@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
 using System.IO;
+using System.Threading;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient

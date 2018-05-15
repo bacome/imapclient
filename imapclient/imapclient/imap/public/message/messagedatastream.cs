@@ -360,7 +360,7 @@ namespace work.bacome.imapclient
             {
                 mReaderWriter.WriteBegin(lContext);
                 await Client.FetchAsync(MessageHandle, Section, Decoding, mReaderWriter, lCancellationToken, lContext);
-                await mReaderWriter.WritingCompletedOKAsync(pKey, lCancellationToken, lContext);
+                await mReaderWriter.WritingCompletedOKAsync(lCancellationToken, lContext);
             }
             catch (Exception e)
             {
@@ -368,7 +368,7 @@ namespace work.bacome.imapclient
                 return;
             }
 
-            mAccessor.AddItem(pKey, mSectionCacheItem, lContext);
+            mSectionCacheItem.Cache.AddItem(pKey, mSectionCacheItem, lContext);
         }
 
         private async Task ZBackgroundFetchAsync(iMailboxHandle pMailboxHandle, cUID pUID, cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
@@ -381,7 +381,7 @@ namespace work.bacome.imapclient
             {
                 mReaderWriter.WriteBegin(lContext);
                 await Client.UIDFetchAsync(pMailboxHandle, pUID, Section, Decoding, mReaderWriter, lCancellationToken, lContext);
-                await mReaderWriter.WritingCompletedOKAsync(pKey, lCancellationToken, lContext);
+                await mReaderWriter.WritingCompletedOKAsync(lCancellationToken, lContext);
             }
             catch (Exception e)
             {
@@ -389,7 +389,7 @@ namespace work.bacome.imapclient
                 return;
             }
 
-            mAccessor.AddItem(pKey, mSectionCacheItem, lContext);
+            mSectionCacheItem.Cache.AddItem(pKey, mSectionCacheItem, lContext);
         }
 
         protected override void Dispose(bool pDisposing)

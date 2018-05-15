@@ -54,22 +54,6 @@ namespace work.bacome.imapclient
             return new cFile(mDirectory, lRandomFileName, mExtension, lFullName, lStream, lFileInfo.CreationTimeUtc);
         }
 
-        private string ZRandomFileName()
-        {
-            byte[] lRandomBytes = new byte[4];
-            mRandom.NextBytes(lRandomBytes);
-            uint lNumber = BitConverter.ToUInt32(lRandomBytes, 0);
-            var lBuilder = new StringBuilder();
-
-            do
-            {
-                int lChar = (int)(lNumber % 36);
-                lBuilder.Append(kChars[lChar]);
-                lNumber = lNumber / 36;
-            } while (lNumber > 0);
-
-            return lBuilder.ToString();
-        }
 
         public class cFile
         {

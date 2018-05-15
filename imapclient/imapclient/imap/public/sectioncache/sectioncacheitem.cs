@@ -71,37 +71,11 @@ namespace work.bacome.imapclient
             var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(AssignPersistentKey), pItemClosed);
         }
 
-        /* TODO: remove
-        // for use if it is noticed that the item is already deleted, or by the derived classes if they delete (probably by renaming) the item
-        public void SetDeleted(int pChangeSequence, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(SetDeleted));
-
-            lock (mLock)
-            {
-                if (mDeleted)
-                {
-                    lContext.TraceVerbose("already deleted");
-                    return;
-                }
-
-                if (pChangeSequence != -1 && pChangeSequence != mChangeSequence)
-                {
-                    lContext.TraceVerbose("modified");
-                    return;
-                }
-
-                mDeleted = true;
-            }
-        } */
-
-
         // for use by the derived class when it sets the persistent key
         protected void SetPersistentKeyAssigned(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(SetPersistentKeyAssigned));
             if (!mCached) throw new InvalidOperationException();
-            if (mPersistentKeyAssigned) return;
             mPersistentKeyAssigned = true;
         }
 

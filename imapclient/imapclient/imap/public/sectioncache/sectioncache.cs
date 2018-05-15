@@ -60,7 +60,7 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemReader), pKey);
 
-            ;?;
+            if (IsDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
             if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
 
             bool lSomeThingChanged = true;
@@ -75,14 +75,14 @@ namespace work.bacome.imapclient
                 {
                     if (lExistingItem == null || !lExistingItem.Cached) throw new cUnexpectedSectionCacheActionException(lContext);
 
-                    if (lExistingItem != lPKItem)
+                    if (lExistingItem.ItemKey != lPKItem.ItemKey)
                     {
                         if (mPersistentKeyItems.TryUpdate(pKey, lExistingItem, lPKItem))
                         {
                             lPKItem = lExistingItem;
                             if (lPKItem.TryGetReader(out rReader, lContext)) return true;
                         }
-                        else continue;
+                        else continue; // something changed
                     }
                 }
 
@@ -90,11 +90,14 @@ namespace work.bacome.imapclient
 
                 foreach (var lPair in mNonPersistentKeyItems)
                 {
+                    var lNPKItem = lPair.Value;
+
+                    if (lNPKItem.Deleted || lNPKItem.Indexed) continue;
+
                     if (pKey.Equals(lPair.Key))
                     {
-                        var lNPKItem = lPair.Value;
-
-                        if (lNPKItem != lPKItem)
+                        if (lNPKItem.ItemKey == lPKItem.ItemKey) lNPKItem.SetIndexed(lContext);
+                        else
                         {
                             if (mPersistentKeyItems.TryUpdate(pKey, lNPKItem, lPKItem))
                             {
@@ -119,7 +122,7 @@ namespace work.bacome.imapclient
         internal bool TryGetItemReader(cSectionCacheNonPersistentKey pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemReader), pKey);
-            ;?;
+            if (IsDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
             if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
             if (mNonPersistentKeyItems.TryGetValue(pKey, out var lItem)) return lItem.TryGetReader(out rReader, lContext);
             rReader = null;
@@ -129,7 +132,7 @@ namespace work.bacome.imapclient
         internal cSectionCacheItem GetNewItem(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetNewItem));
-            if (mDisposed || mDisposing) throw new ObjectDisposedException(nameof(cSectionCache));
+            if (IsDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
             if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
             var lItem = YGetNewItem(lContext);
             if (lItem == null || !lItem.CanGetReaderWriter) throw new cUnexpectedSectionCacheActionException(lContext);
@@ -144,8 +147,8 @@ namespace work.bacome.imapclient
             if (pItem == null) throw new ArgumentNullException(nameof(pItem));
             if (pItem.Cache != this || pItem.Cached) throw new ArgumentOutOfRangeException(nameof(pItem));
 
-            ;?;
-            if (mDisposing || mBackgroundTask.IsCompleted) return;
+            if (IsDisposed) return;
+            if (mBackgroundTask.IsCompleted) return;
 
             if (mPersistentKeyItems.TryGetValue(pKey, out var lPKItem))
             {
@@ -165,8 +168,8 @@ namespace work.bacome.imapclient
             if (pItem == null) throw new ArgumentNullException(nameof(pItem));
             if (pItem.Cache != this || pItem.Cached) throw new ArgumentOutOfRangeException(nameof(pItem));
 
-            ;?;
-            if (mDisposing || mBackgroundTask.IsCompleted) return;
+            if (IsDisposed) return;
+            if (mBackgroundTask.IsCompleted) return;
 
             if (mNonPersistentKeyItems.TryGetValue(pKey, out var lNPKItem))
             {
@@ -219,7 +222,8 @@ namespace work.bacome.imapclient
 
                 if (mPersistentKeyItems.TryGetValue(lNPKItem.PersistentKey, out var lPKItem))
                 {
-                    if (lPKItem != lNPKItem)
+                    if (lPKItem.ItemKey == lNPKItem.ItemKey) lNPKItem.SetIndexed(lContext);
+                    else
                     {
                         if (lPKItem.TryTouch(lContext)) lNPKItem.TryDelete(-1, lContext);
                         else if (mPersistentKeyItems.TryUpdate(lNPKItem.PersistentKey, lNPKItem, lPKItem)) lNPKItem.SetIndexed(lContext);
@@ -231,7 +235,7 @@ namespace work.bacome.imapclient
 
             if (pCancellationToken.IsCancellationRequested) return;
 
-            // assign pk loop
+            // assign pks
 
             foreach (var lPair in mPersistentKeyItems)
             {
