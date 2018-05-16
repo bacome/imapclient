@@ -69,6 +69,7 @@ namespace work.bacome.imapclient
             mReadTimeout = Client.Timeout;
         }
 
+        // note that the decoding may be ignored
         public cIMAPMessageDataStream(cIMAPMessage pMessage, cSection pSection, eDecodingRequired pDecoding)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));

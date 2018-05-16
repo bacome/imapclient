@@ -18,7 +18,7 @@ namespace work.bacome.imapclient
     /// </remarks>
     [Serializable]
     [DataContract]
-    public class cMailboxName : IComparable<cMailboxName>, IEquatable<cMailboxName>
+    public class cMailboxName : IEquatable<cMailboxName>, IComparable<cMailboxName>
     {
         internal const string InboxString = "INBOX";
         internal static readonly ReadOnlyCollection<byte> InboxBytes = new cBytes(InboxString);
@@ -122,6 +122,9 @@ namespace work.bacome.imapclient
         /// </summary>
         public bool IsInbox => ReferenceEquals(mPath, InboxString);
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals"/>
+        public bool Equals(cMailboxName pOther) => this == pOther;
+
         /// <inheritdoc cref="cAPIDocumentationTemplate.CompareTo"/>
         public int CompareTo(cMailboxName pOther)
         {
@@ -143,9 +146,6 @@ namespace work.bacome.imapclient
 
             return Delimiter.Value.CompareTo(pOther.Delimiter.Value);
         }
-
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals"/>
-        public bool Equals(cMailboxName pOther) => this == pOther;
 
         /// <inheritdoc />
         public override bool Equals(object pObject) => this == pObject as cMailboxName;

@@ -16,7 +16,6 @@ namespace work.bacome.imapclient
             private eIMAPConnectionState _ConnectionState = eIMAPConnectionState.notconnected;
 
             private readonly cIMAPCallbackSynchroniser mSynchroniser;
-            private readonly cBatchSizerConfiguration mLocalStreamReadConfiguration;
             private readonly fIMAPCapabilities mIgnoreCapabilities;
             private readonly fMailboxCacheDataItems mMailboxCacheDataItems;
             private readonly cBatchSizer mFetchCacheItemsSizer;
@@ -49,7 +48,7 @@ namespace work.bacome.imapclient
             // (note for when adding more: they need to be disposed)
 
             public cSession(
-                cIMAPCallbackSynchroniser pSynchroniser, cBatchSizerConfiguration pNetworkWriteConfiguration, cBatchSizerConfiguration pLocalStreamReadConfiguration,
+                cIMAPCallbackSynchroniser pSynchroniser, cBatchSizerConfiguration pNetworkWriteConfiguration,
                 fIMAPCapabilities pIgnoreCapabilities, fMailboxCacheDataItems pMailboxCacheDataItems,
                 cBatchSizerConfiguration pFetchCacheItemsConfiguration, cBatchSizerConfiguration pFetchBodyConfiguration,
                 cStorableFlags pAppendDefaultFlags, cBatchSizerConfiguration pAppendBatchConfiguration, 
@@ -60,14 +59,13 @@ namespace work.bacome.imapclient
                 var lContext = 
                     pParentContext.NewObject(
                         nameof(cSession),
-                        pNetworkWriteConfiguration, pLocalStreamReadConfiguration,
+                        pNetworkWriteConfiguration, 
                         pIgnoreCapabilities, pMailboxCacheDataItems,
                         pFetchCacheItemsConfiguration, pFetchBodyConfiguration,
                         pAppendDefaultFlags, pAppendBatchConfiguration,
                         pIdleConfiguration);
 
                 mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
-                mLocalStreamReadConfiguration = pLocalStreamReadConfiguration ?? throw new ArgumentNullException(nameof(pLocalStreamReadConfiguration));
                 mIgnoreCapabilities = pIgnoreCapabilities;
                 mMailboxCacheDataItems = pMailboxCacheDataItems;
                 mFetchCacheItemsSizer = new cBatchSizer(pFetchCacheItemsConfiguration);

@@ -8,6 +8,42 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
+        /* TODO: remove the copysectiontostreamconfiguration as well
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
         internal void CopySectionToStream(iSectionCacheItemReader pReader, Stream pStream, cCopySectionToStreamConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(CopySectionToStream));
@@ -66,6 +102,6 @@ namespace work.bacome.imapclient
 
                 pIncrementer.Increment(lBytesRead, lContext);
             }
-        }
+        } */
     }
 }

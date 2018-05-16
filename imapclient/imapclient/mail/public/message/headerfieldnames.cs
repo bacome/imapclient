@@ -32,7 +32,7 @@ namespace work.bacome.mailclient
     /// </remarks>
     [Serializable]
     [DataContract]
-    public class cHeaderFieldNames : IReadOnlyList<string>, IEquatable<cHeaderFieldNames>
+    public class cHeaderFieldNames : IReadOnlyList<string>, IEquatable<cHeaderFieldNames>, IComparable<cHeaderFieldNames>
     {
         // immutable (for passing in and out)
 
@@ -43,7 +43,7 @@ namespace work.bacome.mailclient
         /** <summary>A header-field-name collection containing only <see cref="kHeaderFieldName.Importance"/>.</summary>*/
         public static readonly cHeaderFieldNames Importance = new cHeaderFieldNames(kHeaderFieldName.Importance);
 
-        // ordered (case insensitive) list of names (the ordering is required for the hashcode and == implementations)
+        // ordered (case insensitive) list of names (the ordering is required for the hashcode, ==, and IComparable implementations)
         [DataMember]
         private readonly cHeaderFieldNameList mNames;
 
@@ -129,6 +129,21 @@ namespace work.bacome.mailclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public bool Equals(cHeaderFieldNames pObject) => this == pObject;
 
+        public int CompareTo(cHeaderFieldNames pOther)
+        {
+            if (pOther == null) return 1;
+
+            var lMinCount = Math.Min(mNames.Count, pOther.mNames.Count);
+
+            for (int i = 0; i < lMinCount; i++)
+            {
+                var lCompareTo = string.Compare(mNames[i], pOther.mNames[i], StringComparison.InvariantCultureIgnoreCase);
+                if (lCompareTo != 0) return lCompareTo;
+            }
+
+            return mNames.Count.CompareTo(pOther.mNames.Count);
+        }
+
         /// <inheritdoc />
         public override bool Equals(object pObject) => this == pObject as cHeaderFieldNames;
 
@@ -160,6 +175,13 @@ namespace work.bacome.mailclient
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
         public static bool operator !=(cHeaderFieldNames pA, cHeaderFieldNames pB) => !(pA == pB);
+
+        public static int Compare(cHeaderFieldNames pA, cHeaderFieldNames pB)
+        {
+            if (ReferenceEquals(pA, pB)) return 0;
+            if (ReferenceEquals(pA, null)) return -1;
+            return pA.CompareTo(pB);
+        }
 
         /// <summary>
         /// Returns a new instance containing a copy of the specified list.

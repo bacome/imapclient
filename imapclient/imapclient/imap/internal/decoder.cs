@@ -43,6 +43,16 @@ namespace work.bacome.imapclient
             if (pDecoding == eDecodingRequired.quotedprintable) return new cQuotedPrintableDecoder(pTarget);
             throw new cContentTransferDecodingException("required decoding not supported", lContext);
         }
+
+        public class _Tester : iFetchBodyTarget, IDisposable
+        {
+            private MemoryStream mStream = new MemoryStream();
+            public _Tester() { }
+            public Task WriteAsync(byte[] pBuffer, int pCount, CancellationToken pCancellationToken, cTrace.cContext pParentContext) => mStream.WriteAsync(pBuffer, 0, pCount, pCancellationToken);
+            public byte[] GetBuffer() => mStream.GetBuffer();
+            public int Length => (int)mStream.Length;
+            public void Dispose() => mStream.Dispose();
+        }
     }
 
     internal class cIdentityDecoder : cDecoder
@@ -205,45 +215,29 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cQuotedPrintableDecoder), nameof(_Tests));
 
-            cIMAPClient lClient = new cIMAPClient("test_decoder");
-            cSectionCache.cAccessor lAccessor;
-            var lAccountId = new cAccountId("localhost", "anything");
-            var lMailboxName = new cMailboxName("anything", null);
-            uint lUID = 1;
-
-            using (var lCache = new cTempFileSectionCache("test_decoder", 1, 1, 60000))
-            using (lAccessor = lCache.GetAccessor(lContext))
+            using (var lCache = new cTempFileSectionCache("test_decoder", 60000, 1000, 1, 2))
             {
-                if (LTest(true, "testNow's the time =    \r\n", "for all folk to come=\t \t \r\n", " to the aid of their country.   \t\r\n") != "Now's the time for all folk to come to the aid of their country.\r\n") throw new cTestsException($"{nameof(cQuotedPrintableDecoder)}.1");
-                if (LTest(false, "testNow's the time =    \r\n", "for all folk to come=\t \t \r\n", " to the aid of their country.   \t") != "Now's the time for all folk to come to the aid of their country.") throw new cTestsException($"{nameof(cQuotedPrintableDecoder)}.2");
+                if (LTest("testNow's the time =    \r\n", "for all folk to come=\t \t \r\n", " to the aid of their country.   \t\r\n") != "Now's the time for all folk to come to the aid of their country.\r\n") throw new cTestsException($"{nameof(cQuotedPrintableDecoder)}.1");
+                if (LTest("testNow's the time =    \r\n", "for all folk to come=\t \t \r\n", " to the aid of their country.   \t") != "Now's the time for all folk to come to the aid of their country.") throw new cTestsException($"{nameof(cQuotedPrintableDecoder)}.2");
             }
 
-            string LTest(bool pCopyFirst, params string[] pLines)
+            string LTest(params string[] pLines)
             {
-                using (var lReaderWriter = lAccessor.GetReaderWriter(new cSectionCachePersistentKey(lAccountId, lMailboxName, new cUID(1, lUID++), new cSection("1"), eDecodingRequired.none), lContext))
-                using (var lMemoryStream = new MemoryStream())
+                using (var lTester = new _Tester())
                 {
-                    Task lTask = null;
-
-                    if (pCopyFirst) lTask = lClient.CopySectionToStreamAsync(lReaderWriter, lMemoryStream, null);
-
-                    cDecoder lDecoder = new cQuotedPrintableDecoder(lReaderWriter);
+                    cDecoder lDecoder = new cQuotedPrintableDecoder(lTester);
 
                     int lOffset = 4;
 
                     foreach (var lLine in pLines)
                     {
-                        lDecoder.WriteAsync(cMethodControl.None, new cBytes(lLine), lOffset, lContext).Wait();
+                        lDecoder.WriteAsync(new cBytes(lLine), lOffset, CancellationToken.None, lContext).Wait();
                         lOffset = 0;
                     }
 
-                    lDecoder.FlushAsync(cMethodControl.None, lContext).Wait();
+                    lDecoder.FlushAsync(CancellationToken.None, lContext).Wait();
 
-                    if (!pCopyFirst) lTask = lClient.CopySectionToStreamAsync(lReaderWriter, lMemoryStream, null);
-
-                    lTask.Wait();
-
-                    return new string(System.Text.Encoding.UTF8.GetChars(lMemoryStream.GetBuffer(), 0, (int)lMemoryStream.Length));
+                    return new string(System.Text.Encoding.UTF8.GetChars(lTester.GetBuffer(), 0, lTester.Length));
                 }
             }
         }

@@ -239,15 +239,6 @@ namespace work.bacome.imapclient
         public async Task WritingCompletedOKAsync(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCacheItemReaderWriter), nameof(WritingCompletedOKAsync));
-            await ZWriteEndAsync(pCancellationToken, lContext).ConfigureAwait(false);
-           ??? mItem.Cache.AddItem(pKey, mItem, mWritePosition, lContext);
-            if (pKey.UID == null) mItem.Cache.AddItem(pKey, mItem, mWritePosition, lContext);
-            else mItem.Cache.AddItem(new cSectionCachePersistentKey(pKey), mItem, mWritePosition, lContext);
-        }
-
-        private async Task ZWriteEndAsync(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItemReaderWriter), nameof(ZWriteEndAsync));
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cSectionCacheItemReaderWriter));
             if (mWritingState != eWritingState.inprogress) throw new InvalidOperationException();

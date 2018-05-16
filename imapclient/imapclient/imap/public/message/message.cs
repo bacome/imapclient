@@ -486,20 +486,16 @@ namespace work.bacome.imapclient
             return await base.PlainTextAsync().ConfigureAwait(false);
         }
 
-
-        public 
-
-
-
         public override string Fetch(cTextBodyPart pPart)
         {
             CheckPart(pPart);
 
-            using (var lStream = new MemoryStream())
+            using (var lDataStream = new cIMAPMessageDataStream(Client, MessageHandle, pPart, true))
+            using (var lMemoryStream = new MemoryStream())
             {
-                Client.Fetch(MessageHandle, pPart.Section, pPart.DecodingRequired, lStream, null);
+                lDataStream.CopyTo(lMemoryStream);
                 Encoding lEncoding = Encoding.GetEncoding(pPart.Charset);
-                return new string(lEncoding.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
+                return new string(lEncoding.GetChars(lMemoryStream.GetBuffer(), 0, (int)lMemoryStream.Length));
             }
         }
 
@@ -507,47 +503,42 @@ namespace work.bacome.imapclient
         {
             CheckPart(pPart);
 
-            using (var lStream = new MemoryStream())
+            using (var lDataStream = new cIMAPMessageDataStream(Client, MessageHandle, pPart, true))
+            using (var lMemoryStream = new MemoryStream())
             {
-                await Client.FetchAsync(MessageHandle, pPart.Section, pPart.DecodingRequired, lStream, null).ConfigureAwait(false);
+                await lDataStream.CopyToAsync(lMemoryStream).ConfigureAwait(false);
                 Encoding lEncoding = Encoding.GetEncoding(pPart.Charset);
-                return new string(lEncoding.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
+                return new string(lEncoding.GetChars(lMemoryStream.GetBuffer(), 0, (int)lMemoryStream.Length));
             }
         }
 
         public override string Fetch(cSection pSection)
         {
-            using (var lStream = new MemoryStream())
+            using (var lDataStream = new cIMAPMessageDataStream(this, pSection, eDecodingRequired.none))
+            using (var lMemoryStream = new MemoryStream())
             {
-                Client.Fetch(MessageHandle, pSection, eDecodingRequired.none, lStream, null);
-                return new string(Encoding.UTF8.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
+                lDataStream.CopyTo(lMemoryStream);
+                return new string(Encoding.UTF8.GetChars(lMemoryStream.GetBuffer(), 0, (int)lMemoryStream.Length));
             }
         }
 
         public override async Task<string> FetchAsync(cSection pSection)
         {
-            using (var lStream = new MemoryStream())
+            using (var lDataStream = new cIMAPMessageDataStream(this, pSection, eDecodingRequired.none))
+            using (var lMemoryStream = new MemoryStream())
             {
-                await Client.FetchAsync(MessageHandle, pSection, eDecodingRequired.none, lStream, null).ConfigureAwait(false);
-                return new string(Encoding.UTF8.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
+                await lDataStream.CopyToAsync(lMemoryStream).ConfigureAwait(false);
+                return new string(Encoding.UTF8.GetChars(lMemoryStream.GetBuffer(), 0, (int)lMemoryStream.Length));
             }
         }
 
-        public override void Fetch(cSinglePartBody pPart, Stream pStream, cFetchConfiguration pConfiguration = null)
+        public override Stream GetMessageDataStream(cSinglePartBody pPart)
         {
             CheckPart(pPart);
-            Client.Fetch(MessageHandle, pPart.Section, pPart.DecodingRequired, pStream, pConfiguration);
+            return new cIMAPMessageDataStream(Client, MessageHandle, pPart, true);
         }
 
-        public override Task FetchAsync(cSinglePartBody pPart, Stream pStream, cFetchConfiguration pConfiguration = null)
-        {
-            CheckPart(pPart);
-            return Client.FetchAsync(MessageHandle, pPart.Section, pPart.DecodingRequired, pStream, pConfiguration);
-        }
-
-        public override void Fetch(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchConfiguration pConfiguration = null) => Client.Fetch(MessageHandle, pSection, pDecoding, pStream, pConfiguration);
-
-        public override Task FetchAsync(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchConfiguration pConfiguration = null) => Client.FetchAsync(MessageHandle, pSection, pDecoding, pStream, pConfiguration);
+        public override Stream GetMessageDataStream(cSection pSection, eDecodingRequired pDecoding) => new cIMAPMessageDataStream(this, pSection, pDecoding);
 
         /// <summary>
         /// Stores flags for the message. 

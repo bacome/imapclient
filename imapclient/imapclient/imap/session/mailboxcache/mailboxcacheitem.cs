@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
                     mEncodedMailboxPath = pEncodedMailboxPath ?? throw new ArgumentNullException(nameof(pEncodedMailboxPath));
                 }
 
-                object iMailboxHandle.MailboxCache => mMailboxCache;
+                iMailboxCache iMailboxHandle.MailboxCache => mMailboxCache;
                 public cMailboxCache MailboxCache => mMailboxCache;
                 public string EncodedMailboxPath => mEncodedMailboxPath;
 

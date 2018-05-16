@@ -5,7 +5,6 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
-using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
@@ -31,22 +30,31 @@ namespace work.bacome.imapclient
         public readonly DirectoryInfo DirectoryInfo;
         public readonly long ByteCountBudget;
         public readonly int FileCountBudget;
-        public readonly int Tries;
+        public readonly int NewFileTries;
+        public readonly TimeSpan RecentFileAge;
 
-        private Dictionary<cPersistentKey, cInfo> mItems = new Dictionary<cPersistentKey, cInfo>();
+        private Dictionary<cPersistentKey, cInfo> mItems = null;
 
-        private readonly List<string> mFullNamesToDelete = new List<string>();
+        // info retained from one iteration of maintenance to the next
+        private readonly List<string> mOldListFileFullNames = new List<string>();
+        private List<string> mItemKeysWithInfoButNoDataFile = new List<string>();
+        private List<string> mItemKeysWithDataButNoInfoFile = new List<string>();
 
-        public cDirectorySectionCache(string pInstanceName, int pMaintenanceFrequency, string pDirectory, long pByteCountBudget, int pFileCountBudget, int pTries) : base(pInstanceName, pMaintenanceFrequency)
+        public cDirectorySectionCache(string pInstanceName, int pMaintenanceFrequency, string pDirectory, long pByteCountBudget, int pFileCountBudget, int pNewFileTries, TimeSpan pRecentFileAge) : base(pInstanceName, pMaintenanceFrequency)
         {
+            if (pDirectory == null) throw new ArgumentNullException(nameof(pDirectory));
+            DirectoryInfo = new DirectoryInfo(pDirectory);
+            if (!DirectoryInfo.Exists) throw new ArgumentOutOfRangeException(nameof(pDirectory));
+
             if (pByteCountBudget < 0) throw new ArgumentOutOfRangeException(nameof(pByteCountBudget));
             if (pFileCountBudget < 0) throw new ArgumentOutOfRangeException(nameof(pFileCountBudget));
-            if (pTries < 1) throw new ArgumentOutOfRangeException(nameof(pTries));
+            if (pNewFileTries < 1) throw new ArgumentOutOfRangeException(nameof(pNewFileTries));
+            if (pRecentFileAge < TimeSpan.FromSeconds(1)) throw new ArgumentOutOfRangeException(nameof(pRecentFileAge));
 
-            DirectoryInfo = new DirectoryInfo(pDirectory);
             ByteCountBudget = pByteCountBudget;
             FileCountBudget = pFileCountBudget;
-            Tries = pTries;
+            NewFileTries = pNewFileTries;
+            RecentFileAge = pRecentFileAge;
 
             StartMaintenance();
         }
@@ -54,8 +62,14 @@ namespace work.bacome.imapclient
         protected override cSectionCacheItem YGetNewItem(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cDirectorySectionCache), nameof(YGetNewItem));
-            ZNewFile(kData, out var lItemKey, out var lFullName, out var lStream);
-            var lFileInfo = new FileInfo(lFullName);
+
+            ZNewFile(kData, FileShare.Read, out var lItemKey, out var lDataFileFullName, out var lStream);
+
+            var lInfoFileFullName = ZFullName(lItemKey, kInfo);
+            try { File.Delete(lInfoFileFullName); }
+            catch (Exception e) { lContext.TraceException($"failed to delete old info file: {lInfoFileFullName}", e); }
+
+            var lFileInfo = new FileInfo(lDataFileFullName);
             return new cItem(this, lItemKey, lStream, lFileInfo.CreationTimeUtc);
         }
 
@@ -79,14 +93,23 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cDirectorySectionCache), nameof(Maintenance));
 
-            foreach (var lFullName in mFullNamesToDelete) File.Delete(lFullName);
-            mFullNamesToDelete.Clear();
+            // delete the index files discovered in the last maintenance run
+
+            foreach (var lOldListFileFullName in mOldListFileFullNames)
+            {
+                try { File.Delete(lOldListFileFullName); }
+                catch (Exception e) { lContext.TraceException($"failed to delete old list file: {lOldListFileFullName}", e); }
+            }
+
+            mOldListFileFullNames.Clear();
+
+            // get directory content
 
             var lFileInfos1 = DirectoryInfo.GetFiles("*.sc?", SearchOption.TopDirectoryOnly);
 
-            Dictionary<string, FileInfo> lItemKeyToDataFileInfo = new Dictionary<string, FileInfo>();
+            Dictionary<string, FileInfo> lItemKeyToDataFileFileInfo = new Dictionary<string, FileInfo>();
+            Dictionary<string, FileInfo> lItemKeyToInfoFileFileInfo = new Dictionary<string, FileInfo>();
             List<string> lListFileFullNames = new List<string>();
-            Dictionary<string, cInfo> lNewList = new Dictionary<string, cInfo>();
 
             foreach (var lFileInfo in lFileInfos1)
             {
@@ -95,100 +118,308 @@ namespace work.bacome.imapclient
                 if (lExtension == kData)
                 {
                     var lItemKey = Path.GetFileNameWithoutExtension(lFileInfo.Name);
-                    lItemKeyToDataFileInfo.Add(lItemKey, lFileInfo);
+                    lItemKeyToDataFileFileInfo.Add(lItemKey, lFileInfo);
                 }
                 else if (lExtension == kInfo)
                 {
-                    ;?;
+                    var lItemKey = Path.GetFileNameWithoutExtension(lFileInfo.Name);
+                    lItemKeyToInfoFileFileInfo.Add(lItemKey, lFileInfo);
                 }
                 else if (lExtension == kList) lListFileFullNames.Add(lFileInfo.FullName);
             }
+
+            // build a list of files with a known key
+
+            Dictionary<string, cInfo> lItemKeyToInfo = new Dictionary<string, cInfo>();
 
             BinaryFormatter lFormatter = new BinaryFormatter();
 
             foreach (var lListFileFullName in lListFileFullNames)
             {
+                List<cInfo> lListFileInfos;
+
                 try
                 {
-                    using (var lStream = new FileStream(lListFileFullName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    using (var lListReadStream = new FileStream(lListFileFullName, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
-                        var lListing = lFormatter.Deserialize(lStream) as List<cInfo>;
-
-                        foreach (var lInfo in lListing)
+                        try
                         {
-                            if (lItemKeyToDataFileInfo.TryGetValue(lInfo.ItemKey, out var lDataFileInfo))
+                            lListFileInfos = lFormatter.Deserialize(lListReadStream) as List<cInfo>;
+
+                            if (lListFileInfos == null)
                             {
-                                if (lDataFileInfo.CreationTimeUtc == lInfo.CreationTimeUTC && lDataFileInfo.Length == lInfo.Length)
-                                {
-                                    lNewList[lInfo.ItemKey] = lInfo;
-                                }
+                                lContext.TraceError("corrupt list file (1): {0}", lListFileFullName);
+
+                                try { File.Delete(lListFileFullName); }
+                                catch (Exception e) { lContext.TraceException($"failed to delete corrupt list file (1): {lListFileFullName}", e); }
+
+                                lListFileInfos = null;
                             }
+                        }
+                        catch (Exception e)
+                        {
+                            lContext.TraceException($"corrupt list file (2): {lListFileFullName}", e);
+
+                            try { File.Delete(lListFileFullName); }
+                            catch (Exception e2) { lContext.TraceException($"failed to delete corrupt list file (2): {lListFileFullName}", e2); }
+
+                            lListFileInfos = null;
                         }
                     }
                 }
-                catch { }
+                catch (Exception e) // in case the file is being written/ deleted
+                {
+                    lContext.TraceException($"failed to open list file: {lListFileFullName}", e);
+                    lListFileInfos = null;
+                } 
+
+                if (lListFileInfos != null)
+                {
+                    foreach (var lInfo in lListFileInfos) if (lItemKeyToDataFileFileInfo.TryGetValue(lInfo.ItemKey, out var lDataFileFileInfo) && lDataFileFileInfo.CreationTimeUtc == lInfo.CreationTimeUTC && lDataFileFileInfo.Length == lInfo.Length) lItemKeyToInfo[lInfo.ItemKey] = lInfo;
+                    mOldListFileFullNames.Add(lListFileFullName);
+                }
             }
 
-            // second dir here
+            var lItemKeysWithInfoButNoDataFile = mItemKeysWithInfoButNoDataFile;
+            mItemKeysWithInfoButNoDataFile = new List<string>();
+            lItemKeysWithInfoButNoDataFile.Sort();
 
-            foreach (var linfo in infos)
+            foreach (var lPair in lItemKeyToInfoFileFileInfo)
             {
-                // check if there is an entry in the newlist already (indexkey), if so skip it
-                // check that there is a datafile in either 1 or 2 (indexkey)
-                //  if not, delete it (fullname)
-                // read the content
-                //  check that the data file matches the content, if so 
+                var lItemKey = lPair.Key;
+
+                if (lItemKeyToInfo.ContainsKey(lItemKey)) continue; // already have the details
+
+                if (!lItemKeyToDataFileFileInfo.TryGetValue(lItemKey, out var lDataFileFileInfo))
+                {
+                    if (lItemKeysWithInfoButNoDataFile.BinarySearch(lItemKey) < 0)
+                    {
+                        lContext.TraceVerbose("found an info file with no data file (1): {0}", lItemKey);
+                        mItemKeysWithInfoButNoDataFile.Add(lItemKey);
+                    }
+                    else
+                    {
+                        lContext.TraceVerbose("found an info file with no data file (2): {0}", lItemKey);
+
+                        var lInfoFileFullName = ZFullName(lItemKey, kInfo);
+
+                        try { File.Delete(lInfoFileFullName); }
+                        catch (Exception e)
+                        {
+                            lContext.TraceException($"failed to delete orphaned info file: {lInfoFileFullName}", e);
+                            mItemKeysWithInfoButNoDataFile.Add(lItemKey);
+                        }
+                    }
+
+                    continue;
+                }
+
+                var lInfoFileFileInfo = lPair.Value;
+
+                if (lInfoFileFileInfo.Length > 0)
+                {
+                    var lInfoFileFullName = ZFullName(lItemKey, kInfo);
+
+                    cInfo lInfo;
+
+                    try
+                    {
+                        using (var lInfoReadStream = new FileStream(lInfoFileFullName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        {
+                            try
+                            {
+                                lInfo = lFormatter.Deserialize(lInfoReadStream) as cInfo;
+
+                                if (lInfo == null || lInfo.ItemKey != lItemKey)
+                                {
+                                    lContext.TraceError("corrupt info file (1): {0}", lInfoFileFullName);
+
+                                    try { File.Delete(lInfoFileFullName); }
+                                    catch (Exception e) { lContext.TraceException($"failed to delete corrupt info file (1): {lInfoFileFullName}", e); }
+
+                                    lInfo = null;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                lContext.TraceException($"corrupt info file (2): {lInfoFileFullName}", e);
+
+                                try { File.Delete(lInfoFileFullName); }
+                                catch (Exception e2) { lContext.TraceException($"failed to delete corrupt info file (2): {lInfoFileFullName}", e2); }
+
+                                lInfo = null;
+                            }
+                        }
+                    }
+                    catch (Exception e) // in case the file is being written/ deleted
+                    {
+                        lContext.TraceException($"failed to open info file: {lInfoFileFullName}", e);
+                        lInfo = null;
+                    }
+
+                    if (lInfo != null && lDataFileFileInfo.CreationTimeUtc == lInfo.CreationTimeUTC && lDataFileFileInfo.Length == lInfo.Length) lItemKeyToInfo.Add(lItemKey, lInfo);
+                }
             }
 
+            // delete files that contain duplicate data, build the new internal list
 
+            List<cInfo> lItemKeyInfos = new List<cInfo>(lItemKeyToInfo.Values);
+            lItemKeyInfos.Sort();
 
+            cPersistentKey lLastPersistentKey = null;
+            var lItems = new Dictionary<cPersistentKey, cInfo>();
 
-            var lFileInfos2 = DirectoryInfo.GetFiles("*.sc?", SearchOption.TopDirectoryOnly);
-            var lFileInfos2 = 
+            foreach (var lInfo in lItemKeyInfos)
+            {
+                if (lInfo.PersistentKey == lLastPersistentKey)
+                {
+                    string lDataFileFullName = ZFullName(lInfo.ItemKey, kData);
 
+                    try
+                    {
+                        lContext.TraceInformation("found a duplicate data file: {0}", lDataFileFullName);
+                        File.Delete(lDataFileFullName);
 
+                        // remove from the list of data files and the list of keyed data files
+                        lItemKeyToDataFileFileInfo.Remove(lInfo.ItemKey);
+                        lItemKeyToInfo.Remove(lInfo.ItemKey);
 
+                        // remove the info file
+                        string lInfoFileFullName = ZFullName(lInfo.ItemKey, kInfo);
+                        try { File.Delete(lInfoFileFullName); }
+                        catch (Exception e) { lContext.TraceException($"failed to delete duplicate's info file: {lInfoFileFullName}", e); }
+                    }
+                    catch (Exception e) { lContext.TraceException($"failed to delete duplicate data file: {lDataFileFullName}", e); }
+                }
+                else
+                {
+                    lLastPersistentKey = lInfo.PersistentKey;
+                    lItems.Add(lInfo.PersistentKey, lInfo);
+                }
+            }
 
+            mItems = lItems;
 
+            // delete data files that look abandoned
 
+            var lItemKeysWithDataButNoInfoFile = mItemKeysWithDataButNoInfoFile;
+            mItemKeysWithDataButNoInfoFile = new List<string>();
+            lItemKeysWithDataButNoInfoFile.Sort();
 
+            var lRecentFileLimit = DateTime.UtcNow - RecentFileAge;
 
+            List<string> lItemKeysToRemove = new List<string>();
 
+            foreach (var lPair in lItemKeyToDataFileFileInfo)
+            {
+                var lItemKey = lPair.Key;
+                if (lItemKeyToInfoFileFileInfo.ContainsKey(lItemKey) || lItemKeyToInfo.ContainsKey(lItemKey)) continue; // there is an info file or we know what it in the file
 
+                var lFileInfo = lPair.Value;
+                if (lFileInfo.CreationTimeUtc > lRecentFileLimit) continue; // the file is recent
 
+                if (lItemKeysWithDataButNoInfoFile.BinarySearch(lItemKey) < 0)
+                {
+                    try { new FileStream(lFileInfo.FullName, FileMode.Open, FileAccess.Write, FileShare.Read).Dispose(); }
+                    catch (Exception e)
+                    {
+                        // can't open it for write => likely still being written to => the recentfileage might be too small
+                        lContext.TraceException($"failed to open data file with no info file: {lFileInfo.FullName}", e);
+                        continue; 
+                    }
 
+                    lContext.TraceVerbose("found a closed data file with no info file: {0}", lFileInfo.FullName);
+                    mItemKeysWithDataButNoInfoFile.Add(lItemKey);
+                }
+                else
+                {
+                    lContext.TraceVerbose("found a data file with no info file: {0}", lFileInfo.FullName);
 
+                    try { File.Delete(lFileInfo.FullName); }
+                    catch (Exception e)
+                    {
+                        // hmmm ... maybe it is open
+                        lContext.TraceException($"failed to delete data file with no info file: {lFileInfo.FullName}", e);
+                        continue;
+                    }
 
+                    // mark this item as needing to be removed from the list of data files
+                    lItemKeysToRemove.Add(lItemKey);
+                }
+            }
 
+            // remove the deleted items from the list of data files
+            foreach (var lItemKey in lItemKeysToRemove) lItemKeyToDataFileFileInfo.Remove(lItemKey);
 
+            // tidy up
 
+            long lByteCount = 0;
+            foreach (var lPair in lItemKeyToDataFileFileInfo) lByteCount += lPair.Value.Length;
 
+            if (lByteCount > ByteCountBudget || lItemKeyToDataFileFileInfo.Count > FileCountBudget)
+            {
+                int lFileCount = lItemKeyToDataFileFileInfo.Count;
 
+                var lItemsToDelete = new List<cItemToDelete>();
 
+                foreach (var lPair in lItemKeyToDataFileFileInfo)
+                {
+                    var lItemKey = lPair.Key;
+                    var lFileInfo = lPair.Value;
 
+                    DateTime lTouchTimeUTC;
+                    if (lItemKeyToInfoFileFileInfo.TryGetValue(lItemKey, out var lInfoFileFileInfo) && lInfoFileFileInfo.CreationTimeUtc > lFileInfo.CreationTimeUtc) lTouchTimeUTC = lInfoFileFileInfo.CreationTimeUtc;
+                    else lTouchTimeUTC = lFileInfo.CreationTimeUtc;
 
+                    lItemsToDelete.Add(new cItemToDelete(lItemKey, lFileInfo.FullName, ZFullName(lItemKey, kInfo), lTouchTimeUTC, lFileInfo.Length));
+                }
 
+                lItemsToDelete.Sort();
 
+                foreach (var lItemToDelete in lItemsToDelete)
+                {
+                    try
+                    { 
+                        File.Delete(lItemToDelete.DataFileFullName);
 
+                        // remove it from the list of keyed data files (if it is there)
+                        lItemKeyToInfo.Remove(lItemToDelete.ItemKey);
 
+                        // decrement the counts
+                        lByteCount -= lItemToDelete.Length;
+                        lFileCount--;
+                    }
+                    catch (Exception e)
+                    {
+                        lContext.TraceException($"failed to delete data file: {lItemToDelete.DataFileFullName}", e);
+                        continue;
+                    }
 
+                    // try to get rid of any index file that exists
+                    try { File.Delete(lItemToDelete.InfoFileFullName); }
+                    catch (Exception e) { lContext.TraceException($"failed to delete info file: {lItemToDelete.InfoFileFullName}", e); }
 
+                    // check if we need to carry on
+                    if (lByteCount <= ByteCountBudget || lFileCount <= FileCountBudget) break;
+                }
+            }
 
+            // write out new index file
 
+            var lInfos = new List<cInfo>(lItemKeyToInfo.Values);
 
+            ZNewFile(kList, FileShare.None, out _, out var lNewListFileFullName, out var lListWriteStream);
 
-
-
-
-
-
-
-
-
-
+            try { lFormatter.Serialize(lListWriteStream, lInfos); }
+            catch (Exception e)
+            {
+                lContext.TraceException($"failed to write out new list file: {lNewListFileFullName}", e);
+                mOldListFileFullNames.Clear();
+            }
+            finally { lListWriteStream.Dispose(); }
         }
 
-        private void ZNewFile(string pExtension, out string rItemKey, out string rFullName, out Stream rStream)
+        private void ZNewFile(string pExtension, FileShare pFileShare, out string rItemKey, out string rFullName, out Stream rStream)
         {
             int lTries = 0;
 
@@ -197,13 +428,13 @@ namespace work.bacome.imapclient
                 try
                 {
                     rItemKey = ZRandomItemKey();
-                    rFullName = Path.Combine(DirectoryInfo.FullName, rItemKey + pExtension);
-                    rStream = new FileStream(rFullName, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read);
+                    rFullName = ZFullName(rItemKey, pExtension);
+                    rStream = new FileStream(rFullName, FileMode.CreateNew, FileAccess.ReadWrite, pFileShare);
                     return;
                 }
                 catch (IOException) { }
 
-                if (++lTries == Tries) throw new IOException();
+                if (++lTries == NewFileTries) throw new IOException();
             }
         }
 
@@ -224,6 +455,8 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
 
+        private string ZFullName(string pItemKey, string pExtension) => Path.Combine(DirectoryInfo.FullName, pItemKey + pExtension);
+
         private static cPersistentKey ZPersistentKey(cSectionCachePersistentKey pKey)
         {
             if (pKey == null) return null;
@@ -242,21 +475,24 @@ namespace work.bacome.imapclient
             private readonly string mDataFileFullName;
             private readonly string mInfoFileFullName;
             private readonly DateTime mCreationTimeUTC;
+            private bool mInfoFileExpectedToExist;
             private long mLength;
 
             public cItem(cDirectorySectionCache pCache, string pItemKey, DateTime pCreationTimeUTC, long pLength) : base(pCache, pItemKey)
             {
-                mDataFileFullName = Path.Combine(pCache.DirectoryInfo.FullName, pItemKey + kData);
-                mInfoFileFullName = Path.Combine(pCache.DirectoryInfo.FullName, pItemKey + kInfo);
+                mDataFileFullName = pCache.ZFullName(pItemKey, kData);
+                mInfoFileFullName = pCache.ZFullName(pItemKey, kInfo);
                 mCreationTimeUTC = pCreationTimeUTC;
+                mInfoFileExpectedToExist = true;
                 mLength = pLength;
             }
 
             public cItem(cDirectorySectionCache pCache, string pItemKey, Stream pReadWriteStream, DateTime pCreationTimeUTC) : base(pCache, pItemKey, pReadWriteStream)
             {
-                mDataFileFullName = Path.Combine(pCache.DirectoryInfo.FullName, pItemKey + kData);
-                mInfoFileFullName = Path.Combine(pCache.DirectoryInfo.FullName, pItemKey + kInfo);
+                mDataFileFullName = pCache.ZFullName(pItemKey, kData);
+                mInfoFileFullName = pCache.ZFullName(pItemKey, kInfo);
                 mCreationTimeUTC = pCreationTimeUTC;
+                mInfoFileExpectedToExist = false;
                 mLength = 0;
             }
 
@@ -275,6 +511,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cItem), nameof(YDelete));
                 File.Delete(mDataFileFullName);
                 File.Delete(mInfoFileFullName);
+                mInfoFileExpectedToExist = false;
             }
 
             protected override void ItemCached(long pLength, cTrace.cContext pParentContext)
@@ -282,7 +519,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cItem), nameof(ItemCached), pLength);
                 mLength = pLength;
                 if (PersistentKey == null || PersistentKeyAssigned) return;
-                ZRecordInfo(false, lContext);
+                ZCreateInfoFileIfPossible(lContext);
             }
 
             protected override void Touch(cTrace.cContext pParentContext)
@@ -291,11 +528,11 @@ namespace work.bacome.imapclient
 
                 if (!PersistentKeyAssigned)
                 {
-                    ZRecordInfo(false, lContext);
+                    ZCreateInfoFileIfPossible(lContext);
                     if (PersistentKeyAssigned) return;
                 }
 
-                if (PersistentKeyAssigned)
+                if (mInfoFileExpectedToExist)
                 {
                     var lFileInfo = new FileInfo(mInfoFileFullName);
 
@@ -306,32 +543,24 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                ZRecordInfo(true, lContext);
+                // create an empty file
+                File.Create(mInfoFileFullName).Dispose();
+                mInfoFileExpectedToExist = true;
             }
 
             protected override void AssignPersistentKey(bool pItemClosed, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cItem), nameof(Touch));
-                ZRecordInfo(false, lContext);
+                ZCreateInfoFileIfPossible(lContext);
             }
 
-            private void ZRecordInfo(bool pTouch, cTrace.cContext pParentContext)
+            private void ZCreateInfoFileIfPossible(cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cItem), nameof(ZRecordInfo), pTouch);
+                var lContext = pParentContext.NewMethod(nameof(cItem), nameof(ZCreateInfoFileIfPossible));
 
-                if (PersistentKey == null)
-                {
-                    if (pTouch) ZTouchDataFile(lContext);
-                    return;
-                }
-
+                if (PersistentKey == null) return;
                 var lPersistentKey = ZPersistentKey(PersistentKey);
-
-                if (lPersistentKey == null)
-                {
-                    if (pTouch) ZTouchDataFile(lContext);
-                    return;
-                }
+                if (lPersistentKey == null) return;
 
                 using (var lStream = new FileStream(mInfoFileFullName, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
@@ -339,26 +568,14 @@ namespace work.bacome.imapclient
                     lFormatter.Serialize(lStream, new cInfo(ItemKey, lPersistentKey, mCreationTimeUTC, mLength));
                 }
 
+                mInfoFileExpectedToExist = true;
                 SetPersistentKeyAssigned(lContext);
-            }
-
-            private void ZTouchDataFile(cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cItem), nameof(ZTouchDataFile));
-
-                var lFileInfo = new FileInfo(mDataFileFullName);
-
-                if (lFileInfo.Exists)
-                {
-                    lFileInfo.CreationTimeUtc = DateTime.UtcNow;
-                    return;
-                }
             }
         }
 
         [Serializable]
         [DataContract]
-        private class cInfo
+        private class cInfo : IComparable<cInfo>
         {
             [DataMember]
             public readonly string ItemKey; 
@@ -371,8 +588,8 @@ namespace work.bacome.imapclient
 
             public cInfo(string pItemKey, cPersistentKey pPersistentKey, DateTime pCreationTimeUTC, long pLength)
             {
-                ItemKey = pItemKey;
-                PersistentKey = pPersistentKey;
+                ItemKey = pItemKey ?? throw new ArgumentNullException(nameof(pItemKey));
+                PersistentKey = pPersistentKey ?? throw new ArgumentNullException(nameof(pPersistentKey));
                 CreationTimeUTC = pCreationTimeUTC;
                 Length = pLength;
             }
@@ -383,11 +600,24 @@ namespace work.bacome.imapclient
                 if (ItemKey == null) new cDeserialiseException($"{nameof(cInfo)}.{nameof(ItemKey)}.null");
                 if (PersistentKey == null) new cDeserialiseException($"{nameof(cInfo)}.{nameof(PersistentKey)}.null");
             }
+
+            public int CompareTo(cInfo pOther)
+            {
+                if (pOther == null) return 1;
+
+                int lCompareTo;
+                if ((lCompareTo = PersistentKey.CompareTo(pOther.PersistentKey)) != 0) return lCompareTo;
+                if ((lCompareTo = CreationTimeUTC.CompareTo(pOther.CreationTimeUTC)) != 0) return lCompareTo;
+
+                return ItemKey.CompareTo(pOther.ItemKey);
+            }
+
+            public override string ToString() => $"{nameof(cInfo)}({ItemKey},{PersistentKey},{CreationTimeUTC},{Length})";
         }
 
         [Serializable]
         [DataContract]
-        private class cPersistentKey : IEquatable<cPersistentKey>
+        private class cPersistentKey : IEquatable<cPersistentKey>, IComparable<cPersistentKey>
         {
             [DataMember]
             public readonly string Host;
@@ -405,7 +635,7 @@ namespace work.bacome.imapclient
             public cPersistentKey(cSectionCachePersistentKey pKey, string pCredentialId)
             {
                 Host = pKey.AccountId.Host;
-                CredentialId = pCredentialId;
+                CredentialId = pCredentialId ?? throw new ArgumentNullException(nameof(pCredentialId));
                 MailboxName = pKey.MailboxName;
                 UID = pKey.UID;
                 Section = pKey.Section;
@@ -423,6 +653,20 @@ namespace work.bacome.imapclient
             }
 
             public bool Equals(cPersistentKey pObject) => this == pObject;
+
+            public int CompareTo(cPersistentKey pOther)
+            {
+                if (pOther == null) return 1;
+
+                int lCompareTo;
+                if ((lCompareTo = Host.CompareTo(pOther.Host)) != 0) return lCompareTo;
+                if ((lCompareTo = CredentialId.CompareTo(pOther.CredentialId)) != 0) return lCompareTo;
+                if ((lCompareTo = MailboxName.CompareTo(pOther.MailboxName)) != 0) return lCompareTo;
+                if ((lCompareTo = UID.CompareTo(pOther.UID)) != 0) return lCompareTo;
+                if ((lCompareTo = Section.CompareTo(pOther.Section)) != 0) return lCompareTo;
+
+                return Decoding.CompareTo(pOther.Decoding);
+            }
 
             public override bool Equals(object pObject) => this == pObject as cPersistentKey;
 
@@ -454,6 +698,30 @@ namespace work.bacome.imapclient
             }
 
             public static bool operator !=(cPersistentKey pA, cPersistentKey pB) => !(pA == pB);
+        }
+
+        private class cItemToDelete : IComparable<cItemToDelete>
+        {
+            public readonly string ItemKey;
+            public readonly string DataFileFullName;
+            public readonly string InfoFileFullName;
+            public readonly DateTime TouchTimeUTC;
+            public readonly long Length;
+
+            public cItemToDelete(string pItemKey, string pDataFileFullName, string pInfoFileFullName, DateTime pTouchTimeUTC, long pLength)
+            {
+                ItemKey = pItemKey;
+                DataFileFullName = pDataFileFullName;
+                InfoFileFullName = pInfoFileFullName;
+                TouchTimeUTC = pTouchTimeUTC;
+                Length = pLength;
+            }
+
+            public int CompareTo(cItemToDelete pOther)
+            {
+                if (pOther == null) return 1;
+                return TouchTimeUTC.CompareTo(pOther.TouchTimeUTC);
+            }
         }
     }
 }

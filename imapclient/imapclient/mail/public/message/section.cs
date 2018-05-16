@@ -32,7 +32,7 @@ namespace work.bacome.mailclient
     /// </summary>
     [Serializable]
     [DataContract]
-    public class cSection : IEquatable<cSection>
+    public class cSection : IEquatable<cSection>, IComparable<cSection>
     {
         /// <summary>
         /// The section specification for an entire message.
@@ -155,6 +155,18 @@ namespace work.bacome.mailclient
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public bool Equals(cSection pObject) => this == pObject;
+
+        public int CompareTo(cSection pOther)
+        {
+            if (pOther == null) return 1;
+
+            int lCompareTo;
+
+            if ((lCompareTo = string.Compare(Part, pOther.Part)) != 0) return lCompareTo;
+            if ((lCompareTo = TextPart.CompareTo(pOther.TextPart)) != 0) return lCompareTo;
+
+            return cHeaderFieldNames.Compare(Names, pOther.Names);
+        }
 
         /// <inheritdoc />
         public override bool Equals(object pObject) => this == pObject as cSection;

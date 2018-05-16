@@ -10,6 +10,7 @@ namespace work.bacome.imapclient
 {
     // NOTE that any changes here need to be reflected in the SMTP cSendData classes ...
 
+        /*
     public abstract class cAppendData
     {
         public readonly fMessageDataFormat Format;
@@ -38,7 +39,7 @@ namespace work.bacome.imapclient
 
             // check that the source message is in a selected mailbox (in case we have to stream it)
             //  (note that this is just a sanity check; the mailbox could become un-selected before we get a chance to get the message data which will cause a throw)
-            if (!pMessage.IsValid()) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.IsInvalid);
+            if (!pMessage.IsValid) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.IsInvalid);
 
             Client = pMessage.Client;
             MessageHandle = pMessage.MessageHandle;
@@ -150,5 +151,5 @@ namespace work.bacome.imapclient
         }
 
         public override string ToString() => $"{nameof(cMessageDataAppendData)}({Format},{Flags},{Received},{MessageData})";
-    }
+    } */
 }

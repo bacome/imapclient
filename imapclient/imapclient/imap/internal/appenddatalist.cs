@@ -4,6 +4,7 @@ using work.bacome.mailclient;
 
 namespace work.bacome.imapclient
 {
+    /*
     internal class cAppendDataList : List<cAppendData>
     {
         public cAppendDataList() { }
@@ -39,4 +40,5 @@ namespace work.bacome.imapclient
             return lResult;
         }
     }
+    */
 }

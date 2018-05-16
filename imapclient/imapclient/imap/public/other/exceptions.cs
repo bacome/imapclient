@@ -407,6 +407,7 @@ namespace work.bacome.imapclient
         internal cMessageDataClientException() { }
     }
 
+    /*
     public class cAppendDataFormatException : cMailException
     {
         public readonly cAppendData AppendData;
@@ -415,5 +416,5 @@ namespace work.bacome.imapclient
         {
             AppendData = pAppendData;
         }
-    }
+    } */
 }

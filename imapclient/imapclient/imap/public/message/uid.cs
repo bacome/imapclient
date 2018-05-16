@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
     /// </summary>
     [Serializable]
     [DataContract]
-    public class cUID : IComparable<cUID>, IEquatable<cUID>
+    public class cUID : IEquatable<cUID>, IComparable<cUID>
     {
         /**<summary>The UIDValidity of the instance.</summary>*/
         [DataMember]
@@ -38,6 +38,9 @@ namespace work.bacome.imapclient
             if (UID == 0) throw new cDeserialiseException($"{nameof(cUID)}.{nameof(UID)}.zero");
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cUID pOther) => this == pOther;
+
         /// <inheritdoc cref="cAPIDocumentationTemplate.CompareTo(object)"/>
         public int CompareTo(cUID pOther)
         {
@@ -46,9 +49,6 @@ namespace work.bacome.imapclient
             if (lCompareTo == 0) return UID.CompareTo(pOther.UID);
             return lCompareTo;
         }
-
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
-        public bool Equals(cUID pOther) => this == pOther;
 
         /// <inheritdoc/>
         public override bool Equals(object pObject) => this == pObject as cUID;

@@ -150,9 +150,6 @@ namespace work.bacome.mailclient
             return lBuilder.ToString();
         }
 
-        public abstract Stream 
-
-
         /// <summary>
         /// Returns the content of the specified <see cref="cTextBodyPart"/>.
         /// </summary>
@@ -188,52 +185,26 @@ namespace work.bacome.mailclient
         public abstract Task<string> FetchAsync(cSection pSection);
 
         /// <summary>
-        /// Fetches the content of the specified <see cref="cSinglePartBody"/> into the specified <see cref="Stream"/>.
+        /// Returns a stream containing the data of the specified <see cref="cSinglePartBody"/>.
         /// </summary>
         /// <param name="pPart"></param>
-        /// <param name="pStream"></param>
-        /// <param name="pConfiguration">An operation specific timeout, cancellation token, progress-increment callback and write-size configuration.</param>
         /// <remarks>
         /// Will throw if <paramref name="pPart"/> is not in <see cref="BodyStructure"/>.
-        /// The content is decoded if required.
-        /// To calculate the number of bytes that have to be fetched, use <see cref="FetchSizeInBytes(cSinglePartBody)"/>. 
-        /// (This may be useful if you are intending to display a progress bar.)
+        /// The data is decoded if required.
+        /// The returned stream must be disposed when you are finished with it.
         /// </remarks>
-        public abstract void Fetch(cSinglePartBody pPart, Stream pStream, cFetchConfiguration pConfiguration = null);
+        public abstract Stream GetMessageDataStream(cSinglePartBody pPart);
 
         /// <summary>
-        /// Asynchronously fetches the content of the specified <see cref="cSinglePartBody"/> into the specified <see cref="Stream"/>.
-        /// </summary>
-        /// <param name="pPart"></param>
-        /// <param name="pStream"></param>
-        /// <param name="pConfiguration">An operation specific timeout, cancellation token, progress-increment callback and write-size configuration.</param>
-        /// <returns></returns>
-        /// <inheritdoc cref="Fetch(cSinglePartBody, Stream, cFetchConfiguration)" select="remarks"/>
-        public abstract Task FetchAsync(cSinglePartBody pPart, Stream pStream, cFetchConfiguration pConfiguration = null);
-
-        /// <summary>
-        /// Fetches the content of the specified <see cref="cSection"/> into the specified <see cref="Stream"/>.
+        /// Returns a stream containing the data of the specified <see cref="cSection"/>.
         /// </summary>
         /// <param name="pSection"></param>
         /// <param name="pDecoding">The decoding that should be applied.</param>
-        /// <param name="pStream"></param>
-        /// <param name="pConfiguration">An operation specific timeout, cancellation token, progress-increment callback and write-size configuration.</param>
         /// <remarks>
         /// If <see cref="cIMAPCapabilities.Binary"/> is in use and the entire body-part (<see cref="cSection.TextPart"/> is <see cref="eSectionTextPart.all"/>) is being fetched then
         /// unless <paramref name="pDecoding"/> is <see cref="eDecodingRequired.none"/> the server will do the decoding that it determines is required (i.e. the decoding specified is ignored).
         /// </remarks>
-        public abstract void Fetch(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchConfiguration pConfiguration = null);
-
-        /// <summary>
-        /// Asynchronously fetches the content of the specified <see cref="cSection"/> into the specified <see cref="Stream"/>.
-        /// </summary>
-        /// <param name="pSection"></param>
-        /// <param name="pDecoding"></param>
-        /// <param name="pStream"></param>
-        /// <param name="pConfiguration">An operation specific timeout, cancellation token, progress-increment callback and write-size configuration.</param>
-        /// <returns></returns>
-        /// <inheritdoc cref="Fetch(cSection, eDecodingRequired, Stream, cFetchConfiguration)" select="remarks"/>
-        public abstract Task FetchAsync(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchConfiguration pConfiguration = null);
+        public abstract Stream GetMessageDataStream(cSection pSection, eDecodingRequired pDecoding);
 
         protected List<cSinglePartBody> YAttachmentParts(cBodyPart pPart)
         {
