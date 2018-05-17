@@ -73,17 +73,17 @@ namespace work.bacome.imapclient
             return ZMailboxesAsync(pMailboxHandle, pDataSets, lContext);
         }
 
-        private async Task<List<cMailbox>> ZMailboxesAsync(iMailboxHandle pMailboxHandle, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
+        private Task<List<cMailbox>> ZMailboxesAsync(iMailboxHandle pMailboxHandle, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMailboxesAsync), pMailboxHandle, pDataSets);
 
             if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
-            if (pMailboxHandle.MailboxName.Delimiter == null) return new List<cMailbox>();
+            if (pMailboxHandle.MailboxName.Delimiter == null) return Task.FromResult(new List<cMailbox>());
 
             string lListMailbox = pMailboxHandle.MailboxName.Path.Replace('*', '%') + pMailboxHandle.MailboxName.Delimiter + "%";
             cMailboxPathPattern lPattern = new cMailboxPathPattern(pMailboxHandle.MailboxName.Path + pMailboxHandle.MailboxName.Delimiter, "%", pMailboxHandle.MailboxName.Delimiter);
 
-            return await ZZMailboxesAsync(lListMailbox, pMailboxHandle.MailboxName.Delimiter, lPattern, pDataSets, lContext).ConfigureAwait(false);
+            return ZZMailboxesAsync(lListMailbox, pMailboxHandle.MailboxName.Delimiter, lPattern, pDataSets, lContext);
         }
 
         internal List<cMailbox> Mailboxes(cNamespaceName pNamespaceName, fMailboxCacheDataSets pDataSets)

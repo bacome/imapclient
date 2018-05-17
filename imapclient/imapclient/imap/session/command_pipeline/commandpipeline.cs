@@ -101,13 +101,13 @@ namespace work.bacome.imapclient
                     mBackgroundReleaser.Release(lContext);
                 }
 
-                public async Task<cExclusiveAccess.cToken> GetIdleBlockTokenAsync(cMethodControl pMC, cTrace.cContext pParentContext)
+                public Task<cExclusiveAccess.cToken> GetIdleBlockTokenAsync(cMethodControl pMC, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(GetIdleBlockTokenAsync));
                     if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
                     var lTask = mIdleBlock.GetTokenAsync(pMC, lContext);
                     mBackgroundReleaser.Release(lContext);
-                    return await lTask.ConfigureAwait(false);
+                    return lTask;
                 }
 
                 private void ZIdleBlockReleased(cTrace.cContext pParentContext) => mBackgroundReleaser.Release(pParentContext);

@@ -12,25 +12,43 @@ namespace work.bacome.imapclient
     internal abstract class cDecoder
     {
         private readonly iFetchBodyTarget mTarget;
-        private readonly byte[] mBuffer = new byte[cMailClient.mLocalStreamBufferSize];
+        private readonly byte[] mBuffer = new byte[cMailClient.LocalStreamBufferSize];
 
         public cDecoder(iFetchBodyTarget pTarget)
         {
-            mTarget = pTarget;
+            mTarget = pTarget ?? throw new ArgumentNullException(nameof(pTarget));
         }
 
-        public abstract Task WriteAsync(IList<byte> pBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext);
+        public Task WriteAsync(IList<byte> pFetchedBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cDecoder), nameof(WriteAsync), pOffset);
+            if (pFetchedBytes == null) throw new ArgumentNullException(nameof(pFetchedBytes));
+            if (pOffset > pFetchedBytes.Count) throw new ArgumentOutOfRangeException(nameof(pOffset));
+            if (pOffset == pFetchedBytes.Count) return Task.WhenAll(); // TODO => Task.CompletedTask;
+            return YWriteAsync(pFetchedBytes, pOffset, pCancellationToken, lContext);
+        }
 
-        protected async Task YWriteAsync(IList<byte> pBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        protected abstract Task YWriteAsync(IList<byte> pFetchedBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext);
+
+        protected async Task YWriteAsync(int pFetchedBytesProcessed, IList<byte> pDecodedBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cDecoder), nameof(YWriteAsync), pOffset);
 
-            while (pOffset < pBytes.Count)
+            if (pFetchedBytesProcessed < 0) throw new ArgumentOutOfRangeException(nameof(pFetchedBytesProcessed));
+            if (pDecodedBytes == null) throw new ArgumentNullException(nameof(pDecodedBytes));
+            if (pOffset < 0 || pOffset > pDecodedBytes.Count) throw new ArgumentOutOfRangeException(nameof(pOffset));
+            if (pFetchedBytesProcessed < pDecodedBytes.Count - pOffset) throw new ArgumentOutOfRangeException(nameof(pDecodedBytes));
+            if (pFetchedBytesProcessed == 0) return;
+
+            int lExtraFetchedBytesProcessed = pFetchedBytesProcessed - pDecodedBytes.Count + pOffset;
+
+            do
             {
                 int lBytesInBuffer = 0;
-                while (lBytesInBuffer < cMailClient.mLocalStreamBufferSize && pOffset < pBytes.Count) mBuffer[lBytesInBuffer++] = pBytes[pOffset++];
-                await mTarget.WriteAsync(mBuffer, lBytesInBuffer, pCancellationToken, lContext).ConfigureAwait(false);
-            }
+                while (lBytesInBuffer < cMailClient.LocalStreamBufferSize && pOffset < pDecodedBytes.Count) mBuffer[lBytesInBuffer++] = pDecodedBytes[pOffset++];
+                await mTarget.WriteAsync(mBuffer, lBytesInBuffer, lBytesInBuffer + lExtraFetchedBytesProcessed, pCancellationToken, lContext).ConfigureAwait(false);
+                lExtraFetchedBytesProcessed = 0;
+            } while (pOffset < pDecodedBytes.Count);
         }
 
         public virtual Task FlushAsync(CancellationToken pCancellationToken, cTrace.cContext pParentContext) => Task.WhenAll(); // TODO => Task.CompletedTask;
@@ -38,6 +56,7 @@ namespace work.bacome.imapclient
         public static cDecoder GetDecoder(bool pBinary, eDecodingRequired pDecoding, iFetchBodyTarget pTarget, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cDecoder), nameof(GetDecoder), pBinary, pDecoding);
+            if (pTarget == null) throw new ArgumentNullException(nameof(pTarget));
             if (pBinary || pDecoding == eDecodingRequired.none) return new cIdentityDecoder(pTarget);
             if (pDecoding == eDecodingRequired.base64) return new cBase64Decoder(pTarget);
             if (pDecoding == eDecodingRequired.quotedprintable) return new cQuotedPrintableDecoder(pTarget);
@@ -46,10 +65,18 @@ namespace work.bacome.imapclient
 
         public class _Tester : iFetchBodyTarget, IDisposable
         {
+            private long mFetchedBytesWritten = 0;
             private MemoryStream mStream = new MemoryStream();
             public _Tester() { }
-            public Task WriteAsync(byte[] pBuffer, int pCount, CancellationToken pCancellationToken, cTrace.cContext pParentContext) => mStream.WriteAsync(pBuffer, 0, pCount, pCancellationToken);
+
+            public Task WriteAsync(byte[] pBuffer, int pCount, int pFetchedBytesInBuffer, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+            {
+                mFetchedBytesWritten += pFetchedBytesInBuffer;
+                return mStream.WriteAsync(pBuffer, 0, pCount, pCancellationToken);
+            }
+
             public byte[] GetBuffer() => mStream.GetBuffer();
+            public long FetchedBytesWritten => mFetchedBytesWritten;
             public int Length => (int)mStream.Length;
             public void Dispose() => mStream.Dispose();
         }
@@ -58,23 +85,23 @@ namespace work.bacome.imapclient
     internal class cIdentityDecoder : cDecoder
     {
         public cIdentityDecoder(iFetchBodyTarget pTarget) : base(pTarget) { }
-        public override Task WriteAsync(IList<byte> pBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext) => YWriteAsync(pBytes, pOffset, pCancellationToken, pParentContext);
+        protected override Task YWriteAsync(IList<byte> pFetchedBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext) => YWriteAsync(pFetchedBytes.Count - pOffset, pFetchedBytes, pOffset, pCancellationToken, pParentContext);
     }
 
     internal abstract class cLineDecoder : cDecoder
     {              
-        private List<byte> mLine = new List<byte>();
+        private List<byte> mLineBytes = new List<byte>();
         private bool mBufferedCR = false;
 
         public cLineDecoder(iFetchBodyTarget pTarget) : base(pTarget) { }
 
-        public async sealed override Task WriteAsync(IList<byte> pBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        protected async sealed override Task YWriteAsync(IList<byte> pFetchedBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cLineDecoder), nameof(WriteAsync), pOffset);
+            var lContext = pParentContext.NewMethod(nameof(cLineDecoder), nameof(YWriteAsync), pOffset);
 
-            while (pOffset < pBytes.Count)
+            while (pOffset < pFetchedBytes.Count)
             {
-                byte lByte = pBytes[pOffset++];
+                byte lByte = pFetchedBytes[pOffset++];
                         
                 if (mBufferedCR)
                 {
@@ -82,50 +109,47 @@ namespace work.bacome.imapclient
 
                     if (lByte == cASCII.LF)
                     {
-                        await YWriteLineAsync(mLine, true, pCancellationToken, lContext).ConfigureAwait(false);
-                        mLine.Clear();
+                        await YWriteLineAsync(mLineBytes.Count + 2, mLineBytes, true, pCancellationToken, lContext).ConfigureAwait(false);
+                        mLineBytes.Clear();
                         continue;
                     }
 
-                    mLine.Add(cASCII.CR);
+                    mLineBytes.Add(cASCII.CR);
                 }
 
                 if (lByte == cASCII.CR) mBufferedCR = true;
-                else mLine.Add(lByte);
+                else mLineBytes.Add(lByte);
             }
         }
 
         public sealed override Task FlushAsync(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cLineDecoder), nameof(FlushAsync));
-            if (mBufferedCR) mLine.Add(cASCII.CR);
-            return YWriteLineAsync(mLine, false, pCancellationToken, lContext);
+            if (mBufferedCR) mLineBytes.Add(cASCII.CR);
+            return YWriteLineAsync(mLineBytes.Count, mLineBytes, false, pCancellationToken, lContext);
         }
 
-        protected abstract Task YWriteLineAsync(List<byte> pLine, bool pCRLF, CancellationToken pCancellationToken, cTrace.cContext pParentContext);
+        protected abstract Task YWriteLineAsync(int pFetchedBytesInLine, List<byte> pLineBytes, bool pCRLF, CancellationToken pCancellationToken, cTrace.cContext pParentContext);
     }
 
     internal class cBase64Decoder : cLineDecoder
     {
-        private readonly List<byte> mBytes = new List<byte>();
+        private readonly List<byte> mEncodedBytes = new List<byte>();
 
         public cBase64Decoder(iFetchBodyTarget pTarget) : base(pTarget) { }
 
-        protected async override Task YWriteLineAsync(List<byte> pLine, bool pCRLF, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        protected override Task YWriteLineAsync(int pFetchedBytesInLine, List<byte> pLineBytes, bool pCRLF, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cBase64Decoder), nameof(YWriteLineAsync), pCRLF);
 
             // build the buffer to decode
-            mBytes.Clear();
-            foreach (var lByte in pLine) if (cBase64.IsInAlphabet(lByte)) mBytes.Add(lByte);
-
-            // special case
-            if (mBytes.Count == 0) return;
+            mEncodedBytes.Clear();
+            foreach (var lByte in pLineBytes) if (cBase64.IsInAlphabet(lByte)) mEncodedBytes.Add(lByte);
 
             // decode
-            if (!cBase64.TryDecode(mBytes, out var lBytes, out var lError)) throw new cContentTransferDecodingException(lError, lContext);
+            if (!cBase64.TryDecode(mEncodedBytes, out var lDecodedBytes, out var lError)) throw new cContentTransferDecodingException(lError, lContext);
 
-            await YWriteAsync(lBytes, 0, pCancellationToken, lContext).ConfigureAwait(false);
+            return YWriteAsync(pFetchedBytesInLine, lDecodedBytes, 0, pCancellationToken, lContext);
         }
     }
 
@@ -133,11 +157,11 @@ namespace work.bacome.imapclient
     {
         private static readonly cBytes kNewLine = new cBytes(Environment.NewLine);
 
-        private readonly List<byte> mBytes = new List<byte>();
+        private readonly List<byte> mDecodedBytes = new List<byte>();
 
         public cQuotedPrintableDecoder(iFetchBodyTarget pTarget) : base(pTarget) { }
 
-        protected async override Task YWriteLineAsync(List<byte> pLine, bool pCRLF, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        protected override Task YWriteLineAsync(int pFetchedBytesInLine, List<byte> pLineBytes, bool pCRLF, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cQuotedPrintableDecoder), nameof(YWriteLineAsync), pCRLF);
 
@@ -145,11 +169,11 @@ namespace work.bacome.imapclient
 
             // strip trailing space
 
-            int lEOL = pLine.Count;
+            int lEOL = pLineBytes.Count;
 
             while (lEOL != 0)
             {
-                lByte = pLine[lEOL - 1];
+                lByte = pLineBytes[lEOL - 1];
                 if (lByte != cASCII.SPACE && lByte != cASCII.TAB) break;
                 lEOL--;
             }
@@ -158,7 +182,7 @@ namespace work.bacome.imapclient
 
             bool lSoftLineBreak;
 
-            if (lEOL != 0 && pLine[lEOL - 1] == cASCII.EQUALS)
+            if (lEOL != 0 && pLineBytes[lEOL - 1] == cASCII.EQUALS)
             {
                 lSoftLineBreak = true;
                 lEOL--;
@@ -167,35 +191,35 @@ namespace work.bacome.imapclient
 
             // decode
 
-            mBytes.Clear();
+            mDecodedBytes.Clear();
 
             int lInputByte = 0;
 
             while (lInputByte < lEOL)
             {
-                lByte = pLine[lInputByte++];
+                lByte = pLineBytes[lInputByte++];
 
                 if (lByte == cASCII.EQUALS)
                 {
-                    if (lInputByte + 2 <= lEOL && ZGetHexEncodedNibble(pLine, lInputByte, out int lMSN) && ZGetHexEncodedNibble(pLine, lInputByte + 1, out int lLSN))
+                    if (lInputByte + 2 <= lEOL && ZGetHexEncodedNibble(pLineBytes, lInputByte, out int lMSN) && ZGetHexEncodedNibble(pLineBytes, lInputByte + 1, out int lLSN))
                     {
                         lInputByte = lInputByte + 2;
                         lByte = (byte)(lMSN << 4 | lLSN);
                     }
                 }
 
-                mBytes.Add(lByte);
+                mDecodedBytes.Add(lByte);
             }
 
             // potentially add a line break 
-            if (pCRLF && !lSoftLineBreak) mBytes.AddRange(kNewLine);
+            if (pCRLF && !lSoftLineBreak) mDecodedBytes.AddRange(kNewLine);
 
-            await YWriteAsync(mBytes, 0, pCancellationToken, lContext).ConfigureAwait(false);
+            return YWriteAsync(pFetchedBytesInLine, mDecodedBytes, 0, pCancellationToken, lContext);
         }
 
-        private bool ZGetHexEncodedNibble(List<byte> pLine, int pByte, out int rNibble)
+        private bool ZGetHexEncodedNibble(List<byte> pLineBytes, int pByte, out int rNibble)
         {
-            int lByte = pLine[pByte];
+            int lByte = pLineBytes[pByte];
 
             if (lByte < cASCII.ZERO) { rNibble = 0; return false; }
             if (lByte <= cASCII.NINE) { rNibble = lByte - cASCII.ZERO; return true; }
@@ -227,15 +251,20 @@ namespace work.bacome.imapclient
                 {
                     cDecoder lDecoder = new cQuotedPrintableDecoder(lTester);
 
+                    long lBytesSent = 0;
                     int lOffset = 4;
 
                     foreach (var lLine in pLines)
                     {
-                        lDecoder.WriteAsync(new cBytes(lLine), lOffset, CancellationToken.None, lContext).Wait();
+                        var lBytes = new cBytes(lLine);
+                        lDecoder.WriteAsync(lBytes, lOffset, CancellationToken.None, lContext).Wait();
+                        lBytesSent += lBytes.Count - lOffset;
                         lOffset = 0;
                     }
 
                     lDecoder.FlushAsync(CancellationToken.None, lContext).Wait();
+
+                    if (lTester.FetchedBytesWritten != lBytesSent) throw new cTestsException("bytes sent/written mismatch");
 
                     return new string(System.Text.Encoding.UTF8.GetChars(lTester.GetBuffer(), 0, lTester.Length));
                 }

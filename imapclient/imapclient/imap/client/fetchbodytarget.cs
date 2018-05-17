@@ -7,6 +7,6 @@ namespace work.bacome.imapclient
 {
     internal interface iFetchBodyTarget
     {
-        Task WriteAsync(byte[] pBuffer, int pCount, CancellationToken pCancellationToken, cTrace.cContext pParentContext);
+        Task WriteAsync(byte[] pBuffer, int pCount, int pFetchedBytesInBuffer, CancellationToken pCancellationToken, cTrace.cContext pParentContext);
     }
 }

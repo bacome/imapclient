@@ -99,6 +99,7 @@ namespace work.bacome.imapclient
             {
                 try { File.Delete(lOldListFileFullName); }
                 catch (Exception e) { lContext.TraceException($"failed to delete old list file: {lOldListFileFullName}", e); }
+                if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
             }
 
             mOldListFileFullNames.Clear();
@@ -106,6 +107,7 @@ namespace work.bacome.imapclient
             // get directory content
 
             var lFileInfos1 = DirectoryInfo.GetFiles("*.sc?", SearchOption.TopDirectoryOnly);
+            if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
             Dictionary<string, FileInfo> lItemKeyToDataFileFileInfo = new Dictionary<string, FileInfo>();
             Dictionary<string, FileInfo> lItemKeyToInfoFileFileInfo = new Dictionary<string, FileInfo>();
@@ -125,8 +127,14 @@ namespace work.bacome.imapclient
                     var lItemKey = Path.GetFileNameWithoutExtension(lFileInfo.Name);
                     lItemKeyToInfoFileFileInfo.Add(lItemKey, lFileInfo);
                 }
-                else if (lExtension == kList) lListFileFullNames.Add(lFileInfo.FullName);
+                else if (lExtension == kList)
+                {
+                    if (lFileInfo.Length == 0) mOldListFileFullNames.Add(lFileInfo.FullName);
+                    else lListFileFullNames.Add(lFileInfo.FullName);
+                }
             }
+
+            if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
             // build a list of files with a known key
 
@@ -171,13 +179,17 @@ namespace work.bacome.imapclient
                 {
                     lContext.TraceException($"failed to open list file: {lListFileFullName}", e);
                     lListFileInfos = null;
-                } 
+                }
+
+                if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
                 if (lListFileInfos != null)
                 {
                     foreach (var lInfo in lListFileInfos) if (lItemKeyToDataFileFileInfo.TryGetValue(lInfo.ItemKey, out var lDataFileFileInfo) && lDataFileFileInfo.CreationTimeUtc == lInfo.CreationTimeUTC && lDataFileFileInfo.Length == lInfo.Length) lItemKeyToInfo[lInfo.ItemKey] = lInfo;
                     mOldListFileFullNames.Add(lListFileFullName);
                 }
+
+                if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
             }
 
             var lItemKeysWithInfoButNoDataFile = mItemKeysWithInfoButNoDataFile;
@@ -209,6 +221,8 @@ namespace work.bacome.imapclient
                             lContext.TraceException($"failed to delete orphaned info file: {lInfoFileFullName}", e);
                             mItemKeysWithInfoButNoDataFile.Add(lItemKey);
                         }
+
+                        if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
                     }
 
                     continue;
@@ -258,13 +272,19 @@ namespace work.bacome.imapclient
                     }
 
                     if (lInfo != null && lDataFileFileInfo.CreationTimeUtc == lInfo.CreationTimeUTC && lDataFileFileInfo.Length == lInfo.Length) lItemKeyToInfo.Add(lItemKey, lInfo);
+
+                    if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
                 }
             }
+
+            if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
             // delete files that contain duplicate data, build the new internal list
 
             List<cInfo> lItemKeyInfos = new List<cInfo>(lItemKeyToInfo.Values);
             lItemKeyInfos.Sort();
+
+            if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
             cPersistentKey lLastPersistentKey = null;
             var lItems = new Dictionary<cPersistentKey, cInfo>();
@@ -290,6 +310,8 @@ namespace work.bacome.imapclient
                         catch (Exception e) { lContext.TraceException($"failed to delete duplicate's info file: {lInfoFileFullName}", e); }
                     }
                     catch (Exception e) { lContext.TraceException($"failed to delete duplicate data file: {lDataFileFullName}", e); }
+
+                    if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
                 }
                 else
                 {
@@ -298,6 +320,8 @@ namespace work.bacome.imapclient
                 }
             }
 
+            if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
+
             mItems = lItems;
 
             // delete data files that look abandoned
@@ -305,6 +329,8 @@ namespace work.bacome.imapclient
             var lItemKeysWithDataButNoInfoFile = mItemKeysWithDataButNoInfoFile;
             mItemKeysWithDataButNoInfoFile = new List<string>();
             lItemKeysWithDataButNoInfoFile.Sort();
+
+            if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
             var lRecentFileLimit = DateTime.UtcNow - RecentFileAge;
 
@@ -346,15 +372,21 @@ namespace work.bacome.imapclient
                     // mark this item as needing to be removed from the list of data files
                     lItemKeysToRemove.Add(lItemKey);
                 }
+
+                if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
             }
+
+            if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
             // remove the deleted items from the list of data files
             foreach (var lItemKey in lItemKeysToRemove) lItemKeyToDataFileFileInfo.Remove(lItemKey);
+            if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
             // tidy up
 
             long lByteCount = 0;
             foreach (var lPair in lItemKeyToDataFileFileInfo) lByteCount += lPair.Value.Length;
+            if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
             if (lByteCount > ByteCountBudget || lItemKeyToDataFileFileInfo.Count > FileCountBudget)
             {
@@ -374,7 +406,11 @@ namespace work.bacome.imapclient
                     lItemsToDelete.Add(new cItemToDelete(lItemKey, lFileInfo.FullName, ZFullName(lItemKey, kInfo), lTouchTimeUTC, lFileInfo.Length));
                 }
 
+                if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
+
                 lItemsToDelete.Sort();
+
+                if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
                 foreach (var lItemToDelete in lItemsToDelete)
                 {
@@ -399,6 +435,8 @@ namespace work.bacome.imapclient
                     try { File.Delete(lItemToDelete.InfoFileFullName); }
                     catch (Exception e) { lContext.TraceException($"failed to delete info file: {lItemToDelete.InfoFileFullName}", e); }
 
+                    if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
+
                     // check if we need to carry on
                     if (lByteCount <= ByteCountBudget || lFileCount <= FileCountBudget) break;
                 }
@@ -407,10 +445,15 @@ namespace work.bacome.imapclient
             // write out new index file
 
             var lInfos = new List<cInfo>(lItemKeyToInfo.Values);
+            if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
             ZNewFile(kList, FileShare.None, out _, out var lNewListFileFullName, out var lListWriteStream);
 
-            try { lFormatter.Serialize(lListWriteStream, lInfos); }
+            try
+            {
+                if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
+                lFormatter.Serialize(lListWriteStream, lInfos);
+            }
             catch (Exception e)
             {
                 lContext.TraceException($"failed to write out new list file: {lNewListFileFullName}", e);
@@ -476,15 +519,13 @@ namespace work.bacome.imapclient
             private readonly string mInfoFileFullName;
             private readonly DateTime mCreationTimeUTC;
             private bool mInfoFileExpectedToExist;
-            private long mLength;
 
-            public cItem(cDirectorySectionCache pCache, string pItemKey, DateTime pCreationTimeUTC, long pLength) : base(pCache, pItemKey)
+            public cItem(cDirectorySectionCache pCache, string pItemKey, DateTime pCreationTimeUTC, long pLength) : base(pCache, pItemKey, pLength)
             {
                 mDataFileFullName = pCache.ZFullName(pItemKey, kData);
                 mInfoFileFullName = pCache.ZFullName(pItemKey, kInfo);
                 mCreationTimeUTC = pCreationTimeUTC;
                 mInfoFileExpectedToExist = true;
-                mLength = pLength;
             }
 
             public cItem(cDirectorySectionCache pCache, string pItemKey, Stream pReadWriteStream, DateTime pCreationTimeUTC) : base(pCache, pItemKey, pReadWriteStream)
@@ -493,7 +534,6 @@ namespace work.bacome.imapclient
                 mInfoFileFullName = pCache.ZFullName(pItemKey, kInfo);
                 mCreationTimeUTC = pCreationTimeUTC;
                 mInfoFileExpectedToExist = false;
-                mLength = 0;
             }
 
             protected override Stream YGetReadStream(cTrace.cContext pParentContext)
@@ -501,7 +541,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cItem), nameof(YGetReadStream));
                 var lStream = new FileStream(mDataFileFullName, FileMode.Open, FileAccess.Read, FileShare.Read);
                 var lFileInfo = new FileInfo(mDataFileFullName);
-                if (lFileInfo.CreationTimeUtc == mCreationTimeUTC && lFileInfo.Length == mLength && lStream.Length == mLength) return lStream;
+                if (lFileInfo.CreationTimeUtc == mCreationTimeUTC) return lStream;
                 lStream.Dispose();
                 return null;
             }
@@ -514,10 +554,9 @@ namespace work.bacome.imapclient
                 mInfoFileExpectedToExist = false;
             }
 
-            protected override void ItemCached(long pLength, cTrace.cContext pParentContext)
+            protected override void ItemCached(cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cItem), nameof(ItemCached), pLength);
-                mLength = pLength;
+                var lContext = pParentContext.NewMethod(nameof(cItem), nameof(ItemCached));
                 if (PersistentKey == null || PersistentKeyAssigned) return;
                 ZCreateInfoFileIfPossible(lContext);
             }
@@ -565,7 +604,7 @@ namespace work.bacome.imapclient
                 using (var lStream = new FileStream(mInfoFileFullName, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
                     BinaryFormatter lFormatter = new BinaryFormatter();
-                    lFormatter.Serialize(lStream, new cInfo(ItemKey, lPersistentKey, mCreationTimeUTC, mLength));
+                    lFormatter.Serialize(lStream, new cInfo(ItemKey, lPersistentKey, mCreationTimeUTC, Length));
                 }
 
                 mInfoFileExpectedToExist = true;

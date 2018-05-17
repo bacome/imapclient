@@ -34,7 +34,7 @@ namespace work.bacome.mailclient
         internal static readonly cTrace Trace = new cTrace("work.bacome.cMailClient");
 
         // arbitrary statics
-        internal static readonly int mLocalStreamBufferSize = 10000;
+        internal static readonly int LocalStreamBufferSize = 10000;
 
         // mechanics
         private bool mDisposed = false;
@@ -256,7 +256,6 @@ namespace work.bacome.mailclient
 
         public bool IsDisposed => mDisposed;
 
-        /* need to be sure I understand why this is a good idea
         internal void InvokeActionInt(Action<int> pAction, int pInt, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cMailClient), nameof(InvokeActionInt), pInt);
@@ -267,7 +266,7 @@ namespace work.bacome.mailclient
         {
             var lContext = pParentContext.NewMethod(nameof(cMailClient), nameof(InvokeActionLong), pLong);
             mSynchroniser.InvokeActionLong(pAction, pLong, lContext);
-        } */
+        } 
 
         public void Dispose()
         {

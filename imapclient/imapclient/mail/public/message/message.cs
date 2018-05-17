@@ -128,7 +128,7 @@ namespace work.bacome.mailclient
         /// The required body-parts are fetched from the server and concatented to yield the result.
         /// The text returned is the decoded text.
         /// </remarks>
-        public string PlainText()
+        public string GetPlainText()
         {
             StringBuilder lBuilder = new StringBuilder();
             foreach (var lPart in ZPlainTextParts(BodyStructure)) lBuilder.Append(Fetch(lPart));
@@ -139,7 +139,7 @@ namespace work.bacome.mailclient
         /// Ansynchronously returns the plain text of the message.
         /// </summary>
         /// <inheritdoc cref="PlainText" select="returns|remarks"/>
-        public virtual async Task<string> PlainTextAsync()
+        public virtual async Task<string> GetPlainTextAsync()
         {
             List<Task<string>> lTasks = new List<Task<string>>();
             foreach (var lPart in ZPlainTextParts(BodyStructure)) lTasks.Add(FetchAsync(lPart));

@@ -27,7 +27,7 @@ namespace work.bacome.imapclient
             MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
         }
 
-        public bool IsValid() => ReferenceEquals(Client.SelectedMailboxDetails?.MessageCache, MessageHandle.MessageCache);
+        public bool IsValid => ReferenceEquals(Client.SelectedMailboxDetails?.MessageCache, MessageHandle.MessageCache);
 
         /// <summary>
         /// Gets the number of bytes that will have to come over the network from the server to save the attachment.
@@ -68,7 +68,15 @@ namespace work.bacome.imapclient
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         public override void SaveAs(string pPath, cAttachmentSaveConfiguration pConfiguration = null)
         {
-            cFetchConfiguration lConfiguration;
+
+
+
+
+
+
+
+
+                cFetchConfiguration lConfiguration;
 
             if (pConfiguration == null) lConfiguration = null;
             else
@@ -117,6 +125,58 @@ namespace work.bacome.imapclient
             using (FileStream lStream = new FileStream(pPath, FileMode.Create))
             {
                 await Client.FetchAsync(MessageHandle, Part.Section, Part.DecodingRequired, lStream, lConfiguration).ConfigureAwait(false);
+            }
+
+            if (Part.Disposition?.CreationDateTime != null) File.SetCreationTime(pPath, Part.Disposition.CreationDateTime.Value.ToLocalTime());
+            if (Part.Disposition?.ModificationDateTime != null) File.SetLastWriteTime(pPath, Part.Disposition.ModificationDateTime.Value.ToLocalTime());
+            if (Part.Disposition?.ReadDateTime != null) File.SetLastAccessTime(pPath, Part.Disposition.ReadDateTime.Value.ToLocalTime());
+        }
+
+        private async Task ZSaveAsAsync(string pPath, cAttachmentSaveConfiguration pConfiguration)
+        {
+            using (var lMessageDataStream = new cIMAPMessageDataStream(this))
+            using (var lFileStream = new FileStream(pPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                var lBuffer = new byte[cMailClient.LocalStreamBufferSize];
+
+                var lSetMaximum = pConfiguration?.SetMaximum;
+                bool lProgressIsInFetchedBytes = false;
+
+                while (true)
+                {
+                    var lBytesRead = await lMessageDataStream.ReadAsync(lBuffer, 0, lBuffer.Length).ConfigureAwait(false);
+
+                    if (lBytesRead == 0)
+                    {
+                        ;?; // might have to call increment if the last few bytes fetched didn't generate any data
+                        break;
+                    }
+
+                    if (lSetMaximum != null)
+                    {
+                        var lDataIsCached = lMessageDataStream.DataIsCached;
+
+                        if (lDataIsCached == null) throw new cInternalErrorException(lContext);
+
+                        if (lMessageDataStream.DataIsCached.Value) Client.InvokeActionLong(lSetMaximum, lMessageDataStream.Length, lContext);
+                        else
+                        {
+                            var lFetchSizeInBytes = await Client.FetchSizeInBytesAsync(MessageHandle, Part).ConfigureAwait(false);
+                            Client.InvokeActionLong(lSetMaximum, lFetchSizeInBytes);
+                            lProgressIsInFetchedBytes = true;
+                        }
+
+                        lSetMaximum = null;
+                    }
+
+                    await lFileStream.WriteAsync(lBuffer, 0, lBytesRead).ConfigureAwait(false);
+
+                    ;?; // calculate the increment based on this position and the last position
+
+
+                    if (lProgressIsInFetchedBytes) Client.InvokeActionInt(pConfiguration?.Increment, lMessageDataStream.FetchedBytesPosition);
+                    else Client.invokeactionint(pConfiguration?.Increment, lBytesRead);
+                }
             }
 
             if (Part.Disposition?.CreationDateTime != null) File.SetCreationTime(pPath, Part.Disposition.CreationDateTime.Value.ToLocalTime());

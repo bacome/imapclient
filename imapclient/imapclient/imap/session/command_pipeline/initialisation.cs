@@ -120,7 +120,7 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kSASLAsterisk = new cBytes("*");
                 private static readonly cBytes kSASLAuthenticationResponse = new cBytes("<SASL authentication response>");
 
-                private async Task ZProcessChallengeAsync(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                private Task ZProcessChallengeAsync(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZProcessChallengeAsync));
 
@@ -160,7 +160,7 @@ namespace work.bacome.imapclient
                         mSynchroniser.InvokeNetworkSend(kSASLAuthenticationResponse, lContext);
                     }
 
-                    await mConnection.WriteAsync(lBuffer, mBackgroundCancellationTokenSource.Token, lContext).ConfigureAwait(false);
+                    return mConnection.WriteAsync(lBuffer, mBackgroundCancellationTokenSource.Token, lContext);
                 }
 
                 public bool SASLSecurityInstalled => mConnection.SASLSecurityInstalled;

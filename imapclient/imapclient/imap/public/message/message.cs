@@ -444,7 +444,7 @@ namespace work.bacome.imapclient
         /// The result may be smaller than <see cref="cSinglePartBody.SizeInBytes"/> if <see cref="cSinglePartBody.DecodingRequired"/> isn't <see cref="eDecodingRequired.none"/> and <see cref="cIMAPCapabilities.Binary"/> is in use.
         /// The size may have to be fetched from the server, but once fetched it will be cached.
         /// </remarks>
-        public uint FetchSizeInBytes(cSinglePartBody pPart)
+        public uint GetFetchSizeInBytes(cSinglePartBody pPart)
         {
             CheckPart(pPart);
             return Client.FetchSizeInBytes(MessageHandle, pPart);
@@ -455,19 +455,19 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pPart"></param>
         /// <inheritdoc cref="Fetch(cMessageCacheItems)" select="returns|remarks"/>
-        public Task<uint> FetchSizeInBytesAsync(cSinglePartBody pPart)
+        public Task<uint> GetFetchSizeInBytesAsync(cSinglePartBody pPart)
         {
             CheckPart(pPart);
             return Client.FetchSizeInBytesAsync(MessageHandle, pPart);
         }
 
-        public uint? DecodedSizeInBytes(cSinglePartBody pPart)
+        public uint? GetDecodedSizeInBytes(cSinglePartBody pPart)
         {
             CheckPart(pPart);
             return Client.DecodedSizeInBytes(MessageHandle, pPart);
         }
 
-        public Task<uint?> DecodedSizeInBytesAsync(cSinglePartBody pPart)
+        public Task<uint?> GetDecodedSizeInBytesAsync(cSinglePartBody pPart)
         {
             CheckPart(pPart);
             return Client.DecodedSizeInBytesAsync(MessageHandle, pPart);
@@ -478,12 +478,12 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pOffset"></param>
         /// <returns></returns>
-        public cFilterMSNOffset MSNOffset(int pOffset) => new cFilterMSNOffset(MessageHandle, pOffset);
+        public cFilterMSNOffset GetMSNOffset(int pOffset) => new cFilterMSNOffset(MessageHandle, pOffset);
 
-        public override async Task<string> PlainTextAsync()
+        public override async Task<string> GetPlainTextAsync()
         {
             if (!await Client.FetchAsync(MessageHandle, kBodyStructure).ConfigureAwait(false)) ZThrowFailure(eOperationType.fetch);
-            return await base.PlainTextAsync().ConfigureAwait(false);
+            return await base.GetPlainTextAsync().ConfigureAwait(false);
         }
 
         public override string Fetch(cTextBodyPart pPart)
@@ -532,13 +532,13 @@ namespace work.bacome.imapclient
             }
         }
 
-        public override Stream GetMessageDataStream(cSinglePartBody pPart)
+        public override cMessageDataStream GetMessageDataStream(cSinglePartBody pPart)
         {
             CheckPart(pPart);
             return new cIMAPMessageDataStream(Client, MessageHandle, pPart, true);
         }
 
-        public override Stream GetMessageDataStream(cSection pSection, eDecodingRequired pDecoding) => new cIMAPMessageDataStream(this, pSection, pDecoding);
+        public override cMessageDataStream GetMessageDataStream(cSection pSection, eDecodingRequired pDecoding) => new cIMAPMessageDataStream(this, pSection, pDecoding);
 
         /// <summary>
         /// Stores flags for the message. 

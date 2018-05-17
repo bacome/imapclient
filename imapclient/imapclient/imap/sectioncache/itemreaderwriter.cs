@@ -29,6 +29,10 @@ namespace work.bacome.imapclient
         private eWritingState mWritingState = eWritingState.notstarted;
         private long mWritePosition = 0;
         private Exception mWriteException = null;
+        private long mFetchedBytesWritten = 0;
+
+        // read/write
+        private long mFetchedBytesReadPosition = 0;
 
         // stream management
         private readonly object mLock = new object();
@@ -80,7 +84,8 @@ namespace work.bacome.imapclient
 
             if (pReadPosition == 0)
             {
-                mReadPosition = pReadPosition;
+                mReadPosition = 0;
+                ZSetFetchedBytesReadPosition();
                 return;
             }
 
@@ -91,6 +96,11 @@ namespace work.bacome.imapclient
                 if (mStream.Length > pReadPosition)
                 {
                     mReadPosition = pReadPosition;
+
+                    await mSemaphore.WaitAsync().ConfigureAwait(false);
+                    ZSetFetchedBytesReadPosition();
+                    mSemaphore.Release();
+
                     return;
                 }
 
@@ -98,12 +108,17 @@ namespace work.bacome.imapclient
                 {
                     if (pReadPosition > mStream.Length) throw new ArgumentOutOfRangeException(nameof(pReadPosition));
                     mReadPosition = pReadPosition;
+                    ZSetFetchedBytesReadPosition();
                     return;
                 }
 
                 await lTask.ConfigureAwait(false);
             }
         }
+
+        public bool WritingHasCompletedOK => (mWritingState == eWritingState.completedok);
+
+        public uint FetchedBytesReadPosition => (uint)mFetchedBytesReadPosition;
 
         public async Task<int> ReadAsync(byte[] pBuffer, int pOffset, int pCount, int pTimeout, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
@@ -132,6 +147,7 @@ namespace work.bacome.imapclient
                 mStream.Position = mReadPosition;
                 var lBytesRead = await mStream.ReadAsync(pBuffer, pOffset, pCount, lMC.CancellationToken).ConfigureAwait(false);
                 mReadPosition = mStream.Position;
+                ZSetFetchedBytesReadPosition();
 
                 return lBytesRead;
             }
@@ -159,10 +175,17 @@ namespace work.bacome.imapclient
                 mStream.Position = mReadPosition;
                 var lResult = mStream.ReadByte();
                 mReadPosition = mStream.Position;
+                ZSetFetchedBytesReadPosition();
 
                 return lResult;
             }
             finally { mSemaphore.Release(); }
+        }
+
+        private void ZSetFetchedBytesReadPosition()
+        {
+            if (mReadPosition == 0) mFetchedBytesReadPosition = 0;
+            else mFetchedBytesReadPosition = mFetchedBytesWritten - mStream.Length + mReadPosition;
         }
 
         private async Task ZWaitForDataToReadAsync(cMethodControl pMC, cTrace.cContext pParentContext)
@@ -199,13 +222,16 @@ namespace work.bacome.imapclient
             mWritingState = eWritingState.inprogress;
         }
 
-        public async Task WriteAsync(byte[] pBuffer, int pCount, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        public async Task WriteAsync(byte[] pBuffer, int pBytesInBuffer, int pFetchedBytesInBuffer, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItemReaderWriter), nameof(WriteAsync), pCount);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItemReaderWriter), nameof(WriteAsync), pBytesInBuffer, pFetchedBytesInBuffer);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cSectionCacheItemReaderWriter));
             if (mWritingState != eWritingState.inprogress) throw new InvalidOperationException();
-            if (pCount == 0) return;
+
+            if (pBuffer == null) throw new ArgumentNullException(nameof(pBuffer));
+            if (pBytesInBuffer < 0 || pBytesInBuffer > pBuffer.Length) throw new ArgumentOutOfRangeException(nameof(pBytesInBuffer));
+            if (pFetchedBytesInBuffer < pBytesInBuffer) throw new ArgumentOutOfRangeException(nameof(pFetchedBytesInBuffer));
 
             await mSemaphore.WaitAsync(pCancellationToken).ConfigureAwait(false);
 
@@ -213,9 +239,14 @@ namespace work.bacome.imapclient
             {
                 lContext.TraceVerbose("writing");
 
-                mStream.Position = mWritePosition;
-                await mStream.WriteAsync(pBuffer, 0, pCount, pCancellationToken).ConfigureAwait(false);
-                mWritePosition = mStream.Position;
+                if (pBytesInBuffer > 0)
+                {
+                    mStream.Position = mWritePosition;
+                    await mStream.WriteAsync(pBuffer, 0, pBytesInBuffer, pCancellationToken).ConfigureAwait(false);
+                    mWritePosition = mStream.Position;
+                }
+
+                mFetchedBytesWritten += pFetchedBytesInBuffer;
             }
             finally { mSemaphore.Release(); }
 

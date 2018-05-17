@@ -126,7 +126,7 @@ namespace work.bacome.imapclient
                     mDisconnected(lContext);
                 }
 
-                private async Task ZBackgroundTaskProcessResponseAsync(cTrace.cContext pParentContext)
+                private Task ZBackgroundTaskProcessResponseAsync(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundTaskProcessResponseAsync));
 
@@ -144,29 +144,29 @@ namespace work.bacome.imapclient
                             {
                                 mResponseTextProcessor.Process(eIMAPResponseTextContext.continuerequest, lCursor, mCurrentCommand.Hook, lContext);
                                 mCurrentCommand.ResetAwaitingContinuation(lContext);
-                                return;
+                                return Task.WhenAll();
                             }
                         }
 
                         // we are doing authentication
-                        await ZProcessChallengeAsync(lCursor, lContext).ConfigureAwait(false);
-                        return;
+                        return ZProcessChallengeAsync(lCursor, lContext);
                     }
 
-                    if (ZProcessDataResponse(lCursor, lContext)) return;
+                    if (ZProcessDataResponse(lCursor, lContext)) return Task.WhenAll();
 
                     lock (mPipelineLock)
                     {
-                        if (ZBackgroundTaskProcessActiveCommandCompletion(lCursor, lContext)) return;
+                        if (ZBackgroundTaskProcessActiveCommandCompletion(lCursor, lContext)) return Task.WhenAll();
 
                         if (mCurrentCommand != null && ZBackgroundTaskProcessCommandCompletion(lCursor, mCurrentCommand, lContext))
                         {
                             if (mCurrentCommand.IsAuthentication || mCurrentCommand.AwaitingContinuation) mCurrentCommand = null;
-                            return;
+                            return Task.WhenAll();
                         }
                     }
 
                     lContext.TraceError("unrecognised response: {0}", lResponse);
+                    return Task.WhenAll();
                 }
 
                 private bool ZBackgroundTaskProcessActiveCommandCompletion(cBytesCursor pCursor, cTrace.cContext pParentContext)

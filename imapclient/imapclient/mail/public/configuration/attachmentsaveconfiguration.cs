@@ -4,7 +4,7 @@ using System.Threading;
 namespace work.bacome.mailclient
 {
     /// <summary>
-    /// Contains an operation specific timeout, cancellation token, progress-setmaximum and progress-increment callbacks and write-size configuration.
+    /// Contains an operation specific timeout, cancellation token, progress-setmaximum and progress-increment callbacks.
     /// </summary>
     public class cAttachmentSaveConfiguration
     {
@@ -23,23 +23,16 @@ namespace work.bacome.mailclient
         public readonly Action<int> Increment;
 
         /// <summary>
-        /// The write-size configuration. May be <see langword="null"/>.
-        /// </summary>
-        public readonly cBatchSizerConfiguration WriteConfiguration;
-
-        /// <summary>
         /// Initialises a new instance with the specified timeout and optional write-size configuration. Intended for use with synchronous APIs.
         /// </summary>
         /// <param name="pTimeout">May be <see cref="Timeout.Infinite"/>.</param>
-        /// <param name="pWrite"></param>
-        public cAttachmentSaveConfiguration(int pTimeout, cBatchSizerConfiguration pWriteConfiguration = null)
+        public cAttachmentSaveConfiguration(int pTimeout)
         {
             if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
             Timeout = pTimeout;
             CancellationToken = CancellationToken.None;
             SetMaximum = null;
             Increment = null;
-            WriteConfiguration = pWriteConfiguration;
         }
 
         /// <summary>
@@ -48,24 +41,21 @@ namespace work.bacome.mailclient
         /// <param name="pCancellationToken">May be <see cref="CancellationToken.None"/>.</param>
         /// <param name="pSetMaximum">May be <see langword="null"/>.</param>
         /// <param name="pIncrement">May be <see langword="null"/>.</param>
-        /// <param name="pWriteConfiguration"></param>
-        public cAttachmentSaveConfiguration(CancellationToken pCancellationToken, Action<long> pSetMaximum, Action<int> pIncrement, cBatchSizerConfiguration pWriteConfiguration = null)
+        public cAttachmentSaveConfiguration(CancellationToken pCancellationToken, Action<long> pSetMaximum, Action<int> pIncrement)
         {
             Timeout = -1;
             CancellationToken = pCancellationToken;
             SetMaximum = pSetMaximum;
             Increment = pIncrement;
-            WriteConfiguration = pWriteConfiguration;
         }
 
-        public cAttachmentSaveConfiguration(int pTimeout, CancellationToken pCancellationToken, Action<long> pSetMaximum, Action<int> pIncrement, cBatchSizerConfiguration pWriteConfiguration)
+        public cAttachmentSaveConfiguration(int pTimeout, CancellationToken pCancellationToken, Action<long> pSetMaximum, Action<int> pIncrement)
         {
             if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
             Timeout = pTimeout;
             CancellationToken = pCancellationToken;
             SetMaximum = pSetMaximum;
             Increment = pIncrement;
-            WriteConfiguration = pWriteConfiguration;
         }
     }
 }

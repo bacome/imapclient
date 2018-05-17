@@ -80,11 +80,11 @@ namespace work.bacome.imapclient
 
             if (lItemSnapshots.Count <= FileCountBudget && lByteCount <= ByteCountBudget) return;
 
-            if (pCancellationToken.IsCancellationRequested) return;
+            if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
             lItemSnapshots.Sort();
 
-            if (pCancellationToken.IsCancellationRequested) return;
+            if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
             int lFileCount = lItemSnapshots.Count;
 
@@ -97,7 +97,7 @@ namespace work.bacome.imapclient
                     if (lFileCount <= FileCountBudget && lByteCount <= ByteCountBudget) return;
                 }
 
-                if (pCancellationToken.IsCancellationRequested) return;
+                if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
             }
         }
 
@@ -106,13 +106,11 @@ namespace work.bacome.imapclient
             private static int mTouchSequenceSource = 7;
 
             private DateTime mCreationTimeUTC;
-            private long mLength;
             private int mTouchSequence;
 
             public cItem(cTempFileSectionCache pCache, string pFullName, Stream pReadWriteStream, DateTime pCreationTimeUTC) : base(pCache, pFullName, pReadWriteStream)
             {
                 mCreationTimeUTC = pCreationTimeUTC;
-                mLength = 0;
                 mTouchSequence = Interlocked.Increment(ref mTouchSequenceSource);
             }
 
@@ -121,22 +119,15 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cItem), nameof(YGetReadStream));
                 var lStream = new FileStream(ItemKey, FileMode.Open, FileAccess.Read, FileShare.Read);
                 var lFileInfo = new FileInfo(ItemKey);
-                if (lFileInfo.CreationTimeUtc == mCreationTimeUTC && lFileInfo.Length == mLength && lStream.Length == mLength) return lStream;
+                if (lFileInfo.CreationTimeUtc == mCreationTimeUTC && lFileInfo.Length == Length && lStream.Length == Length) return lStream;
                 lStream.Dispose();
                 return null;
             }
 
             protected override void YDelete(cTrace.cContext pParentContext) => File.Delete(ItemKey);
 
-            protected override void ItemCached(long pLength, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cItem), nameof(ItemCached), pLength);
-                mLength = pLength;
-            }
-
             protected override void Touch(cTrace.cContext pParentContext) => Interlocked.Increment(ref mTouchSequenceSource);
 
-            public long Length => mLength;
             public int TouchSequence => mTouchSequence;
         }
 
@@ -145,7 +136,6 @@ namespace work.bacome.imapclient
             private readonly cItem mItem;
             private readonly int mChangeSequence;
             private readonly int mTouchSequence;
-
             public readonly long Length;
 
             public cItemSnapshot(cItem pItem)

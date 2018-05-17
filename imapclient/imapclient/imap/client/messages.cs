@@ -143,14 +143,14 @@ namespace work.bacome.imapclient
             return ZMessagesFlatMessageList(lMessageHandles, lContext);
         }
 
-        private async Task ZMessagesFetchAsync(cMethodControl pMC, cSession pSession, cMessageHandleList pMessageHandles, cMessageCacheItems pItems, cMessageFetchCacheItemConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private Task ZMessagesFetchAsync(cMethodControl pMC, cSession pSession, cMessageHandleList pMessageHandles, cMessageCacheItems pItems, cMessageFetchCacheItemConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMessagesFetchAsync), pMC, pMessageHandles, pItems);
 
-            if (pMessageHandles.Count == 0) return;
-            if (pItems.IsEmpty) return;
+            if (pMessageHandles.Count == 0) return Task.WhenAll();
+            if (pItems.IsEmpty) return Task.WhenAll();
 
-            if (pMessageHandles.TrueForAll(h => h.Contains(pItems))) return;
+            if (pMessageHandles.TrueForAll(h => h.Contains(pItems))) return Task.WhenAll();
 
             Action<int> lIncrement;
 
@@ -161,7 +161,7 @@ namespace work.bacome.imapclient
                 lIncrement = pConfiguration.Increment;
             }
 
-            await pSession.FetchCacheItemsAsync(pMC, pMessageHandles, pItems, lIncrement, lContext).ConfigureAwait(false);
+            return pSession.FetchCacheItemsAsync(pMC, pMessageHandles, pItems, lIncrement, lContext);
         }
 
         private List<cIMAPMessage> ZMessagesFlatMessageList(cMessageHandleList pMessageHandles, cTrace.cContext pParentContext)

@@ -62,6 +62,49 @@ namespace work.bacome.imapclient
 
         protected internal int GetItemSequence() => Interlocked.Increment(ref mItemSequence);
 
+        internal bool TryGetItemLength(cSectionCachePersistentKey pKey, out long rLength, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemLength), pKey);
+
+            if (IsDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
+            if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext, 1);
+            if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
+
+            if (pKey == null) throw new ArgumentNullException(nameof(pKey));
+
+            if (mPersistentKeyItems.TryGetValue(pKey, out var lPKItem))
+            {
+                rLength = lPKItem.Length;
+                return true;
+            }
+
+            if (TryGetExistingItem(pKey, out var lExistingItem, lContext))
+            {
+                if (lExistingItem == null || !lExistingItem.Cached) throw new cUnexpectedSectionCacheActionException(lContext, 2);
+
+                mPersistentKeyItems.TryAdd(pKey, lExistingItem);
+                rLength = lExistingItem.Length;
+                return true;
+            }
+
+            foreach (var lPair in mNonPersistentKeyItems)
+            {
+                var lNPKItem = lPair.Value;
+
+                if (lNPKItem.Deleted || lNPKItem.Indexed) continue;
+
+                if (pKey.Equals(lPair.Key))
+                {
+                    if (mPersistentKeyItems.TryAdd(pKey, lNPKItem)) lNPKItem.SetIndexed(lContext);
+                    rLength = lNPKItem.Length;
+                    return true;
+                }
+            }
+
+            rLength = -1;
+            return false;
+        }
+
         internal bool TryGetItemReader(cSectionCachePersistentKey pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemReader), pKey);
@@ -69,6 +112,8 @@ namespace work.bacome.imapclient
             if (IsDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
             if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext, 1);
             if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
+
+            if (pKey == null) throw new ArgumentNullException(nameof(pKey));
 
             bool lSomeThingChanged = true;
 
@@ -84,12 +129,24 @@ namespace work.bacome.imapclient
 
                     if (lExistingItem.ItemKey != lPKItem.ItemKey)
                     {
-                        if (mPersistentKeyItems.TryUpdate(pKey, lExistingItem, lPKItem))
+                        if (lPKItem == null)
                         {
-                            lPKItem = lExistingItem;
-                            if (lPKItem.TryGetReader(out rReader, lContext)) return true;
+                            if (mPersistentKeyItems.TryAdd(pKey, lExistingItem))
+                            {
+                                lPKItem = lExistingItem;
+                                if (lPKItem.TryGetReader(out rReader, lContext)) return true;
+                            }
+                            else continue; // something changed
                         }
-                        else continue; // something changed
+                        else
+                        {
+                            if (mPersistentKeyItems.TryUpdate(pKey, lExistingItem, lPKItem))
+                            {
+                                lPKItem = lExistingItem;
+                                if (lPKItem.TryGetReader(out rReader, lContext)) return true;
+                            }
+                            else continue; // something changed
+                        }
                     }
                 }
 
@@ -106,16 +163,33 @@ namespace work.bacome.imapclient
                         if (lNPKItem.ItemKey == lPKItem.ItemKey) lNPKItem.SetIndexed(lContext);
                         else
                         {
-                            if (mPersistentKeyItems.TryUpdate(pKey, lNPKItem, lPKItem))
+                            if (lPKItem == null)
                             {
-                                lNPKItem.SetIndexed(lContext);
-                                lPKItem = lNPKItem;
-                                if (lPKItem.TryGetReader(out rReader, lContext)) return true;
+                                if (mPersistentKeyItems.TryAdd(pKey, lNPKItem))
+                                {
+                                    lNPKItem.SetIndexed(lContext);
+                                    lPKItem = lNPKItem;
+                                    if (lPKItem.TryGetReader(out rReader, lContext)) return true;
+                                }
+                                else
+                                {
+                                    lSomeThingChanged = true;
+                                    break;
+                                }
                             }
                             else
                             {
-                                lSomeThingChanged = true;
-                                break;
+                                if (mPersistentKeyItems.TryUpdate(pKey, lNPKItem, lPKItem))
+                                {
+                                    lNPKItem.SetIndexed(lContext);
+                                    lPKItem = lNPKItem;
+                                    if (lPKItem.TryGetReader(out rReader, lContext)) return true;
+                                }
+                                else
+                                {
+                                    lSomeThingChanged = true;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -126,12 +200,33 @@ namespace work.bacome.imapclient
             return false;
         }
 
+        internal bool TryGetItemLength(cSectionCacheNonPersistentKey pKey, out long rLength, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemLength), pKey);
+
+            if (IsDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
+            if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext);
+            if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
+
+            if (pKey == null) throw new ArgumentNullException(nameof(pKey));
+
+            if (mNonPersistentKeyItems.TryGetValue(pKey, out var lItem))
+            {
+                rLength = lItem.Length;
+                return true;
+            }
+
+            rLength = -1;
+            return false;
+        }
+
         internal bool TryGetItemReader(cSectionCacheNonPersistentKey pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemReader), pKey);
             if (IsDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
             if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext);
             if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
+            if (pKey == null) throw new ArgumentNullException(nameof(pKey));
             if (mNonPersistentKeyItems.TryGetValue(pKey, out var lItem)) return lItem.TryGetReader(out rReader, lContext);
             rReader = null;
             return false;

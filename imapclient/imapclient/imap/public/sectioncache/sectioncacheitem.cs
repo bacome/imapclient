@@ -12,6 +12,7 @@ namespace work.bacome.imapclient
         public readonly int ItemSequence;
         public readonly string ItemKey;
         private readonly Stream mReadWriteStream;
+        private long mLength;
         private bool mCanGetReaderWriter;
         private bool mCached;
         private bool mPersistentKeyAssigned;
@@ -25,12 +26,14 @@ namespace work.bacome.imapclient
         private cSectionCachePersistentKey mPersistentKey = null;
         private cSectionCacheNonPersistentKey mNonPersistentKey = null;
 
-        public cSectionCacheItem(cSectionCache pCache, string pItemKey)
+        public cSectionCacheItem(cSectionCache pCache, string pItemKey, long pLength)
         {
             Cache = pCache ?? throw new ArgumentNullException(nameof(pCache));
             ItemSequence = pCache.GetItemSequence();
             ItemKey = pItemKey ?? throw new ArgumentNullException(nameof(pItemKey));
             mReadWriteStream = null;
+            if (mLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
+            mLength = pLength;
             mCanGetReaderWriter = false;
             mCached = true;
             mPersistentKeyAssigned = true;
@@ -43,6 +46,7 @@ namespace work.bacome.imapclient
             ItemKey = pItemKey ?? throw new ArgumentNullException(nameof(pItemKey));
             mReadWriteStream = pReadWriteStream ?? throw new ArgumentNullException(nameof(pReadWriteStream));
             if (!pReadWriteStream.CanRead || !pReadWriteStream.CanSeek || !pReadWriteStream.CanWrite || pReadWriteStream.Position != 0) throw new ArgumentOutOfRangeException(nameof(pReadWriteStream));
+            mLength = -1;
             mCanGetReaderWriter = true;
             mCached = false;
             mPersistentKeyAssigned = false;
@@ -54,9 +58,9 @@ namespace work.bacome.imapclient
         public int ChangeSequence => mChangeSequence;
 
         // the persistent key should be set here if it can be set while the item is open
-        protected virtual void ItemCached(long pLength, cTrace.cContext pParentContext)
+        protected virtual void ItemCached(cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(ItemCached), pLength);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(ItemCached));
         }
 
         // the persistent key should be set here if it can only be set while the item is closed
@@ -130,6 +134,8 @@ namespace work.bacome.imapclient
 
         internal bool Deleted => mDeleted;
 
+        internal long Length => mLength;
+
         internal bool CanGetReaderWriter => mCanGetReaderWriter;
 
         internal cSectionCacheItemReaderWriter GetReaderWriter(cTrace.cContext pParentContext)
@@ -163,12 +169,13 @@ namespace work.bacome.imapclient
             {
                 if (mCached) throw new InvalidOperationException();
 
+                mLength = mReadWriteStream.Length;
                 mCached = true;
                 mPersistentKey = pKey;
 
                 if (!mDeleted)
                 {
-                    try { ItemCached(mReadWriteStream.Length, lContext); }
+                    try { ItemCached(lContext); }
                     catch (Exception e) { lContext.TraceException("itemcached event failure", e); }
                 }
             }
@@ -186,12 +193,13 @@ namespace work.bacome.imapclient
             {
                 if (mCached) throw new InvalidOperationException();
 
+                mLength = mReadWriteStream.Length;
                 mCached = true;
                 mNonPersistentKey = pKey;
 
                 if (!mDeleted)
                 {
-                    try { ItemCached(mReadWriteStream.Length, lContext); }
+                    try { ItemCached(lContext); }
                     catch (Exception e) { lContext.TraceException("itemcached event failure", e); }
                 }
             }
@@ -227,8 +235,9 @@ namespace work.bacome.imapclient
                 try { lStream = YGetReadStream(lContext); }
                 catch (Exception e) { lContext.TraceException("ygetreadstream failure", e); }
 
-                if (lStream == null)
+                if (lStream == null || lStream.Length != mLength)
                 {
+                    lContext.TraceWarning("marking as deleted because no stream was returned or the stream was the wrong length");
                     mDeleted = true;
                     rReader = null;
                     return false;
@@ -267,7 +276,7 @@ namespace work.bacome.imapclient
                 }
                 catch (Exception e)
                 {
-                    lContext.TraceException("touch failure", e);
+                    lContext.TraceException("marking as deleted because of touch failure", e);
                     mDeleted = true;
                     return false;
                 }
@@ -332,7 +341,7 @@ namespace work.bacome.imapclient
                 }
                 catch (Exception e)
                 {
-                    lContext.TraceException("touch failure", e);
+                    lContext.TraceException("marking as deleted because of touch failure", e);
                     mDeleted = true;
                 }
             }
