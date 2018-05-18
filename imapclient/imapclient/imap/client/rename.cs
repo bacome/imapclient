@@ -8,23 +8,9 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal cMailbox Rename(iMailboxHandle pMailboxHandle, cMailboxName pMailboxName)
+        internal async Task<cMailbox> RenameAsync(iMailboxHandle pMailboxHandle, cMailboxName pMailboxName, cTrace.cContext pParentContext)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Rename));
-            var lTask = ZRenameAsync(pMailboxHandle, pMailboxName, lContext);
-            mSynchroniser.Wait(lTask, lContext);
-            return lTask.Result;
-        }
-
-        internal Task<cMailbox> RenameAsync(iMailboxHandle pMailboxHandle, cMailboxName pMailboxName)
-        {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(RenameAsync));
-            return ZRenameAsync(pMailboxHandle, pMailboxName, lContext);
-        }
-
-        private async Task<cMailbox> ZRenameAsync(iMailboxHandle pMailboxHandle, cMailboxName pMailboxName, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZRenameAsync), pMailboxHandle, pMailboxName);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(RenameAsync), pMailboxHandle, pMailboxName);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 

@@ -11,9 +11,9 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kStoreCommandPartStoreSpace = new cTextCommandPart("STORE ");
 
-            private async Task ZStoreAsync(cMethodControl pMC, cStoreFeedback pFeedback, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
+            private async Task ZStoreAsync(cMethodControl pMC, cStoreFeedback pFeedback, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZStoreAsync), pMC, pFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZStoreAsync), pMC, pFeedback, pIfUnchangedSinceModSeq);
 
                 // no validation ... all the parameters have been validated already by the cSession by the time we get here
 
@@ -34,7 +34,7 @@ namespace work.bacome.imapclient
                     cStoreFeedbackCollector lFeedbackCollector = new cStoreFeedbackCollector();
 
                     // resolve the handles to MSNs
-                    foreach (var lItem in pFeedback)
+                    foreach (var lItem in pFeedback.Items)
                     {
                         var lMSN = lSelectedMailbox.GetMSN(lItem.MessageHandle);
                         if (lMSN != 0) lFeedbackCollector.Add(lMSN, lItem);
@@ -46,7 +46,7 @@ namespace work.bacome.imapclient
                     // build the command
                     lBuilder.Add(kStoreCommandPartStoreSpace, new cTextCommandPart(cSequenceSet.FromUInts(lFeedbackCollector.UInts)), cCommandPart.Space);
                     if (pIfUnchangedSinceModSeq != null) lBuilder.Add(kStoreCommandPartLParenUnchangedSinceSpace, new cTextCommandPart(pIfUnchangedSinceModSeq.Value), kStoreCommandPartRParenSpace);
-                    lBuilder.Add(pOperation, pFlags);
+                    lBuilder.Add(pFeedback.Operation, pFeedback.Flags);
 
                     // add the hook
                     var lHook = new cCommandHookStore(lFeedbackCollector, null, lSelectedMailbox);

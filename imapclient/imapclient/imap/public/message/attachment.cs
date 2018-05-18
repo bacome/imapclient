@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -37,13 +38,26 @@ namespace work.bacome.imapclient
         /// This may be smaller than <see cref="PartSizeInBytes"/> if <see cref="DecodingRequired"/>) isn't <see cref="eDecodingRequired.none"/> and <see cref="cIMAPCapabilities.Binary"/> is in use.
         /// The size may have to be fetched from the server, but once fetched it will be cached.
         /// </remarks>
-        public uint FetchSizeInBytes() => Client.FetchSizeInBytes(MessageHandle, Part);
+        public uint FetchSizeInBytes
+        {
+            get
+            {
+                var lContext = Client.RootContext.NewGetProp(nameof(cIMAPAttachment), nameof(FetchSizeInBytes));
+                var lTask = Client.GetFetchSizeInBytesAsync(MessageHandle, Part, lContext);
+                Client.Wait(lTask, lContext);
+                return lTask.Result;
+            }
+        }
 
         /// <summary>
         /// Asynchronously gets the number of bytes that will have to come over the network from the server to save the attachment
         /// </summary>
         /// <inheritdoc cref="FetchSizeInBytes" select="returns|remarks"/>
-        public Task<uint> FetchSizeInBytesAsync() => Client.FetchSizeInBytesAsync(MessageHandle, Part);
+        public Task<uint> GetFetchSizeInBytesAsync()
+        {
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPAttachment), nameof(GetFetchSizeInBytesAsync));
+            return Client.GetFetchSizeInBytesAsync(MessageHandle, Part, lContext);
+        }
 
         /// <summary>
         /// Gets the size in bytes of the decoded attachment if the server is capable of calculating it.
@@ -53,13 +67,26 @@ namespace work.bacome.imapclient
         /// This can only be calculated if <see cref="cIMAPCapabilities.Binary"/> is in use.
         /// The size may have to be fetched from the server, but once fetched it will be cached.
         /// </remarks>
-        public uint? DecodedSizeInBytes() => Client.DecodedSizeInBytes(MessageHandle, Part);
+        public uint? DecodedSizeInBytes
+        {
+            get
+            {
+                var lContext = Client.RootContext.NewGetProp(nameof(cIMAPAttachment), nameof(DecodedSizeInBytes));
+                var lTask = Client.GetDecodedSizeInBytesAsync(MessageHandle, Part, lContext);
+                Client.Wait(lTask, lContext);
+                return lTask.Result;
+            }
+        }
 
         /// <summary>
         /// Asynchronously gets the size in bytes of the decoded attachment if the server is capable of calculating it.
         /// </summary>
         /// <inheritdoc cref="DecodedSizeInBytes" select="returns|remarks"/>
-        public Task<uint?> DecodedSizeInBytesAsync() => Client.DecodedSizeInBytesAsync(MessageHandle, Part);
+        public Task<uint?> GetDecodedSizeInBytesAsync()
+        {
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPAttachment), nameof(GetDecodedSizeInBytesAsync));
+            return Client.GetDecodedSizeInBytesAsync(MessageHandle, Part, lContext);
+        }
 
         /// <summary>
         /// Saves the attachment to the specified path.
@@ -68,36 +95,8 @@ namespace work.bacome.imapclient
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         public override void SaveAs(string pPath, cAttachmentSaveConfiguration pConfiguration = null)
         {
-
-
-
-
-
-
-
-
-                cFetchConfiguration lConfiguration;
-
-            if (pConfiguration == null) lConfiguration = null;
-            else
-            {
-                if (pConfiguration.SetMaximum != null)
-                {
-                    var lFetchSizeInBytes = Client.FetchSizeInBytes(MessageHandle, Part);
-                    Client.InvokeActionLong(pConfiguration.SetMaximum, lFetchSizeInBytes);
-                }
-
-                lConfiguration = new cFetchConfiguration(pConfiguration.Timeout, pConfiguration.CancellationToken, pConfiguration.Increment, pConfiguration.WriteConfiguration);
-            }
-
-            using (FileStream lStream = new FileStream(pPath, FileMode.Create))
-            {
-                Client.Fetch(MessageHandle, Part.Section, Part.DecodingRequired, lStream, lConfiguration);
-            }
-
-            if (Part.Disposition?.CreationDateTime != null) File.SetCreationTime(pPath, Part.Disposition.CreationDateTime.Value.ToLocalTime());
-            if (Part.Disposition?.ModificationDateTime != null) File.SetLastWriteTime(pPath, Part.Disposition.ModificationDateTime.Value.ToLocalTime());
-            if (Part.Disposition?.ReadDateTime != null) File.SetLastAccessTime(pPath, Part.Disposition.ReadDateTime.Value.ToLocalTime());
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPAttachment), nameof(SaveAs), pPath);
+            Client.Wait(ZSaveAsAsync(pPath, pConfiguration, lContext), lContext);
         }
 
         /// <summary>
@@ -106,34 +105,16 @@ namespace work.bacome.imapclient
         /// <param name="pPath"></param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <returns></returns>
-        public override async Task SaveAsAsync(string pPath, cAttachmentSaveConfiguration pConfiguration = null)
+        public override Task SaveAsAsync(string pPath, cAttachmentSaveConfiguration pConfiguration = null)
         {
-            cFetchConfiguration lConfiguration;
-
-            if (pConfiguration == null) lConfiguration = null;
-            else
-            {
-                if (pConfiguration.SetMaximum != null)
-                {
-                    var lFetchSizeInBytes = await Client.FetchSizeInBytesAsync(MessageHandle, Part).ConfigureAwait(false);
-                    Client.InvokeActionLong(pConfiguration.SetMaximum, lFetchSizeInBytes);
-                }
-
-                lConfiguration = new cFetchConfiguration(pConfiguration.Timeout, pConfiguration.CancellationToken, pConfiguration.Increment, pConfiguration.WriteConfiguration);
-            }
-
-            using (FileStream lStream = new FileStream(pPath, FileMode.Create))
-            {
-                await Client.FetchAsync(MessageHandle, Part.Section, Part.DecodingRequired, lStream, lConfiguration).ConfigureAwait(false);
-            }
-
-            if (Part.Disposition?.CreationDateTime != null) File.SetCreationTime(pPath, Part.Disposition.CreationDateTime.Value.ToLocalTime());
-            if (Part.Disposition?.ModificationDateTime != null) File.SetLastWriteTime(pPath, Part.Disposition.ModificationDateTime.Value.ToLocalTime());
-            if (Part.Disposition?.ReadDateTime != null) File.SetLastAccessTime(pPath, Part.Disposition.ReadDateTime.Value.ToLocalTime());
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPAttachment), nameof(SaveAsAsync), pPath);
+            return ZSaveAsAsync(pPath, pConfiguration, lContext);
         }
 
-        private async Task ZSaveAsAsync(string pPath, cAttachmentSaveConfiguration pConfiguration)
+        private async Task ZSaveAsAsync(string pPath, cAttachmentSaveConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
+            var lContext = pParentContext.NewMethod(nameof(cIMAPAttachment), nameof(ZSaveAsAsync), pPath);
+
             using (var lMessageDataStream = new cIMAPMessageDataStream(this))
             using (var lFileStream = new FileStream(pPath, FileMode.Create, FileAccess.Write, FileShare.None))
             {
@@ -141,6 +122,7 @@ namespace work.bacome.imapclient
 
                 var lSetMaximum = pConfiguration?.SetMaximum;
                 bool lProgressIsInFetchedBytes = false;
+                uint lLastFetchedBytesPosition = 0;
 
                 while (true)
                 {
@@ -148,7 +130,12 @@ namespace work.bacome.imapclient
 
                     if (lBytesRead == 0)
                     {
-                        ;?; // might have to call increment if the last few bytes fetched didn't generate any data
+                        if (lProgressIsInFetchedBytes)
+                        {
+                            int lIncrement = (int)(lMessageDataStream.FetchedBytesPosition - lLastFetchedBytesPosition);
+                            if (lIncrement > 0) Client.InvokeActionInt(pConfiguration?.Increment, lIncrement, lContext);
+                        }
+
                         break;
                     }
 
@@ -161,8 +148,8 @@ namespace work.bacome.imapclient
                         if (lMessageDataStream.DataIsCached.Value) Client.InvokeActionLong(lSetMaximum, lMessageDataStream.Length, lContext);
                         else
                         {
-                            var lFetchSizeInBytes = await Client.FetchSizeInBytesAsync(MessageHandle, Part).ConfigureAwait(false);
-                            Client.InvokeActionLong(lSetMaximum, lFetchSizeInBytes);
+                            var lFetchSizeInBytes = await Client.GetFetchSizeInBytesAsync(MessageHandle, Part, lContext).ConfigureAwait(false);
+                            Client.InvokeActionLong(lSetMaximum, lFetchSizeInBytes, lContext);
                             lProgressIsInFetchedBytes = true;
                         }
 
@@ -171,17 +158,17 @@ namespace work.bacome.imapclient
 
                     await lFileStream.WriteAsync(lBuffer, 0, lBytesRead).ConfigureAwait(false);
 
-                    ;?; // calculate the increment based on this position and the last position
-
-
-                    if (lProgressIsInFetchedBytes) Client.InvokeActionInt(pConfiguration?.Increment, lMessageDataStream.FetchedBytesPosition);
-                    else Client.invokeactionint(pConfiguration?.Increment, lBytesRead);
+                    if (lProgressIsInFetchedBytes)
+                    {
+                        int lIncrement = (int)(lMessageDataStream.FetchedBytesPosition - lLastFetchedBytesPosition);
+                        if (lIncrement > 0) Client.InvokeActionInt(pConfiguration?.Increment, lIncrement, lContext);
+                        lLastFetchedBytesPosition = lMessageDataStream.FetchedBytesPosition;
+                    }
+                    else Client.InvokeActionInt(pConfiguration?.Increment, lBytesRead, lContext);
                 }
             }
 
-            if (Part.Disposition?.CreationDateTime != null) File.SetCreationTime(pPath, Part.Disposition.CreationDateTime.Value.ToLocalTime());
-            if (Part.Disposition?.ModificationDateTime != null) File.SetLastWriteTime(pPath, Part.Disposition.ModificationDateTime.Value.ToLocalTime());
-            if (Part.Disposition?.ReadDateTime != null) File.SetLastAccessTime(pPath, Part.Disposition.ReadDateTime.Value.ToLocalTime());
+            YSetFileTimes(pPath);
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>

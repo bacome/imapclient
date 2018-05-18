@@ -86,7 +86,7 @@ namespace work.bacome.imapclient
         /// </remarks>
         public override void Connect()
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Connect));
+            var lContext = RootContext.NewMethod(nameof(cIMAPClient), nameof(Connect));
             mSynchroniser.Wait(ZConnectAsync(lContext), lContext);
         }
 
@@ -99,7 +99,7 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Connect" select="remarks"/>
         public override Task ConnectAsync()
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ConnectAsync));
+            var lContext = RootContext.NewMethod(nameof(cIMAPClient), nameof(ConnectAsync));
             return ZConnectAsync(lContext);
         }
 

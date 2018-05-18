@@ -185,6 +185,14 @@ namespace work.bacome.mailclient
         public abstract Task<string> FetchAsync(cSection pSection);
 
         /// <summary>
+        /// Returns a stream containing the data of the message.
+        /// </summary>
+        /// <remarks>
+        /// The returned stream must be disposed when you are finished with it.
+        /// </remarks>
+        public abstract Stream GetMessageDataStream();
+
+        /// <summary>
         /// Returns a stream containing the data of the specified <see cref="cSinglePartBody"/>.
         /// </summary>
         /// <param name="pPart"></param>

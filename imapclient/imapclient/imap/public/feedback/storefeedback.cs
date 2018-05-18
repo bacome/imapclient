@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient;
@@ -106,28 +107,27 @@ namespace work.bacome.imapclient
     /// Contains feedback on a store operation.
     /// </summary>
     /// <seealso cref="cIMAPClient.Store(IEnumerable{cIMAPMessage}, eStoreOperation, cStorableFlags, ulong?)"/>
-    public class cStoreFeedback : IReadOnlyList<cStoreFeedbackItem>
+    public class cStoreFeedback
     {
-        private List<cStoreFeedbackItem> mItems;
-        private eStoreOperation mOperation;
-        private cStorableFlags mFlags;
+        public readonly ReadOnlyCollection<cStoreFeedbackItem> Items;
+        public readonly eStoreOperation Operation;
+        public readonly cStorableFlags Flags;
 
         internal cStoreFeedback(iMessageHandle pMessageHandle, eStoreOperation pOperation, cStorableFlags pFlags)
         {
             if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
-            if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
 
-            mItems = new List<cStoreFeedbackItem>();
-            mItems.Add(new cStoreFeedbackItem(pMessageHandle));
+            var lItems = new List<cStoreFeedbackItem>();
+            lItems.Add(new cStoreFeedbackItem(pMessageHandle));
+            Items = lItems.AsReadOnly();
 
-            mOperation = pOperation;
-            mFlags = pFlags;
+            Operation = pOperation;
+            Flags = pFlags ?? throw new ArgumentNullException(nameof(pFlags));
         }
 
         internal cStoreFeedback(IEnumerable<iMessageHandle> pMessageHandles, eStoreOperation pOperation, cStorableFlags pFlags)
         {
             if (pMessageHandles == null) throw new ArgumentNullException(nameof(pMessageHandles));
-            if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
 
             object lMessageCache = null;
 
@@ -138,15 +138,16 @@ namespace work.bacome.imapclient
                 else if (!ReferenceEquals(lMessageHandle.MessageCache, lMessageCache)) throw new ArgumentOutOfRangeException(nameof(pMessageHandles), kArgumentOutOfRangeExceptionMessage.ContainsMixedMessageCaches);
             }
 
-            mItems = new List<cStoreFeedbackItem>(from lMessageHandle in pMessageHandles.Distinct() select new cStoreFeedbackItem(lMessageHandle));
-            mOperation = pOperation;
-            mFlags = pFlags;
+            var lItems = new List<cStoreFeedbackItem>(from lMessageHandle in pMessageHandles.Distinct() select new cStoreFeedbackItem(lMessageHandle));
+            Items = lItems.AsReadOnly();
+
+            Operation = pOperation;
+            Flags = pFlags ?? throw new ArgumentNullException(nameof(pFlags));
         }
 
         internal cStoreFeedback(IEnumerable<cIMAPMessage> pMessages, eStoreOperation pOperation, cStorableFlags pFlags)
         {
             if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
-            if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
 
             object lMessageCache = null;
 
@@ -162,12 +163,18 @@ namespace work.bacome.imapclient
 
             }
 
-            mItems = new List<cStoreFeedbackItem>(from lMessageHandle in lMessageHandles.Distinct() select new cStoreFeedbackItem(lMessageHandle));
-            mOperation = pOperation;
-            mFlags = pFlags;
+            var lItems = new List<cStoreFeedbackItem>(from lMessageHandle in lMessageHandles.Distinct() select new cStoreFeedbackItem(lMessageHandle));
+            Items = lItems.AsReadOnly();
+
+            Operation = pOperation;
+            Flags = pFlags ?? throw new ArgumentNullException(nameof(pFlags));
         }
 
-        internal bool AllHaveUID => mItems.TrueForAll(i => i.MessageHandle.UID != null);
+        internal bool AllHaveUID()
+        {
+            foreach (var lItem in Items) if (lItem.MessageHandle.UID == null) return false;
+            return true;
+        }
 
         /// <summary>
         /// Gets a summary of the feedback. May return a different value after a <see cref="cIMAPClient.Poll"/>.
@@ -176,32 +183,22 @@ namespace work.bacome.imapclient
         public sStoreFeedbackSummary Summary()
         {
             sStoreFeedbackSummary lSummary = new sStoreFeedbackSummary();
-            foreach (var lItem in mItems) lItem.IncrementSummary(lItem.MessageHandle, mOperation, mFlags, ref lSummary);
+            foreach (var lItem in Items) lItem.IncrementSummary(lItem.MessageHandle, Operation, Flags, ref lSummary);
             return lSummary;
         }
-
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Indexer(int)"/>
-        public cStoreFeedbackItem this[int i] => mItems[i];
-
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
-        public int Count => mItems.Count;
-
-        /// <inheritdoc cref="cAPIDocumentationTemplate.GetEnumerator"/>
-        public IEnumerator<cStoreFeedbackItem> GetEnumerator() => mItems.GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => mItems.GetEnumerator();
 
         /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cStoreFeedback));
 
-            lBuilder.Append(mOperation);
-            lBuilder.Append(mFlags);
+            lBuilder.Append(Operation);
+            lBuilder.Append(Flags);
 
-            if (mItems.Count > 0)
+            if (Items.Count > 0)
             {
-                lBuilder.Append(mItems[0].MessageHandle.MessageCache);
-                foreach (var lItem in mItems) lBuilder.Append(lItem.MessageHandle.CacheSequence);
+                lBuilder.Append(Items[0].MessageHandle.MessageCache);
+                foreach (var lItem in Items) lBuilder.Append(lItem.MessageHandle.CacheSequence);
             }
 
             return lBuilder.ToString();
@@ -283,30 +280,27 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Contains feedback on a UID store operation.
     /// </summary>
-    /// <seealso cref="cMailbox.UIDStore(cUID, eStoreOperation, cStorableFlags, ulong?)"/>
-    /// <seealso cref="cMailbox.UIDStore(IEnumerable{cUID}, eStoreOperation, cStorableFlags, ulong?)"/>
-    public class cUIDStoreFeedback : IReadOnlyList<cUIDStoreFeedbackItem>
+    public class cUIDStoreFeedback
     {
-        private List<cUIDStoreFeedbackItem> mItems;
-        private eStoreOperation mOperation;
-        private cStorableFlags mFlags;
+        public readonly ReadOnlyCollection<cUIDStoreFeedbackItem> Items;
+        public readonly eStoreOperation Operation;
+        public readonly cStorableFlags Flags;
 
         internal cUIDStoreFeedback(cUID pUID, eStoreOperation pOperation, cStorableFlags pFlags)
         {
             if (pUID == null) throw new ArgumentNullException(nameof(pUID));
-            if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
 
-            mItems = new List<cUIDStoreFeedbackItem>();
-            mItems.Add(new cUIDStoreFeedbackItem(pUID));
+            var lItems = new List<cUIDStoreFeedbackItem>();
+            lItems.Add(new cUIDStoreFeedbackItem(pUID));
+            Items = lItems.AsReadOnly();
 
-            mOperation = pOperation;
-            mFlags = pFlags;
+            Operation = pOperation;
+            Flags = pFlags ?? throw new ArgumentNullException(nameof(pFlags));
         }
 
         internal cUIDStoreFeedback(IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cStorableFlags pFlags)
         {
             if (pUIDs == null) throw new ArgumentNullException(nameof(pUIDs));
-            if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
 
             uint lUIDValidity = 0;
 
@@ -317,41 +311,33 @@ namespace work.bacome.imapclient
                 else if (lUID.UIDValidity != lUIDValidity) throw new ArgumentOutOfRangeException(nameof(pUIDs), kArgumentOutOfRangeExceptionMessage.ContainsMixedUIDValidities);
             }
 
-            mItems = new List<cUIDStoreFeedbackItem>(from lUID in pUIDs.Distinct() select new cUIDStoreFeedbackItem(lUID));
-            mOperation = pOperation;
-            mFlags = pFlags;
+            var lItems = new List<cUIDStoreFeedbackItem>(from lUID in pUIDs.Distinct() select new cUIDStoreFeedbackItem(lUID));
+            Items = lItems.AsReadOnly();
+
+            Operation = pOperation;
+            Flags = pFlags ?? throw new ArgumentNullException(nameof(pFlags));
         }
 
         /// <inheritdoc cref="cStoreFeedback.Summary" select="summary|returns|remarks"/>
         public sStoreFeedbackSummary Summary()
         {
             sStoreFeedbackSummary lSummary = new sStoreFeedbackSummary();
-            foreach (var lItem in mItems) lItem.IncrementSummary(lItem.MessageHandle, mOperation, mFlags, ref lSummary);
+            foreach (var lItem in Items) lItem.IncrementSummary(lItem.MessageHandle, Operation, Flags, ref lSummary);
             return lSummary;
         }
-
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Indexer(int)"/>
-        public cUIDStoreFeedbackItem this[int i] => mItems[i];
-
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
-        public int Count => mItems.Count;
-
-        /// <inheritdoc cref="cAPIDocumentationTemplate.GetEnumerator"/>
-        public IEnumerator<cUIDStoreFeedbackItem> GetEnumerator() => mItems.GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => mItems.GetEnumerator();
 
         /// <inheritdoc />
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cUIDStoreFeedback));
 
-            lBuilder.Append(mOperation);
-            lBuilder.Append(mFlags);
+            lBuilder.Append(Operation);
+            lBuilder.Append(Flags);
 
-            if (mItems.Count > 0)
+            if (Items.Count > 0)
             {
-                lBuilder.Append(mItems[0].UID.UIDValidity);
-                foreach (var lItem in mItems) lBuilder.Append(lItem.UID.UID);
+                lBuilder.Append(Items[0].UID.UIDValidity);
+                foreach (var lItem in Items) lBuilder.Append(lItem.UID.UID);
             }
 
             return lBuilder.ToString();

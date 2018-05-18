@@ -31,10 +31,10 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                public cStoreFeedbackCollector(cUIDStoreFeedback pItems)
+                public cStoreFeedbackCollector(cUIDStoreFeedback pFeedback)
                 {
                     KeyType = eKeyType.uid;
-                    foreach (var lItem in pItems) mDictionary[lItem.UID.UID] = lItem;
+                    foreach (var lItem in pFeedback.Items) mDictionary[lItem.UID.UID] = lItem;
                 }
 
                 public void Add(uint pMSN, cStoreFeedbackItem pItem)

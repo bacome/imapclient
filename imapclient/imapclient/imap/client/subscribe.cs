@@ -8,22 +8,9 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal void Subscribe(iMailboxHandle pMailboxHandle)
+        internal async Task SubscribeAsync(iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribe));
-            var lTask = ZSubscribeAsync(pMailboxHandle, lContext);
-            mSynchroniser.Wait(lTask, lContext);
-        }
-
-        internal Task SubscribeAsync(iMailboxHandle pMailboxHandle)
-        {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SubscribeAsync));
-            return ZSubscribeAsync(pMailboxHandle, lContext);
-        }
-
-        private async Task ZSubscribeAsync(iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSubscribeAsync), pMailboxHandle);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(SubscribeAsync), pMailboxHandle);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -39,22 +26,9 @@ namespace work.bacome.imapclient
             }
         }
 
-        internal void Unsubscribe(iMailboxHandle pMailboxHandle)
+        internal async Task UnsubscribeAsync(iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Unsubscribe));
-            var lTask = ZUnsubscribeAsync(pMailboxHandle, lContext);
-            mSynchroniser.Wait(lTask, lContext);
-        }
-
-        internal Task UnsubscribeAsync(iMailboxHandle pMailboxHandle)
-        {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UnsubscribeAsync));
-            return ZUnsubscribeAsync(pMailboxHandle, lContext);
-        }
-
-        private async Task ZUnsubscribeAsync(iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZUnsubscribeAsync), pMailboxHandle);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(UnsubscribeAsync), pMailboxHandle);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 

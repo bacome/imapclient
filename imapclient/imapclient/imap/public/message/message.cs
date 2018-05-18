@@ -4,8 +4,9 @@ using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using work.bacome.mailclient;
 using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -19,8 +20,6 @@ namespace work.bacome.imapclient
     /// </remarks>
     public class cIMAPMessage : cMailMessage, IEquatable<cIMAPMessage>
     {
-        private enum eOperationType { fetch, store }
-
         private static readonly cMessageCacheItems kEnvelope = fMessageCacheAttributes.envelope;
         private static readonly cMessageCacheItems kFlags = fMessageCacheAttributes.flags;
         private static readonly cMessageCacheItems kReceived = fMessageCacheAttributes.received;
@@ -83,26 +82,6 @@ namespace work.bacome.imapclient
         /// </summary>
         public bool Expunged => MessageHandle.Expunged;
 
-        private void ZThrowFailure(eOperationType pType)
-        {
-            if (MessageHandle.Expunged) throw new cMessageExpungedException(MessageHandle);
-
-            switch (pType)
-            {
-                case eOperationType.fetch:
-
-                    throw new cRequestedIMAPDataNotReturnedException(MessageHandle);
-
-                case eOperationType.store:
-
-                    throw new cSingleMessageStoreException(MessageHandle);
-
-                default:
-
-                    throw new cInternalErrorException(nameof(cIMAPMessage), nameof(ZThrowFailure));
-            }
-        }
-
         /// <inheritdoc select="summary"/>
         /// <remarks>
         /// If the message cache does not contain the <see cref="fMessageCacheAttributes.envelope"/> of the message, it will be fetched from the server.
@@ -111,7 +90,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
+                ZFetch(kEnvelope, true);
                 return MessageHandle.Envelope;
             }
         }
@@ -126,7 +105,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(MessageHandle, kFlags)) ZThrowFailure(eOperationType.fetch);
+                ZFetch(kFlags, true);
                 return MessageHandle.Flags;
             }
         }
@@ -197,10 +176,6 @@ namespace work.bacome.imapclient
         /// </remarks>
         public bool Recent => ZFlagsContain(kMessageFlag.Recent);
 
-        // see comments elsewhere to see why these are commented out
-        //public bool MDNSent => ZFlagsContain(kMessageFlagName.MDNSent);
-        //public void SetMDNSent() { ZFlagSet(cSettableFlags.MDNSent, true); }
-
         /// <summary>
         /// Indicates whether <see cref="Flags"/> contains <see cref="kMessageFlag.Forwarded"/>.
         /// </summary>
@@ -233,16 +208,21 @@ namespace work.bacome.imapclient
 
         private bool ZFlagsContain(string pFlag)
         {
-            if (!Client.Fetch(MessageHandle, kFlags)) ZThrowFailure(eOperationType.fetch);
+            ZFetch(kFlags, true);
             return MessageHandle.Flags.Contains(pFlag);
         }
 
         private void ZFlagSet(cStorableFlags pFlags, bool pValue)
         {
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessage), nameof(ZFlagSet), pFlags, pValue);
+
             cStoreFeedback lFeedback;
-            if (pValue) lFeedback = Client.Store(MessageHandle, eStoreOperation.add, pFlags, null);
-            else lFeedback = Client.Store(MessageHandle, eStoreOperation.remove, pFlags, null);
-            if (lFeedback.Summary().LikelyFailedCount != 0) ZThrowFailure(eOperationType.store); 
+            if (pValue) lFeedback = new cStoreFeedback(MessageHandle, eStoreOperation.add, pFlags);
+            else lFeedback = new cStoreFeedback(MessageHandle, eStoreOperation.remove, pFlags);
+
+            Client.Wait(Client.StoreAsync(lFeedback, null, lContext), lContext);
+
+            ZStoreProcessFeedback(lFeedback);
         }
 
         /// <summary>
@@ -255,7 +235,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(MessageHandle, kReceived)) ZThrowFailure(eOperationType.fetch);
+                ZFetch(kReceived, true);
                 return MessageHandle.ReceivedDateTimeOffset.Value;
             }
         }
@@ -270,7 +250,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(MessageHandle, kReceived)) ZThrowFailure(eOperationType.fetch);
+                ZFetch(kReceived, true);
                 return MessageHandle.ReceivedDateTime.Value;
             }
         }
@@ -285,7 +265,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(MessageHandle, cMessageCacheItems.Size)) ZThrowFailure(eOperationType.fetch);
+                ZFetch(cMessageCacheItems.Size, true);
                 return MessageHandle.Size.Value;
             }
         }
@@ -301,7 +281,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(MessageHandle, kUID)) ZThrowFailure(eOperationType.fetch);
+                ZFetch(kUID, true);
                 return MessageHandle.UID;
             }
         }
@@ -317,7 +297,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(MessageHandle, kModSeq)) ZThrowFailure(eOperationType.fetch);
+                ZFetch(kModSeq, true);
                 return MessageHandle.ModSeq.Value;
             }
         }
@@ -332,7 +312,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(MessageHandle, kBodyStructure)) ZThrowFailure(eOperationType.fetch);
+                ZFetch(kBodyStructure, true);
                 return MessageHandle.BodyStructure;
             }
         }
@@ -341,10 +321,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(MessageHandle, kBodyStructure)) ZThrowFailure(eOperationType.fetch);
-                var lFormat = MessageHandle.BodyStructure.Format;
-                if ((Client.SupportedFormats & fMessageDataFormat.utf8headers) == fMessageDataFormat.utf8headers) lFormat |= fMessageDataFormat.utf8headers;
-                return lFormat;
+                ZFetch(kBodyStructure, true);
+                return MessageHandle.BodyStructure.Format | (Client.SupportedFormats & fMessageDataFormat.utf8headers);
             }
         }
 
@@ -352,7 +330,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(MessageHandle, kBodyStructure)) ZThrowFailure(eOperationType.fetch);
+                ZFetch(kBodyStructure, true);
                 var lAttachments = new List<cMailAttachment>();
                 foreach (var lPart in YAttachmentParts(MessageHandle.BodyStructure)) lAttachments.Add(new cIMAPAttachment(Client, MessageHandle, lPart));
                 return lAttachments;
@@ -371,7 +349,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(MessageHandle, kBodyStructure)) ZThrowFailure(eOperationType.fetch);
+                ZFetch(kBodyStructure, true);
                 var lAttachments = new List<cIMAPAttachment>();
                 foreach (var lPart in YAttachmentParts(MessageHandle.BodyStructure)) lAttachments.Add(new cIMAPAttachment(Client, MessageHandle, lPart));
                 return lAttachments;
@@ -390,7 +368,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(MessageHandle, kReferences)) ZThrowFailure(eOperationType.fetch);
+                ZFetch(kReferences, true);
                 return MessageHandle.HeaderFields.References;
             }
         }
@@ -406,7 +384,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(MessageHandle, kImportance)) ZThrowFailure(eOperationType.fetch);
+                ZFetch(kImportance, true);
                 return MessageHandle.HeaderFields.Importance;
             }
         }
@@ -425,14 +403,52 @@ namespace work.bacome.imapclient
         /// The items that aren't currently cached will be fetched from the server.
         /// <note type="note"><see cref="cMessageCacheItems"/> has implicit conversions from other types including <see cref="fIMAPMessageProperties"/>. This means that you can use values of those types as arguments to this method.</note>
         /// </remarks>
-        public bool Fetch(cMessageCacheItems pItems) => Client.Fetch(MessageHandle, pItems);
+        public bool Fetch(cMessageCacheItems pItems) => ZFetch(pItems, false);
+
+        private bool ZFetch(cMessageCacheItems pItems, bool pThrowOnFailure)
+        {
+            if (MessageHandle.Contains(pItems)) return true;
+
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessage), nameof(ZFetch), pItems, pThrowOnFailure);
+
+            Client.Wait(Client.FetchCacheItemsAsync(cMessageHandleList.FromMessageHandle(MessageHandle), pItems, null, lContext), lContext);
+
+            if (MessageHandle.Contains(pItems)) return true;
+
+            if (pThrowOnFailure)
+            {
+                if (MessageHandle.Expunged) throw new cMessageExpungedException(MessageHandle);
+                throw new cRequestedIMAPDataNotReturnedException(MessageHandle);
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// Ansynchronously ensures that the message cache contains the specified items for the message.
         /// </summary>
         /// <param name="pItems"></param>
         /// <inheritdoc cref="Fetch(cMessageCacheItems)" select="returns|remarks"/>
-        public Task<bool> FetchAsync(cMessageCacheItems pItems) => Client.FetchAsync(MessageHandle, pItems);
+        public Task<bool> FetchAsync(cMessageCacheItems pItems) => ZFetchAsync(pItems, false);
+
+        private async Task<bool> ZFetchAsync(cMessageCacheItems pItems, bool pThrowOnFailure)
+        {
+            if (MessageHandle.Contains(pItems)) return true;
+
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessage), nameof(ZFetchAsync), pItems, pThrowOnFailure);
+
+            await Client.FetchCacheItemsAsync(cMessageHandleList.FromMessageHandle(MessageHandle), pItems, null, lContext).ConfigureAwait(false);
+
+            if (MessageHandle.Contains(pItems)) return true;
+
+            if (pThrowOnFailure)
+            {
+                if (MessageHandle.Expunged) throw new cMessageExpungedException(MessageHandle);
+                throw new cRequestedIMAPDataNotReturnedException(MessageHandle);
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// Gets the fetch size of the specified <see cref="cSinglePartBody"/>.
@@ -446,8 +462,11 @@ namespace work.bacome.imapclient
         /// </remarks>
         public uint GetFetchSizeInBytes(cSinglePartBody pPart)
         {
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessage), nameof(GetFetchSizeInBytes), pPart);
             CheckPart(pPart);
-            return Client.FetchSizeInBytes(MessageHandle, pPart);
+            var lTask = Client.GetFetchSizeInBytesAsync(MessageHandle, pPart, lContext);
+            Client.Wait(lTask, lContext);
+            return lTask.Result;
         }
 
         /// <summary>
@@ -457,20 +476,25 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Fetch(cMessageCacheItems)" select="returns|remarks"/>
         public Task<uint> GetFetchSizeInBytesAsync(cSinglePartBody pPart)
         {
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessage), nameof(GetFetchSizeInBytesAsync), pPart);
             CheckPart(pPart);
-            return Client.FetchSizeInBytesAsync(MessageHandle, pPart);
+            return Client.GetFetchSizeInBytesAsync(MessageHandle, pPart, lContext);
         }
 
         public uint? GetDecodedSizeInBytes(cSinglePartBody pPart)
         {
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessage), nameof(GetDecodedSizeInBytes), pPart);
             CheckPart(pPart);
-            return Client.DecodedSizeInBytes(MessageHandle, pPart);
+            var lTask = Client.GetDecodedSizeInBytesAsync(MessageHandle, pPart, lContext);
+            Client.Wait(lTask, lContext);
+            return lTask.Result;
         }
 
         public Task<uint?> GetDecodedSizeInBytesAsync(cSinglePartBody pPart)
         {
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessage), nameof(GetDecodedSizeInBytesAsync), pPart);
             CheckPart(pPart);
-            return Client.DecodedSizeInBytesAsync(MessageHandle, pPart);
+            return Client.GetDecodedSizeInBytesAsync(MessageHandle, pPart, lContext);
         }
 
         /// <summary>
@@ -482,7 +506,7 @@ namespace work.bacome.imapclient
 
         public override async Task<string> GetPlainTextAsync()
         {
-            if (!await Client.FetchAsync(MessageHandle, kBodyStructure).ConfigureAwait(false)) ZThrowFailure(eOperationType.fetch);
+            await ZFetchAsync(kBodyStructure, true).ConfigureAwait(false);
             return await base.GetPlainTextAsync().ConfigureAwait(false);
         }
 
@@ -532,13 +556,15 @@ namespace work.bacome.imapclient
             }
         }
 
-        public override cMessageDataStream GetMessageDataStream(cSinglePartBody pPart)
+        public override Stream GetMessageDataStream() => new cIMAPMessageDataStream(this);
+
+        public override Stream GetMessageDataStream(cSinglePartBody pPart)
         {
             CheckPart(pPart);
             return new cIMAPMessageDataStream(Client, MessageHandle, pPart, true);
         }
 
-        public override cMessageDataStream GetMessageDataStream(cSection pSection, eDecodingRequired pDecoding) => new cIMAPMessageDataStream(this, pSection, pDecoding);
+        public override Stream GetMessageDataStream(cSection pSection, eDecodingRequired pDecoding) => new cIMAPMessageDataStream(this, pSection, pDecoding);
 
         /// <summary>
         /// Stores flags for the message. 
@@ -554,8 +580,10 @@ namespace work.bacome.imapclient
         /// </remarks>
         public void Store(eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
         {
-            var lFeedback = Client.Store(MessageHandle, pOperation, pFlags, pIfUnchangedSinceModSeq);
-            if (lFeedback.Summary().LikelyFailedCount != 0) ZThrowFailure(eOperationType.store);
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessage), nameof(Store), pOperation, pFlags, pIfUnchangedSinceModSeq);
+            var lFeedback = new cStoreFeedback(MessageHandle, pOperation, pFlags);
+            Client.Wait(Client.StoreAsync(lFeedback, pIfUnchangedSinceModSeq, lContext), lContext);
+            ZStoreProcessFeedback(lFeedback);
         }
 
         /// <summary>
@@ -568,8 +596,19 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Store(eStoreOperation, cStorableFlags, ulong?)" select="remarks"/>
         public async Task StoreAsync(eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
         {
-            var lFeedback = await Client.StoreAsync(MessageHandle, pOperation, pFlags, pIfUnchangedSinceModSeq);
-            if (lFeedback.Summary().LikelyFailedCount != 0) ZThrowFailure(eOperationType.store); 
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessage), nameof(StoreAsync), pOperation, pFlags, pIfUnchangedSinceModSeq);
+            var lFeedback = new cStoreFeedback(MessageHandle, pOperation, pFlags);
+            await Client.StoreAsync(lFeedback, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
+            ZStoreProcessFeedback(lFeedback);
+        }
+
+        private void ZStoreProcessFeedback(cStoreFeedback pFeedback)
+        {
+            if (pFeedback.Summary().LikelyFailedCount != 0)
+            {
+                if (MessageHandle.Expunged) throw new cMessageExpungedException(MessageHandle);
+                throw new cSingleMessageStoreException(MessageHandle);
+            }
         }
 
         /// <summary>
@@ -579,7 +618,12 @@ namespace work.bacome.imapclient
         /// <returns>If the server provides an RFC 4315 UIDCOPY response, the UID of the message in the destination mailbox, otherwise <see langword="null"/>.</returns>
         public cUID Copy(cMailbox pDestination)
         {
-            var lFeedback = Client.Copy(MessageHandle, pDestination.MailboxHandle);
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessage), nameof(Copy), pDestination);
+            if (pDestination == null) throw new ArgumentNullException(nameof(pDestination));
+            if (!ReferenceEquals(pDestination.Client, Client)) throw new ArgumentOutOfRangeException(nameof(pDestination));
+            var lTask = Client.CopyAsync(cMessageHandleList.FromMessageHandle(MessageHandle), pDestination.MailboxHandle, lContext);
+            Client.Wait(lTask, lContext);
+            var lFeedback = lTask.Result;
             if (lFeedback?.Count == 1) return lFeedback[0].CreatedMessageUID;
             return null;
         }
@@ -591,7 +635,10 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Copy(cMailbox)" select="returns|remarks"/>
         public async Task<cUID> CopyAsync(cMailbox pDestination)
         {
-            var lFeedback = await Client.CopyAsync(MessageHandle, pDestination.MailboxHandle).ConfigureAwait(false);
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessage), nameof(CopyAsync), pDestination);
+            if (pDestination == null) throw new ArgumentNullException(nameof(pDestination));
+            if (!ReferenceEquals(pDestination.Client, Client)) throw new ArgumentOutOfRangeException(nameof(pDestination));
+            var lFeedback = await Client.CopyAsync(cMessageHandleList.FromMessageHandle(MessageHandle), pDestination.MailboxHandle, lContext).ConfigureAwait(false);
             if (lFeedback?.Count == 1) return lFeedback[0].CreatedMessageUID;
             return null;
         }

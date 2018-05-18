@@ -8,22 +8,9 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal void Expunge(iMailboxHandle pMailboxHandle, bool pAndUnselect)
+        internal async Task ExpungeAsync(iMailboxHandle pMailboxHandle, bool pAndUnselect, cTrace.cContext pParentContext)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Expunge));
-            var lTask = ZExpungeAsync(pMailboxHandle, pAndUnselect, lContext);
-            mSynchroniser.Wait(lTask, lContext);
-        }
-
-        internal Task ExpungeAsync(iMailboxHandle pMailboxHandle, bool pAndUnselect)
-        {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ExpungeAsync));
-            return ZExpungeAsync(pMailboxHandle, pAndUnselect, lContext);
-        }
-
-        private async Task ZExpungeAsync(iMailboxHandle pMailboxHandle, bool pAndUnselect, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZExpungeAsync), pMailboxHandle, pAndUnselect);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ExpungeAsync), pMailboxHandle, pAndUnselect);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 

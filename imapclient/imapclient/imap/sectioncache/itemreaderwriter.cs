@@ -7,11 +7,10 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    internal sealed class cSectionCacheItemReaderWriter : iSectionCacheItemReader, iFetchBodyTarget, IDisposable
+    internal sealed class cSectionCacheItemReaderWriter : iSectionCacheItemReader, iFetchSectionTarget, IDisposable
     {
         private enum eWritingState { notstarted, inprogress, completedok, failed }
 
-        private bool mDisposing = false;
         private bool mDisposed = false;
         private int mCount = 1;
 
@@ -33,9 +32,6 @@ namespace work.bacome.imapclient
 
         // read/write
         private long mFetchedBytesReadPosition = 0;
-
-        // stream management
-        private readonly object mLock = new object();
 
         internal cSectionCacheItemReaderWriter(Stream pStream, Action<cTrace.cContext> pDecrementOpenStreamCount, cTrace.cContext pContextToUseWhenDisposing)
         {
@@ -285,11 +281,6 @@ namespace work.bacome.imapclient
         public void Dispose()
         {
             if (mDisposed) return;
-
-            lock (mLock)
-            {
-                mDisposing = true;
-            }
 
             if (mStream != null)
             {

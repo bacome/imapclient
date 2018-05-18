@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
@@ -9,24 +8,6 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal cStoreFeedback Store(iMessageHandle pMessageHandle, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
-        {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Store), 1);
-            var lFeedback = new cStoreFeedback(pMessageHandle, pOperation, pFlags);
-            var lTask = ZStoreAsync(lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
-            mSynchroniser.Wait(lTask, lContext);
-            return lFeedback;
-        }
-
-        internal cStoreFeedback Store(IEnumerable<iMessageHandle> pMessageHandles, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
-        {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Store), 2);
-            var lFeedback = new cStoreFeedback(pMessageHandles, pOperation, pFlags);
-            var lTask = ZStoreAsync(lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
-            mSynchroniser.Wait(lTask, lContext);
-            return lFeedback;
-        }
-
         /// <summary>
         /// Stores flags for a set of messages. The mailbox that the messages are in must be selected.
         /// </summary>
@@ -42,26 +23,10 @@ namespace work.bacome.imapclient
         /// </remarks>
         public cStoreFeedback Store(IEnumerable<cIMAPMessage> pMessages, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Store), 3);
+            var lContext = RootContext.NewMethodV(nameof(cIMAPClient), nameof(Store), 3);
             var lFeedback = new cStoreFeedback(pMessages, pOperation, pFlags);
-            var lTask = ZStoreAsync(lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
+            var lTask = StoreAsync(lFeedback, pIfUnchangedSinceModSeq, lContext);
             mSynchroniser.Wait(lTask, lContext);
-            return lFeedback;
-        }
-
-        internal async Task<cStoreFeedback> StoreAsync(iMessageHandle pMessageHandle, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
-        {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(StoreAsync), 1);
-            var lFeedback = new cStoreFeedback(pMessageHandle, pOperation, pFlags);
-            await ZStoreAsync(lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
-            return lFeedback;
-        }
-
-        internal async Task<cStoreFeedback> StoreAsync(IEnumerable<iMessageHandle> pMessageHandles, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
-        {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(StoreAsync), 2);
-            var lFeedback = new cStoreFeedback(pMessageHandles, pOperation, pFlags);
-            await ZStoreAsync(lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
             return lFeedback;
         }
 
@@ -75,15 +40,15 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Store(IEnumerable{cIMAPMessage}, eStoreOperation, cStorableFlags, ulong?)" select="returns|remarks"/>
         public async Task<cStoreFeedback> StoreAsync(IEnumerable<cIMAPMessage> pMessages, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(StoreAsync), 3);
+            var lContext = RootContext.NewMethodV(nameof(cIMAPClient), nameof(StoreAsync), 3);
             var lFeedback = new cStoreFeedback(pMessages, pOperation, pFlags);
-            await ZStoreAsync(lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
+            await StoreAsync(lFeedback, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
             return lFeedback;
         }
 
-        private async Task ZStoreAsync(cStoreFeedback pFeedback, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
+        internal async Task StoreAsync(cStoreFeedback pFeedback, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZStoreAsync), pFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(StoreAsync), pFeedback, pIfUnchangedSinceModSeq);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -91,18 +56,17 @@ namespace work.bacome.imapclient
             if (lSession == null || lSession.SelectedMailboxDetails?.SelectedForUpdate != true) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelectedForUpdate);
 
             if (pFeedback == null) throw new ArgumentNullException(nameof(pFeedback));
-            if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
 
             if (pIfUnchangedSinceModSeq == 0) throw new ArgumentOutOfRangeException(nameof(pIfUnchangedSinceModSeq));
             if (pIfUnchangedSinceModSeq != null && !lSession.Capabilities.CondStore) throw new InvalidOperationException(kInvalidOperationExceptionMessage.CondStoreNotInUse);
 
-            if (pFeedback.Count == 0) return;
+            if (pFeedback.Items.Count == 0) return;
             // it is valid to add or remove zero flags according to the ABNF (!)
 
             using (var lToken = mCancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
-                await lSession.StoreAsync(lMC, pFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
+                await lSession.StoreAsync(lMC, pFeedback, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
             }
         }
     }

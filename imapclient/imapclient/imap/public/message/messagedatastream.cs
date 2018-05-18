@@ -133,7 +133,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                var lContext = Client.mRootContext.NewGetProp(nameof(cIMAPMessageDataStream), nameof(Length));
+                var lContext = Client.RootContext.NewGetProp(nameof(cIMAPMessageDataStream), nameof(Length));
                 var lTask = GetLengthAsync(cMethodControl.None, lContext);
                 Client.Wait(lTask, lContext);
                 return lTask.Result;
@@ -170,8 +170,9 @@ namespace work.bacome.imapclient
                         if (Section == cSection.All && Decoding == eDecodingRequired.none)
                         {
                             // special case, the whole message
+                            await Client.FetchCacheItemsAsync(cMessageHandleList.FromMessageHandle(MessageHandle), cMessageCacheItems.Size, null, lContext).ConfigureAwait(false);
 
-                            if (!(await Client.FetchAsync(MessageHandle, cMessageCacheItems.Size).ConfigureAwait(false)))
+                            if (MessageHandle.Size == null)
                             {
                                 if (MessageHandle.Expunged) throw new cMessageExpungedException(MessageHandle);
                                 throw new cRequestedIMAPDataNotReturnedException(MessageHandle);
@@ -183,7 +184,7 @@ namespace work.bacome.imapclient
                     else
                     {
                         if (Decoding == eDecodingRequired.none) return Part.SizeInBytes;
-                        var lDecodedSizeInBytes = await Client.DecodedSizeInBytesAsync(MessageHandle, Part).ConfigureAwait(false);
+                        var lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(MessageHandle, Part, lContext).ConfigureAwait(false);
                         if (lDecodedSizeInBytes != null) return lDecodedSizeInBytes.Value;
                     }
                 }
@@ -209,7 +210,7 @@ namespace work.bacome.imapclient
 
             set
             {
-                var lContext = Client.mRootContext.NewSetProp(nameof(cIMAPMessageDataStream), nameof(Position), value);
+                var lContext = Client.RootContext.NewSetProp(nameof(cIMAPMessageDataStream), nameof(Position), value);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
                 if (value < 0) throw new ArgumentOutOfRangeException();
@@ -275,7 +276,7 @@ namespace work.bacome.imapclient
 
         public override int Read(byte[] pBuffer, int pOffset, int pCount)
         {
-            var lContext = Client.mRootContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(Read), pCount);
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(Read), pCount);
             var lTask = ZReadAsync(pBuffer, pOffset, pCount, CancellationToken.None, lContext);
             Client.Wait(lTask, lContext);
             return lTask.Result;
@@ -283,13 +284,13 @@ namespace work.bacome.imapclient
 
         public override Task<int> ReadAsync(byte[] pBuffer, int pOffset, int pCount, CancellationToken pCancellationToken)
         {
-            var lContext = Client.mRootContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ReadAsync), pCount);
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ReadAsync), pCount);
             return ZReadAsync(pBuffer, pOffset, pCount, pCancellationToken, lContext);
         }
 
         public override int ReadByte()
         {
-            var lContext = Client.mRootContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ReadByte));
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ReadByte));
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
 
@@ -420,8 +421,8 @@ namespace work.bacome.imapclient
             try
             {
                 mReaderWriter.WriteBegin(lContext);
-                await Client.FetchAsync(MessageHandle, Section, Decoding, mReaderWriter, lCancellationToken, lContext);
-                await mReaderWriter.WritingCompletedOKAsync(lCancellationToken, lContext);
+                await Client.FetchSectionAsync(MessageHandle, Section, Decoding, mReaderWriter, lCancellationToken, lContext).ConfigureAwait(false);
+                await mReaderWriter.WritingCompletedOKAsync(lCancellationToken, lContext).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -441,8 +442,8 @@ namespace work.bacome.imapclient
             try
             {
                 mReaderWriter.WriteBegin(lContext);
-                await Client.UIDFetchAsync(pMailboxHandle, pUID, Section, Decoding, mReaderWriter, lCancellationToken, lContext);
-                await mReaderWriter.WritingCompletedOKAsync(lCancellationToken, lContext);
+                await Client.UIDFetchSectionAsync(pMailboxHandle, pUID, Section, Decoding, mReaderWriter, lCancellationToken, lContext).ConfigureAwait(false);
+                await mReaderWriter.WritingCompletedOKAsync(lCancellationToken, lContext).ConfigureAwait(false);
             }
             catch (Exception e)
             {

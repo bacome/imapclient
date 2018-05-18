@@ -38,7 +38,7 @@ namespace work.bacome.imapclient
                     if (lLiteral != null) await ZBackgroundSendAppendLiteralDataAsync(lLiteral, lContext).ConfigureAwait(false);
 
                     // main processing
-                    await ZBackgroundSendWorkerAsync(lContext);
+                    await ZBackgroundSendWorkerAsync(lContext).ConfigureAwait(false);
                 
                     // send any bytes that are remaining in the buffer
                     if (mBackgroundSendBuffer.Count > 0) await mBackgroundSendBuffer.WriteAsync(lContext).ConfigureAwait(false);

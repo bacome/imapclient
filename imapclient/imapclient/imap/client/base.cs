@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using System.Threading.Tasks;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
@@ -114,7 +113,7 @@ namespace work.bacome.imapclient
         /// <param name="pInstanceName">The instance name to use for the instance's <see cref="cTrace"/> root-context.</param>
         public cIMAPClient(string pInstanceName = "work.bacome.cIMAPClient") : base(pInstanceName, new cIMAPCallbackSynchroniser())
         {
-            var lContext = mRootContext.NewObject(nameof(cIMAPClient), pInstanceName);
+            var lContext = RootContext.NewObject(nameof(cIMAPClient), pInstanceName);
             mIMAPSynchroniser = (cIMAPCallbackSynchroniser)mSynchroniser;
         }
 
@@ -134,7 +133,7 @@ namespace work.bacome.imapclient
 
             set
             {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(Encoding), value);
+                var lContext = RootContext.NewSetProp(nameof(cIMAPClient), nameof(Encoding), value);
                 if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 if (!cCommandPartFactory.TryAsCharsetName(value, out _)) throw new ArgumentOutOfRangeException();
                 mEncoding = value;
@@ -203,8 +202,6 @@ namespace work.bacome.imapclient
             add { mIMAPSynchroniser.MessagePropertyChanged += value; }
             remove { mIMAPSynchroniser.MessagePropertyChanged -= value; }
         }
-
-        internal void Wait(Task pAsyncTask, cTrace.cContext pParentContext) => mSynchroniser.Wait(pAsyncTask, pParentContext);
 
         /// <summary>
         /// Sets <see cref="Server"/>, defaulting the port to 143 and SSL to <see langword="false"/>. 
@@ -361,7 +358,7 @@ namespace work.bacome.imapclient
 
             set
             {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(IdleConfiguration), value);
+                var lContext = RootContext.NewSetProp(nameof(cIMAPClient), nameof(IdleConfiguration), value);
                 if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 mIdleConfiguration = value;
                 mSession?.SetIdleConfiguration(value, lContext);

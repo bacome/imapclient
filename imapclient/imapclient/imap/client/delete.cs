@@ -8,20 +8,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal void Delete(iMailboxHandle pMailboxHandle)
-        {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Delete));
-            var lTask = ZDeleteAsync(pMailboxHandle, lContext);
-            mSynchroniser.Wait(lTask, lContext);
-        }
-
-        internal Task DeleteAsync(iMailboxHandle pMailboxHandle)
-        {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(DeleteAsync));
-            return ZDeleteAsync(pMailboxHandle, lContext);
-        }
-
-        private async Task ZDeleteAsync(iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
+        internal async Task DeleteAsync(iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZDeleteAsync), pMailboxHandle);
 

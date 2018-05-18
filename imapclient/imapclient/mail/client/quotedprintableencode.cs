@@ -19,7 +19,7 @@ namespace work.bacome.mailclient
 
         public long QuotedPrintableEncode(Stream pSource, Stream pTarget = null, cQuotedPrintableEncodeConfiguration pConfiguration = null)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cMailClient), nameof(QuotedPrintableEncode), 1);
+            var lContext = RootContext.NewMethodV(nameof(cMailClient), nameof(QuotedPrintableEncode), 1);
             var lTask = ZQuotedPrintableEncodeAsync(pSource, kQuotedPrintableEncodeDefaultSourceType, eQuotedPrintableEncodeQuotingRule.EBCDIC, pTarget, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
@@ -27,13 +27,13 @@ namespace work.bacome.mailclient
 
         public Task<long> QuotedPrintableEncodeAsync(Stream pSource, Stream pTarget, cQuotedPrintableEncodeConfiguration pConfiguration = null)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cMailClient), nameof(QuotedPrintableEncodeAsync), 1);
+            var lContext = RootContext.NewMethodV(nameof(cMailClient), nameof(QuotedPrintableEncodeAsync), 1);
             return ZQuotedPrintableEncodeAsync(pSource, kQuotedPrintableEncodeDefaultSourceType, eQuotedPrintableEncodeQuotingRule.EBCDIC, pTarget, pConfiguration, lContext);
         }
 
         public long QuotedPrintableEncode(Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget = null, cQuotedPrintableEncodeConfiguration pConfiguration = null)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cMailClient), nameof(QuotedPrintableEncode), 2);
+            var lContext = RootContext.NewMethodV(nameof(cMailClient), nameof(QuotedPrintableEncode), 2);
             var lTask = ZQuotedPrintableEncodeAsync(pSource, pSourceType, pQuotingRule, pTarget, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
@@ -41,7 +41,7 @@ namespace work.bacome.mailclient
 
         public Task<long> QuotedPrintableEncodeAsync(Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget = null, cQuotedPrintableEncodeConfiguration pConfiguration = null)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cMailClient), nameof(QuotedPrintableEncodeAsync), 2);
+            var lContext = RootContext.NewMethodV(nameof(cMailClient), nameof(QuotedPrintableEncodeAsync), 2);
             return ZQuotedPrintableEncodeAsync(pSource, pSourceType, pQuotingRule, pTarget, pConfiguration, lContext);
         }
 

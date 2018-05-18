@@ -8,22 +8,9 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal void Select(iMailboxHandle pMailboxHandle, bool pForUpdate)
+        internal async Task SelectAsync(iMailboxHandle pMailboxHandle, bool pForUpdate, cTrace.cContext pParentContext)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Select));
-            var lTask = ZSelectAsync(pMailboxHandle, pForUpdate, lContext);
-            mSynchroniser.Wait(lTask, lContext);
-        }
-
-        internal Task SelectAsync(iMailboxHandle pMailboxHandle, bool pForUpdate)
-        {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SelectAsync));
-            return ZSelectAsync(pMailboxHandle, pForUpdate, lContext);
-        }
-
-        private async Task ZSelectAsync(iMailboxHandle pMailboxHandle, bool pForUpdate, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSelectAsync), pMailboxHandle, pForUpdate);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(SelectAsync), pMailboxHandle, pForUpdate);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 

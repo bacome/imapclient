@@ -8,23 +8,9 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal cMessageHandleList SetUnseenCount(iMailboxHandle pMailboxHandle)
+        internal async Task<cMessageHandleList> SetUnseenCountAsync(iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Messages));
-            var lTask = ZSetUnseenCountAsync(pMailboxHandle, lContext);
-            mSynchroniser.Wait(lTask, lContext);
-            return lTask.Result;
-        }
-
-        internal Task<cMessageHandleList> SetUnseenCountAsync(iMailboxHandle pMailboxHandle)
-        {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MessagesAsync));
-            return ZSetUnseenCountAsync(pMailboxHandle, lContext);
-        }
-
-        private async Task<cMessageHandleList> ZSetUnseenCountAsync(iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMessagesAsync), pMailboxHandle);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(SetUnseenCountAsync), pMailboxHandle);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 

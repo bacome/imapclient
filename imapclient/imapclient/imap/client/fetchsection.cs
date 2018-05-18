@@ -9,9 +9,9 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal Task FetchAsync(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, iFetchBodyTarget pTarget, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        internal Task FetchSectionAsync(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, iFetchSectionTarget pTarget, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync), pMessageHandle, pSection, pDecoding);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(FetchSectionAsync), pMessageHandle, pSection, pDecoding);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -22,7 +22,7 @@ namespace work.bacome.imapclient
             if (pSection == null) throw new ArgumentNullException(nameof(pSection));
             if (pTarget == null) throw new ArgumentNullException(nameof(pTarget));
 
-            return lSession.FetchBodyAsync(pMessageHandle, pSection, pDecoding, pTarget, pCancellationToken, lContext);
+            return lSession.FetchSectionAsync(pMessageHandle, pSection, pDecoding, pTarget, pCancellationToken, lContext);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         /// </summary>
         public void Poll()
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Poll));
+            var lContext = RootContext.NewMethod(nameof(cIMAPClient), nameof(Poll));
             mSynchroniser.Wait(ZPollAsync(lContext), lContext);
         }
 
@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
         /// </summary>
         public Task PollAsync()
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(PollAsync));
+            var lContext = RootContext.NewMethod(nameof(cIMAPClient), nameof(PollAsync));
             return ZPollAsync(lContext);
         }
 

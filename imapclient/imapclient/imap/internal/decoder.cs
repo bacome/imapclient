@@ -11,10 +11,10 @@ namespace work.bacome.imapclient
 {
     internal abstract class cDecoder
     {
-        private readonly iFetchBodyTarget mTarget;
+        private readonly iFetchSectionTarget mTarget;
         private readonly byte[] mBuffer = new byte[cMailClient.LocalStreamBufferSize];
 
-        public cDecoder(iFetchBodyTarget pTarget)
+        public cDecoder(iFetchSectionTarget pTarget)
         {
             mTarget = pTarget ?? throw new ArgumentNullException(nameof(pTarget));
         }
@@ -53,7 +53,7 @@ namespace work.bacome.imapclient
 
         public virtual Task FlushAsync(CancellationToken pCancellationToken, cTrace.cContext pParentContext) => Task.WhenAll(); // TODO => Task.CompletedTask;
 
-        public static cDecoder GetDecoder(bool pBinary, eDecodingRequired pDecoding, iFetchBodyTarget pTarget, cTrace.cContext pParentContext)
+        public static cDecoder GetDecoder(bool pBinary, eDecodingRequired pDecoding, iFetchSectionTarget pTarget, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cDecoder), nameof(GetDecoder), pBinary, pDecoding);
             if (pTarget == null) throw new ArgumentNullException(nameof(pTarget));
@@ -63,7 +63,7 @@ namespace work.bacome.imapclient
             throw new cContentTransferDecodingException("required decoding not supported", lContext);
         }
 
-        public class _Tester : iFetchBodyTarget, IDisposable
+        public class _Tester : iFetchSectionTarget, IDisposable
         {
             private long mFetchedBytesWritten = 0;
             private MemoryStream mStream = new MemoryStream();
@@ -84,7 +84,7 @@ namespace work.bacome.imapclient
 
     internal class cIdentityDecoder : cDecoder
     {
-        public cIdentityDecoder(iFetchBodyTarget pTarget) : base(pTarget) { }
+        public cIdentityDecoder(iFetchSectionTarget pTarget) : base(pTarget) { }
         protected override Task YWriteAsync(IList<byte> pFetchedBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext) => YWriteAsync(pFetchedBytes.Count - pOffset, pFetchedBytes, pOffset, pCancellationToken, pParentContext);
     }
 
@@ -93,7 +93,7 @@ namespace work.bacome.imapclient
         private List<byte> mLineBytes = new List<byte>();
         private bool mBufferedCR = false;
 
-        public cLineDecoder(iFetchBodyTarget pTarget) : base(pTarget) { }
+        public cLineDecoder(iFetchSectionTarget pTarget) : base(pTarget) { }
 
         protected async sealed override Task YWriteAsync(IList<byte> pFetchedBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
@@ -136,7 +136,7 @@ namespace work.bacome.imapclient
     {
         private readonly List<byte> mEncodedBytes = new List<byte>();
 
-        public cBase64Decoder(iFetchBodyTarget pTarget) : base(pTarget) { }
+        public cBase64Decoder(iFetchSectionTarget pTarget) : base(pTarget) { }
 
         protected override Task YWriteLineAsync(int pFetchedBytesInLine, List<byte> pLineBytes, bool pCRLF, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
@@ -159,7 +159,7 @@ namespace work.bacome.imapclient
 
         private readonly List<byte> mDecodedBytes = new List<byte>();
 
-        public cQuotedPrintableDecoder(iFetchBodyTarget pTarget) : base(pTarget) { }
+        public cQuotedPrintableDecoder(iFetchSectionTarget pTarget) : base(pTarget) { }
 
         protected override Task YWriteLineAsync(int pFetchedBytesInLine, List<byte> pLineBytes, bool pCRLF, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {

@@ -54,28 +54,31 @@ namespace work.bacome.mailclient
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
 
-                while (true)
+                if (!pAsyncTask.IsCompleted) // for efficiency
                 {
-                    lContext.TraceVerbose("waiting");
-                    int lTask = Task.WaitAny(pAsyncTask, mForegroundReleaser.GetAwaitReleaseTask(lContext));
-
-                    if (mCancellationTokenSource.IsCancellationRequested)
+                    while (true)
                     {
-                        lContext.TraceError("this object is disposing");
-                        throw new OperationCanceledException();
+                        lContext.TraceVerbose("waiting");
+                        int lTask = Task.WaitAny(pAsyncTask, mForegroundReleaser.GetAwaitReleaseTask(lContext));
+
+                        if (mCancellationTokenSource.IsCancellationRequested)
+                        {
+                            lContext.TraceError("this object is disposing");
+                            throw new OperationCanceledException();
+                        }
+
+                        mForegroundReleaser.Reset(lContext);
+
+                        var lSynchronizationContext = SynchronizationContext;
+
+                        if (lSynchronizationContext == null || ReferenceEquals(SynchronizationContext.Current, lSynchronizationContext))
+                        {
+                            lContext.TraceVerbose("on the correct sc");
+                            ZInvokeWorker(lContext);
+                        }
+
+                        if (lTask == 0) break; // pAsyncTask is finished
                     }
-
-                    mForegroundReleaser.Reset(lContext);
-
-                    var lSynchronizationContext = SynchronizationContext;
-
-                    if (lSynchronizationContext == null || ReferenceEquals(SynchronizationContext.Current, lSynchronizationContext))
-                    {
-                        lContext.TraceVerbose("on the correct sc");
-                        ZInvokeWorker(lContext);
-                    }
-
-                    if (lTask == 0) break; // pAsyncTask is finished
                 }
 
                 if (pAsyncTask.IsFaulted)
@@ -91,7 +94,6 @@ namespace work.bacome.mailclient
                 }
 
                 lContext.TraceVerbose("task completed successfully");
-                return;
             }
 
             public void InvokePropertyChanged(string pPropertyName, cTrace.cContext pParentContext)

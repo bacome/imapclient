@@ -102,7 +102,7 @@ namespace work.bacome.mailclient
                     if (ZGenerateSomeOutputBytes()) break;
                     if (mReadStreamToEnd) return lBytesRead;
                     int lReadSize = ZPrepareForReadIntoReadBuffer();
-                    mBytesReadIntoReadBuffer = await mStream.ReadAsync(mReadBuffer, 0, lReadSize, pCancellationToken);
+                    mBytesReadIntoReadBuffer = await mStream.ReadAsync(mReadBuffer, 0, lReadSize, pCancellationToken).ConfigureAwait(false);
                     ZReadBytesIntoReadBuffer();
                 }
             }
@@ -310,8 +310,8 @@ namespace work.bacome.mailclient
                 using (MemoryStream lFinal = new MemoryStream())
                 {
                     cBase64Decoder lDecoder = new cBase64Decoder(lMC, lFinal, lWS);
-                    await lDecoder.WriteAsync(lIntermediate.ToArray(), 0, pParentContext);
-                    await lDecoder.FlushAsync(pParentContext);
+                    await lDecoder.WriteAsync(lIntermediate.ToArray(), 0, pParentContext).ConfigureAwait(false);
+                    await lDecoder.FlushAsync(pParentContext).ConfigureAwait(false);
                     lFinalString = new string(Encoding.UTF8.GetChars(lFinal.ToArray()));
                 }
             }

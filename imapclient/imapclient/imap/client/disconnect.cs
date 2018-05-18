@@ -16,7 +16,7 @@ namespace work.bacome.imapclient
         /// </remarks>
         public override void Disconnect()
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Disconnect));
+            var lContext = RootContext.NewMethod(nameof(cIMAPClient), nameof(Disconnect));
             mSynchroniser.Wait(ZDisconnectAsync(lContext), lContext);
         }
 
@@ -28,13 +28,13 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Disconnect" select="remarks"/>
         public override Task DisconnectAsync()
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(DisconnectAsync));
+            var lContext = RootContext.NewMethod(nameof(cIMAPClient), nameof(DisconnectAsync));
             return ZDisconnectAsync(lContext);
         }
 
         private async Task ZDisconnectAsync(cTrace.cContext pParentContext)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ZDisconnectAsync));
+            var lContext = RootContext.NewMethod(nameof(cIMAPClient), nameof(ZDisconnectAsync));
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 

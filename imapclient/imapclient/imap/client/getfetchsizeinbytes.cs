@@ -8,23 +8,9 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal uint FetchSizeInBytes(iMessageHandle pMessageHandle, cSinglePartBody pPart)
+        internal async Task<uint> GetFetchSizeInBytesAsync(iMessageHandle pMessageHandle, cSinglePartBody pPart, cTrace.cContext pParentContext)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchSizeInBytes));
-            var lTask = ZFetchSizeInBytesAsync(pMessageHandle, pPart, lContext);
-            mSynchroniser.Wait(lTask, lContext);
-            return lTask.Result;
-        }
-
-        internal Task<uint> FetchSizeInBytesAsync(iMessageHandle pMessageHandle, cSinglePartBody pPart)
-        {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchSizeInBytesAsync));
-            return ZFetchSizeInBytesAsync(pMessageHandle, pPart, lContext);
-        }
-
-        private async Task<uint> ZFetchSizeInBytesAsync(iMessageHandle pMessageHandle, cSinglePartBody pPart, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchSizeInBytesAsync), pMessageHandle, pPart);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetFetchSizeInBytesAsync), pMessageHandle, pPart);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 

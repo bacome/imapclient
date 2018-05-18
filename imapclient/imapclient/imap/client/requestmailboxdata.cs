@@ -9,22 +9,9 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal void Request(iMailboxHandle pMailboxHandle, fMailboxCacheDataSets pDataSets)
+        internal async Task RequestMailboxDataAsync(iMailboxHandle pMailboxHandle, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
-            var lTask = ZRequestAsync(pMailboxHandle, pDataSets, lContext);
-            mSynchroniser.Wait(lTask, lContext);
-        }
-
-        internal Task RequestAsync(iMailboxHandle pMailboxHandle, fMailboxCacheDataSets pDataSets)
-        {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
-            return ZRequestAsync(pMailboxHandle, pDataSets, lContext);
-        }
-
-        private async Task ZRequestAsync(iMailboxHandle pMailboxHandle, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZRequestAsync), pMailboxHandle, pDataSets);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(RequestMailboxDataAsync), pMailboxHandle, pDataSets);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -89,9 +76,9 @@ namespace work.bacome.imapclient
             }
         }
 
-        private Task ZRequestStatus(cMethodControl pMC, cSession pSession, List<iMailboxHandle> pMailboxHandles, cTrace.cContext pParentContext)
+        private Task ZRequestMailboxStatusDataAsync(cMethodControl pMC, cSession pSession, List<iMailboxHandle> pMailboxHandles, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZRequestStatus), pMC);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZRequestMailboxStatusDataAsync), pMC);
             List<Task> lTasks = new List<Task>();
             foreach (var lMailboxHandle in pMailboxHandles) if (lMailboxHandle.ListFlags?.CanSelect == true) lTasks.Add(pSession.StatusAsync(pMC, lMailboxHandle, lContext));
             return Task.WhenAll(lTasks);

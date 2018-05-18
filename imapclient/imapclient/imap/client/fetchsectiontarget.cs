@@ -5,7 +5,7 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    internal interface iFetchBodyTarget
+    internal interface iFetchSectionTarget
     {
         Task WriteAsync(byte[] pBuffer, int pCount, int pFetchedBytesInBuffer, CancellationToken pCancellationToken, cTrace.cContext pParentContext);
     }

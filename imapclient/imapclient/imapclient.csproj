@@ -43,9 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="imap\client\copysectiontostream.cs" />
-    <Compile Include="imap\client\fetchbodytarget.cs" />
-    <Compile Include="imap\public\configuration\copytostreamconfiguration.cs" />
+    <Compile Include="imap\client\fetchsectiontarget.cs" />
     <Compile Include="imap\public\sectioncache\directorysectioncache.cs" />
     <Compile Include="imap\public\sectioncache\tempfilesectioncache.cs" />
     <Compile Include="imap\sectioncache\nonpersistentkey.cs" />
@@ -56,10 +54,10 @@
     <Compile Include="imap\public\sectioncache\sectioncacheitem.cs" />
     <Compile Include="imap\public\sectioncache\sectioncachepersistentkey.cs" />
     <Compile Include="imap\public\message\messagedatastream.cs" />
-    <Compile Include="imap\session\fetch\uidbody.cs" />
+    <Compile Include="imap\session\fetch\uidsection.cs" />
     <Compile Include="imap\support\mailboxcache.cs" />
     <Compile Include="mail\convertmailmessage\base.cs" />
-    <Compile Include="imap\client\decodedsizeinbytes.cs" />
+    <Compile Include="imap\client\getdecodedsizeinbytes.cs" />
     <Compile Include="mail\client\quotedprintableencode.cs" />
     <Compile Include="mail\internal\bytescursor\rfc822\getphrase.cs" />
     <Compile Include="mail\convertmailmessage\attachmentdetail.cs" />
@@ -112,7 +110,7 @@
     <Compile Include="imap\client\delete.cs" />
     <Compile Include="imap\client\disconnect.cs" />
     <Compile Include="imap\client\expunge.cs" />
-    <Compile Include="imap\client\fetchsizeinbytes.cs" />
+    <Compile Include="imap\client\getfetchsizeinbytes.cs" />
     <Compile Include="imap\client\store.cs" />
     <Compile Include="imap\client\uidcopy.cs" />
     <Compile Include="imap\client\uidstore.cs" />
@@ -125,16 +123,16 @@
     <Compile Include="imap\public\feedback\copyfeedback.cs" />
     <Compile Include="imap\public\configuration\fetchcacheitemconfiguration.cs" />
     <Compile Include="imap\client\fetchcacheitems.cs" />
-    <Compile Include="imap\client\fetchbody.cs" />
+    <Compile Include="imap\client\fetchsection.cs" />
     <Compile Include="imap\client\requestmailboxdata.cs" />
     <Compile Include="imap\client\rename.cs" />
     <Compile Include="imap\client\setunseencount.cs" />
     <Compile Include="imap\client\subscribe.cs" />
-    <Compile Include="imap\client\subscribed.cs" />
-    <Compile Include="imap\client\uidfetchbody.cs" />
-    <Compile Include="imap\client\mailboxes.cs" />
+    <Compile Include="imap\client\getsubscribed.cs" />
+    <Compile Include="imap\client\uidfetchsection.cs" />
+    <Compile Include="imap\client\getmailboxes.cs" />
     <Compile Include="imap\client\poll.cs" />
-    <Compile Include="imap\client\messages.cs" />
+    <Compile Include="imap\client\getmessages.cs" />
     <Compile Include="imap\client\select.cs" />
     <Compile Include="imap\public\other\messagehandlelist.cs" />
     <Compile Include="mail\public\other\strings.cs" />
@@ -332,7 +330,7 @@
     <Compile Include="imap\session\base.cs" />
     <Compile Include="imap\session\connect.cs" />
     <Compile Include="imap\session\fetch\cacheitems.cs" />
-    <Compile Include="imap\session\fetch\body.cs" />
+    <Compile Include="imap\session\fetch\section.cs" />
     <Compile Include="imap\session\fetch\uidcacheitems.cs" />
     <Compile Include="imap\session\command\commanddetailsbuilder.cs" />
     <Compile Include="imap\session\command\commandtag.cs" />

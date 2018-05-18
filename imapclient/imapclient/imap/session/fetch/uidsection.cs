@@ -12,14 +12,16 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task FetchBodyAsync(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, iFetchBodyTarget pTarget, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+            public async Task UIDFetchSectionAsync(iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, iFetchSectionTarget pTarget, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchBodyAsync), pMessageHandle, pSection, pDecoding);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchSectionAsync), pMailboxHandle, pUID, pSection, pDecoding);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eIMAPConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
-                mMailboxCache.CheckInSelectedMailbox(pMessageHandle); // to be repeated inside the select lock
+                if (pUID == null) throw new ArgumentNullException(nameof(pUID));
+
+                mMailboxCache.CheckIsSelectedMailbox(pMailboxHandle, pUID.UIDValidity); // to be repeated inside the select lock
 
                 if (pSection == null) throw new ArgumentNullException(nameof(pSection));
                 if (pTarget == null) throw new ArgumentNullException(nameof(pTarget));
@@ -35,7 +37,7 @@ namespace work.bacome.imapclient
                     int lLength = mFetchBodySizer.Current;
 
                     lStopwatch.Restart();
-                    var lBody = await ZFetchBodyAsync(pMessageHandle, lBinary, pSection, lOrigin, (uint)lLength, pCancellationToken, lContext).ConfigureAwait(false);
+                    var lBody = await ZUIDFetchBodyAsync(pMailboxHandle, pUID, lBinary, pSection, lOrigin, (uint)lLength, pCancellationToken, lContext).ConfigureAwait(false);
                     lStopwatch.Stop();
 
                     // store the time taken so the next fetch is a better size

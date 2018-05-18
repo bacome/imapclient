@@ -39,9 +39,9 @@ namespace work.bacome.mailclient
         // mechanics
         private bool mDisposed = false;
         public readonly string InstanceName;
-        protected internal readonly cCallbackSynchroniser mSynchroniser;
-        protected internal readonly cTrace.cContext mRootContext;
+        protected readonly cCallbackSynchroniser mSynchroniser;
         protected readonly cCancellationManager mCancellationManager;
+        protected internal readonly cTrace.cContext RootContext;
 
         // property backing storage
         private int mTimeout = -1;
@@ -54,12 +54,12 @@ namespace work.bacome.mailclient
             InstanceName = pInstanceName ?? throw new ArgumentNullException(nameof(pInstanceName));
             mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
 
-            mRootContext = Trace.NewRoot(pInstanceName);
-            mRootContext.TraceInformation("cMailClient by bacome version {0}, release date {1}", Version, ReleaseDate);
+            RootContext = Trace.NewRoot(pInstanceName);
+            RootContext.TraceInformation("cMailClient by bacome version {0}, release date {1}", Version, ReleaseDate);
 
             mCancellationManager = new cCancellationManager(pSynchroniser.InvokeCancellableCountChanged);
 
-            mSynchroniser.Start(this, mRootContext);
+            mSynchroniser.Start(this, RootContext);
         }
 
         /// <summary>
@@ -184,7 +184,7 @@ namespace work.bacome.mailclient
         /// </summary>
         public void Cancel()
         {
-            var lContext = mRootContext.NewMethod(nameof(cMailClient), nameof(Cancel));
+            var lContext = RootContext.NewMethod(nameof(cMailClient), nameof(Cancel));
             mCancellationManager.Cancel(lContext);
         }
 
@@ -255,6 +255,8 @@ namespace work.bacome.mailclient
         public abstract Task DisconnectAsync();
 
         public bool IsDisposed => mDisposed;
+
+        internal void Wait(Task pAsyncTask, cTrace.cContext pParentContext) => mSynchroniser.Wait(pAsyncTask, pParentContext);
 
         internal void InvokeActionInt(Action<int> pAction, int pInt, cTrace.cContext pParentContext)
         {

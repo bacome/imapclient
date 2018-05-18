@@ -34,7 +34,7 @@ namespace work.bacome.imapclient
         /// </remarks>
         public cMailbox Create(cMailboxName pMailboxName, bool pAsFutureParent = false)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Create));
+            var lContext = RootContext.NewMethod(nameof(cIMAPClient), nameof(Create));
             var lTask = ZCreateAsync(pMailboxName, pAsFutureParent, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
@@ -49,7 +49,7 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Create(cMailboxName, bool)" select="remarks"/>
         public Task<cMailbox> CreateAsync(cMailboxName pMailboxName, bool pAsFutureParent = false)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(CreateAsync));
+            var lContext = RootContext.NewMethod(nameof(cIMAPClient), nameof(CreateAsync));
             return ZCreateAsync(pMailboxName, pAsFutureParent, lContext);
         }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace work.bacome.mailclient
@@ -122,5 +123,16 @@ namespace work.bacome.mailclient
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <returns></returns>
         public abstract Task SaveAsAsync(string pPath, cAttachmentSaveConfiguration pConfiguration = null);
+
+        protected void YSetFileTimes(string pPath)
+        {
+            if (Part.Disposition == null) return;
+
+            ;?; // maybe protect against throws in here
+
+            if (Part.Disposition.CreationDateTime != null) File.SetCreationTime(pPath, Part.Disposition.CreationDateTime.Value);
+            if (Part.Disposition.ModificationDateTime != null) File.SetLastWriteTime(pPath, Part.Disposition.ModificationDateTime.Value);
+            if (Part.Disposition.ReadDateTime != null) File.SetLastAccessTime(pPath, Part.Disposition.ReadDateTime.Value);
+        }
     }
 }
