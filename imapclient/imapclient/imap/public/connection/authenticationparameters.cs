@@ -9,12 +9,12 @@ using work.bacome.mailclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Parameters that can be used to authenticate during <see cref="cIMAPClient.Connect"/>.
+    /// Values that can be used in authentication during <see cref="cIMAPClient.Connect"/>.
     /// </summary>
     public class cIMAPAuthentication
     {
         /// <summary>
-        /// A set of authentication parameters that will never result in a successful connection.
+        /// An authentication object that will never result in successful authentication.
         /// </summary>
         /// <remarks>
         /// Useful to retrieve the property values set during <see cref="cIMAPClient.Connect"/> without actually connecting.
@@ -24,10 +24,12 @@ namespace work.bacome.imapclient
         /// <summary>
         /// The credential id to use if the connection is pre-authenticated. May be <see langword="null"/> in which case a pre-authenticated connection will be disconnected.
         /// </summary>
+        /// <seealso cref="cIMAPClient.ConnectedAccountId"/>"/>
+        /// <seealso cref="cAccountId.CredentialId"/>
         public readonly object PreAuthenticatedCredentialId;
 
         /// <summary>
-        /// The set of SASL objects that can used used during <see cref="cIMAPClient.Connect"/>. May be <see langword="null"/> or empty.
+        /// The set of SASL objects that can used used. May be <see langword="null"/> or empty.
         /// </summary>
         public readonly ReadOnlyCollection<cSASL> SASLs;
 
@@ -37,12 +39,12 @@ namespace work.bacome.imapclient
         public readonly bool TryAllSASLs;
 
         /// <summary>
-        /// The arguments to use with the IMAP LOGIN command during <see cref="cIMAPClient.Connect"/>. May be <see langword="null"/>.
+        ///Values that can be used in the IMAP LOGIN command. May be <see langword="null"/>.
         /// </summary>
         public readonly cIMAPLogin Login;
 
         /// <summary>
-        /// Initialises a new instance with the specified pre-authenticated credential id, <see cref="cSASL"/> objects and behaviour, and <see cref="cIMAPLogin"/> arguments.
+        /// Initialises a new instance with the specified pre-authenticated credential id, <see cref="cSASL"/> objects and behaviour, and login values.
         /// </summary>
         /// <param name="pPreAuthenticatedCredentialId"></param>
         /// <param name="pSASLs"></param>
@@ -66,16 +68,16 @@ namespace work.bacome.imapclient
         }
     
         /// <summary>
-        /// Returns a new set of authentication parameters for connecting anonymously.
+        /// Returns a value suitable for connecting anonymously.
         /// </summary>
         /// <param name="pTrace">The trace information to be sent to the server.</param>
-        /// <param name="pTLSRequirement">The TLS requirement for the parameters to be used.</param>
+        /// <param name="pTLSRequirement">The TLS requirement for the value to be used.</param>
         /// <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Indicates whether the SASL ANONYMOUS mechanism should be tried even if it isn't advertised.</param>
         /// <returns></returns>
         /// <remarks>
         /// This method will throw if <paramref name="pTrace"/> can be used with neither <see cref="cIMAPLogin.Password"/> nor <see cref="cSASLAnonymous"/>.
         /// </remarks>
-        public static cIMAPAuthentication Anonymous(string pTrace, eTLSRequirement pTLSRequirement = eTLSRequirement.indifferent, bool pTryAuthenticateEvenIfAnonymousIsntAdvertised = false)
+        public static cIMAPAuthentication GetAnonymous(string pTrace, eTLSRequirement pTLSRequirement = eTLSRequirement.indifferent, bool pTryAuthenticateEvenIfAnonymousIsntAdvertised = false)
         {
             if (string.IsNullOrEmpty(pTrace)) throw new ArgumentOutOfRangeException(nameof(pTrace));
 
@@ -86,17 +88,17 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Returns a new set of authentication parameters for connecting using plain authentication.
+        /// Returns a value suitable for connecting using plain authentication.
         /// </summary>
         /// <param name="pUserId"></param>
         /// <param name="pPassword"></param>
-        /// <param name="pTLSRequirement">The TLS requirement for the parameters to be used.</param>
+        /// <param name="pTLSRequirement">The TLS requirement for the value to be used.</param>
         /// <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Indicates whether the SASL PLAIN mechanism should be tried even if it isn't advertised.</param>
         /// <returns></returns>
         /// <remarks>
         /// This method will throw if the userid and password can be used with neither <see cref="cIMAPLogin"/> nor <see cref="cSASLPlain"/>.
         /// </remarks>
-        public static cIMAPAuthentication Plain(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false)
+        public static cIMAPAuthentication GetPlain(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false)
         {
             if (string.IsNullOrEmpty(pUserId)) throw new ArgumentOutOfRangeException(nameof(pUserId));
             if (string.IsNullOrEmpty(pPassword)) throw new ArgumentOutOfRangeException(nameof(pPassword));
@@ -125,40 +127,40 @@ namespace work.bacome.imapclient
             bool lFailed;
             cIMAPAuthentication lAP;
 
-            lAP = Anonymous("fred");
+            lAP = GetAnonymous("fred");
             if (lAP.Login == null || lAP.SASLs.Count != 1) throw new cTestsException("unexpected anon result");
             if (cTools.ASCIIBytesToString(lAP.SASLs[0].GetAuthentication().GetResponse(new byte[0])) != "fred") throw new cTestsException("unexpected anon result");
 
-            lAP = Anonymous("fr€d");
+            lAP = GetAnonymous("fr€d");
             if (lAP.Login != null || lAP.SASLs.Count != 1) throw new cTestsException("unexpected anon result");
             if (cTools.UTF8BytesToString(lAP.SASLs[0].GetAuthentication().GetResponse(new byte[0])) != "fr€d") throw new cTestsException("unexpected anon result");
 
             lFailed = false;
-            try { lAP = Anonymous(""); }
+            try { lAP = GetAnonymous(""); }
             catch (ArgumentOutOfRangeException) { lFailed = true; }
             if (!lFailed) throw new cTestsException("unexpected anon result");
 
-            lAP = Anonymous("fred@fred.com");
+            lAP = GetAnonymous("fred@fred.com");
             if (lAP.Login == null || lAP.SASLs.Count != 1) throw new cTestsException("unexpected anon result");
             if (cTools.ASCIIBytesToString(lAP.SASLs[0].GetAuthentication().GetResponse(new byte[0])) != "fred@fred.com") throw new cTestsException("unexpected anon result");
 
-            lAP = Anonymous("fred@fred@fred.com");
+            lAP = GetAnonymous("fred@fred@fred.com");
             if (lAP.Login == null || lAP.SASLs != null) throw new cTestsException("unexpected anon result");
 
-            lAP = Anonymous("\"fr€d blogs\" @ fred.com");
+            lAP = GetAnonymous("\"fr€d blogs\" @ fred.com");
             if (lAP.Login != null || lAP.SASLs.Count != 1) throw new cTestsException("unexpected anon result");
             string lResult = cTools.UTF8BytesToString(lAP.SASLs[0].GetAuthentication().GetResponse(new byte[0]));
             if (lResult != "\"fr€d blogs\"@fred.com") throw new cTestsException("unexpected anon result");
 
-            lAP = Anonymous("fred@fr€d.com");
+            lAP = GetAnonymous("fred@fr€d.com");
             if (lAP.Login != null || lAP.SASLs.Count != 1) throw new cTestsException("unexpected anon result");
             if (cTools.UTF8BytesToString(lAP.SASLs[0].GetAuthentication().GetResponse(new byte[0])) != "fred@fr€d.com") throw new cTestsException("unexpected anon result");
 
-            lAP = Anonymous("123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890");
+            lAP = GetAnonymous("123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890");
             if (lAP.Login == null || lAP.SASLs != null) throw new cTestsException("unexpected anon result");
 
             lFailed = false;
-            try { lAP = Anonymous("fred€@fred@fred.com"); }
+            try { lAP = GetAnonymous("fred€@fred@fred.com"); }
             catch (ArgumentOutOfRangeException) { lFailed = true; }
             if (!lFailed) throw new cTestsException("unexpected anon result");
         }

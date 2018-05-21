@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal async Task<List<cIMAPMessage>> GetMessagesAsync(iMailboxHandle pMailboxHandle, cUIDList pUIDs, cMessageCacheItems pItems, cKnownSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
+        internal async Task<List<cIMAPMessage>> GetMessagesAsync(iMailboxHandle pMailboxHandle, cUIDList pUIDs, cMessageCacheItems pItems, cIncrementConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetMessagesAsync), pMailboxHandle, pUIDs, pItems, pConfiguration);
 
@@ -46,7 +46,7 @@ namespace work.bacome.imapclient
             return lMessages;
         }
 
-        internal async Task<List<cIMAPMessage>> GetMessagesAsync(iMailboxHandle pMailboxHandle, cFilter pFilter, cSort pSort, cMessageCacheItems pItems, cUnknownSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
+        internal async Task<List<cIMAPMessage>> GetMessagesAsync(iMailboxHandle pMailboxHandle, cFilter pFilter, cSort pSort, cMessageCacheItems pItems, cSetMaximumConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetMessagesAsync), pMailboxHandle, pFilter, pSort, pItems, pConfiguration);
 
@@ -65,7 +65,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        private async Task<List<cIMAPMessage>> ZZGetMessagesAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cFilter pFilter, cSort pSort, cMessageCacheItems pItems, cUnknownSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private async Task<List<cIMAPMessage>> ZZGetMessagesAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cFilter pFilter, cSort pSort, cMessageCacheItems pItems, cSetMaximumConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZGetMessagesAsync), pMC, pMailboxHandle, pFilter, pSort, pItems, pConfiguration);
 
@@ -119,7 +119,7 @@ namespace work.bacome.imapclient
             return ZGetMessagesFlatMessageList(lMessageHandles, lContext);
         }
 
-        private async Task<List<cIMAPMessage>> ZGetMessagesSortAsync(cMethodControl pMC, cSession pSession, iMailboxHandle pMailboxHandle, cSort pSort, cFilter pFilter, cMessageCacheItems pItems, cUnknownSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private async Task<List<cIMAPMessage>> ZGetMessagesSortAsync(cMethodControl pMC, cSession pSession, iMailboxHandle pMailboxHandle, cSort pSort, cFilter pFilter, cMessageCacheItems pItems, cSetMaximumConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZGetMessagesSortAsync), pMC, pMailboxHandle, pSort, pFilter, pItems, pConfiguration);
 
@@ -132,7 +132,7 @@ namespace work.bacome.imapclient
             return ZGetMessagesFlatMessageList(lMessageHandles, lContext);
         }
 
-        private Task ZGetMessagesFetchAsync(cMethodControl pMC, cSession pSession, cMessageHandleList pMessageHandles, cMessageCacheItems pItems, cUnknownSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private Task ZGetMessagesFetchAsync(cMethodControl pMC, cSession pSession, cMessageHandleList pMessageHandles, cMessageCacheItems pItems, cSetMaximumConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZGetMessagesFetchAsync), pMC, pMessageHandles, pItems, pConfiguration);
 

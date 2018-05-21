@@ -4,7 +4,7 @@ using work.bacome.mailclient;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Contains parameters that control the <see cref="cIMAPClient"/> idle feature.
+    /// Values that control the <see cref="cIMAPClient"/> idle feature.
     /// </summary>
     /// <remarks>
     /// <para>

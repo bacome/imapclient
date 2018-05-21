@@ -17,7 +17,7 @@ namespace work.bacome.mailclient
     {
         private static readonly eQuotedPrintableEncodeSourceType kQuotedPrintableEncodeDefaultSourceType = Environment.NewLine == "\n" ? eQuotedPrintableEncodeSourceType.LFTerminatedLines : eQuotedPrintableEncodeSourceType.CRLFTerminatedLines;
 
-        public long QuotedPrintableEncode(Stream pSource, Stream pTarget = null, cKnownSizeConfiguration pConfiguration = null)
+        public long QuotedPrintableEncode(Stream pSource, Stream pTarget = null, cIncrementConfiguration pConfiguration = null)
         {
             var lContext = RootContext.NewMethodV(nameof(cMailClient), nameof(QuotedPrintableEncode), 1, pConfiguration);
             var lTask = ZQuotedPrintableEncodeAsync(pSource, kQuotedPrintableEncodeDefaultSourceType, eQuotedPrintableEncodeQuotingRule.EBCDIC, pTarget, pConfiguration, lContext);
@@ -25,13 +25,13 @@ namespace work.bacome.mailclient
             return lTask.Result;
         }
 
-        public Task<long> QuotedPrintableEncodeAsync(Stream pSource, Stream pTarget, cKnownSizeConfiguration pConfiguration = null)
+        public Task<long> QuotedPrintableEncodeAsync(Stream pSource, Stream pTarget, cIncrementConfiguration pConfiguration = null)
         {
             var lContext = RootContext.NewMethodV(nameof(cMailClient), nameof(QuotedPrintableEncodeAsync), 1, pConfiguration);
             return ZQuotedPrintableEncodeAsync(pSource, kQuotedPrintableEncodeDefaultSourceType, eQuotedPrintableEncodeQuotingRule.EBCDIC, pTarget, pConfiguration, lContext);
         }
 
-        public long QuotedPrintableEncode(Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget = null, cKnownSizeConfiguration pConfiguration = null)
+        public long QuotedPrintableEncode(Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget = null, cIncrementConfiguration pConfiguration = null)
         {
             var lContext = RootContext.NewMethodV(nameof(cMailClient), nameof(QuotedPrintableEncode), 2, pSourceType, pQuotingRule, pConfiguration);
             var lTask = ZQuotedPrintableEncodeAsync(pSource, pSourceType, pQuotingRule, pTarget, pConfiguration, lContext);
@@ -39,13 +39,13 @@ namespace work.bacome.mailclient
             return lTask.Result;
         }
 
-        public Task<long> QuotedPrintableEncodeAsync(Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget = null, cKnownSizeConfiguration pConfiguration = null)
+        public Task<long> QuotedPrintableEncodeAsync(Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget = null, cIncrementConfiguration pConfiguration = null)
         {
             var lContext = RootContext.NewMethodV(nameof(cMailClient), nameof(QuotedPrintableEncodeAsync), 2, pSource, pQuotingRule, pConfiguration);
             return ZQuotedPrintableEncodeAsync(pSource, pSourceType, pQuotingRule, pTarget, pConfiguration, lContext);
         }
 
-        private async Task<long> ZQuotedPrintableEncodeAsync(Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget, cKnownSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private async Task<long> ZQuotedPrintableEncodeAsync(Stream pSource, eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule, Stream pTarget, cIncrementConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cMailClient), nameof(ZQuotedPrintableEncodeAsync), pSourceType, pQuotingRule, pConfiguration);
 
@@ -599,7 +599,7 @@ namespace work.bacome.mailclient
                 using (var lEncoded = new MemoryStream())
                 {
                     var lIncrement = new cTestActionInt();
-                    cKnownSizeConfiguration lConfig = new cKnownSizeConfiguration(CancellationToken.None, lIncrement.ActionInt);
+                    cIncrementConfiguration lConfig = new cIncrementConfiguration(CancellationToken.None, lIncrement.ActionInt);
 
                     lBytesWritten = lClient.QuotedPrintableEncode(lInput, pSourceType, pQuotingRule, lEncoded, lConfig);
 

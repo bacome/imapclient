@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
             ConvertIncrement = null;
         }
 
-        public cAppendMailMessageConfiguration(CancellationToken pCancellationToken, Action<long> pAppendSetMaximum, Action<int> pAppendIncrement, Action<long> pConvertSetMaximum = null, Action<int> pConvertIncrement = null)
+        public cAppendMailMessageConfiguration(CancellationToken pCancellationToken, Action<long> pAppendSetMaximum = null, Action<int> pAppendIncrement = null, Action<long> pConvertSetMaximum = null, Action<int> pConvertIncrement = null)
         {
             Timeout = -1;
             CancellationToken = pCancellationToken;
@@ -33,7 +33,7 @@ namespace work.bacome.imapclient
             ConvertIncrement = pConvertIncrement;
         }
 
-        public cAppendMailMessageConfiguration(int pTimeout, CancellationToken pCancellationToken, Action<long> pAppendSetMaximum, Action<int> pAppendIncrement, Action<long> pConvertSetMaximum, Action<int> pConvertIncrement)
+        public cAppendMailMessageConfiguration(int pTimeout, CancellationToken pCancellationToken, Action<long> pAppendSetMaximum = null, Action<int> pAppendIncrement = null, Action<long> pConvertSetMaximum = null, Action<int> pConvertIncrement = null)
         {
             if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
             Timeout = pTimeout;
@@ -45,5 +45,8 @@ namespace work.bacome.imapclient
         }
 
         public override string ToString() => $"{nameof(cAppendMailMessageConfiguration)}({Timeout},{CancellationToken.IsCancellationRequested}/{CancellationToken.CanBeCanceled},{AppendSetMaximum != null},{AppendIncrement != null},{ConvertSetMaximum != null},{ConvertIncrement != null})";
+
+        public static implicit operator cAppendMailMessageConfiguration(int pTimeout) => new cAppendMailMessageConfiguration(pTimeout);
+        public static implicit operator cAppendMailMessageConfiguration(CancellationToken pCancellationToken) => new cAppendMailMessageConfiguration(pCancellationToken);
     }
 }

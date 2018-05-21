@@ -90,19 +90,19 @@ namespace work.bacome.imapclient
 
         public override Stream GetMessageDataStream() => new cIMAPMessageDataStream(this);
 
-        public override void SaveAs(string pPath, cUnknownSizeConfiguration pConfiguration = null)
+        public override void SaveAs(string pPath, cSetMaximumConfiguration pConfiguration = null)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cIMAPAttachment), nameof(SaveAs), pPath, pConfiguration);
             Client.Wait(ZSaveAsAsync(pPath, pConfiguration, lContext), lContext);
         }
 
-        public override Task SaveAsAsync(string pPath, cUnknownSizeConfiguration pConfiguration = null)
+        public override Task SaveAsAsync(string pPath, cSetMaximumConfiguration pConfiguration = null)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cIMAPAttachment), nameof(SaveAsAsync), pPath, pConfiguration);
             return ZSaveAsAsync(pPath, pConfiguration, lContext);
         }
 
-        private Task ZSaveAsAsync(string pPath, cUnknownSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private Task ZSaveAsAsync(string pPath, cSetMaximumConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPAttachment), nameof(ZSaveAsAsync), pPath, pConfiguration);
 

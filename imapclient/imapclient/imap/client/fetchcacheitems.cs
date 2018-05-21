@@ -19,7 +19,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// <note type="note"><see cref="cMessageCacheItems"/> has implicit conversions from other types including <see cref="fIMAPMessageProperties"/>. This means that you can use values of those types as arguments to this method.</note>
         /// </remarks>
-        public List<cIMAPMessage> FetchCacheItems(IEnumerable<cIMAPMessage> pMessages, cMessageCacheItems pItems, cKnownSizeConfiguration pConfiguration)
+        public List<cIMAPMessage> FetchCacheItems(IEnumerable<cIMAPMessage> pMessages, cMessageCacheItems pItems, cIncrementConfiguration pConfiguration)
         {
             var lContext = RootContext.NewMethod(true, nameof(cIMAPClient), nameof(FetchCacheItems), pItems, pConfiguration);
 
@@ -41,7 +41,7 @@ namespace work.bacome.imapclient
         /// <param name="pItems"></param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <inheritdoc cref="Fetch(IEnumerable{cIMAPMessage}, cMessageCacheItems, cFetchCacheItemConfiguration)" select="returns|remarks"/>
-        public async Task<List<cIMAPMessage>> FetchCacheItemsAsync(IEnumerable<cIMAPMessage> pMessages, cMessageCacheItems pItems, cKnownSizeConfiguration pConfiguration)
+        public async Task<List<cIMAPMessage>> FetchCacheItemsAsync(IEnumerable<cIMAPMessage> pMessages, cMessageCacheItems pItems, cIncrementConfiguration pConfiguration)
         {
             var lContext = RootContext.NewMethod(true, nameof(cIMAPClient), nameof(FetchCacheItemsAsync), pItems, pConfiguration);
 
@@ -55,7 +55,7 @@ namespace work.bacome.imapclient
             return new List<cIMAPMessage>(from m in pMessages where !m.MessageHandle.Contains(pItems) select m);
         }
 
-        internal async Task FetchCacheItemsAsync(cMessageHandleList pMessageHandles, cMessageCacheItems pItems, cKnownSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
+        internal async Task FetchCacheItemsAsync(cMessageHandleList pMessageHandles, cMessageCacheItems pItems, cIncrementConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(FetchCacheItemsAsync), pMessageHandles, pItems, pConfiguration);
 

@@ -290,7 +290,7 @@ namespace work.bacome.imapclient
         /// May only be called while <see cref="IsUnconnected"/>.
         /// This method will throw if the userid and password can be used in neither <see cref="cIMAPLogin"/> nor <see cref="cSASLPlain"/>.
         /// </remarks>
-        public void SetPlainAuthentication(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false) => Authentication = cIMAPAuthentication.Plain(pUserId, pPassword, pTLSRequirement, pTryAuthenticateEvenIfPlainIsntAdvertised);
+        public void SetPlainAuthentication(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false) => Authentication = cIMAPAuthentication.GetPlain(pUserId, pPassword, pTLSRequirement, pTryAuthenticateEvenIfPlainIsntAdvertised);
 
         // not tested yet
         //public void SetXOAuth2Credentials(string pUserId, string pAccessToken, bool pTryAuthenticateEvenIfXOAuth2IsntAdvertised = false) => Credentials = cCredentials.XOAuth2(pUserId, pAccessToken, pTryAuthenticateEvenIfXOAuth2IsntAdvertised);

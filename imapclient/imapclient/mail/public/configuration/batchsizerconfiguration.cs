@@ -3,14 +3,8 @@
 namespace work.bacome.mailclient
 {
     /// <summary>
-    /// Contains parameters to control batch sizes in long running operations.
+    /// Values to control the automatic tuning of batch sizes.
     /// </summary>
-    /// <seealso cref="cIMAPClient.NetworkWriteConfiguration"/>
-    /// <seealso cref="cIMAPClient.FetchCacheItemsConfiguration"/>
-    /// <seealso cref="cIMAPClient.FetchBodyReadConfiguration"/>
-    /// <seealso cref="cIMAPClient.FetchBodyWriteConfiguration"/>
-    /// <seealso cref="cIMAPClient.AppendStreamReadConfiguration"/>
-    /// <seealso cref="cFetchConfiguration"/>
     public class cBatchSizerConfiguration : IEquatable<cBatchSizerConfiguration>
     {
         /**<summary>The minimum batch size.</summary>*/

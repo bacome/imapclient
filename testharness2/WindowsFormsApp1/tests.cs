@@ -24,7 +24,7 @@ namespace testharness2
             // quickly get to the test I'm working on
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(CurrentTest));
             //cIMAPClient._Tests(lContext);
-            ZTestAppendNoCatenateNoBinaryNoUTF8(lContext);
+            //ZTestAppendNoCatenateNoBinaryNoUTF8(lContext);
         }
 
         public static void Tests(bool pQuick, cTrace.cContext pParentContext)
@@ -81,7 +81,7 @@ namespace testharness2
                 if (!pQuick) ZTestEarlyTermination1(lContext);
                 if (!pQuick) ZTestEarlyTermination2(lContext);
 
-                ZTestAppendNoCatenateNoBinaryNoUTF8(lContext);
+                //ZTestAppendNoCatenateNoBinaryNoUTF8(lContext);
             }
             catch (Exception e) when (lContext.TraceException(e)) { }
         }
@@ -939,9 +939,9 @@ namespace testharness2
             }
         }
 
-        private class cTestAuth1AuthenticationParameters : cIMAPAuthentication
+        private class cTestAuth1Authentication : cIMAPAuthentication
         {
-            public cTestAuth1AuthenticationParameters(object pPreAuthCredId, bool pTryAllSASLs) :
+            public cTestAuth1Authentication(object pPreAuthCredId, bool pTryAllSASLs) :
                 base(pPreAuthCredId, new cSASL[] { new cSASLPlain("fred", "angus", eTLSRequirement.indifferent), new cSASLAnonymous("fr€d", eTLSRequirement.indifferent) }, pTryAllSASLs, new cIMAPLogin("fred", "angus", eTLSRequirement.indifferent)) { }
         }
 
@@ -951,9 +951,9 @@ namespace testharness2
 
             var lPreAuthCredId = new object();
 
-            var lCredsNoPreAuthDontTryAll = new cTestAuth1AuthenticationParameters(null, false);
-            var lCredsNoPreAuthTryAll = new cTestAuth1AuthenticationParameters(null, true);
-            var lCredsPreAuthTryAll = new cTestAuth1AuthenticationParameters(lPreAuthCredId, true);
+            var lCredsNoPreAuthDontTryAll = new cTestAuth1Authentication(null, false);
+            var lCredsNoPreAuthTryAll = new cTestAuth1Authentication(null, true);
+            var lCredsPreAuthTryAll = new cTestAuth1Authentication(lPreAuthCredId, true);
 
             bool lFailed;
 
@@ -1205,7 +1205,7 @@ namespace testharness2
                 lServer.ThrowAnyErrors();
             }
 
-            cAccountId lAnon2 = new cAccountId("localhost", cLogin.Anonymous);
+            cAccountId lAnon2 = new cAccountId("localhost", cIMAPLogin.Anonymous);
 
             // 7 - anon not advertised 
             //
@@ -1226,7 +1226,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.Authentication = cAuthenticationParameters.Anonymous("fred");
+                lClient.Authentication = cIMAPAuthentication.GetAnonymous("fred");
 
                 lClient.Connect();
 
@@ -1258,7 +1258,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.Authentication = cAuthenticationParameters.Anonymous("fred");
+                lClient.Authentication = cIMAPAuthentication.GetAnonymous("fred");
 
                 lClient.Connect();
 
@@ -1557,13 +1557,13 @@ namespace testharness2
                 lServer.AddExpectClose();
 
 
-                lClient.Authentication = new cAuthenticationParameters(new object());
+                lClient.Authentication = new cIMAPAuthentication(new object());
                 lClient.IdleConfiguration = null;
 
                 cMessageFlags lFlags;
                 cMailbox lMailbox;
-                List<cMessage> lMessageList;
-                cMessage lMessage;
+                List<cIMAPMessage> lMessageList;
+                cIMAPMessage lMessage;
                 //Task<List<cMessage>> lTask1;
                 //Task<List<cMessage>> lTask2;
                 //Task<List<cMessage>> lTask3; 
@@ -1597,7 +1597,7 @@ namespace testharness2
                 lClient.Inbox.SetUnseenCount();
                 if (lClient.Inbox.MessageCount != 172 || lClient.Inbox.RecentCount != 1 || lClient.Inbox.UIDNext != 0 || lClient.Inbox.UIDNextUnknownCount != 172 || lClient.Inbox.UIDValidity != 3857529046 || lClient.Inbox.UnseenCount != 3 || lClient.Inbox.UnseenUnknownCount != 0) throw new cTestsException("ZTestSearch1.8");
 
-                lMailbox = lClient.Mailbox(new cMailboxName("blurdybloop", null));
+                lMailbox = lClient.GetMailbox(new cMailboxName("blurdybloop", null));
                 if (lMailbox.IsSelected) throw new cTestsException("ZTestSearch2.1");
 
                 if (lMailbox.MessageCount != 231 || lMailbox.UIDNext != 44292) throw new cTestsException("ZTestSearch2.2");
@@ -1621,10 +1621,10 @@ namespace testharness2
                 lMailbox.SetUnseenCount();
                 if (lMailbox.UnseenCount != 3 || lMailbox.UnseenUnknownCount != 0) throw new cTestsException("ZTestSearch3.7");
 
-                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8));
+                lMessageList = lMailbox.GetMessages(cFilter.Received >= new DateTime(2017, 6, 8));
                 if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch4.1");
 
-                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8), null, fMessageCacheAttributes.received);
+                lMessageList = lMailbox.GetMessages(cFilter.Received >= new DateTime(2017, 6, 8), null, fMessageCacheAttributes.received);
                 if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch4.2");
 
                 lMessage = lMessageList[0];
@@ -1635,7 +1635,7 @@ namespace testharness2
 
 
 
-                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
+                lMessageList = lMailbox.GetMessages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
 
                 if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch5.1");
                 if (lMessageList[0].MessageHandle.CacheSequence != 16 || lMessageList[1].MessageHandle.CacheSequence != 15 || lMessageList[2].MessageHandle.CacheSequence != 14 ||
@@ -1797,13 +1797,13 @@ namespace testharness2
                 lServer.AddExpectClose();
 
 
-                lClient.Authentication = new cAuthenticationParameters(new object());
+                lClient.Authentication = new cIMAPAuthentication(new object());
                 lClient.IdleConfiguration = null;
 
                 cMessageFlags lFlags;
                 cMailbox lMailbox;
-                List<cMessage> lMessageList;
-                cMessage lMessage;
+                List<cIMAPMessage> lMessageList;
+                cIMAPMessage lMessage;
                 //Task<List<cMessage>> lTask1;
                 //Task<List<cMessage>> lTask2;
                 //Task<List<cMessage>> lTask3; 
@@ -1837,7 +1837,7 @@ namespace testharness2
                 lClient.Inbox.SetUnseenCount();
                 if (lClient.Inbox.MessageCount != 172 || lClient.Inbox.RecentCount != 1 || lClient.Inbox.UIDNext != 0 || lClient.Inbox.UIDNextUnknownCount != 172 || lClient.Inbox.UIDValidity != 3857529046 || lClient.Inbox.UnseenCount != 3 || lClient.Inbox.UnseenUnknownCount != 0) throw new cTestsException("ZTestSearch2_1.8");
 
-                lMailbox = lClient.Mailbox(new cMailboxName("blurdybloop", null));
+                lMailbox = lClient.GetMailbox(new cMailboxName("blurdybloop", null));
                 if (lMailbox.IsSelected) throw new cTestsException("ZTestSearch2_2.1");
 
                 if (lMailbox.MessageCount != 231 || lMailbox.UIDNext != 44292) throw new cTestsException("ZTestSearch2_2.2");
@@ -1861,10 +1861,10 @@ namespace testharness2
                 lMailbox.SetUnseenCount();
                 if (lMailbox.UnseenCount != 3 || lMailbox.UnseenUnknownCount != 0) throw new cTestsException("ZTestSearch2_3.7");
 
-                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8));
+                lMessageList = lMailbox.GetMessages(cFilter.Received >= new DateTime(2017, 6, 8));
                 if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch2_4.1");
 
-                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8), null, fMessageCacheAttributes.received);
+                lMessageList = lMailbox.GetMessages(cFilter.Received >= new DateTime(2017, 6, 8), null, fMessageCacheAttributes.received);
                 if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch2_4.2");
 
                 lMessage = lMessageList[0];
@@ -1875,7 +1875,7 @@ namespace testharness2
 
 
 
-                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
+                lMessageList = lMailbox.GetMessages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
 
                 if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch2_5.1");
                 if (lMessageList[0].MessageHandle.CacheSequence != 16 || lMessageList[1].MessageHandle.CacheSequence != 15 || lMessageList[2].MessageHandle.CacheSequence != 14 ||
@@ -1980,22 +1980,22 @@ namespace testharness2
                 lServer.AddExpectClose();
 
 
-                lClient.Authentication = new cAuthenticationParameters(new object());
+                lClient.Authentication = new cIMAPAuthentication(new object());
                 lClient.IdleConfiguration = null;
 
                 cMessageFlags lFlags;
                 cMailbox lMailbox;
-                List<cMessage> lMessageList;
-                Task<List<cMessage>> lTask1;
-                Task<List<cMessage>> lTask2;
-                Task<List<cMessage>> lTask3;
+                List<cIMAPMessage> lMessageList;
+                Task<List<cIMAPMessage>> lTask1;
+                Task<List<cIMAPMessage>> lTask2;
+                Task<List<cIMAPMessage>> lTask3;
 
 
                 lClient.MailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.unseencount | fMailboxCacheDataItems.uidnext;
 
                 lClient.Connect();
 
-                lMailbox = lClient.Mailbox(new cMailboxName("blurdybloop", null));
+                lMailbox = lClient.GetMailbox(new cMailboxName("blurdybloop", null));
                 if (lMailbox.IsSelected) throw new cTestsException("ZTestSearch3_2.1");
 
                 if (lMailbox.MessageCount != 231 || lMailbox.UIDNext != 44292) throw new cTestsException("ZTestSearch3_2.2");
@@ -2016,15 +2016,15 @@ namespace testharness2
 
                 if (lMailbox.IsSelectedForUpdate) throw new cTestsException("ZTestSearch3_3.5");
 
-                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
+                lMessageList = lMailbox.GetMessages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
 
                 if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch3_6.1");
                 if (lMessageList[0].MessageHandle.CacheSequence != 16 || lMessageList[1].MessageHandle.CacheSequence != 15 || lMessageList[2].MessageHandle.CacheSequence != 14 ||
                     lMessageList[3].MessageHandle.CacheSequence != 12 || lMessageList[4].MessageHandle.CacheSequence != 13 || lMessageList[5].MessageHandle.CacheSequence != 11) throw new cTestsException("ZTestSearch3_6.2");
 
 
-                lTask1 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
-                lTask2 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
+                lTask1 = lMailbox.GetMessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
+                lTask2 = lMailbox.GetMessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
 
                 Task.WaitAll(lTask1, lTask2);
 
@@ -2037,9 +2037,9 @@ namespace testharness2
 
                 // this checks that the search commands lock one another out ...
 
-                lTask1 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
-                lTask2 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8));
-                lTask3 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
+                lTask1 = lMailbox.GetMessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
+                lTask2 = lMailbox.GetMessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8));
+                lTask3 = lMailbox.GetMessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
 
                 Task.WaitAll(lTask1, lTask2, lTask3);
 
@@ -2093,7 +2093,7 @@ namespace testharness2
                 lServer.AddExpectClose();
 
 
-                lClient.Authentication = new cAuthenticationParameters(new object());
+                lClient.Authentication = new cIMAPAuthentication(new object());
                 lClient.IdleConfiguration = null;
 
                 lClient.Connect();
@@ -2103,18 +2103,18 @@ namespace testharness2
 
                 try
                 {
-                    var lMessageList = lClient.Inbox.Messages(cFilter.Body.Contains("fr€d"));
+                    var lMessageList = lClient.Inbox.GetMessages(cFilter.Body.Contains("fr€d"));
                 }
-                catch (cUnsuccessfulCompletionException e)
+                catch (cUnsuccessfulIMAPCommandException e)
                 {
                     if (e.ResponseText.Code != eIMAPResponseTextCode.badcharset || e.ResponseText.Arguments != null) throw new cTestsException("ZTestBadCharsetUIDNotSticky.3");
                 }
 
                 try
                 {
-                    var lMessageList = lClient.Inbox.Messages(cFilter.Body.Contains("fr€d"));
+                    var lMessageList = lClient.Inbox.GetMessages(cFilter.Body.Contains("fr€d"));
                 }
-                catch (cUnsuccessfulCompletionException e)
+                catch (cUnsuccessfulIMAPCommandException e)
                 {
                     if (e.ResponseText.Code != eIMAPResponseTextCode.badcharset || e.ResponseText.Arguments == null || e.ResponseText.Arguments.Count != 3) throw new cTestsException("ZTestBadCharsetUIDNotSticky.4");
                     if (e.ResponseText.Arguments[0] != "x1" || e.ResponseText.Arguments[2] != "a nother 1") throw new cTestsException("ZTestBadCharsetUIDNotSticky.5");
@@ -2215,7 +2215,7 @@ namespace testharness2
 
 
 
-                lClient.Authentication = new cAuthenticationParameters(new object());
+                lClient.Authentication = new cIMAPAuthentication(new object());
 
                 lClient.Connect();
 
@@ -2223,14 +2223,14 @@ namespace testharness2
 
                 if (lClient.Inbox.MessageCount != 172) throw new cTestsException("ZTestIdleRestart1.1");
 
-                var lMessages = lClient.Inbox.Messages(!cFilter.Seen);
+                var lMessages = lClient.Inbox.GetMessages(!cFilter.Seen);
 
                 Thread.Sleep(3000); // idle should start, message 168 should get deleted, and message 167 should get a UID during this wait
 
                 if (lClient.Inbox.MessageCount != 171) throw new cTestsException("ZTestIdleRestart1.2");
 
 
-                var lLM = new List<cMessage>();
+                var lLM = new List<cIMAPMessage>();
                 lLM.Add(lMessages[1]);
                 var lFB = lClient.Store(lLM, eStoreOperation.add, cStorableFlags.Empty);
                 if (lFB.Summary().ExpungedCount != 1) throw new cTestsException("ZTestIdleRestart1.3.1"); // this should do nothing (as the message has been expunged), but idle should stop
@@ -2238,19 +2238,19 @@ namespace testharness2
                 //if (lMessages[1].Fetch(fMessageCacheAttributes.uid)) throw new cTestsException("ZTestIdleRestart1.3.1"); // this should retrieve nothing (as the message has been deleted), but idle should stop
                 Thread.Sleep(3000); // idle should restart in this wait
 
-                var lList = new cMessage[] { lMessages[0], lMessages[1], lMessages[2] };
+                var lList = new cIMAPMessage[] { lMessages[0], lMessages[1], lMessages[2] };
 
-                List<cMessage> lUnfetched;
+                List<cIMAPMessage> lUnfetched;
 
                 // only message 1 and 3 should be fetched by this, as message 2 was 168 which should now be gone
                 //  1 should be UID fetched, 3 should be a normal fetch
-                lUnfetched = lClient.Fetch(lList, fMessageCacheAttributes.received, null);
+                lUnfetched = lClient.FetchCacheItems(lList, fMessageCacheAttributes.received, null);
                 if (lUnfetched.Count != 1 || !ReferenceEquals(lUnfetched[0].MessageHandle, lMessages[1].MessageHandle)) throw new cTestsException("ZTestIdleRestart1.3.2");
 
                 Thread.Sleep(3000); // idle should restart in this wait
 
                 // only message 1 and 3 should be fetched, however this time (due to getting fast responses the last time) they should both be normal fetch
-                lUnfetched = lClient.Fetch(lMessages, fMessageCacheAttributes.flags, null);
+                lUnfetched = lClient.FetchCacheItems(lMessages, fMessageCacheAttributes.flags, null);
                 if (lUnfetched.Count != 1 || !ReferenceEquals(lUnfetched[0].MessageHandle, lMessages[1].MessageHandle)) throw new cTestsException("ZTestIdleRestart1.3.3");
 
 
@@ -2262,23 +2262,23 @@ namespace testharness2
                 lFilter = cFilter.UID > new cUID(3857529044, 4391);
 
                 // test that there is a throw if the mailbox isn't selected
-                lMailbox = lClient.Mailbox(new cMailboxName("blurdybloop", null));
+                lMailbox = lClient.GetMailbox(new cMailboxName("blurdybloop", null));
 
                 lFailed = false;
-                try { lMessages = lMailbox.Messages(lFilter); }
+                try { lMessages = lMailbox.GetMessages(lFilter); }
                 catch (InvalidOperationException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("ZTestIdleRestart1.4");
 
                 lMailbox.Select(false);
 
                 lFailed = false;
-                try { lMessages = lMailbox.Messages(lFilter); }
+                try { lMessages = lMailbox.GetMessages(lFilter); }
                 catch (cUIDValidityException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("ZTestIdleRestart1.5");
 
                 lFilter = cFilter.UID > new cUID(3857529045, 4391);
 
-                lMessages = lMailbox.Messages(lFilter);
+                lMessages = lMailbox.GetMessages(lFilter);
 
 
 
@@ -2350,7 +2350,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddExpectClose();
 
-                lClient.Authentication = new cAuthenticationParameters(new object());
+                lClient.Authentication = new cIMAPAuthentication(new object());
                 lClient.IdleConfiguration = null;
 
                 lClient.Connect();
@@ -2365,7 +2365,7 @@ namespace testharness2
                 cUID[] lUIDs = new cUID[] { new cUID(3857529045, 105), new cUID(3857529045, 104), new cUID(3857529045, 103), new cUID(3857529045, 102), new cUID(3857529045, 101) };
 
                 // fetch flags
-                var lMessages = lClient.Inbox.Messages(lUIDs, fMessageCacheAttributes.flags | fMessageCacheAttributes.received);
+                var lMessages = lClient.Inbox.GetMessages(lUIDs, fMessageCacheAttributes.flags | fMessageCacheAttributes.received);
                 if (lMessages.Count != 4) throw new cTestsException($"{nameof(ZTestUIDFetch1)}.1");
 
 
@@ -2441,33 +2441,33 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddExpectClose();
 
-                lClient.Authentication = new cAuthenticationParameters(new object());
+                lClient.Authentication = new cIMAPAuthentication(new object());
                 lClient.IdleConfiguration = null;
 
-                Task<List<cMessage>> lTask1;
-                Task<List<cMessage>> lTask2;
-                List<cMessage> lMessages;
+                Task<List<cIMAPMessage>> lTask1;
+                Task<List<cIMAPMessage>> lTask2;
+                List<cIMAPMessage> lMessages;
                 bool lFailed;
 
 
                 lClient.Connect();
                 lClient.Inbox.Select(true);
 
-                lTask1 = lClient.Inbox.MessagesAsync(cFilter.Body.Contains("stu\rff"));
+                lTask1 = lClient.Inbox.GetMessagesAsync(cFilter.Body.Contains("stu\rff"));
 
                 using (var lCTS = new CancellationTokenSource(1000))
                 {
-                    lTask2 = lClient.Inbox.MessagesAsync(cFilter.Body.Contains("stu\rf"), null, null, new cMessageFetchConfiguration(lCTS.Token, null, null));
+                    lTask2 = lClient.Inbox.GetMessagesAsync(cFilter.Body.Contains("stu\rf"), null, null, lCTS.Token);
 
                     lMessages = lTask1.Result;
                     lMessages = lTask2.Result;
                 }
 
-                lTask1 = lClient.Inbox.MessagesAsync(cFilter.Body.Contains("stu\rff"));
+                lTask1 = lClient.Inbox.GetMessagesAsync(cFilter.Body.Contains("stu\rff"));
 
                 using (var lCTS = new CancellationTokenSource(1000))
                 {
-                    lTask2 = lClient.Inbox.MessagesAsync(cFilter.Body.Contains("stu\rf"), null, null, new cMessageFetchConfiguration(lCTS.Token, null, null));
+                    lTask2 = lClient.Inbox.GetMessagesAsync(cFilter.Body.Contains("stu\rf"), null, null, lCTS.Token);
 
                     lMessages = lTask1.Result;
 
@@ -2508,7 +2508,7 @@ namespace testharness2
 
                 bool lFailed = false;
                 try { lClient.Connect(); }
-                catch (cCredentialsException) { lFailed = true; }
+                catch (cIMAPCredentialsException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("expected connect to fail");
 
                 lServer.ThrowAnyErrors();
@@ -2556,13 +2556,14 @@ namespace testharness2
 
                 bool lFailed = false;
                 try { lClient.Connect(); }
-                catch (cCredentialsException) { lFailed = true; }
+                catch (cIMAPCredentialsException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("expected connect to fail");
 
                 lServer.ThrowAnyErrors();
             }
         }
 
+        /* TODO
         private static void ZTestAppendNoCatenateNoBinaryNoUTF8(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestAppendNoCatenateNoBinaryNoUTF8));
@@ -2686,7 +2687,7 @@ namespace testharness2
                     // the second client appends; rfc 4315 response
                     lServer2.AddExpectTagged("APPEND INBOX {226+}\r\nmime-version: 1.0\r\ncontent-type: multipart/mixed; boundary=\"boundary\"\r\n\r\n--boundary\r\ncontent-type: text/plain\r\n\r\nhello\r\n--boundary\r\ncontent-type: message/rfc822\r\n\r\ndate: thu, 22 feb 2018 15:49:50 +1300\r\n\r\nhello\r\n--boundary--\r\n\r\n");
                     lServer2.AddSendTagged("OK [APPENDUID 2 14] APPENDed\r\n");
-                    */
+                  ---
 
 
                     // the second client disconnects
@@ -2701,16 +2702,16 @@ namespace testharness2
                     lServer.AddSendTagged("OK logged out\r\n");
                     lServer.AddExpectClose();
 
-                    lClient1.Authentication = new cAuthenticationParameters(new object());
+                    lClient1.Authentication = new cIMAPAuthentication(new object());
                     lClient1.IdleConfiguration = null;
-                    lClient1.FetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000, 1000, 1000);
+                    lClient1.FetchBodyConfiguration = new cBatchSizerConfiguration(1000, 1000, 1000, 1000);
 
                     lClient2.Authentication = lClient1.Authentication;
                     lClient2.IdleConfiguration = null;
 
                     lClient1.Connect();
                     lClient1.Inbox.Select();
-                    var lMessage = lClient1.Inbox.Messages()[0];
+                    var lMessage = lClient1.Inbox.GetMessages()[0];
 
                     lClient2.Connect();
 
@@ -2821,7 +2822,7 @@ namespace testharness2
 
                     lUID = lClient2.Inbox.Append(lParts);
                     if (lUID != new cUID(2, 14)) throw new cTestsException($"{nameof(ZTestAppendNoCatenateNoBinaryNoUTF8)}.14");
-                    */
+                    
 
 
                     lClient2.Disconnect();
@@ -2830,8 +2831,8 @@ namespace testharness2
 
                     lServer.ThrowAnyErrors();
                 }
-            }
-        }
+            } 
+        }  */
 
 
 
@@ -2857,7 +2858,7 @@ namespace testharness2
                 lServer.AddExpectClose();
 
                 lClient.SetServer("localhost");
-                lClient.Authentication = new cAuthenticationParameters(new object());
+                lClient.Authentication = new cIMAPAuthentication(new object());
                 lClient.IdleConfiguration = null;
 
                 lClient.Connect();
@@ -3290,7 +3291,7 @@ namespace testharness2
                 if (mCurrent != mExpected.Count || mUnexpected.Count != 0) throw new cTestsException($"response text problem: {mCurrent}, {mUnexpected.Count}");
             }
 
-            private void ResponseText(object sender, cResponseTextEventArgs e)
+            private void ResponseText(object sender, cIMAPResponseTextEventArgs e)
             {
                 mContext.TraceVerbose("got responsetext: {0}", e);
 

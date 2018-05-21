@@ -123,7 +123,7 @@ namespace work.bacome.mailclient
         /// </summary>
         /// <param name="pPath"></param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
-        public abstract void SaveAs(string pPath, cUnknownSizeConfiguration pConfiguration = null);
+        public abstract void SaveAs(string pPath, cSetMaximumConfiguration pConfiguration = null);
 
         /// <summary>
         /// Asynchronously saves the attachment to the specified path.
@@ -131,7 +131,7 @@ namespace work.bacome.mailclient
         /// <param name="pPath"></param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <returns></returns>
-        public abstract Task SaveAsAsync(string pPath, cUnknownSizeConfiguration pConfiguration = null);
+        public abstract Task SaveAsAsync(string pPath, cSetMaximumConfiguration pConfiguration = null);
 
         protected void YSetFileTimes(string pPath, cTrace.cContext pParentContext)
         {

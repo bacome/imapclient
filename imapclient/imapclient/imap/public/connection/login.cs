@@ -4,7 +4,7 @@ using work.bacome.mailclient;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Contains arguments for use with the IMAP LOGIN command.
+    /// Values that can be used in the IMAP LOGIN command.
     /// </summary>
     /// <remarks>
     /// The IMAP LOGIN command limits userids and passwords to ASCII characters excluding the NUL character.

@@ -1072,7 +1072,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// <note type="note"><see cref="cMessageCacheItems"/> has implicit conversions from other types including <see cref="fIMAPMessageProperties"/>. This means that you can use values of those types as arguments to this method.</note>
         /// </remarks>
-        public List<cIMAPMessage> GetMessages(cFilter pFilter = null, cSort pSort = null, cMessageCacheItems pItems = null, cUnknownSizeConfiguration pConfiguration = null)
+        public List<cIMAPMessage> GetMessages(cFilter pFilter = null, cSort pSort = null, cMessageCacheItems pItems = null, cSetMaximumConfiguration pConfiguration = null)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cMailbox), nameof(GetMessages), pFilter, pSort, pItems, pConfiguration);
             var lTask = Client.GetMessagesAsync(MailboxHandle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pItems ?? Client.DefaultMessageCacheItems, pConfiguration, lContext);
@@ -1088,7 +1088,7 @@ namespace work.bacome.imapclient
         /// <param name="pItems">The set of items to ensure are cached for the returned messages. If not specified <see cref="cIMAPClient.DefaultMessageCacheItems"/> will be used.</param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <inheritdoc cref="Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchCacheItemConfiguration)" select="returns|remarks"/>
-        public Task<List<cIMAPMessage>> GetMessagesAsync(cFilter pFilter = null, cSort pSort = null, cMessageCacheItems pItems = null, cUnknownSizeConfiguration pConfiguration = null)
+        public Task<List<cIMAPMessage>> GetMessagesAsync(cFilter pFilter = null, cSort pSort = null, cMessageCacheItems pItems = null, cSetMaximumConfiguration pConfiguration = null)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cMailbox), nameof(GetMessagesAsync), pFilter, pSort, pItems, pConfiguration);
             return Client.GetMessagesAsync(MailboxHandle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pItems ?? Client.DefaultMessageCacheItems, pConfiguration, lContext);
@@ -1104,7 +1104,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// <note type="note"><see cref="cMessageCacheItems"/> has implicit conversions from other types including <see cref="fIMAPMessageProperties"/>. This means that you can use values of those types as arguments to this method.</note>
         /// </remarks>
-        public List<cIMAPMessage> GetMessages(IEnumerable<iMessageHandle> pMessageHandles, cMessageCacheItems pItems = null, cKnownSizeConfiguration pConfiguration = null)
+        public List<cIMAPMessage> GetMessages(IEnumerable<iMessageHandle> pMessageHandles, cMessageCacheItems pItems = null, cIncrementConfiguration pConfiguration = null)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cMailbox), nameof(GetMessages), pItems, pConfiguration);
             var lMessageHandles = cMessageHandleList.FromMessageHandles(pMessageHandles);
@@ -1120,7 +1120,7 @@ namespace work.bacome.imapclient
         /// <param name="pItems">The set of items to ensure are cached for the returned messages. If not specified <see cref="cIMAPClient.DefaultMessageCacheItems"/> will be used.</param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <inheritdoc cref="Messages(IEnumerable{iMessageHandle}, cMessageCacheItems, cFetchCacheItemConfiguration)" select="returns|remarks"/>
-        public async Task<List<cIMAPMessage>> GetMessagesAsync(IEnumerable<iMessageHandle> pMessageHandles, cMessageCacheItems pItems = null, cKnownSizeConfiguration pConfiguration = null)
+        public async Task<List<cIMAPMessage>> GetMessagesAsync(IEnumerable<iMessageHandle> pMessageHandles, cMessageCacheItems pItems = null, cIncrementConfiguration pConfiguration = null)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cMailbox), nameof(GetMessagesAsync), pItems, pConfiguration);
             var lMessageHandles = cMessageHandleList.FromMessageHandles(pMessageHandles);
@@ -1208,7 +1208,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// <note type="note"><see cref="cMessageCacheItems"/> has implicit conversions from other types including <see cref="fIMAPMessageProperties"/>. This means that you can use values of those types as arguments to this method.</note>
         /// </remarks>
-        public List<cIMAPMessage> GetMessages(IEnumerable<cUID> pUIDs, cMessageCacheItems pItems, cKnownSizeConfiguration pConfiguration = null)
+        public List<cIMAPMessage> GetMessages(IEnumerable<cUID> pUIDs, cMessageCacheItems pItems, cIncrementConfiguration pConfiguration = null)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cMailbox), nameof(GetMessages), pItems, pConfiguration);
             var lTask = Client.GetMessagesAsync(MailboxHandle, cUIDList.FromUIDs(pUIDs), pItems, pConfiguration, lContext);
@@ -1223,7 +1223,7 @@ namespace work.bacome.imapclient
         /// <param name="pItems">The set of items to ensure are cached for the returned messages.</param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <inheritdoc cref="Messages(IEnumerable{cUID}, cMessageCacheItems, cFetchCacheItemConfiguration)" select="returns|remarks"/>
-        public Task<List<cIMAPMessage>> GetMessagesAsync(IEnumerable<cUID> pUIDs, cMessageCacheItems pItems, cKnownSizeConfiguration pConfiguration = null)
+        public Task<List<cIMAPMessage>> GetMessagesAsync(IEnumerable<cUID> pUIDs, cMessageCacheItems pItems, cIncrementConfiguration pConfiguration = null)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cMailbox), nameof(GetMessagesAsync), pItems, pConfiguration);
             return Client.GetMessagesAsync(MailboxHandle, cUIDList.FromUIDs(pUIDs), pItems, pConfiguration, lContext);
