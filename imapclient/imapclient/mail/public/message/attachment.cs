@@ -110,6 +110,14 @@ namespace work.bacome.mailclient
         public cStrings Languages => Part.ExtensionData?.Languages;
 
         /// <summary>
+        /// Returns a stream containing the data of the attachment.
+        /// </summary>
+        /// <remarks>
+        /// The returned stream must be disposed when you are finished with it.
+        /// </remarks>
+        public abstract Stream GetMessageDataStream();
+
+        /// <summary>
         /// Saves the attachment to the specified path.
         /// </summary>
         /// <param name="pPath"></param>

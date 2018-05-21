@@ -119,7 +119,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cItem), nameof(YGetReadStream));
                 var lStream = new FileStream(ItemKey, FileMode.Open, FileAccess.Read, FileShare.Read);
                 var lFileInfo = new FileInfo(ItemKey);
-                if (lFileInfo.CreationTimeUtc == mCreationTimeUTC && lFileInfo.Length == Length && lStream.Length == Length) return lStream;
+                if (FileTimesAreTheSame(lFileInfo.CreationTimeUtc, mCreationTimeUTC)) return lStream; // length is checked by the cache
                 lStream.Dispose();
                 return null;
             }

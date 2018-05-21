@@ -9,6 +9,8 @@ namespace work.bacome.imapclient
 {
     public abstract class cSectionCache : IDisposable
     {
+        private static readonly TimeSpan kOneHour = TimeSpan.FromHours(1);
+
         private bool mDisposed = false;
         private bool mDisposing = false;
 
@@ -407,6 +409,13 @@ namespace work.bacome.imapclient
             }
 
             mDisposed = true;
+        }
+
+        internal static bool FileTimesAreTheSame(DateTime pA, DateTime pB)
+        {
+            // handle the fact that FAT doesn't use UTC so file times can be out by an hour
+            var lDiff = pA - pB;
+            return (lDiff == TimeSpan.Zero || lDiff == kOneHour);
         }
     }
 }

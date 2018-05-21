@@ -292,6 +292,7 @@ namespace work.bacome.imapclient
                 if (!mCached || mPersistentKey == null) throw new InvalidOperationException();
 
                 if (mDeleted || mPersistentKeyAssigned) return;
+                if (mNonPersistentKey.MailboxHandle.SelectedProperties.UIDNotSticky != false) return;
                 
                 try { AssignPersistentKey(mOpenStreamCount == 0, lContext); }
                 catch (Exception e) { lContext.TraceException("assignpersistentkey failure", e); }

@@ -114,7 +114,7 @@ namespace work.bacome.imapclient
 
         public bool WritingHasCompletedOK => (mWritingState == eWritingState.completedok);
 
-        public uint FetchedBytesReadPosition => (uint)mFetchedBytesReadPosition;
+        public long FetchedBytesReadPosition => mFetchedBytesReadPosition;
 
         public async Task<int> ReadAsync(byte[] pBuffer, int pOffset, int pCount, int pTimeout, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {

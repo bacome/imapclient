@@ -88,23 +88,18 @@ namespace work.bacome.imapclient
             return Client.GetDecodedSizeInBytesAsync(MessageHandle, Part, lContext);
         }
 
-        /// <summary>
-        /// Saves the attachment to the specified path.
-        /// </summary>
-        /// <param name="pPath"></param>
-        /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
+        public abstract Stream GetMessageDataStream()
+        {
+            ;?;
+        }
+
+
         public override void SaveAs(string pPath, cAttachmentSaveConfiguration pConfiguration = null)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cIMAPAttachment), nameof(SaveAs), pPath);
             Client.Wait(ZSaveAsAsync(pPath, pConfiguration, lContext), lContext);
         }
 
-        /// <summary>
-        /// Asynchronously saves the attachment to the specified path.
-        /// </summary>
-        /// <param name="pPath"></param>
-        /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
-        /// <returns></returns>
         public override Task SaveAsAsync(string pPath, cAttachmentSaveConfiguration pConfiguration = null)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cIMAPAttachment), nameof(SaveAsAsync), pPath);

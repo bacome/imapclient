@@ -185,7 +185,7 @@ namespace work.bacome.imapclient
 
                 if (lListFileInfos != null)
                 {
-                    foreach (var lInfo in lListFileInfos) if (lItemKeyToDataFileFileInfo.TryGetValue(lInfo.ItemKey, out var lDataFileFileInfo) && lDataFileFileInfo.CreationTimeUtc == lInfo.CreationTimeUTC && lDataFileFileInfo.Length == lInfo.Length) lItemKeyToInfo[lInfo.ItemKey] = lInfo;
+                    foreach (var lInfo in lListFileInfos) if (lItemKeyToDataFileFileInfo.TryGetValue(lInfo.ItemKey, out var lDataFileFileInfo) && FileTimesAreTheSame(lDataFileFileInfo.CreationTimeUtc, lInfo.CreationTimeUTC) && lDataFileFileInfo.Length == lInfo.Length) lItemKeyToInfo[lInfo.ItemKey] = lInfo;
                     mOldListFileFullNames.Add(lListFileFullName);
                 }
 
@@ -271,7 +271,7 @@ namespace work.bacome.imapclient
                         lInfo = null;
                     }
 
-                    if (lInfo != null && lDataFileFileInfo.CreationTimeUtc == lInfo.CreationTimeUTC && lDataFileFileInfo.Length == lInfo.Length) lItemKeyToInfo.Add(lItemKey, lInfo);
+                    if (lInfo != null && FileTimesAreTheSame(lDataFileFileInfo.CreationTimeUtc, lInfo.CreationTimeUTC) && lDataFileFileInfo.Length == lInfo.Length) lItemKeyToInfo.Add(lItemKey, lInfo);
 
                     if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
                 }
@@ -541,7 +541,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cItem), nameof(YGetReadStream));
                 var lStream = new FileStream(mDataFileFullName, FileMode.Open, FileAccess.Read, FileShare.Read);
                 var lFileInfo = new FileInfo(mDataFileFullName);
-                if (lFileInfo.CreationTimeUtc == mCreationTimeUTC) return lStream;
+                if (FileTimesAreTheSame(lFileInfo.CreationTimeUtc, mCreationTimeUTC)) return lStream;
                 lStream.Dispose();
                 return null;
             }

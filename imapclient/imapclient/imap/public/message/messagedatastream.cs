@@ -27,6 +27,10 @@ namespace work.bacome.imapclient
         private cSectionCacheItem mSectionCacheItem = null;
         private cSectionCacheItemReaderWriter mReaderWriter = null;
 
+        // support for progress
+        private long? mProgressScale = null;
+        private bool mProgressScaleIsInFetchedBytes = false;
+
         // background fetch task
         private CancellationTokenSource mBackgroundCancellationTokenSource = null;
         private Task mBackgroundTask = null;        
@@ -134,13 +138,27 @@ namespace work.bacome.imapclient
             get
             {
                 var lContext = Client.RootContext.NewGetProp(nameof(cIMAPMessageDataStream), nameof(Length));
-                var lTask = GetLengthAsync(cMethodControl.None, lContext);
+                var lTask = ZGetLengthAsync(cMethodControl.None, lContext);
                 Client.Wait(lTask, lContext);
                 return lTask.Result;
             }
         }
 
-        internal async Task<long> GetLengthAsync(cMethodControl pMC, cTrace.cContext pParentContext)
+        public Task<long> GetLengthAsync()
+        {
+            var lContext = Client.RootContext.NewGetProp(nameof(cIMAPMessageDataStream), nameof(GetLengthAsync));
+            var lMC = new cMethodControl(mReadTimeout);
+            return ZGetLengthAsync(lMC, lContext);
+        }
+
+        public Task<long> GetLengthAsync(CancellationToken pCancellationToken)
+        {
+            var lContext = Client.RootContext.NewGetProp(nameof(cIMAPMessageDataStream), nameof(GetLengthAsync));
+            var lMC = new cMethodControl(mReadTimeout, pCancellationToken);
+            return ZGetLengthAsync(lMC, lContext);
+        }
+
+        private async Task<long> ZGetLengthAsync(cMethodControl pMC, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(GetLengthAsync));
 
@@ -322,23 +340,146 @@ namespace work.bacome.imapclient
 
         public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
 
-        public bool? DataIsCached
+        public long? ProgressScale
         {
             get
             {
-                if (mSectionCacheItemReader == null) return null;
-                if (mReader != null) return true;
-                if (mReaderWriter == null) throw new cInternalErrorException(nameof(cIMAPMessageDataStream), nameof(DataIsCached));
-                return mReaderWriter.WritingHasCompletedOK;
+                var lContext = Client.RootContext.NewGetProp(nameof(cIMAPMessageDataStream), nameof(ProgressScale));
+                var lTask = GetProgressScaleAsync(cMethodControl.None, lContext);
+                Client.Wait(lTask, lContext);
+                return lTask.Result;
             }
         }
 
-        public uint FetchedBytesPosition
+        public Task<long?> GetProgressScaleAsync()
+        {
+            var lContext = Client.RootContext.NewGetProp(nameof(cIMAPMessageDataStream), nameof(GetProgressScaleAsync));
+            var lMC = new cMethodControl(mReadTimeout);
+            return GetProgressScaleAsync(lMC, lContext);
+        }
+
+        public Task<long?> GetProgressScaleAsync(CancellationToken pCancellationToken)
+        {
+            var lContext = Client.RootContext.NewGetProp(nameof(cIMAPMessageDataStream), nameof(GetProgressScaleAsync));
+            var lMC = new cMethodControl(mReadTimeout, pCancellationToken);
+            return GetProgressScaleAsync(lMC, lContext);
+        }
+
+        internal async Task<long?> GetProgressScaleAsync(cMethodControl pMC, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(GetProgressScaleAsync), pMC);
+            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
+            if (mProgressScale != null) return mProgressScale;
+            await ZSetProgressScaleAsync(pMC, lContext).ConfigureAwait(false);
+            return mProgressScale;
+        }
+
+        private async Task ZSetProgressScaleAsync(cMethodControl pMC, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ZSetProgressScaleAsync), pMC);
+
+            if (mProgressScale != null) return;
+
+            // see if we know the length from the open stream
+
+            if (mReader != null)
+            {
+                mProgressScale = mReader.Length;
+                return;
+            }
+
+            if (mReaderWriter != null && mReaderWriter.WritingHasCompletedOK)
+            {
+                mProgressScale = await mReaderWriter.GetLengthAsync(pMC, lContext).ConfigureAwait(false);
+                return;
+            }
+
+            // see if the cache has the data
+
+            ZGetSectionCacheKey(out var lNonPersistentKey, out _, out _, out var lPersistentKey);
+
+            if (lPersistentKey == null)
+            {
+                if (Client.SectionCache.TryGetItemLength(lNonPersistentKey, out var lProgressScale, lContext))
+                {
+                    mProgressScale = lProgressScale;
+                    return;
+                }
+            }
+            else
+            {
+                if (Client.SectionCache.TryGetItemLength(lPersistentKey, out var lProgressScale, lContext))
+                {
+                    mProgressScale = lProgressScale;
+                    return;
+                }
+            }
+
+            // see if IMAP can be used to find the length
+
+            if (MessageHandle != null)
+            {
+                if (Part == null)
+                {
+                    if (Section == cSection.All && Decoding == eDecodingRequired.none)
+                    {
+                        // special case, the whole message
+                        await Client.FetchCacheItemsAsync(cMessageHandleList.FromMessageHandle(MessageHandle), cMessageCacheItems.Size, null, lContext).ConfigureAwait(false);
+
+                        if (MessageHandle.Size == null)
+                        {
+                            if (MessageHandle.Expunged) throw new cMessageExpungedException(MessageHandle);
+                            throw new cRequestedIMAPDataNotReturnedException(MessageHandle);
+                        }
+
+                        mProgressScale = MessageHandle.Size.Value;
+                        return;
+                    }
+                }
+                else
+                {
+                    var lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(MessageHandle, Part, lContext).ConfigureAwait(false);
+
+                    if (lDecodedSizeInBytes == null)
+                    {
+                        mProgressScale = await Client.GetFetchSizeInBytesAsync(MessageHandle, Part, lContext).ConfigureAwait(false);
+                        mProgressScaleIsInFetchedBytes = true;
+                        return;
+                    }
+
+                    mProgressScale = lDecodedSizeInBytes.Value;
+                    return;
+                }
+            }
+        }
+
+        public long? ProgressPosition
         {
             get
             {
-                if (mReaderWriter == null) throw new InvalidOperationException();
-                return mReaderWriter.FetchedBytesReadPosition;
+                var lContext = Client.RootContext.NewGetProp(nameof(cIMAPMessageDataStream), nameof(ProgressPosition));
+
+                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
+
+                if (mSectionCacheItemReader == null || mSectionCacheItemReader.ReadPosition == 0) return 0;
+
+                if (mProgressScale == null)
+                {
+                    var lMC = new cMethodControl(mReadTimeout);
+                    Client.Wait(ZSetProgressScaleAsync(lMC, lContext), lContext);
+                    if (mProgressScale == null) return null;
+                }
+
+                if (mProgressScaleIsInFetchedBytes)
+                {
+                    if (mReaderWriter == null)
+                    {
+                        if (mReader == null) throw new cInternalErrorException(lContext);
+                        return mProgressScale.Value * mReader.ReadPosition / mReader.Length;
+                    }
+                    else return mReaderWriter.FetchedBytesReadPosition;
+                }
+                else return mSectionCacheItemReader.ReadPosition;
             }
         }
 
