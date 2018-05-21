@@ -41,7 +41,7 @@ namespace work.bacome.imapclient
             var lSession = mSession;
             if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
-            using (var lToken = mCancellationManager.GetToken(lContext))
+            using (var lToken = CancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
 

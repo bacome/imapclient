@@ -19,9 +19,9 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// <note type="note"><see cref="cMessageCacheItems"/> has implicit conversions from other types including <see cref="fIMAPMessageProperties"/>. This means that you can use values of those types as arguments to this method.</note>
         /// </remarks>
-        public List<cIMAPMessage> FetchCacheItems(IEnumerable<cIMAPMessage> pMessages, cMessageCacheItems pItems, cFetchCacheItemConfiguration pConfiguration)
+        public List<cIMAPMessage> FetchCacheItems(IEnumerable<cIMAPMessage> pMessages, cMessageCacheItems pItems, cKnownSizeConfiguration pConfiguration)
         {
-            var lContext = RootContext.NewMethod(true, nameof(cIMAPClient), nameof(FetchCacheItems));
+            var lContext = RootContext.NewMethod(true, nameof(cIMAPClient), nameof(FetchCacheItems), pItems, pConfiguration);
 
             if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
@@ -41,9 +41,9 @@ namespace work.bacome.imapclient
         /// <param name="pItems"></param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <inheritdoc cref="Fetch(IEnumerable{cIMAPMessage}, cMessageCacheItems, cFetchCacheItemConfiguration)" select="returns|remarks"/>
-        public async Task<List<cIMAPMessage>> FetchCacheItemsAsync(IEnumerable<cIMAPMessage> pMessages, cMessageCacheItems pItems, cFetchCacheItemConfiguration pConfiguration)
+        public async Task<List<cIMAPMessage>> FetchCacheItemsAsync(IEnumerable<cIMAPMessage> pMessages, cMessageCacheItems pItems, cKnownSizeConfiguration pConfiguration)
         {
-            var lContext = RootContext.NewMethod(true, nameof(cIMAPClient), nameof(FetchCacheItemsAsync));
+            var lContext = RootContext.NewMethod(true, nameof(cIMAPClient), nameof(FetchCacheItemsAsync), pItems, pConfiguration);
 
             if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
@@ -55,9 +55,9 @@ namespace work.bacome.imapclient
             return new List<cIMAPMessage>(from m in pMessages where !m.MessageHandle.Contains(pItems) select m);
         }
 
-        internal async Task FetchCacheItemsAsync(cMessageHandleList pMessageHandles, cMessageCacheItems pItems, cFetchCacheItemConfiguration pConfiguration, cTrace.cContext pParentContext)
+        internal async Task FetchCacheItemsAsync(cMessageHandleList pMessageHandles, cMessageCacheItems pItems, cKnownSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(FetchCacheItemsAsync), pMessageHandles, pItems);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(FetchCacheItemsAsync), pMessageHandles, pItems, pConfiguration);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -74,7 +74,7 @@ namespace work.bacome.imapclient
 
             if (pConfiguration == null)
             {
-                using (var lToken = mCancellationManager.GetToken(lContext))
+                using (var lToken = CancellationManager.GetToken(lContext))
                 {
                     var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
                     await lSession.FetchCacheItemsAsync(lMC, pMessageHandles, pItems, null, lContext).ConfigureAwait(false);

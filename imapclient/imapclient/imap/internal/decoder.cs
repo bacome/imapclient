@@ -67,6 +67,7 @@ namespace work.bacome.imapclient
         {
             private long mFetchedBytesWritten = 0;
             private MemoryStream mStream = new MemoryStream();
+
             public _Tester() { }
 
             public Task WriteAsync(byte[] pBuffer, int pCount, int pFetchedBytesInBuffer, CancellationToken pCancellationToken, cTrace.cContext pParentContext)

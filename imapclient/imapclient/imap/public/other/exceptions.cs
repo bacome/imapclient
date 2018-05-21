@@ -195,7 +195,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown to indicate that <see cref="cIMAPClient.Connect"/> failure is due to the server rejecting the credentials in <see cref="cIMAPClient.AuthenticationParameters"/>.
+    /// Thrown to indicate that <see cref="cIMAPClient.Connect"/> failure is due to the server rejecting the credentials in <see cref="cIMAPClient.Authentication"/>.
     /// </summary>
     public class cIMAPCredentialsException : cMailException
     {

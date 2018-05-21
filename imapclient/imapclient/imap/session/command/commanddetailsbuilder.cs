@@ -682,7 +682,7 @@ namespace work.bacome.imapclient
 
                     cIMAPCallbackSynchroniser lES = new cIMAPCallbackSynchroniser();
                     cStrings lStrings = new cStrings(new List<string>());
-                    cMailboxCache lMC = new cMailboxCache(lES, 0, cCommandPartFactory.Validation, new cIMAPCapabilities(lStrings, lStrings, 0), (eIMAPConnectionState pCS, cTrace.cContext pC) => { });
+                    cMailboxCache lMC = new cMailboxCache(lES, 0, cCommandPartFactory.Validation, new cIMAPCapabilities(lStrings, lStrings, 0), new cAccountId("localhost", "fred"), (eIMAPConnectionState pCS, cTrace.cContext pC) => { });
                     cSelectedMailbox lSelectedMailbox = new cSelectedMailbox(lES, new cMailboxCacheItem(lES, lMC, "fred"), false, true, 10, 5, 1111, 1, 0, cTrace.cContext.None);
                     //cSelectedMailbox lSelectedMailbox2 = new cSelectedMailbox(lES, new cMailboxCacheItem(lES, lMC, "fred"), false, true, 10, 5, 1111, 2222, 0, cTrace.cContext.Null);
 

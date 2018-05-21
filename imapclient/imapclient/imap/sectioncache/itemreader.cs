@@ -46,7 +46,7 @@ namespace work.bacome.imapclient
             if (pOffset < 0) throw new ArgumentOutOfRangeException(nameof(pOffset));
             if (pCount < 0) throw new ArgumentOutOfRangeException(nameof(pOffset));
             if (pOffset + pCount > pBuffer.Length) throw new ArgumentException();
-            if (pCount == 0) return 0;
+            if (pCount == 0) return Task.FromResult(0);
 
             if (mStream.CanTimeout) mStream.ReadTimeout = pTimeout;
             return mStream.ReadAsync(pBuffer, pOffset, pCount, pCancellationToken);

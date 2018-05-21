@@ -147,7 +147,7 @@ namespace testharness2
                 {
                     mClient.SetServer(txtHost.Text.Trim(), int.Parse(txtPort.Text), chkSSL.Checked);
 
-                    if (rdoCredNone.Checked) mClient.AuthenticationParameters = cAuthenticationParameters.None;
+                    if (rdoCredNone.Checked) mClient.Authentication = cAuthenticationParameters.None;
                     else
                     {
                         eTLSRequirement lTLSRequirement;
@@ -155,14 +155,14 @@ namespace testharness2
                         else if (rdoTLSRequired.Checked) lTLSRequirement = eTLSRequirement.required;
                         else lTLSRequirement = eTLSRequirement.disallowed;
 
-                        if (rdoCredAnon.Checked) mClient.AuthenticationParameters = cAuthenticationParameters.Anonymous(txtTrace.Text.Trim(), lTLSRequirement, chkTryIfNotAdvertised.Checked);
+                        if (rdoCredAnon.Checked) mClient.Authentication = cAuthenticationParameters.Anonymous(txtTrace.Text.Trim(), lTLSRequirement, chkTryIfNotAdvertised.Checked);
                         else mClient.SetPlainAuthenticationParameters(txtUserId.Text.Trim(), txtPassword.Text.Trim(), lTLSRequirement, chkTryIfNotAdvertised.Checked);
                     }
                 }
                 else
                 {
                     mClient.Server = mFirst.Server;
-                    mClient.AuthenticationParameters = mFirst.AuthenticationParameters;
+                    mClient.Authentication = mFirst.Authentication;
                 }
 
                 fMailboxCacheDataItems lMailboxCacheData = 0;

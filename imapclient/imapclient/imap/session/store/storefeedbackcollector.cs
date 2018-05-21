@@ -20,11 +20,11 @@ namespace work.bacome.imapclient
                     KeyType = eKeyType.msn;
                 }
 
-                public cStoreFeedbackCollector(cStoreFeedback pItems)
+                public cStoreFeedbackCollector(cStoreFeedback pFeedback)
                 {
                     KeyType = eKeyType.uid;
 
-                    foreach (var lItem in pItems)
+                    foreach (var lItem in pFeedback.Items)
                     {
                         if (lItem.MessageHandle.UID == null) throw new InvalidOperationException();
                         mDictionary[lItem.MessageHandle.UID.UID] = lItem;

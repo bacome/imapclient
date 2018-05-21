@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
     public partial class cIMAPClient
     {
         /// <summary>
-        /// Connects to the <see cref="Server"/> using the <see cref="AuthenticationParameters"/>. 
+        /// Connects to the <see cref="Server"/> using the <see cref="Authentication"/>. 
         /// May only be called when the instance <see cref="IsUnconnected"/>.
         /// Will throw if an authenticated IMAP connection cannot be established.
         /// </summary>
@@ -55,13 +55,13 @@ namespace work.bacome.imapclient
         /// <item>
         ///   <term><see cref="cUnexpectedPreAuthenticatedConnectionException"/></term>
         ///   <description>
-        ///   The server connected pre-authenticated when the <see cref="AuthenticationParameters"/> did not anticipate this.
+        ///   The server connected pre-authenticated when the <see cref="Authentication"/> did not anticipate this.
         ///   </description>
         /// </item>
         /// <item>
         ///   <term><see cref="cIMAPCredentialsException"/></term>
         ///   <description>
-        ///   The client was able to try credentials from <see cref="AuthenticationParameters"/>, but they didn't work.
+        ///   The client was able to try credentials from <see cref="Authentication"/>, but they didn't work.
         ///   If the server explicitly rejected the credentials using one of the 
         ///   <see cref="eIMAPResponseTextCode.authenticationfailed"/>, <see cref="eIMAPResponseTextCode.authorizationfailed"/> or <see cref="eIMAPResponseTextCode.expired"/> codes,
         ///   then <see cref="cIMAPCredentialsException.ResponseText"/> will contain the details (otherwise <see cref="cIMAPCredentialsException.ResponseText"/> will be <see langword="null"/>).
@@ -70,7 +70,7 @@ namespace work.bacome.imapclient
         /// <item>
         ///   <term><see cref="cAuthenticationMechanismsException"/></term>
         ///   <description>
-        ///   The client was not able to try any credentials from <see cref="AuthenticationParameters"/>. 
+        ///   The client was not able to try any credentials from <see cref="Authentication"/>. 
         ///   If the TLS state of the connection was to blame for this then <see cref="cAuthenticationMechanismsException.TLSIssue"/> will be set to <see langword="true"/>.
         ///   </description>
         /// </item>
@@ -91,7 +91,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Ansynchronously connects to the <see cref="Server"/> using the <see cref="AuthenticationParameters"/>. 
+        /// Ansynchronously connects to the <see cref="Server"/> using the <see cref="Authentication"/>. 
         /// May only be called when the instance <see cref="IsUnconnected"/>.
         /// Will throw if an authenticated IMAP connection cannot be established.
         /// </summary>
@@ -110,10 +110,10 @@ namespace work.bacome.imapclient
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             cServer lServer = Server;
-            cIMAPAuthenticationParameters lAuthenticationParameters = mAuthenticationParameters;
+            cIMAPAuthentication lAuthentication = mAuthentication;
 
             if (lServer == null) throw new InvalidOperationException("connect requires server to be set");
-            if (lAuthenticationParameters == null) throw new InvalidOperationException("connect requires authenticationparameters to be set");
+            if (lAuthentication == null) throw new InvalidOperationException("connect requires authentication to be set");
 
             bool lSessionReplaced;
 
@@ -153,13 +153,13 @@ namespace work.bacome.imapclient
             FailedSASLAuthentications = lFailedSASLAuthentications.AsReadOnly();
             mSynchroniser.InvokePropertyChanged(nameof(FailedSASLAuthentications), lContext);
 
-            using (var lToken = mCancellationManager.GetToken(lContext))
+            using (var lToken = CancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
 
                 try
                 {
-                    await lSession.ConnectAsync(lMC, lServer, lAuthenticationParameters.PreAuthenticatedCredentialId, lContext).ConfigureAwait(false);
+                    await lSession.ConnectAsync(lMC, lServer, lAuthentication.PreAuthenticatedCredentialId, lContext).ConfigureAwait(false);
 
                     if (lSession.Capabilities == null) await lSession.CapabilityAsync(lMC, lContext).ConfigureAwait(false);
 
@@ -180,11 +180,11 @@ namespace work.bacome.imapclient
 
                         bool lTLSInstalled = lSession.TLSInstalled;
 
-                        if (lAuthenticationParameters.SASLs != null)
+                        if (lAuthentication.SASLs != null)
                         {
-                            foreach (var lSASL in lAuthenticationParameters.SASLs)
+                            foreach (var lSASL in lAuthentication.SASLs)
                             {
-                                if (lAuthenticationParameters.TryAllSASLs || lCurrentCapabilities.AuthenticationMechanisms.Contains(lSASL.MechanismName)) // no case-invariance required because SASL (rfc 2222) says only uppercase is allowed
+                                if (lAuthentication.TryAllSASLs || lCurrentCapabilities.AuthenticationMechanisms.Contains(lSASL.MechanismName)) // no case-invariance required because SASL (rfc 2222) says only uppercase is allowed
                                 {
                                     if ((lSASL.TLSRequirement == eTLSRequirement.required && !lTLSInstalled) || (lSASL.TLSRequirement == eTLSRequirement.disallowed && lTLSInstalled)) lTLSIssue = true;
                                     else
@@ -206,13 +206,13 @@ namespace work.bacome.imapclient
                             }
                         }
 
-                        if (lSession.ConnectionState == eIMAPConnectionState.notauthenticated && lAuthenticateException == null && !lCurrentCapabilities.LoginDisabled && lAuthenticationParameters.Login != null)
+                        if (lSession.ConnectionState == eIMAPConnectionState.notauthenticated && lAuthenticateException == null && !lCurrentCapabilities.LoginDisabled && lAuthentication.Login != null)
                         {
-                            if ((lAuthenticationParameters.Login.TLSRequirement == eTLSRequirement.required && !lTLSInstalled) || (lAuthenticationParameters.Login.TLSRequirement == eTLSRequirement.disallowed && lTLSInstalled)) lTLSIssue = true;
+                            if ((lAuthentication.Login.TLSRequirement == eTLSRequirement.required && !lTLSInstalled) || (lAuthentication.Login.TLSRequirement == eTLSRequirement.disallowed && lTLSInstalled)) lTLSIssue = true;
                             else
                             {
                                 lTriedCredentials = true;
-                                lAuthenticateException = await lSession.LoginAsync(lMC, lServer.Host, lAuthenticationParameters.Login, lContext).ConfigureAwait(false);
+                                lAuthenticateException = await lSession.LoginAsync(lMC, lServer.Host, lAuthentication.Login, lContext).ConfigureAwait(false);
                             }
                         }
 

@@ -83,7 +83,7 @@ namespace work.bacome.imapclient
                     {
                         // find the handles for the UIDs, if possible
                         //  (this is to enhance the ability to tell if the store was successful or not for a UIDStore)
-                        foreach (var lItem in mUIDStoreFeedback) lItem.MessageHandle = mSelectedMailbox.GetHandle(lItem.UID);
+                        foreach (var lItem in mUIDStoreFeedback.Items) lItem.MessageHandle = mSelectedMailbox.GetHandle(lItem.UID);
                     }
                 }
             }

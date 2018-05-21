@@ -292,8 +292,6 @@ namespace work.bacome.mailclient
 
         private static async Task ZZTest(string pTestName, string pInputString, cTrace.cContext pParentContext)
         {
-            cMethodControl lMC = new cMethodControl(-1, CancellationToken.None);
-            cBatchSizer lWS = new cBatchSizer(new cBatchSizerConfiguration(10, 10, 10000, 10));
             string lIntermediateString;
             string lFinalString;
 
@@ -307,12 +305,12 @@ namespace work.bacome.mailclient
 
                 lIntermediateString = new string(Encoding.UTF8.GetChars(lIntermediate.ToArray()));
 
-                using (MemoryStream lFinal = new MemoryStream())
+                using (cDecoder._Tester lFinal = new cDecoder._Tester())
                 {
-                    cBase64Decoder lDecoder = new cBase64Decoder(lMC, lFinal, lWS);
-                    await lDecoder.WriteAsync(lIntermediate.ToArray(), 0, pParentContext).ConfigureAwait(false);
-                    await lDecoder.FlushAsync(pParentContext).ConfigureAwait(false);
-                    lFinalString = new string(Encoding.UTF8.GetChars(lFinal.ToArray()));
+                    cBase64Decoder lDecoder = new cBase64Decoder(lFinal);
+                    await lDecoder.WriteAsync(lIntermediate.ToArray(), 0, CancellationToken.None, pParentContext).ConfigureAwait(false);
+                    await lDecoder.FlushAsync(CancellationToken.None, pParentContext).ConfigureAwait(false);
+                    lFinalString = new string(Encoding.UTF8.GetChars(lFinal.GetBuffer()));
                 }
             }
 

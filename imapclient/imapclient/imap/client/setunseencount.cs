@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
 
             var lCapabilities = lSession.Capabilities;
 
-            using (var lToken = mCancellationManager.GetToken(lContext))
+            using (var lToken = CancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
                 if (lCapabilities.ESearch) return await lSession.SetUnseenCountExtendedAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);

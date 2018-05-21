@@ -20,7 +20,7 @@ namespace work.bacome.imapclient
             if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
             if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
 
-            using (var lToken = mCancellationManager.GetToken(lContext))
+            using (var lToken = CancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
                 var lMailboxHandle = await lSession.RenameAsync(lMC, pMailboxHandle, pMailboxName, lContext).ConfigureAwait(false);

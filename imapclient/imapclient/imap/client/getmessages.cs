@@ -9,9 +9,9 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal async Task<List<cIMAPMessage>> GetMessagesAsync(iMailboxHandle pMailboxHandle, cUIDList pUIDs, cMessageCacheItems pItems, cFetchCacheItemConfiguration pConfiguration, cTrace.cContext pParentContext)
+        internal async Task<List<cIMAPMessage>> GetMessagesAsync(iMailboxHandle pMailboxHandle, cUIDList pUIDs, cMessageCacheItems pItems, cKnownSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetMessagesAsync), pMailboxHandle, pUIDs, pItems);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetMessagesAsync), pMailboxHandle, pUIDs, pItems, pConfiguration);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
 
             if (pConfiguration == null)
             {
-                using (var lToken = mCancellationManager.GetToken(lContext))
+                using (var lToken = CancellationManager.GetToken(lContext))
                 {
                     var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
                     lMessageHandles = await lSession.UIDFetchCacheItemsAsync(lMC, pMailboxHandle, pUIDs, pItems, null, lContext).ConfigureAwait(false);
@@ -46,13 +46,13 @@ namespace work.bacome.imapclient
             return lMessages;
         }
 
-        internal async Task<List<cIMAPMessage>> GetMessagesAsync(iMailboxHandle pMailboxHandle, cFilter pFilter, cSort pSort, cMessageCacheItems pItems, cMessageFetchCacheItemConfiguration pConfiguration, cTrace.cContext pParentContext)
+        internal async Task<List<cIMAPMessage>> GetMessagesAsync(iMailboxHandle pMailboxHandle, cFilter pFilter, cSort pSort, cMessageCacheItems pItems, cUnknownSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetMessagesAsync), pMailboxHandle, pFilter, pSort, pItems);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetMessagesAsync), pMailboxHandle, pFilter, pSort, pItems, pConfiguration);
 
             if (pConfiguration == null)
             {
-                using (var lToken = mCancellationManager.GetToken(lContext))
+                using (var lToken = CancellationManager.GetToken(lContext))
                 {
                     var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
                     return await ZZGetMessagesAsync(lMC, pMailboxHandle, pFilter, pSort, pItems, null, lContext).ConfigureAwait(false);
@@ -65,9 +65,9 @@ namespace work.bacome.imapclient
             }
         }
 
-        private async Task<List<cIMAPMessage>> ZZGetMessagesAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cFilter pFilter, cSort pSort, cMessageCacheItems pItems, cMessageFetchCacheItemConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private async Task<List<cIMAPMessage>> ZZGetMessagesAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cFilter pFilter, cSort pSort, cMessageCacheItems pItems, cUnknownSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZGetMessagesAsync), pMC, pMailboxHandle, pFilter, pSort, pItems);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZGetMessagesAsync), pMC, pMailboxHandle, pFilter, pSort, pItems, pConfiguration);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -119,9 +119,9 @@ namespace work.bacome.imapclient
             return ZGetMessagesFlatMessageList(lMessageHandles, lContext);
         }
 
-        private async Task<List<cIMAPMessage>> ZGetMessagesSortAsync(cMethodControl pMC, cSession pSession, iMailboxHandle pMailboxHandle, cSort pSort, cFilter pFilter, cMessageCacheItems pItems, cMessageFetchCacheItemConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private async Task<List<cIMAPMessage>> ZGetMessagesSortAsync(cMethodControl pMC, cSession pSession, iMailboxHandle pMailboxHandle, cSort pSort, cFilter pFilter, cMessageCacheItems pItems, cUnknownSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZGetMessagesSortAsync), pMC, pMailboxHandle, pSort, pFilter, pItems);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZGetMessagesSortAsync), pMC, pMailboxHandle, pSort, pFilter, pItems, pConfiguration);
 
             cMessageHandleList lMessageHandles;
             if (pSession.Capabilities.ESort) lMessageHandles = await pSession.SortExtendedAsync(pMC, pMailboxHandle, pFilter, pSort, lContext).ConfigureAwait(false);
@@ -132,9 +132,9 @@ namespace work.bacome.imapclient
             return ZGetMessagesFlatMessageList(lMessageHandles, lContext);
         }
 
-        private Task ZGetMessagesFetchAsync(cMethodControl pMC, cSession pSession, cMessageHandleList pMessageHandles, cMessageCacheItems pItems, cMessageFetchCacheItemConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private Task ZGetMessagesFetchAsync(cMethodControl pMC, cSession pSession, cMessageHandleList pMessageHandles, cMessageCacheItems pItems, cUnknownSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZGetMessagesFetchAsync), pMC, pMessageHandles, pItems);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZGetMessagesFetchAsync), pMC, pMessageHandles, pItems, pConfiguration);
 
             if (pMessageHandles.Count == 0) return Task.WhenAll();
             if (pItems.IsEmpty) return Task.WhenAll();
@@ -146,7 +146,7 @@ namespace work.bacome.imapclient
             if (pConfiguration == null) lIncrement = null;
             else
             {
-                mSynchroniser.InvokeActionInt(pConfiguration.SetMaximum, pMessageHandles.Count, lContext);
+                mSynchroniser.InvokeActionLong(pConfiguration.SetMaximum, pMessageHandles.Count, lContext);
                 lIncrement = pConfiguration.Increment;
             }
 

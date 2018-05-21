@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         internal async Task DeleteAsync(iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZDeleteAsync), pMailboxHandle);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(DeleteAsync), pMailboxHandle);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -19,7 +19,7 @@ namespace work.bacome.imapclient
 
             if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
 
-            using (var lToken = mCancellationManager.GetToken(lContext))
+            using (var lToken = CancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
                 await lSession.DeleteAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);

@@ -43,7 +43,7 @@ namespace work.bacome.imapclient
     /// </para>
     /// <para>
     /// To connect to a server use <see cref="Connect"/>.
-    /// Before calling <see cref="Connect"/> set <see cref="Server"/> and <see cref="AuthenticationParameters"/> at a minimum.
+    /// Before calling <see cref="Connect"/> set <see cref="Server"/> and <see cref="Authentication"/> at a minimum.
     /// Also consider setting <see cref="MailboxCacheDataItems"/>.
     /// </para>
     /// <para>This class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
@@ -91,7 +91,7 @@ namespace work.bacome.imapclient
         // property backing storage
         private Encoding mEncoding = Encoding.UTF8;
         private fIMAPCapabilities mIgnoreCapabilities = 0;
-        private cIMAPAuthenticationParameters mAuthenticationParameters = null;
+        private cIMAPAuthentication mAuthentication = null;
         private bool mMailboxReferrals = false;
         private fMailboxCacheDataItems mMailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.uidnext | fMailboxCacheDataItems.uidvalidity | fMailboxCacheDataItems.unseencount;
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
@@ -260,27 +260,27 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets and sets the authentication parameters to be used by <see cref="Connect"/>.
+        /// Gets and sets the authentication details to be used by <see cref="Connect"/>.
         /// </summary>
         /// <remarks>
         /// Must be set before calling <see cref="Connect"/>. 
         /// May only be set while <see cref="IsUnconnected"/>.
         /// </remarks>
-        /// <seealso cref="SetPlainAuthenticationParameters(string, string, eTLSRequirement, bool)"/>
-        public cIMAPAuthenticationParameters AuthenticationParameters
+        /// <seealso cref="SetPlainAuthentication(string, string, eTLSRequirement, bool)"/>
+        public cIMAPAuthentication Authentication
         {
-            get => mAuthenticationParameters;
+            get => mAuthentication;
 
             set
             {
                 if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
-                mAuthenticationParameters = value;
+                mAuthentication = value;
             }
         }
 
         /// <summary>
-        /// Sets <see cref="AuthenticationParameters"/> to use a userid and password combination to authenticate.
+        /// Sets <see cref="Authentication"/> to use a userid and password combination to authenticate.
         /// </summary>
         /// <param name="pUserId"></param>
         /// <param name="pPassword"></param>
@@ -290,7 +290,7 @@ namespace work.bacome.imapclient
         /// May only be called while <see cref="IsUnconnected"/>.
         /// This method will throw if the userid and password can be used in neither <see cref="cIMAPLogin"/> nor <see cref="cSASLPlain"/>.
         /// </remarks>
-        public void SetPlainAuthenticationParameters(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false) => AuthenticationParameters = cIMAPAuthenticationParameters.Plain(pUserId, pPassword, pTLSRequirement, pTryAuthenticateEvenIfPlainIsntAdvertised);
+        public void SetPlainAuthentication(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false) => Authentication = cIMAPAuthentication.Plain(pUserId, pPassword, pTLSRequirement, pTryAuthenticateEvenIfPlainIsntAdvertised);
 
         // not tested yet
         //public void SetXOAuth2Credentials(string pUserId, string pAccessToken, bool pTryAuthenticateEvenIfXOAuth2IsntAdvertised = false) => Credentials = cCredentials.XOAuth2(pUserId, pAccessToken, pTryAuthenticateEvenIfXOAuth2IsntAdvertised);

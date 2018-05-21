@@ -10,6 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using work.bacome.imapclient;
 using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace testharness2
 {
@@ -94,10 +96,10 @@ namespace testharness2
                 lServer.AddSendData("* BYE [ALERT] this is the text\r\n");
                 lServer.AddExpectClose();
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus");
+                lClient.SetPlainAuthentication("fred", "angus");
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-                lExpecter.Expect(eResponseTextContext.greetingbye, eResponseTextCode.alert, "this is the text");
+                lExpecter.Expect(eIMAPResponseTextContext.greetingbye, eIMAPResponseTextCode.alert, "this is the text");
 
                 try
                 {
@@ -123,10 +125,10 @@ namespace testharness2
                 lServer.AddSendData("* BYE this is the text\r\n");
                 lServer.AddExpectClose();
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus");
+                lClient.SetPlainAuthentication("fred", "angus");
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-                lExpecter.Expect(eResponseTextContext.greetingbye, eResponseTextCode.none, "this is the text");
+                lExpecter.Expect(eIMAPResponseTextContext.greetingbye, eIMAPResponseTextCode.none, "this is the text");
 
                 try
                 {
@@ -152,17 +154,17 @@ namespace testharness2
                 lServer.AddSendData("* BYE [REFERRAL IMAP://user;AUTH=*@SERVER2/] Server not accepting connections.Try SERVER2\r\n");
                 lServer.AddExpectClose();
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus");
+                lClient.SetPlainAuthentication("fred", "angus");
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-                lExpecter.Expect(eResponseTextContext.greetingbye, eResponseTextCode.referral, "Server not accepting connections.Try SERVER2");
+                lExpecter.Expect(eIMAPResponseTextContext.greetingbye, eIMAPResponseTextCode.referral, "Server not accepting connections.Try SERVER2");
 
                 try
                 {
                     lClient.Connect();
                     throw new cTestsException("connect should have failed", lContext);
                 }
-                catch (cHomeServerReferralException) { }
+                catch (cIMAPHomeServerReferralException) { }
 
                 if (lClient.HomeServerReferral == null) throw new cTestsException("referral should be set", lContext);
                 if (lClient.HomeServerReferral.MustUseAnonymous || lClient.HomeServerReferral.UserId != "user" || lClient.HomeServerReferral.MechanismName != null || lClient.HomeServerReferral.Host != "SERVER2" || lClient.HomeServerReferral.Port != 143) throw new cTestsException("referral isn't what is expected", lContext);
@@ -192,18 +194,18 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddExpectClose();
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus");
+                lClient.SetPlainAuthentication("fred", "angus");
 
-                cIdDictionary lIdDictionary = new cIdDictionary(false);
+                var lIdDictionary = new cIMAPIdDictionary(false);
                 lIdDictionary.Name = "fred";
                 lClient.ClientId = lIdDictionary;
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-                lExpecter.Expect(eResponseTextContext.greetingpreauth, eResponseTextCode.other, "this is the text");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "NAMESPACE command completed");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
-                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
+                lExpecter.Expect(eIMAPResponseTextContext.greetingpreauth, eIMAPResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "NAMESPACE command completed");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "ID command completed");
+                lExpecter.Expect(eIMAPResponseTextContext.bye, eIMAPResponseTextCode.none, "logging out");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "logged out");
 
                 lClient.Connect();
                 lClient.Disconnect();
@@ -242,9 +244,9 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddExpectClose();
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus");
+                lClient.SetPlainAuthentication("fred", "angus");
 
-                cIdDictionary lIdDictionary = new cIdDictionary();
+                var lIdDictionary = new cIMAPIdDictionary();
                 lIdDictionary.Name = "fr€d";
 
                 bool lFailed = false;
@@ -252,18 +254,18 @@ namespace testharness2
                 catch (Exception) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("ZTestPreauthAtStartup1_2: utf8 client id should have failed");
 
-                lIdDictionary = new cIdDictionary(false);
+                lIdDictionary = new cIMAPIdDictionary(false);
                 lIdDictionary.Name = "fr?d";
                 lClient.ClientId = lIdDictionary;
 
                 lClient.IdleConfiguration = null;
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-                lExpecter.Expect(eResponseTextContext.greetingpreauth, eResponseTextCode.other, "this is the text");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
-                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
+                lExpecter.Expect(eIMAPResponseTextContext.greetingpreauth, eIMAPResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "ID command completed");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "LIST command completed");
+                lExpecter.Expect(eIMAPResponseTextContext.bye, eIMAPResponseTextCode.none, "logging out");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "logged out");
 
                 lClient.Connect();
                 lClient.Disconnect();
@@ -309,21 +311,21 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddExpectClose();
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthentication("fred", "angus", eTLSRequirement.indifferent);
 
-                cIdDictionary lIdDictionary = new cIdDictionary(false);
+                var lIdDictionary = new cIMAPIdDictionary(false);
                 lIdDictionary.Name = "fr€d";
                 lClient.ClientIdUTF8 = lIdDictionary;
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-                lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
-                //lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.other, "logged in");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "enable done");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
-                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
+                lExpecter.Expect(eIMAPResponseTextContext.greetingok, eIMAPResponseTextCode.other, "this is the text");
+                //lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "ID command completed");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.other, "logged in");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "enable done");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "ID command completed");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "LIST command completed");
+                lExpecter.Expect(eIMAPResponseTextContext.bye, eIMAPResponseTextCode.none, "logging out");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "logged out");
 
                 lClient.Connect();
                 lClient.Disconnect();
@@ -368,18 +370,18 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddExpectClose();
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus");
+                lClient.SetPlainAuthentication("fred", "angus");
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-                lExpecter.Expect(eResponseTextContext.greetingpreauth, eResponseTextCode.none, "this is the text");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "capability done");
-                lExpecter.Expect(eResponseTextContext.information, eResponseTextCode.none, "information message");
-                lExpecter.Expect(eResponseTextContext.warning, eResponseTextCode.none, "warning message");
-                lExpecter.Expect(eResponseTextContext.protocolerror, eResponseTextCode.none, "error message");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "enable done");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
-                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
+                lExpecter.Expect(eIMAPResponseTextContext.greetingpreauth, eIMAPResponseTextCode.none, "this is the text");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "capability done");
+                lExpecter.Expect(eIMAPResponseTextContext.information, eIMAPResponseTextCode.none, "information message");
+                lExpecter.Expect(eIMAPResponseTextContext.warning, eIMAPResponseTextCode.none, "warning message");
+                lExpecter.Expect(eIMAPResponseTextContext.protocolerror, eIMAPResponseTextCode.none, "error message");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "enable done");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "LIST command completed");
+                lExpecter.Expect(eIMAPResponseTextContext.bye, eIMAPResponseTextCode.none, "logging out");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "logged out");
 
                 lClient.Connect();
                 lClient.Disconnect();
@@ -407,13 +409,13 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus");
+                lClient.SetPlainAuthentication("fred", "angus");
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-                lExpecter.Expect(eResponseTextContext.greetingpreauth, eResponseTextCode.other, "this is the text");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
-                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
+                lExpecter.Expect(eIMAPResponseTextContext.greetingpreauth, eIMAPResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "LIST command completed");
+                lExpecter.Expect(eIMAPResponseTextContext.bye, eIMAPResponseTextCode.none, "logging out");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "logged out");
 
                 lClient.Connect();
                 lClient.Disconnect();
@@ -436,12 +438,12 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus");
+                lClient.SetPlainAuthentication("fred", "angus");
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-                lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
-                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
+                lExpecter.Expect(eIMAPResponseTextContext.greetingok, eIMAPResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eIMAPResponseTextContext.bye, eIMAPResponseTextCode.none, "logging out");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "logged out");
 
 
                 bool lFailed = false;
@@ -474,14 +476,14 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthentication("fred", "angus", eTLSRequirement.indifferent);
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-                lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.other, "logged in");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
-                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
+                lExpecter.Expect(eIMAPResponseTextContext.greetingok, eIMAPResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.other, "logged in");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "LIST command completed");
+                lExpecter.Expect(eIMAPResponseTextContext.bye, eIMAPResponseTextCode.none, "logging out");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "logged out");
 
                 lClient.Connect();
 
@@ -514,14 +516,14 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthentication("fred", "angus", eTLSRequirement.indifferent);
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-                lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.other, "logged in");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
-                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
+                lExpecter.Expect(eIMAPResponseTextContext.greetingok, eIMAPResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.other, "logged in");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "LIST command completed");
+                lExpecter.Expect(eIMAPResponseTextContext.bye, eIMAPResponseTextCode.none, "logging out");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "logged out");
 
                 lClient.Connect();
 
@@ -560,20 +562,20 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthentication("fred", "angus", eTLSRequirement.indifferent);
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-                lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
-                lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.none, "incorrect password");
-                lExpecter.Expect(eResponseTextContext.continuerequest, eResponseTextCode.none, "ready");
-                lExpecter.Expect(eResponseTextContext.continuerequest, eResponseTextCode.none, "ready");
-                lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.other, "incorrect password again"); // the CAPABILITY on a NO is not allowed by the base spec
-                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
+                lExpecter.Expect(eIMAPResponseTextContext.greetingok, eIMAPResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eIMAPResponseTextContext.failure, eIMAPResponseTextCode.none, "incorrect password");
+                lExpecter.Expect(eIMAPResponseTextContext.continuerequest, eIMAPResponseTextCode.none, "ready");
+                lExpecter.Expect(eIMAPResponseTextContext.continuerequest, eIMAPResponseTextCode.none, "ready");
+                lExpecter.Expect(eIMAPResponseTextContext.failure, eIMAPResponseTextCode.other, "incorrect password again"); // the CAPABILITY on a NO is not allowed by the base spec
+                lExpecter.Expect(eIMAPResponseTextContext.bye, eIMAPResponseTextCode.none, "logging out");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "logged out");
 
                 bool lFailed = false;
                 try { lClient.Connect(); }
-                catch (cCredentialsException) { lFailed = true; }
+                catch (cIMAPCredentialsException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("expected connect to fail");
 
                 lServer.ThrowAnyErrors();
@@ -600,17 +602,17 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthentication("fred", "angus", eTLSRequirement.indifferent);
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-                lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
-                lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.referral, "Specified user is invalid on this server.Try SERVER2.");
-                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
+                lExpecter.Expect(eIMAPResponseTextContext.greetingok, eIMAPResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eIMAPResponseTextContext.failure, eIMAPResponseTextCode.referral, "Specified user is invalid on this server.Try SERVER2.");
+                lExpecter.Expect(eIMAPResponseTextContext.bye, eIMAPResponseTextCode.none, "logging out");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "logged out");
 
                 bool lFailed = false;
                 try { lClient.Connect(); }
-                catch (cHomeServerReferralException)
+                catch (cIMAPHomeServerReferralException)
                 {
                     if (lClient.HomeServerReferral.Host != "SERVER2" || lClient.HomeServerReferral.UserId != "user" || lClient.HomeServerReferral.MechanismName != "GSSAPI") throw new cTestsException("unexpected URL properties", lContext);
                     lFailed = true;
@@ -644,17 +646,17 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthentication("fred", "angus", eTLSRequirement.indifferent);
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-                lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
-                lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.authenticationfailed, "incorrect password");
-                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
+                lExpecter.Expect(eIMAPResponseTextContext.greetingok, eIMAPResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eIMAPResponseTextContext.failure, eIMAPResponseTextCode.authenticationfailed, "incorrect password");
+                lExpecter.Expect(eIMAPResponseTextContext.bye, eIMAPResponseTextCode.none, "logging out");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "logged out");
 
                 bool lFailed = false;
                 try { lClient.Connect(); }
-                catch (cCredentialsException) { lFailed = true; }
+                catch (cIMAPCredentialsException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("expected connect to fail");
 
                 lServer.ThrowAnyErrors();
@@ -703,21 +705,21 @@ namespace testharness2
 
                 lServer.AddExpectClose();
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthentication("fred", "angus", eTLSRequirement.indifferent);
                 lClient.IdleConfiguration = new cIdleConfiguration(2000, 10000);
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-                lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged in");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "capability done");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
-                lExpecter.Expect(eResponseTextContext.continuerequest, eResponseTextCode.none, "idling");
-                lExpecter.Expect(eResponseTextContext.information, eResponseTextCode.none, "information message");
-                lExpecter.Expect(eResponseTextContext.warning, eResponseTextCode.none, "warning message");
-                lExpecter.Expect(eResponseTextContext.protocolerror, eResponseTextCode.none, "error message");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "idle terminated");
-                lExpecter.Expect(eResponseTextContext.continuerequest, eResponseTextCode.none, "idling");
-                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "unilateral bye");
+                lExpecter.Expect(eIMAPResponseTextContext.greetingok, eIMAPResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "logged in");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "capability done");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "LIST command completed");
+                lExpecter.Expect(eIMAPResponseTextContext.continuerequest, eIMAPResponseTextCode.none, "idling");
+                lExpecter.Expect(eIMAPResponseTextContext.information, eIMAPResponseTextCode.none, "information message");
+                lExpecter.Expect(eIMAPResponseTextContext.warning, eIMAPResponseTextCode.none, "warning message");
+                lExpecter.Expect(eIMAPResponseTextContext.protocolerror, eIMAPResponseTextCode.none, "error message");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "idle terminated");
+                lExpecter.Expect(eIMAPResponseTextContext.continuerequest, eIMAPResponseTextCode.none, "idling");
+                lExpecter.Expect(eIMAPResponseTextContext.bye, eIMAPResponseTextCode.none, "unilateral bye");
 
                 lClient.Connect();
 
@@ -765,7 +767,7 @@ namespace testharness2
 
                 lServer.AddExpectClose();
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthentication("fred", "angus", eTLSRequirement.indifferent);
 
 
                 try { lClient.Connect(); }
@@ -851,7 +853,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddExpectClose();
 
-                lClient.SetPlainAuthenticationParameters(pUserId, pPassword, eTLSRequirement.indifferent);
+                lClient.SetPlainAuthentication(pUserId, pPassword, eTLSRequirement.indifferent);
 
                 lClient.Connect();
                 lClient.Disconnect();
@@ -900,23 +902,23 @@ namespace testharness2
                 lServer.AddExpectClose();
 
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthentication("fred", "angus", eTLSRequirement.indifferent);
                 lClient.IdleConfiguration = new cIdleConfiguration(2000, 1200000, 7000);
 
                 cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-                lExpecter.Expect(eResponseTextContext.greetingok, eResponseTextCode.other, "this is the text");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged in");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "capability done");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
-                lExpecter.Expect(eResponseTextContext.information, eResponseTextCode.none, "information message");
-                lExpecter.Expect(eResponseTextContext.warning, eResponseTextCode.none, "warning message");
-                lExpecter.Expect(eResponseTextContext.protocolerror, eResponseTextCode.none, "error message");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "noop completed");
-                lExpecter.Expect(eResponseTextContext.information, eResponseTextCode.none, "information message");
-                lExpecter.Expect(eResponseTextContext.warning, eResponseTextCode.none, "warning message");
-                lExpecter.Expect(eResponseTextContext.protocolerror, eResponseTextCode.none, "error message");
-                lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "noop completed");
-                lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "unilateral bye");
+                lExpecter.Expect(eIMAPResponseTextContext.greetingok, eIMAPResponseTextCode.other, "this is the text");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "logged in");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "capability done");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "LIST command completed");
+                lExpecter.Expect(eIMAPResponseTextContext.information, eIMAPResponseTextCode.none, "information message");
+                lExpecter.Expect(eIMAPResponseTextContext.warning, eIMAPResponseTextCode.none, "warning message");
+                lExpecter.Expect(eIMAPResponseTextContext.protocolerror, eIMAPResponseTextCode.none, "error message");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "noop completed");
+                lExpecter.Expect(eIMAPResponseTextContext.information, eIMAPResponseTextCode.none, "information message");
+                lExpecter.Expect(eIMAPResponseTextContext.warning, eIMAPResponseTextCode.none, "warning message");
+                lExpecter.Expect(eIMAPResponseTextContext.protocolerror, eIMAPResponseTextCode.none, "error message");
+                lExpecter.Expect(eIMAPResponseTextContext.success, eIMAPResponseTextCode.none, "noop completed");
+                lExpecter.Expect(eIMAPResponseTextContext.bye, eIMAPResponseTextCode.none, "unilateral bye");
 
 
                 lClient.Connect();
@@ -937,10 +939,10 @@ namespace testharness2
             }
         }
 
-        private class cTestAuth1AuthenticationParameters : cAuthenticationParameters
+        private class cTestAuth1AuthenticationParameters : cIMAPAuthentication
         {
             public cTestAuth1AuthenticationParameters(object pPreAuthCredId, bool pTryAllSASLs) :
-                base(pPreAuthCredId, new cSASL[] { new cSASLPlain("fred", "angus", eTLSRequirement.indifferent), new cSASLAnonymous("fr€d", eTLSRequirement.indifferent) }, pTryAllSASLs, new cLogin("fred", "angus", eTLSRequirement.indifferent)) { }
+                base(pPreAuthCredId, new cSASL[] { new cSASLPlain("fred", "angus", eTLSRequirement.indifferent), new cSASLAnonymous("fr€d", eTLSRequirement.indifferent) }, pTryAllSASLs, new cIMAPLogin("fred", "angus", eTLSRequirement.indifferent)) { }
         }
 
         private static void ZTestAuth1(cTrace.cContext pParentContext)
@@ -966,7 +968,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.AuthenticationParameters = lCredsNoPreAuthDontTryAll;
+                lClient.Authentication = lCredsNoPreAuthDontTryAll;
 
                 lFailed = false;
                 try { lClient.Connect(); }
@@ -1000,7 +1002,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.AuthenticationParameters = lCredsNoPreAuthDontTryAll;
+                lClient.Authentication = lCredsNoPreAuthDontTryAll;
 
                 lClient.Connect();
 
@@ -1040,7 +1042,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.AuthenticationParameters = lCredsNoPreAuthDontTryAll;
+                lClient.Authentication = lCredsNoPreAuthDontTryAll;
 
                 lClient.Connect();
 
@@ -1078,7 +1080,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.AuthenticationParameters = lCredsNoPreAuthTryAll;
+                lClient.Authentication = lCredsNoPreAuthTryAll;
 
                 lClient.Connect();
 
@@ -1117,7 +1119,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.AuthenticationParameters = lCredsPreAuthTryAll;
+                lClient.Authentication = lCredsPreAuthTryAll;
 
                 lClient.Connect();
 
@@ -1152,7 +1154,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.AuthenticationParameters = lCredsNoPreAuthTryAll;
+                lClient.Authentication = lCredsNoPreAuthTryAll;
 
                 lClient.Connect();
 
@@ -1192,7 +1194,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.AuthenticationParameters = lCredsNoPreAuthTryAll;
+                lClient.Authentication = lCredsNoPreAuthTryAll;
 
                 lClient.Connect();
 
@@ -1224,7 +1226,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.AuthenticationParameters = cAuthenticationParameters.Anonymous("fred");
+                lClient.Authentication = cAuthenticationParameters.Anonymous("fred");
 
                 lClient.Connect();
 
@@ -1256,7 +1258,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.AuthenticationParameters = cAuthenticationParameters.Anonymous("fred");
+                lClient.Authentication = cAuthenticationParameters.Anonymous("fred");
 
                 lClient.Connect();
 
@@ -1284,7 +1286,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.AuthenticationParameters = lCredsPreAuthTryAll;
+                lClient.Authentication = lCredsPreAuthTryAll;
 
                 lClient.Connect();
 
@@ -1307,7 +1309,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.AuthenticationParameters = lCredsNoPreAuthTryAll;
+                lClient.Authentication = lCredsNoPreAuthTryAll;
 
                 lFailed = false;
                 try { lClient.Connect(); }
@@ -1381,7 +1383,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthentication("fred", "angus", eTLSRequirement.indifferent);
 
                 lClient.Connect();
                 lClient.Disconnect();
@@ -1555,7 +1557,7 @@ namespace testharness2
                 lServer.AddExpectClose();
 
 
-                lClient.AuthenticationParameters = new cAuthenticationParameters(new object());
+                lClient.Authentication = new cAuthenticationParameters(new object());
                 lClient.IdleConfiguration = null;
 
                 cMessageFlags lFlags;
@@ -1795,7 +1797,7 @@ namespace testharness2
                 lServer.AddExpectClose();
 
 
-                lClient.AuthenticationParameters = new cAuthenticationParameters(new object());
+                lClient.Authentication = new cAuthenticationParameters(new object());
                 lClient.IdleConfiguration = null;
 
                 cMessageFlags lFlags;
@@ -1978,7 +1980,7 @@ namespace testharness2
                 lServer.AddExpectClose();
 
 
-                lClient.AuthenticationParameters = new cAuthenticationParameters(new object());
+                lClient.Authentication = new cAuthenticationParameters(new object());
                 lClient.IdleConfiguration = null;
 
                 cMessageFlags lFlags;
@@ -2091,7 +2093,7 @@ namespace testharness2
                 lServer.AddExpectClose();
 
 
-                lClient.AuthenticationParameters = new cAuthenticationParameters(new object());
+                lClient.Authentication = new cAuthenticationParameters(new object());
                 lClient.IdleConfiguration = null;
 
                 lClient.Connect();
@@ -2105,7 +2107,7 @@ namespace testharness2
                 }
                 catch (cUnsuccessfulCompletionException e)
                 {
-                    if (e.ResponseText.Code != eResponseTextCode.badcharset || e.ResponseText.Arguments != null) throw new cTestsException("ZTestBadCharsetUIDNotSticky.3");
+                    if (e.ResponseText.Code != eIMAPResponseTextCode.badcharset || e.ResponseText.Arguments != null) throw new cTestsException("ZTestBadCharsetUIDNotSticky.3");
                 }
 
                 try
@@ -2114,7 +2116,7 @@ namespace testharness2
                 }
                 catch (cUnsuccessfulCompletionException e)
                 {
-                    if (e.ResponseText.Code != eResponseTextCode.badcharset || e.ResponseText.Arguments == null || e.ResponseText.Arguments.Count != 3) throw new cTestsException("ZTestBadCharsetUIDNotSticky.4");
+                    if (e.ResponseText.Code != eIMAPResponseTextCode.badcharset || e.ResponseText.Arguments == null || e.ResponseText.Arguments.Count != 3) throw new cTestsException("ZTestBadCharsetUIDNotSticky.4");
                     if (e.ResponseText.Arguments[0] != "x1" || e.ResponseText.Arguments[2] != "a nother 1") throw new cTestsException("ZTestBadCharsetUIDNotSticky.5");
                 }
 
@@ -2213,7 +2215,7 @@ namespace testharness2
 
 
 
-                lClient.AuthenticationParameters = new cAuthenticationParameters(new object());
+                lClient.Authentication = new cAuthenticationParameters(new object());
 
                 lClient.Connect();
 
@@ -2348,7 +2350,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddExpectClose();
 
-                lClient.AuthenticationParameters = new cAuthenticationParameters(new object());
+                lClient.Authentication = new cAuthenticationParameters(new object());
                 lClient.IdleConfiguration = null;
 
                 lClient.Connect();
@@ -2439,7 +2441,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddExpectClose();
 
-                lClient.AuthenticationParameters = new cAuthenticationParameters(new object());
+                lClient.Authentication = new cAuthenticationParameters(new object());
                 lClient.IdleConfiguration = null;
 
                 Task<List<cMessage>> lTask1;
@@ -2502,7 +2504,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthentication("fred", "angus", eTLSRequirement.indifferent);
 
                 bool lFailed = false;
                 try { lClient.Connect(); }
@@ -2548,7 +2550,7 @@ namespace testharness2
                 lServer.AddSendTagged("OK logged out\r\n");
                 lServer.AddClose();
 
-                lClient.SetPlainAuthenticationParameters("fred", "angus", eTLSRequirement.indifferent);
+                lClient.SetPlainAuthentication("fred", "angus", eTLSRequirement.indifferent);
                 lClient.NetworkWriteConfiguration = new cBatchSizerConfiguration(1, 1, 10000, 1);
 
 
@@ -2699,11 +2701,11 @@ namespace testharness2
                     lServer.AddSendTagged("OK logged out\r\n");
                     lServer.AddExpectClose();
 
-                    lClient1.AuthenticationParameters = new cAuthenticationParameters(new object());
+                    lClient1.Authentication = new cAuthenticationParameters(new object());
                     lClient1.IdleConfiguration = null;
                     lClient1.FetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000, 1000, 1000);
 
-                    lClient2.AuthenticationParameters = lClient1.AuthenticationParameters;
+                    lClient2.Authentication = lClient1.Authentication;
                     lClient2.IdleConfiguration = null;
 
                     lClient1.Connect();
@@ -2855,7 +2857,7 @@ namespace testharness2
                 lServer.AddExpectClose();
 
                 lClient.SetServer("localhost");
-                lClient.AuthenticationParameters = new cAuthenticationParameters(new object());
+                lClient.Authentication = new cAuthenticationParameters(new object());
                 lClient.IdleConfiguration = null;
 
                 lClient.Connect();
@@ -3278,7 +3280,7 @@ namespace testharness2
                 pClient.ResponseText += ResponseText;
             }
 
-            public void Expect(eResponseTextContext pType, eResponseTextCode pCode, string pText)
+            public void Expect(eIMAPResponseTextContext pType, eIMAPResponseTextCode pCode, string pText)
             {
                 mExpected.Add(new cExpected(pType, pCode, pText));
             }
@@ -3307,11 +3309,11 @@ namespace testharness2
 
             private class cExpected
             {
-                public readonly eResponseTextContext Context;
-                public readonly eResponseTextCode Code;
+                public readonly eIMAPResponseTextContext Context;
+                public readonly eIMAPResponseTextCode Code;
                 public readonly string Text;
 
-                public cExpected(eResponseTextContext pContext, eResponseTextCode pCode, string pText)
+                public cExpected(eIMAPResponseTextContext pContext, eIMAPResponseTextCode pCode, string pText)
                 {
                     Context = pContext;
                     Code = pCode;

@@ -65,7 +65,7 @@
     <Compile Include="mail\internal\encoding\headerfieldbytes.cs" />
     <Compile Include="mail\internal\message\message.cs" />
     <Compile Include="mail\internal\other\incrementer.cs" />
-    <Compile Include="mail\public\configuration\attachmentsaveconfiguration.cs" />
+    <Compile Include="mail\public\configuration\unknownsizeconfiguration.cs" />
     <Compile Include="mail\public\message\attachment.cs" />
     <Compile Include="mail\public\message\message.cs" />
     <Compile Include="mail\public\other\convertmailmessagedisposables.cs" />
@@ -74,8 +74,6 @@
     <Compile Include="mail\public\mime\headerfieldfactory.cs" />
     <Compile Include="mail\public\mime\msgidgenerator.cs" />
     <Compile Include="imap\public\configuration\appendconfiguration.cs" />
-    <Compile Include="mail\public\configuration\convertmailmessageconfiguration.cs" />
-    <Compile Include="mail\public\configuration\quotedprintableencodeconfiguration.cs" />
     <Compile Include="imap\public\feedback\appendfeedback.cs" />
     <Compile Include="imap\public\mailbox\checkformessagesflag.cs" />
     <Compile Include="mail\client\base.cs" />
@@ -121,7 +119,7 @@
     <Compile Include="mail\public\message\headerfields.cs" />
     <Compile Include="mail\public\enums\importance.cs" />
     <Compile Include="imap\public\feedback\copyfeedback.cs" />
-    <Compile Include="imap\public\configuration\fetchcacheitemconfiguration.cs" />
+    <Compile Include="mail\public\configuration\knownsizeconfiguration.cs" />
     <Compile Include="imap\client\fetchcacheitems.cs" />
     <Compile Include="imap\client\fetchsection.cs" />
     <Compile Include="imap\client\requestmailboxdata.cs" />

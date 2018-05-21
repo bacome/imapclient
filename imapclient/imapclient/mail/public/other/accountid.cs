@@ -22,7 +22,7 @@ namespace work.bacome.mailclient
         /// If a UserId was used to access the account then this will be a <see cref="String>"/> containing the UserId. 
         /// (For an IMAP client the UserId could be <see cref="cIMAPLogin.Anonymous"/>).
         /// If SASL anonymous authentication was used to access the account then this will be <see cref="cSASLAnonymous.AnonymousCredentialId"/>.
-        /// If access to an IMAP account was pre-authorised then this will be <see cref="cIMAPAuthenticationParameters.PreAuthenticatedCredentialId"/>.
+        /// If access to an IMAP account was pre-authorised then this will be <see cref="cIMAPAuthentication.PreAuthenticatedCredentialId"/>.
         /// </remarks>
         public readonly object CredentialId;
 

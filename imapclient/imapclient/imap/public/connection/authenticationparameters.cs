@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Parameters that can be used to authenticate during <see cref="cIMAPClient.Connect"/>.
     /// </summary>
-    public class cIMAPAuthenticationParameters
+    public class cIMAPAuthentication
     {
         /// <summary>
         /// A set of authentication parameters that will never result in a successful connection.
@@ -19,7 +19,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// Useful to retrieve the property values set during <see cref="cIMAPClient.Connect"/> without actually connecting.
         /// </remarks>
-        public static readonly cIMAPAuthenticationParameters None = new cIMAPAuthenticationParameters();
+        public static readonly cIMAPAuthentication None = new cIMAPAuthentication();
 
         /// <summary>
         /// The credential id to use if the connection is pre-authenticated. May be <see langword="null"/> in which case a pre-authenticated connection will be disconnected.
@@ -48,7 +48,7 @@ namespace work.bacome.imapclient
         /// <param name="pSASLs"></param>
         /// <param name="pTryAllSASLs"></param>
         /// <param name="pLogin"></param>
-        public cIMAPAuthenticationParameters(object pPreAuthenticatedCredentialId = null, IEnumerable<cSASL> pSASLs = null, bool pTryAllSASLs = false, cIMAPLogin pLogin = null)
+        public cIMAPAuthentication(object pPreAuthenticatedCredentialId = null, IEnumerable<cSASL> pSASLs = null, bool pTryAllSASLs = false, cIMAPLogin pLogin = null)
         {
             PreAuthenticatedCredentialId = pPreAuthenticatedCredentialId;
 
@@ -75,14 +75,14 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// This method will throw if <paramref name="pTrace"/> can be used with neither <see cref="cIMAPLogin.Password"/> nor <see cref="cSASLAnonymous"/>.
         /// </remarks>
-        public static cIMAPAuthenticationParameters Anonymous(string pTrace, eTLSRequirement pTLSRequirement = eTLSRequirement.indifferent, bool pTryAuthenticateEvenIfAnonymousIsntAdvertised = false)
+        public static cIMAPAuthentication Anonymous(string pTrace, eTLSRequirement pTLSRequirement = eTLSRequirement.indifferent, bool pTryAuthenticateEvenIfAnonymousIsntAdvertised = false)
         {
             if (string.IsNullOrEmpty(pTrace)) throw new ArgumentOutOfRangeException(nameof(pTrace));
 
             cIMAPLogin.TryConstruct(cIMAPLogin.Anonymous, pTrace, pTLSRequirement, out var lLogin);
             cSASLAnonymous.TryConstruct(pTrace, pTLSRequirement, out var lSASL);
             if (lLogin == null && lSASL == null) throw new ArgumentOutOfRangeException(nameof(pTrace));
-            return new cIMAPAuthenticationParameters(null, new cSASL[] { lSASL }, pTryAuthenticateEvenIfAnonymousIsntAdvertised, lLogin);
+            return new cIMAPAuthentication(null, new cSASL[] { lSASL }, pTryAuthenticateEvenIfAnonymousIsntAdvertised, lLogin);
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// This method will throw if the userid and password can be used with neither <see cref="cIMAPLogin"/> nor <see cref="cSASLPlain"/>.
         /// </remarks>
-        public static cIMAPAuthenticationParameters Plain(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false)
+        public static cIMAPAuthentication Plain(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false)
         {
             if (string.IsNullOrEmpty(pUserId)) throw new ArgumentOutOfRangeException(nameof(pUserId));
             if (string.IsNullOrEmpty(pPassword)) throw new ArgumentOutOfRangeException(nameof(pPassword));
@@ -105,7 +105,7 @@ namespace work.bacome.imapclient
             cSASLPlain.TryConstruct(pUserId, pPassword, pTLSRequirement, out var lSASL);
             if (lLogin == null && lSASL == null) throw new ArgumentOutOfRangeException(); // argument_s_outofrange
 
-            return new cIMAPAuthenticationParameters(null, new cSASL[] { lSASL }, pTryAuthenticateEvenIfPlainIsntAdvertised, lLogin);
+            return new cIMAPAuthentication(null, new cSASL[] { lSASL }, pTryAuthenticateEvenIfPlainIsntAdvertised, lLogin);
         }
 
         /* not tested yet
@@ -120,10 +120,10 @@ namespace work.bacome.imapclient
         [Conditional("DEBUG")]
         internal static void _Tests(cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPAuthenticationParameters), nameof(_Tests));
+            var lContext = pParentContext.NewMethod(nameof(cIMAPAuthentication), nameof(_Tests));
 
             bool lFailed;
-            cIMAPAuthenticationParameters lAP;
+            cIMAPAuthentication lAP;
 
             lAP = Anonymous("fred");
             if (lAP.Login == null || lAP.SASLs.Count != 1) throw new cTestsException("unexpected anon result");

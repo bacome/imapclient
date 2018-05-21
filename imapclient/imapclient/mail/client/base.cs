@@ -40,7 +40,7 @@ namespace work.bacome.mailclient
         private bool mDisposed = false;
         public readonly string InstanceName;
         protected readonly cCallbackSynchroniser mSynchroniser;
-        protected readonly cCancellationManager mCancellationManager;
+        protected internal readonly cCancellationManager CancellationManager;
         protected internal readonly cTrace.cContext RootContext;
 
         // property backing storage
@@ -57,7 +57,7 @@ namespace work.bacome.mailclient
             RootContext = Trace.NewRoot(pInstanceName);
             RootContext.TraceInformation("cMailClient by bacome version {0}, release date {1}", Version, ReleaseDate);
 
-            mCancellationManager = new cCancellationManager(pSynchroniser.InvokeCancellableCountChanged);
+            CancellationManager = new cCancellationManager(pSynchroniser.InvokeCancellableCountChanged);
 
             mSynchroniser.Start(this, RootContext);
         }
@@ -170,14 +170,14 @@ namespace work.bacome.mailclient
         /// </remarks>
         public CancellationToken CancellationToken
         {
-            get => mCancellationManager.CancellationToken;
-            set => mCancellationManager.CancellationToken = value;
+            get => CancellationManager.CancellationToken;
+            set => CancellationManager.CancellationToken = value;
         }
 
         /// <summary>
         /// Gets the number of operations that will be cancelled by <see cref="Cancel"/>.
         /// </summary>
-        public int CancellableCount => mCancellationManager.Count;
+        public int CancellableCount => CancellationManager.Count;
 
         /// <summary>
         /// Cancels the operations that are using the internal cancellation token.
@@ -185,7 +185,7 @@ namespace work.bacome.mailclient
         public void Cancel()
         {
             var lContext = RootContext.NewMethod(nameof(cMailClient), nameof(Cancel));
-            mCancellationManager.Cancel(lContext);
+            CancellationManager.Cancel(lContext);
         }
 
         /// <summary>
@@ -288,9 +288,9 @@ namespace work.bacome.mailclient
                     catch { }
                 }
 
-                if (mCancellationManager != null)
+                if (CancellationManager != null)
                 {
-                    try { mCancellationManager.Dispose(); }
+                    try { CancellationManager.Dispose(); }
                     catch { }
                 }
             }

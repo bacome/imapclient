@@ -109,8 +109,8 @@ namespace work.bacome.imapclient
                 public cSelectedMailbox CheckInSelectedMailbox(cStoreFeedback pFeedback)
                 {
                     if (pFeedback == null) throw new ArgumentNullException(nameof(pFeedback));
-                    if (pFeedback.Count == 0) throw new ArgumentOutOfRangeException(nameof(pFeedback));
-                    if (mSelectedMailbox == null || !ReferenceEquals(pFeedback[0].MessageHandle.MessageCache, mSelectedMailbox.MessageCache)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.MailboxNotSelected);
+                    if (pFeedback.Items.Count == 0) throw new ArgumentOutOfRangeException(nameof(pFeedback));
+                    if (mSelectedMailbox == null || !ReferenceEquals(pFeedback.Items[0].MessageHandle.MessageCache, mSelectedMailbox.MessageCache)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.MailboxNotSelected);
                     return mSelectedMailbox;
                 }
 

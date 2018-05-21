@@ -96,7 +96,7 @@ namespace work.bacome.imapclient
 
             List<iMailboxHandle> lMailboxHandles;
 
-            using (var lToken = mCancellationManager.GetToken(lContext))
+            using (var lToken = CancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
 

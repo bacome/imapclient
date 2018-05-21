@@ -26,7 +26,7 @@ namespace work.bacome.imapclient
             if (pFeedback.Items.Count == 0) return;
             // it is valid to add or remove zero flags according to the ABNF (!)
 
-            using (var lToken = mCancellationManager.GetToken(lContext))
+            using (var lToken = CancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
                 await lSession.UIDStoreAsync(lMC, pMailboxHandle, pFeedback, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);

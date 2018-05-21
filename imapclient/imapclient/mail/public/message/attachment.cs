@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
 {
@@ -122,7 +123,7 @@ namespace work.bacome.mailclient
         /// </summary>
         /// <param name="pPath"></param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
-        public abstract void SaveAs(string pPath, cAttachmentSaveConfiguration pConfiguration = null);
+        public abstract void SaveAs(string pPath, cUnknownSizeConfiguration pConfiguration = null);
 
         /// <summary>
         /// Asynchronously saves the attachment to the specified path.
@@ -130,17 +131,31 @@ namespace work.bacome.mailclient
         /// <param name="pPath"></param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <returns></returns>
-        public abstract Task SaveAsAsync(string pPath, cAttachmentSaveConfiguration pConfiguration = null);
+        public abstract Task SaveAsAsync(string pPath, cUnknownSizeConfiguration pConfiguration = null);
 
-        protected void YSetFileTimes(string pPath)
+        protected void YSetFileTimes(string pPath, cTrace.cContext pParentContext)
         {
+            var lContext = pParentContext.NewMethod(nameof(cMailAttachment), nameof(YSetFileTimes), pPath);
+
             if (Part.Disposition == null) return;
 
-            ;?; // maybe protect against throws in here
+            if (Part.Disposition.CreationDateTime != null)
+            {
+                try { File.SetCreationTime(pPath, Part.Disposition.CreationDateTime.Value); }
+                catch (Exception e) { lContext.TraceException("failed to setcreationtime", e); }
+            }
 
-            if (Part.Disposition.CreationDateTime != null) File.SetCreationTime(pPath, Part.Disposition.CreationDateTime.Value);
-            if (Part.Disposition.ModificationDateTime != null) File.SetLastWriteTime(pPath, Part.Disposition.ModificationDateTime.Value);
-            if (Part.Disposition.ReadDateTime != null) File.SetLastAccessTime(pPath, Part.Disposition.ReadDateTime.Value);
+            if (Part.Disposition.ModificationDateTime != null)
+            {
+                try { File.SetLastWriteTime(pPath, Part.Disposition.ModificationDateTime.Value); }
+                catch (Exception e) { lContext.TraceException("failed to setlastwritetime", e); }
+            }
+
+            if (Part.Disposition.ReadDateTime != null)
+            {
+                try { File.SetLastAccessTime(pPath, Part.Disposition.ReadDateTime.Value); }
+                catch (Exception e) { lContext.TraceException("failed to setlastaccesstime", e); }
+            }
         }
     }
 }

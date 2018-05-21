@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
             if (pMailboxHandle.MailboxName == null) throw new ArgumentOutOfRangeException(nameof(pMailboxHandle));
             if (pDataSets == 0) return;
 
-            using (var lToken = mCancellationManager.GetToken(lContext))
+            using (var lToken = CancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
 

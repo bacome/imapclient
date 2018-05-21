@@ -88,82 +88,81 @@ namespace work.bacome.imapclient
             return Client.GetDecodedSizeInBytesAsync(MessageHandle, Part, lContext);
         }
 
-        public abstract Stream GetMessageDataStream()
-        {
-            ;?;
-        }
+        public override Stream GetMessageDataStream() => new cIMAPMessageDataStream(this);
 
-
-        public override void SaveAs(string pPath, cAttachmentSaveConfiguration pConfiguration = null)
+        public override void SaveAs(string pPath, cUnknownSizeConfiguration pConfiguration = null)
         {
-            var lContext = Client.RootContext.NewMethod(nameof(cIMAPAttachment), nameof(SaveAs), pPath);
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPAttachment), nameof(SaveAs), pPath, pConfiguration);
             Client.Wait(ZSaveAsAsync(pPath, pConfiguration, lContext), lContext);
         }
 
-        public override Task SaveAsAsync(string pPath, cAttachmentSaveConfiguration pConfiguration = null)
+        public override Task SaveAsAsync(string pPath, cUnknownSizeConfiguration pConfiguration = null)
         {
-            var lContext = Client.RootContext.NewMethod(nameof(cIMAPAttachment), nameof(SaveAsAsync), pPath);
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPAttachment), nameof(SaveAsAsync), pPath, pConfiguration);
             return ZSaveAsAsync(pPath, pConfiguration, lContext);
         }
 
-        private async Task ZSaveAsAsync(string pPath, cAttachmentSaveConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private Task ZSaveAsAsync(string pPath, cUnknownSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPAttachment), nameof(ZSaveAsAsync), pPath);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPAttachment), nameof(ZSaveAsAsync), pPath, pConfiguration);
+
+            if (pPath == null) throw new ArgumentNullException(nameof(pPath));
+
+            if (pConfiguration == null)
+            {
+                using (var lToken = Client.CancellationManager.GetToken(lContext))
+                {
+                    var lMC = new cMethodControl(Client.Timeout, lToken.CancellationToken);
+                    return ZZSaveAsAsync(lMC, pPath, null, null, lContext);
+                }
+            }
+            else
+            {
+                var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
+                return ZZSaveAsAsync(lMC, pPath, pConfiguration.SetMaximum, pConfiguration.Increment, lContext);
+            }
+        }
+
+        private async Task ZZSaveAsAsync(cMethodControl pMC, string pPath, Action<long> pSetMaximum, Action<int> pIncrement, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cIMAPAttachment), nameof(ZZSaveAsAsync), pMC, pPath);
 
             using (var lMessageDataStream = new cIMAPMessageDataStream(this))
-            using (var lFileStream = new FileStream(pPath, FileMode.Create, FileAccess.Write, FileShare.None))
             {
-                var lBuffer = new byte[cMailClient.LocalStreamBufferSize];
+                long? lProgressLength;
+                if (pSetMaximum == null) lProgressLength = null;
+                else lProgressLength = await lMessageDataStream.GetProgressLengthAsync(pMC, lContext).ConfigureAwait(false);
 
-                var lSetMaximum = pConfiguration?.SetMaximum;
-                bool lProgressIsInFetchedBytes = false;
-                uint lLastFetchedBytesPosition = 0;
+                if (lProgressLength != null) Client.InvokeActionLong(pSetMaximum, lProgressLength.Value, lContext);
 
-                while (true)
+                using (var lFileStream = new FileStream(pPath, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
-                    var lBytesRead = await lMessageDataStream.ReadAsync(lBuffer, 0, lBuffer.Length).ConfigureAwait(false);
+                    var lBuffer = new byte[cMailClient.LocalStreamBufferSize];
 
-                    if (lBytesRead == 0)
+                    long lLastProgressPosition = 0;
+
+                    while (true)
                     {
-                        if (lProgressIsInFetchedBytes)
+                        lMessageDataStream.ReadTimeout = pMC.Timeout;
+                        var lBytesRead = await lMessageDataStream.ReadAsync(lBuffer, 0, lBuffer.Length, pMC.CancellationToken).ConfigureAwait(false);
+
+                        // filestreams can't timeout
+                        if (lBytesRead != 0) await lFileStream.WriteAsync(lBuffer, 0, lBytesRead, pMC.CancellationToken).ConfigureAwait(false);
+
+                        if (pIncrement != null)
                         {
-                            int lIncrement = (int)(lMessageDataStream.FetchedBytesPosition - lLastFetchedBytesPosition);
-                            if (lIncrement > 0) Client.InvokeActionInt(pConfiguration?.Increment, lIncrement, lContext);
+                            long lThisProgressPosition = lMessageDataStream.GetProgressPosition();
+                            int lIncrement = (int)(lThisProgressPosition - lLastProgressPosition);
+                            if (lIncrement > 0) Client.InvokeActionInt(pIncrement, lIncrement, lContext);
+                            lLastProgressPosition = lThisProgressPosition;
                         }
 
-                        break;
+                        if (lBytesRead == 0) break;
                     }
-
-                    if (lSetMaximum != null)
-                    {
-                        var lDataIsCached = lMessageDataStream.DataIsCached;
-
-                        if (lDataIsCached == null) throw new cInternalErrorException(lContext);
-
-                        if (lMessageDataStream.DataIsCached.Value) Client.InvokeActionLong(lSetMaximum, lMessageDataStream.Length, lContext);
-                        else
-                        {
-                            var lFetchSizeInBytes = await Client.GetFetchSizeInBytesAsync(MessageHandle, Part, lContext).ConfigureAwait(false);
-                            Client.InvokeActionLong(lSetMaximum, lFetchSizeInBytes, lContext);
-                            lProgressIsInFetchedBytes = true;
-                        }
-
-                        lSetMaximum = null;
-                    }
-
-                    await lFileStream.WriteAsync(lBuffer, 0, lBytesRead).ConfigureAwait(false);
-
-                    if (lProgressIsInFetchedBytes)
-                    {
-                        int lIncrement = (int)(lMessageDataStream.FetchedBytesPosition - lLastFetchedBytesPosition);
-                        if (lIncrement > 0) Client.InvokeActionInt(pConfiguration?.Increment, lIncrement, lContext);
-                        lLastFetchedBytesPosition = lMessageDataStream.FetchedBytesPosition;
-                    }
-                    else Client.InvokeActionInt(pConfiguration?.Increment, lBytesRead, lContext);
                 }
             }
 
-            YSetFileTimes(pPath);
+            YSetFileTimes(pPath, lContext);
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
