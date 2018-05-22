@@ -49,19 +49,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="appenddatasource.cs" />
-    <Compile Include="frmAppend.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmAppend.Designer.cs">
-      <DependentUpon>frmAppend.cs</DependentUpon>
-    </Compile>
-    <Compile Include="frmAppendMultiPart.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmAppendMultiPart.Designer.cs">
-      <DependentUpon>frmAppendMultiPart.cs</DependentUpon>
-    </Compile>
     <Compile Include="frmAppendTests.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -116,12 +103,6 @@
     <Compile Include="frmMessageData.Designer.cs">
       <DependentUpon>frmMessageData.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmMessageStream.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmMessageStream.Designer.cs">
-      <DependentUpon>frmMessageStream.cs</DependentUpon>
-    </Compile>
     <Compile Include="frmNetworkActivity.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -139,6 +120,12 @@
     </Compile>
     <Compile Include="frmResponseText.Designer.cs">
       <DependentUpon>frmResponseText.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmSectionCacheDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmSectionCacheDialog.Designer.cs">
+      <DependentUpon>frmSectionCacheDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="frmSelectedMailbox.cs">
       <SubType>Form</SubType>
@@ -180,12 +167,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="smtpclient.cs" />
     <Compile Include="tests.cs" />
-    <EmbeddedResource Include="frmAppend.resx">
-      <DependentUpon>frmAppend.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmAppendMultiPart.resx">
-      <DependentUpon>frmAppendMultiPart.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="frmAppendTests.resx">
       <DependentUpon>frmAppendTests.cs</DependentUpon>
     </EmbeddedResource>
@@ -213,9 +194,6 @@
     <EmbeddedResource Include="frmMessageData.resx">
       <DependentUpon>frmMessageData.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="frmMessageStream.resx">
-      <DependentUpon>frmMessageStream.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="frmNetworkActivity.resx">
       <DependentUpon>frmNetworkActivity.cs</DependentUpon>
     </EmbeddedResource>
@@ -224,6 +202,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmResponseText.resx">
       <DependentUpon>frmResponseText.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmSectionCacheDialog.resx">
+      <DependentUpon>frmSectionCacheDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmSelectedMailbox.resx">
       <DependentUpon>frmSelectedMailbox.cs</DependentUpon>

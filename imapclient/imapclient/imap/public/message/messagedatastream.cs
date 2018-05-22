@@ -35,63 +35,6 @@ namespace work.bacome.imapclient
         private CancellationTokenSource mBackgroundCancellationTokenSource = null;
         private Task mBackgroundTask = null;        
 
-        public cIMAPMessageDataStream(cIMAPMessage pMessage)
-        {
-            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
-            if (!pMessage.IsValid) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.IsInvalid);
-
-            Client = pMessage.Client;
-            MessageHandle = pMessage.MessageHandle;
-            Part = null;
-
-            MailboxHandle = null;
-            UID = null;
-
-            Section = cSection.All;
-            Decoding = eDecodingRequired.none;
-
-            mReadTimeout = Client.Timeout;
-        }
-
-        public cIMAPMessageDataStream(cIMAPAttachment pAttachment, bool pDecoded = true)
-        {
-            if (pAttachment == null) throw new ArgumentNullException(nameof(pAttachment));
-            if (!pAttachment.IsValid) throw new ArgumentOutOfRangeException(nameof(pAttachment), kArgumentOutOfRangeExceptionMessage.IsInvalid);
-
-            Client = pAttachment.Client;
-            MessageHandle = pAttachment.MessageHandle;
-            Part = pAttachment.Part;
-
-            MailboxHandle = null;
-            UID = null;
-
-            Section = pAttachment.Part.Section;
-
-            if (pDecoded) Decoding = pAttachment.Part.DecodingRequired;
-            else Decoding = eDecodingRequired.none;
-
-            mReadTimeout = Client.Timeout;
-        }
-
-        // note that the decoding may be ignored
-        public cIMAPMessageDataStream(cIMAPMessage pMessage, cSection pSection, eDecodingRequired pDecoding)
-        {
-            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
-            if (!pMessage.IsValid) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.IsInvalid);
-
-            Client = pMessage.Client;
-            MessageHandle = pMessage.MessageHandle;
-            Part = null;
-
-            MailboxHandle = null;
-            UID = null;
-
-            Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
-            Decoding = pDecoding;
-
-            mReadTimeout = Client.Timeout;
-        }
-
         internal cIMAPMessageDataStream(cIMAPClient pClient, iMessageHandle pMessageHandle, cSinglePartBody pPart, bool pDecoded)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
@@ -107,6 +50,23 @@ namespace work.bacome.imapclient
 
             if (pDecoded) Decoding = pPart.DecodingRequired;
             else Decoding = eDecodingRequired.none;
+
+            mReadTimeout = Client.Timeout;
+        }
+
+        internal cIMAPMessageDataStream(cIMAPClient pClient, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding)
+        {
+            Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
+            MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
+            if (!ReferenceEquals(pClient.SelectedMailboxDetails?.MessageCache, pMessageHandle.MessageCache)) throw new ArgumentOutOfRangeException(nameof(pMessageHandle));
+
+            Part = null;
+
+            MailboxHandle = null;
+            UID = null;
+
+            Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
+            Decoding = pDecoding;
 
             mReadTimeout = Client.Timeout;
         }
@@ -435,17 +395,14 @@ namespace work.bacome.imapclient
                 }
                 else
                 {
-                    var lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(MessageHandle, Part, lContext).ConfigureAwait(false);
-
-                    if (lDecodedSizeInBytes == null)
+                    if (Decoding != eDecodingRequired.none)
                     {
-                        mProgressLength = await Client.GetFetchSizeInBytesAsync(MessageHandle, Part, lContext).ConfigureAwait(false);
-                        mProgressLengthIsFetchSizeInBytes = true;
-                        return;
+                        mProgressLength = await Client.GetDecodedSizeInBytesAsync(MessageHandle, Part, lContext).ConfigureAwait(false);
+                        if (mProgressLength != null) return;
                     }
 
-                    mProgressLength = lDecodedSizeInBytes.Value;
-                    return;
+                    mProgressLength = await Client.GetFetchSizeInBytesAsync(MessageHandle, Part, lContext).ConfigureAwait(false);
+                    mProgressLengthIsFetchSizeInBytes = true;
                 }
             }
         }

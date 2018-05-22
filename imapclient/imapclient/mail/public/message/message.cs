@@ -201,7 +201,7 @@ namespace work.bacome.mailclient
         /// The data is decoded if required.
         /// The returned stream must be disposed when you are finished with it.
         /// </remarks>
-        public abstract Stream GetMessageDataStream(cSinglePartBody pPart);
+        public abstract Stream GetMessageDataStream(cSinglePartBody pPart, bool pDecoded = true);
 
         /// <summary>
         /// Returns a stream containing the data of the specified <see cref="cSection"/>.
@@ -212,7 +212,7 @@ namespace work.bacome.mailclient
         /// If <see cref="cIMAPCapabilities.Binary"/> is in use and the entire body-part (<see cref="cSection.TextPart"/> is <see cref="eSectionTextPart.all"/>) is being fetched then
         /// unless <paramref name="pDecoding"/> is <see cref="eDecodingRequired.none"/> the server will do the decoding that it determines is required (i.e. the decoding specified is ignored).
         /// </remarks>
-        public abstract Stream GetMessageDataStream(cSection pSection, eDecodingRequired pDecoding);
+        public abstract Stream GetMessageDataStream(cSection pSection, eDecodingRequired pDecoding = eDecodingRequired.none);
 
         protected List<cSinglePartBody> YAttachmentParts(cBodyPart pPart)
         {

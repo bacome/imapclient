@@ -110,7 +110,7 @@ namespace testharness2
 
             try
             {
-                lMailboxes = await lTag.MailboxContainer.MailboxesAsync();
+                lMailboxes = await lTag.MailboxContainer.GetMailboxesAsync();
                 if (IsDisposed) return;
                 foreach (var lMailbox in lMailboxes) ZAddMailbox(e.Node, lMailbox);
             }

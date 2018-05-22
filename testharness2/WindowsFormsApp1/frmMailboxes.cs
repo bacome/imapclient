@@ -116,8 +116,8 @@ namespace testharness2
 
             try
             {
-                if (mSubscriptions) lMailboxes = await lTag.MailboxContainer.SubscribedAsync(false, mDataSets);
-                else lMailboxes = await lTag.MailboxContainer.MailboxesAsync(mDataSets);
+                if (mSubscriptions) lMailboxes = await lTag.MailboxContainer.GetSubscribedAsync(false, mDataSets);
+                else lMailboxes = await lTag.MailboxContainer.GetMailboxesAsync(mDataSets);
                 if (IsDisposed) return;
                 foreach (var lMailbox in lMailboxes) ZAddMailbox(e.Node, lMailbox, false);
             }
@@ -498,13 +498,9 @@ namespace testharness2
         private void cmdSubscriptions_Click(object sender, EventArgs e)
         {
             var lTag = tvw.SelectedNode?.Tag as cNodeTag;
-            if (lTag == null) return;
+            if (lTag == null || lTag.MailboxContainer == null) return;
 
-            List<cMailbox> lMailboxes;
-
-            if (lTag.Namespace != null) lMailboxes = lTag.Namespace.Subscribed(true);
-            else if (lTag.Mailbox != null) lMailboxes = lTag.Mailbox.Subscribed(true);
-            else return;
+            List<cMailbox> lMailboxes = lTag.MailboxContainer.GetSubscribed(true);
 
             StringBuilder lBuilder = new StringBuilder();
             lBuilder.AppendLine("Subscribed mailboxes;");

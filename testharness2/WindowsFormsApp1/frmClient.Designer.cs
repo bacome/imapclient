@@ -85,17 +85,7 @@
             this.chkIgnoreQResync = new System.Windows.Forms.CheckBox();
             this.chkIgnoreBinary = new System.Windows.Forms.CheckBox();
             this.chkIgnoreNamespace = new System.Windows.Forms.CheckBox();
-            this.gbxFetchBodyWrite = new System.Windows.Forms.GroupBox();
-            this.cmdFWSet = new System.Windows.Forms.Button();
-            this.label18 = new System.Windows.Forms.Label();
-            this.label19 = new System.Windows.Forms.Label();
-            this.label20 = new System.Windows.Forms.Label();
-            this.label21 = new System.Windows.Forms.Label();
-            this.txtFWInitial = new System.Windows.Forms.TextBox();
-            this.txtFWMaxTime = new System.Windows.Forms.TextBox();
-            this.txtFWMax = new System.Windows.Forms.TextBox();
-            this.txtFWMin = new System.Windows.Forms.TextBox();
-            this.gbxFetchBodyRead = new System.Windows.Forms.GroupBox();
+            this.gbxFetchBody = new System.Windows.Forms.GroupBox();
             this.cmdFRSet = new System.Windows.Forms.Button();
             this.label14 = new System.Windows.Forms.Label();
             this.label15 = new System.Windows.Forms.Label();
@@ -252,9 +242,6 @@
             this.cmdDefaultFlags = new System.Windows.Forms.Button();
             this.lblDefaultFlags = new System.Windows.Forms.Label();
             this.cmdAppend = new System.Windows.Forms.Button();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.cmdATSet = new System.Windows.Forms.Button();
-            this.txtAppendTargetBufferSize = new System.Windows.Forms.TextBox();
             this.gbxAppendBatch = new System.Windows.Forms.GroupBox();
             this.cmdABSet = new System.Windows.Forms.Button();
             this.label37 = new System.Windows.Forms.Label();
@@ -265,28 +252,8 @@
             this.txtABMaxTime = new System.Windows.Forms.TextBox();
             this.txtABMax = new System.Windows.Forms.TextBox();
             this.txtABMin = new System.Windows.Forms.TextBox();
-            this.gbxAppendStreamRead = new System.Windows.Forms.GroupBox();
-            this.cmdASSet = new System.Windows.Forms.Button();
-            this.label33 = new System.Windows.Forms.Label();
-            this.label34 = new System.Windows.Forms.Label();
-            this.label35 = new System.Windows.Forms.Label();
-            this.label36 = new System.Windows.Forms.Label();
-            this.txtASInitial = new System.Windows.Forms.TextBox();
-            this.txtASMaxTime = new System.Windows.Forms.TextBox();
-            this.txtASMax = new System.Windows.Forms.TextBox();
-            this.txtASMin = new System.Windows.Forms.TextBox();
-            this.cmdPoll = new System.Windows.Forms.Button();
             this.tabPage5 = new System.Windows.Forms.TabPage();
-            this.gbxQPReadWriteConfiguration = new System.Windows.Forms.GroupBox();
-            this.cmdQPSet = new System.Windows.Forms.Button();
-            this.label41 = new System.Windows.Forms.Label();
-            this.label42 = new System.Windows.Forms.Label();
-            this.label43 = new System.Windows.Forms.Label();
-            this.label45 = new System.Windows.Forms.Label();
-            this.txtQPInitial = new System.Windows.Forms.TextBox();
-            this.txtQPMaxTime = new System.Windows.Forms.TextBox();
-            this.txtQPMax = new System.Windows.Forms.TextBox();
-            this.txtQPMin = new System.Windows.Forms.TextBox();
+            this.cmdEncode = new System.Windows.Forms.Button();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
             this.rdoEBCDIC = new System.Windows.Forms.RadioButton();
             this.rdoMinimal = new System.Windows.Forms.RadioButton();
@@ -294,16 +261,15 @@
             this.rdoLF = new System.Windows.Forms.RadioButton();
             this.rdoCRLF = new System.Windows.Forms.RadioButton();
             this.rdoBinary = new System.Windows.Forms.RadioButton();
-            this.cmdEncode = new System.Windows.Forms.Button();
-            this.cmdEncodeProgress = new System.Windows.Forms.Button();
+            this.cmdPoll = new System.Windows.Forms.Button();
+            this.cmdSectionCache = new System.Windows.Forms.Button();
             this.gbxServer.SuspendLayout();
             this.gbxCredentials.SuspendLayout();
             this.gbxTLSRequirement.SuspendLayout();
             this.gbxMailboxCacheData.SuspendLayout();
             this.gbxOther.SuspendLayout();
             this.gbxCapabilities.SuspendLayout();
-            this.gbxFetchBodyWrite.SuspendLayout();
-            this.gbxFetchBodyRead.SuspendLayout();
+            this.gbxFetchBody.SuspendLayout();
             this.gbxFetchCacheItems.SuspendLayout();
             this.gbxTimeout.SuspendLayout();
             this.gbxIdle.SuspendLayout();
@@ -333,11 +299,8 @@
             this.tabPage4.SuspendLayout();
             this.groupBox4.SuspendLayout();
             this.groupBox3.SuspendLayout();
-            this.groupBox2.SuspendLayout();
             this.gbxAppendBatch.SuspendLayout();
-            this.gbxAppendStreamRead.SuspendLayout();
             this.tabPage5.SuspendLayout();
-            this.gbxQPReadWriteConfiguration.SuspendLayout();
             this.groupBox5.SuspendLayout();
             this.gbxQPSourceType.SuspendLayout();
             this.SuspendLayout();
@@ -948,131 +911,25 @@
             this.chkIgnoreNamespace.Text = "Namespace";
             this.chkIgnoreNamespace.UseVisualStyleBackColor = true;
             // 
-            // gbxFetchBodyWrite
+            // gbxFetchBody
             // 
-            this.gbxFetchBodyWrite.Controls.Add(this.cmdFWSet);
-            this.gbxFetchBodyWrite.Controls.Add(this.label18);
-            this.gbxFetchBodyWrite.Controls.Add(this.label19);
-            this.gbxFetchBodyWrite.Controls.Add(this.label20);
-            this.gbxFetchBodyWrite.Controls.Add(this.label21);
-            this.gbxFetchBodyWrite.Controls.Add(this.txtFWInitial);
-            this.gbxFetchBodyWrite.Controls.Add(this.txtFWMaxTime);
-            this.gbxFetchBodyWrite.Controls.Add(this.txtFWMax);
-            this.gbxFetchBodyWrite.Controls.Add(this.txtFWMin);
-            this.gbxFetchBodyWrite.Location = new System.Drawing.Point(217, 307);
-            this.gbxFetchBodyWrite.Name = "gbxFetchBodyWrite";
-            this.gbxFetchBodyWrite.Size = new System.Drawing.Size(227, 142);
-            this.gbxFetchBodyWrite.TabIndex = 5;
-            this.gbxFetchBodyWrite.TabStop = false;
-            this.gbxFetchBodyWrite.Text = "Fetch Body Write";
-            this.gbxFetchBodyWrite.Validating += new System.ComponentModel.CancelEventHandler(this.gbxFetchBodyWrite_Validating);
-            this.gbxFetchBodyWrite.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // cmdFWSet
-            // 
-            this.cmdFWSet.Location = new System.Drawing.Point(15, 108);
-            this.cmdFWSet.Name = "cmdFWSet";
-            this.cmdFWSet.Size = new System.Drawing.Size(100, 25);
-            this.cmdFWSet.TabIndex = 8;
-            this.cmdFWSet.Text = "Set";
-            this.cmdFWSet.UseVisualStyleBackColor = true;
-            this.cmdFWSet.Click += new System.EventHandler(this.cmdFWSet_Click);
-            // 
-            // label18
-            // 
-            this.label18.AutoSize = true;
-            this.label18.Location = new System.Drawing.Point(12, 85);
-            this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(31, 13);
-            this.label18.TabIndex = 6;
-            this.label18.Text = "Initial";
-            // 
-            // label19
-            // 
-            this.label19.AutoSize = true;
-            this.label19.Location = new System.Drawing.Point(12, 64);
-            this.label19.Name = "label19";
-            this.label19.Size = new System.Drawing.Size(53, 13);
-            this.label19.TabIndex = 4;
-            this.label19.Text = "Max Time";
-            // 
-            // label20
-            // 
-            this.label20.AutoSize = true;
-            this.label20.Location = new System.Drawing.Point(12, 43);
-            this.label20.Name = "label20";
-            this.label20.Size = new System.Drawing.Size(27, 13);
-            this.label20.TabIndex = 2;
-            this.label20.Text = "Max";
-            // 
-            // label21
-            // 
-            this.label21.AutoSize = true;
-            this.label21.Location = new System.Drawing.Point(12, 22);
-            this.label21.Name = "label21";
-            this.label21.Size = new System.Drawing.Size(24, 13);
-            this.label21.TabIndex = 0;
-            this.label21.Text = "Min";
-            // 
-            // txtFWInitial
-            // 
-            this.txtFWInitial.Location = new System.Drawing.Point(133, 82);
-            this.txtFWInitial.Name = "txtFWInitial";
-            this.txtFWInitial.Size = new System.Drawing.Size(70, 20);
-            this.txtFWInitial.TabIndex = 7;
-            this.txtFWInitial.Text = "1000";
-            this.txtFWInitial.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtFWInitial.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // txtFWMaxTime
-            // 
-            this.txtFWMaxTime.Location = new System.Drawing.Point(133, 61);
-            this.txtFWMaxTime.Name = "txtFWMaxTime";
-            this.txtFWMaxTime.Size = new System.Drawing.Size(70, 20);
-            this.txtFWMaxTime.TabIndex = 5;
-            this.txtFWMaxTime.Text = "1000";
-            this.txtFWMaxTime.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsMilliseconds);
-            this.txtFWMaxTime.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // txtFWMax
-            // 
-            this.txtFWMax.Location = new System.Drawing.Point(133, 40);
-            this.txtFWMax.Name = "txtFWMax";
-            this.txtFWMax.Size = new System.Drawing.Size(70, 20);
-            this.txtFWMax.TabIndex = 3;
-            this.txtFWMax.Text = "1000";
-            this.txtFWMax.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtFWMax.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // txtFWMin
-            // 
-            this.txtFWMin.Location = new System.Drawing.Point(133, 19);
-            this.txtFWMin.Name = "txtFWMin";
-            this.txtFWMin.Size = new System.Drawing.Size(70, 20);
-            this.txtFWMin.TabIndex = 1;
-            this.txtFWMin.Text = "1000";
-            this.txtFWMin.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtFWMin.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // gbxFetchBodyRead
-            // 
-            this.gbxFetchBodyRead.Controls.Add(this.cmdFRSet);
-            this.gbxFetchBodyRead.Controls.Add(this.label14);
-            this.gbxFetchBodyRead.Controls.Add(this.label15);
-            this.gbxFetchBodyRead.Controls.Add(this.label16);
-            this.gbxFetchBodyRead.Controls.Add(this.label17);
-            this.gbxFetchBodyRead.Controls.Add(this.txtFRInitial);
-            this.gbxFetchBodyRead.Controls.Add(this.txtFRMaxTime);
-            this.gbxFetchBodyRead.Controls.Add(this.txtFRMax);
-            this.gbxFetchBodyRead.Controls.Add(this.txtFRMin);
-            this.gbxFetchBodyRead.Location = new System.Drawing.Point(217, 159);
-            this.gbxFetchBodyRead.Name = "gbxFetchBodyRead";
-            this.gbxFetchBodyRead.Size = new System.Drawing.Size(227, 142);
-            this.gbxFetchBodyRead.TabIndex = 4;
-            this.gbxFetchBodyRead.TabStop = false;
-            this.gbxFetchBodyRead.Text = "Fetch Body Read";
-            this.gbxFetchBodyRead.Validating += new System.ComponentModel.CancelEventHandler(this.gbxFetchBodyRead_Validating);
-            this.gbxFetchBodyRead.Validated += new System.EventHandler(this.ZValControlValidated);
+            this.gbxFetchBody.Controls.Add(this.cmdFRSet);
+            this.gbxFetchBody.Controls.Add(this.label14);
+            this.gbxFetchBody.Controls.Add(this.label15);
+            this.gbxFetchBody.Controls.Add(this.label16);
+            this.gbxFetchBody.Controls.Add(this.label17);
+            this.gbxFetchBody.Controls.Add(this.txtFRInitial);
+            this.gbxFetchBody.Controls.Add(this.txtFRMaxTime);
+            this.gbxFetchBody.Controls.Add(this.txtFRMax);
+            this.gbxFetchBody.Controls.Add(this.txtFRMin);
+            this.gbxFetchBody.Location = new System.Drawing.Point(217, 159);
+            this.gbxFetchBody.Name = "gbxFetchBody";
+            this.gbxFetchBody.Size = new System.Drawing.Size(227, 142);
+            this.gbxFetchBody.TabIndex = 4;
+            this.gbxFetchBody.TabStop = false;
+            this.gbxFetchBody.Text = "Fetch Body";
+            this.gbxFetchBody.Validating += new System.ComponentModel.CancelEventHandler(this.gbxFetchBody_Validating);
+            this.gbxFetchBody.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
             // cmdFRSet
             // 
@@ -1082,7 +939,7 @@
             this.cmdFRSet.TabIndex = 8;
             this.cmdFRSet.Text = "Set";
             this.cmdFRSet.UseVisualStyleBackColor = true;
-            this.cmdFRSet.Click += new System.EventHandler(this.cmdFRSet_Click);
+            this.cmdFRSet.Click += new System.EventHandler(this.cmdFetchBodySet_Click);
             // 
             // label14
             // 
@@ -1188,7 +1045,7 @@
             this.cmdFASet.TabIndex = 8;
             this.cmdFASet.Text = "Set";
             this.cmdFASet.UseVisualStyleBackColor = true;
-            this.cmdFASet.Click += new System.EventHandler(this.cmdFASet_Click);
+            this.cmdFASet.Click += new System.EventHandler(this.cmdFetchCacheItemsSet_Click);
             // 
             // label13
             // 
@@ -1456,11 +1313,11 @@
             // 
             // cmdCancel
             // 
-            this.cmdCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdCancel.Location = new System.Drawing.Point(383, 512);
+            this.cmdCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdCancel.Location = new System.Drawing.Point(595, 512);
             this.cmdCancel.Name = "cmdCancel";
             this.cmdCancel.Size = new System.Drawing.Size(100, 25);
-            this.cmdCancel.TabIndex = 3;
+            this.cmdCancel.TabIndex = 4;
             this.cmdCancel.Text = "Cancel";
             this.cmdCancel.UseVisualStyleBackColor = true;
             this.cmdCancel.Click += new System.EventHandler(this.cmdCancel_Click);
@@ -1469,7 +1326,7 @@
             // 
             this.lblState.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblState.AutoSize = true;
-            this.lblState.Location = new System.Drawing.Point(380, 493);
+            this.lblState.Location = new System.Drawing.Point(380, 518);
             this.lblState.Name = "lblState";
             this.lblState.Size = new System.Drawing.Size(32, 13);
             this.lblState.TabIndex = 2;
@@ -1477,11 +1334,11 @@
             // 
             // cmdDisconnect
             // 
-            this.cmdDisconnect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdDisconnect.Location = new System.Drawing.Point(595, 512);
+            this.cmdDisconnect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdDisconnect.Location = new System.Drawing.Point(807, 512);
             this.cmdDisconnect.Name = "cmdDisconnect";
             this.cmdDisconnect.Size = new System.Drawing.Size(100, 25);
-            this.cmdDisconnect.TabIndex = 5;
+            this.cmdDisconnect.TabIndex = 6;
             this.cmdDisconnect.Text = "Disconnect";
             this.cmdDisconnect.UseVisualStyleBackColor = true;
             this.cmdDisconnect.Click += new System.EventHandler(this.cmdDisconnect_Click);
@@ -1757,8 +1614,7 @@
             this.tbpSettings.Controls.Add(this.groupBox1);
             this.tbpSettings.Controls.Add(this.gbxIdle);
             this.tbpSettings.Controls.Add(this.gbxTimeout);
-            this.tbpSettings.Controls.Add(this.gbxFetchBodyRead);
-            this.tbpSettings.Controls.Add(this.gbxFetchBodyWrite);
+            this.tbpSettings.Controls.Add(this.gbxFetchBody);
             this.tbpSettings.Controls.Add(this.gbxFetchCacheItems);
             this.tbpSettings.Location = new System.Drawing.Point(4, 22);
             this.tbpSettings.Name = "tbpSettings";
@@ -2690,9 +2546,7 @@
             this.tabPage4.Controls.Add(this.groupBox4);
             this.tabPage4.Controls.Add(this.groupBox3);
             this.tabPage4.Controls.Add(this.cmdAppend);
-            this.tabPage4.Controls.Add(this.groupBox2);
             this.tabPage4.Controls.Add(this.gbxAppendBatch);
-            this.tabPage4.Controls.Add(this.gbxAppendStreamRead);
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
@@ -2795,37 +2649,6 @@
             this.cmdAppend.Text = "Append ...";
             this.cmdAppend.UseVisualStyleBackColor = true;
             this.cmdAppend.Click += new System.EventHandler(this.cmdAppend_Click);
-            // 
-            // groupBox2
-            // 
-            this.groupBox2.Controls.Add(this.cmdATSet);
-            this.groupBox2.Controls.Add(this.txtAppendTargetBufferSize);
-            this.groupBox2.Location = new System.Drawing.Point(6, 236);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(229, 79);
-            this.groupBox2.TabIndex = 3;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Target Buffer Size";
-            // 
-            // cmdATSet
-            // 
-            this.cmdATSet.Location = new System.Drawing.Point(15, 45);
-            this.cmdATSet.Name = "cmdATSet";
-            this.cmdATSet.Size = new System.Drawing.Size(100, 25);
-            this.cmdATSet.TabIndex = 1;
-            this.cmdATSet.Text = "Set";
-            this.cmdATSet.UseVisualStyleBackColor = true;
-            this.cmdATSet.Click += new System.EventHandler(this.cmdATSet_Click);
-            // 
-            // txtAppendTargetBufferSize
-            // 
-            this.txtAppendTargetBufferSize.Location = new System.Drawing.Point(15, 19);
-            this.txtAppendTargetBufferSize.Name = "txtAppendTargetBufferSize";
-            this.txtAppendTargetBufferSize.Size = new System.Drawing.Size(70, 20);
-            this.txtAppendTargetBufferSize.TabIndex = 0;
-            this.txtAppendTargetBufferSize.Text = "1000";
-            this.txtAppendTargetBufferSize.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtAppendTargetBufferSize.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
             // gbxAppendBatch
             // 
@@ -2933,130 +2756,11 @@
             this.txtABMin.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
             this.txtABMin.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
-            // gbxAppendStreamRead
-            // 
-            this.gbxAppendStreamRead.Controls.Add(this.cmdASSet);
-            this.gbxAppendStreamRead.Controls.Add(this.label33);
-            this.gbxAppendStreamRead.Controls.Add(this.label34);
-            this.gbxAppendStreamRead.Controls.Add(this.label35);
-            this.gbxAppendStreamRead.Controls.Add(this.label36);
-            this.gbxAppendStreamRead.Controls.Add(this.txtASInitial);
-            this.gbxAppendStreamRead.Controls.Add(this.txtASMaxTime);
-            this.gbxAppendStreamRead.Controls.Add(this.txtASMax);
-            this.gbxAppendStreamRead.Controls.Add(this.txtASMin);
-            this.gbxAppendStreamRead.Location = new System.Drawing.Point(261, 88);
-            this.gbxAppendStreamRead.Name = "gbxAppendStreamRead";
-            this.gbxAppendStreamRead.Size = new System.Drawing.Size(229, 142);
-            this.gbxAppendStreamRead.TabIndex = 2;
-            this.gbxAppendStreamRead.TabStop = false;
-            this.gbxAppendStreamRead.Text = "Append Stream Read";
-            this.gbxAppendStreamRead.Validating += new System.ComponentModel.CancelEventHandler(this.gbxAppendStreamRead_Validating);
-            this.gbxAppendStreamRead.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // cmdASSet
-            // 
-            this.cmdASSet.Location = new System.Drawing.Point(15, 108);
-            this.cmdASSet.Name = "cmdASSet";
-            this.cmdASSet.Size = new System.Drawing.Size(100, 25);
-            this.cmdASSet.TabIndex = 8;
-            this.cmdASSet.Text = "Set";
-            this.cmdASSet.UseVisualStyleBackColor = true;
-            this.cmdASSet.Click += new System.EventHandler(this.cmdASSet_Click);
-            // 
-            // label33
-            // 
-            this.label33.AutoSize = true;
-            this.label33.Location = new System.Drawing.Point(12, 85);
-            this.label33.Name = "label33";
-            this.label33.Size = new System.Drawing.Size(31, 13);
-            this.label33.TabIndex = 6;
-            this.label33.Text = "Initial";
-            // 
-            // label34
-            // 
-            this.label34.AutoSize = true;
-            this.label34.Location = new System.Drawing.Point(12, 64);
-            this.label34.Name = "label34";
-            this.label34.Size = new System.Drawing.Size(53, 13);
-            this.label34.TabIndex = 4;
-            this.label34.Text = "Max Time";
-            // 
-            // label35
-            // 
-            this.label35.AutoSize = true;
-            this.label35.Location = new System.Drawing.Point(12, 43);
-            this.label35.Name = "label35";
-            this.label35.Size = new System.Drawing.Size(27, 13);
-            this.label35.TabIndex = 2;
-            this.label35.Text = "Max";
-            // 
-            // label36
-            // 
-            this.label36.AutoSize = true;
-            this.label36.Location = new System.Drawing.Point(12, 22);
-            this.label36.Name = "label36";
-            this.label36.Size = new System.Drawing.Size(24, 13);
-            this.label36.TabIndex = 0;
-            this.label36.Text = "Min";
-            // 
-            // txtASInitial
-            // 
-            this.txtASInitial.Location = new System.Drawing.Point(133, 82);
-            this.txtASInitial.Name = "txtASInitial";
-            this.txtASInitial.Size = new System.Drawing.Size(70, 20);
-            this.txtASInitial.TabIndex = 7;
-            this.txtASInitial.Text = "1000";
-            this.txtASInitial.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtASInitial.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // txtASMaxTime
-            // 
-            this.txtASMaxTime.Location = new System.Drawing.Point(133, 61);
-            this.txtASMaxTime.Name = "txtASMaxTime";
-            this.txtASMaxTime.Size = new System.Drawing.Size(70, 20);
-            this.txtASMaxTime.TabIndex = 5;
-            this.txtASMaxTime.Text = "1000";
-            this.txtASMaxTime.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsMilliseconds);
-            this.txtASMaxTime.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // txtASMax
-            // 
-            this.txtASMax.Location = new System.Drawing.Point(133, 40);
-            this.txtASMax.Name = "txtASMax";
-            this.txtASMax.Size = new System.Drawing.Size(70, 20);
-            this.txtASMax.TabIndex = 3;
-            this.txtASMax.Text = "1000";
-            this.txtASMax.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtASMax.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // txtASMin
-            // 
-            this.txtASMin.Location = new System.Drawing.Point(133, 19);
-            this.txtASMin.Name = "txtASMin";
-            this.txtASMin.Size = new System.Drawing.Size(70, 20);
-            this.txtASMin.TabIndex = 1;
-            this.txtASMin.Text = "1000";
-            this.txtASMin.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtASMin.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // cmdPoll
-            // 
-            this.cmdPoll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdPoll.Location = new System.Drawing.Point(489, 512);
-            this.cmdPoll.Name = "cmdPoll";
-            this.cmdPoll.Size = new System.Drawing.Size(100, 25);
-            this.cmdPoll.TabIndex = 4;
-            this.cmdPoll.Text = "Poll";
-            this.cmdPoll.UseVisualStyleBackColor = true;
-            this.cmdPoll.Click += new System.EventHandler(this.cmdPoll_Click);
-            // 
             // tabPage5
             // 
-            this.tabPage5.Controls.Add(this.cmdEncodeProgress);
             this.tabPage5.Controls.Add(this.cmdEncode);
             this.tabPage5.Controls.Add(this.groupBox5);
             this.tabPage5.Controls.Add(this.gbxQPSourceType);
-            this.tabPage5.Controls.Add(this.gbxQPReadWriteConfiguration);
             this.tabPage5.Location = new System.Drawing.Point(4, 22);
             this.tabPage5.Name = "tabPage5";
             this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
@@ -3065,117 +2769,21 @@
             this.tabPage5.Text = "Quoted Printable Encode";
             this.tabPage5.UseVisualStyleBackColor = true;
             // 
-            // gbxQPReadWriteConfiguration
+            // cmdEncode
             // 
-            this.gbxQPReadWriteConfiguration.Controls.Add(this.cmdQPSet);
-            this.gbxQPReadWriteConfiguration.Controls.Add(this.label41);
-            this.gbxQPReadWriteConfiguration.Controls.Add(this.label42);
-            this.gbxQPReadWriteConfiguration.Controls.Add(this.label43);
-            this.gbxQPReadWriteConfiguration.Controls.Add(this.label45);
-            this.gbxQPReadWriteConfiguration.Controls.Add(this.txtQPInitial);
-            this.gbxQPReadWriteConfiguration.Controls.Add(this.txtQPMaxTime);
-            this.gbxQPReadWriteConfiguration.Controls.Add(this.txtQPMax);
-            this.gbxQPReadWriteConfiguration.Controls.Add(this.txtQPMin);
-            this.gbxQPReadWriteConfiguration.Location = new System.Drawing.Point(6, 6);
-            this.gbxQPReadWriteConfiguration.Name = "gbxQPReadWriteConfiguration";
-            this.gbxQPReadWriteConfiguration.Size = new System.Drawing.Size(229, 142);
-            this.gbxQPReadWriteConfiguration.TabIndex = 3;
-            this.gbxQPReadWriteConfiguration.TabStop = false;
-            this.gbxQPReadWriteConfiguration.Text = "Read Write Configuration";
-            this.gbxQPReadWriteConfiguration.Validating += new System.ComponentModel.CancelEventHandler(this.gbxQPReadWriteConfiguration_Validating);
-            this.gbxQPReadWriteConfiguration.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // cmdQPSet
-            // 
-            this.cmdQPSet.Location = new System.Drawing.Point(15, 108);
-            this.cmdQPSet.Name = "cmdQPSet";
-            this.cmdQPSet.Size = new System.Drawing.Size(100, 25);
-            this.cmdQPSet.TabIndex = 8;
-            this.cmdQPSet.Text = "Set";
-            this.cmdQPSet.UseVisualStyleBackColor = true;
-            this.cmdQPSet.Click += new System.EventHandler(this.cmdQPSet_Click);
-            // 
-            // label41
-            // 
-            this.label41.AutoSize = true;
-            this.label41.Location = new System.Drawing.Point(12, 85);
-            this.label41.Name = "label41";
-            this.label41.Size = new System.Drawing.Size(31, 13);
-            this.label41.TabIndex = 6;
-            this.label41.Text = "Initial";
-            // 
-            // label42
-            // 
-            this.label42.AutoSize = true;
-            this.label42.Location = new System.Drawing.Point(12, 64);
-            this.label42.Name = "label42";
-            this.label42.Size = new System.Drawing.Size(53, 13);
-            this.label42.TabIndex = 4;
-            this.label42.Text = "Max Time";
-            // 
-            // label43
-            // 
-            this.label43.AutoSize = true;
-            this.label43.Location = new System.Drawing.Point(12, 43);
-            this.label43.Name = "label43";
-            this.label43.Size = new System.Drawing.Size(27, 13);
-            this.label43.TabIndex = 2;
-            this.label43.Text = "Max";
-            // 
-            // label45
-            // 
-            this.label45.AutoSize = true;
-            this.label45.Location = new System.Drawing.Point(12, 22);
-            this.label45.Name = "label45";
-            this.label45.Size = new System.Drawing.Size(24, 13);
-            this.label45.TabIndex = 0;
-            this.label45.Text = "Min";
-            // 
-            // txtQPInitial
-            // 
-            this.txtQPInitial.Location = new System.Drawing.Point(133, 82);
-            this.txtQPInitial.Name = "txtQPInitial";
-            this.txtQPInitial.Size = new System.Drawing.Size(70, 20);
-            this.txtQPInitial.TabIndex = 7;
-            this.txtQPInitial.Text = "1000";
-            this.txtQPInitial.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtQPInitial.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // txtQPMaxTime
-            // 
-            this.txtQPMaxTime.Location = new System.Drawing.Point(133, 61);
-            this.txtQPMaxTime.Name = "txtQPMaxTime";
-            this.txtQPMaxTime.Size = new System.Drawing.Size(70, 20);
-            this.txtQPMaxTime.TabIndex = 5;
-            this.txtQPMaxTime.Text = "1000";
-            this.txtQPMaxTime.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsMilliseconds);
-            this.txtQPMaxTime.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // txtQPMax
-            // 
-            this.txtQPMax.Location = new System.Drawing.Point(133, 40);
-            this.txtQPMax.Name = "txtQPMax";
-            this.txtQPMax.Size = new System.Drawing.Size(70, 20);
-            this.txtQPMax.TabIndex = 3;
-            this.txtQPMax.Text = "1000";
-            this.txtQPMax.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtQPMax.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // txtQPMin
-            // 
-            this.txtQPMin.Location = new System.Drawing.Point(133, 19);
-            this.txtQPMin.Name = "txtQPMin";
-            this.txtQPMin.Size = new System.Drawing.Size(70, 20);
-            this.txtQPMin.TabIndex = 1;
-            this.txtQPMin.Text = "1000";
-            this.txtQPMin.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtQPMin.Validated += new System.EventHandler(this.ZValControlValidated);
+            this.cmdEncode.Location = new System.Drawing.Point(21, 121);
+            this.cmdEncode.Name = "cmdEncode";
+            this.cmdEncode.Size = new System.Drawing.Size(100, 25);
+            this.cmdEncode.TabIndex = 8;
+            this.cmdEncode.Text = "Encode ...";
+            this.cmdEncode.UseVisualStyleBackColor = true;
+            this.cmdEncode.Click += new System.EventHandler(this.cmdEncode_Click);
             // 
             // groupBox5
             // 
             this.groupBox5.Controls.Add(this.rdoEBCDIC);
             this.groupBox5.Controls.Add(this.rdoMinimal);
-            this.groupBox5.Location = new System.Drawing.Point(6, 226);
+            this.groupBox5.Location = new System.Drawing.Point(6, 59);
             this.groupBox5.Name = "groupBox5";
             this.groupBox5.Size = new System.Drawing.Size(357, 47);
             this.groupBox5.TabIndex = 5;
@@ -3209,7 +2817,7 @@
             this.gbxQPSourceType.Controls.Add(this.rdoLF);
             this.gbxQPSourceType.Controls.Add(this.rdoCRLF);
             this.gbxQPSourceType.Controls.Add(this.rdoBinary);
-            this.gbxQPSourceType.Location = new System.Drawing.Point(6, 173);
+            this.gbxQPSourceType.Location = new System.Drawing.Point(6, 6);
             this.gbxQPSourceType.Name = "gbxQPSourceType";
             this.gbxQPSourceType.Size = new System.Drawing.Size(357, 47);
             this.gbxQPSourceType.TabIndex = 4;
@@ -3248,25 +2856,26 @@
             this.rdoBinary.Text = "Binary";
             this.rdoBinary.UseVisualStyleBackColor = true;
             // 
-            // cmdEncode
+            // cmdPoll
             // 
-            this.cmdEncode.Location = new System.Drawing.Point(21, 291);
-            this.cmdEncode.Name = "cmdEncode";
-            this.cmdEncode.Size = new System.Drawing.Size(100, 25);
-            this.cmdEncode.TabIndex = 8;
-            this.cmdEncode.Text = "Encode";
-            this.cmdEncode.UseVisualStyleBackColor = true;
-            this.cmdEncode.Click += new System.EventHandler(this.cmdEncode_Click);
+            this.cmdPoll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdPoll.Location = new System.Drawing.Point(701, 512);
+            this.cmdPoll.Name = "cmdPoll";
+            this.cmdPoll.Size = new System.Drawing.Size(100, 25);
+            this.cmdPoll.TabIndex = 5;
+            this.cmdPoll.Text = "Poll";
+            this.cmdPoll.UseVisualStyleBackColor = true;
+            this.cmdPoll.Click += new System.EventHandler(this.cmdPoll_Click);
             // 
-            // cmdEncodeProgress
+            // cmdSectionCache
             // 
-            this.cmdEncodeProgress.Location = new System.Drawing.Point(21, 322);
-            this.cmdEncodeProgress.Name = "cmdEncodeProgress";
-            this.cmdEncodeProgress.Size = new System.Drawing.Size(100, 25);
-            this.cmdEncodeProgress.TabIndex = 9;
-            this.cmdEncodeProgress.Text = "Encode Progress";
-            this.cmdEncodeProgress.UseVisualStyleBackColor = true;
-            this.cmdEncodeProgress.Click += new System.EventHandler(this.cmdEncodeProgress_Click);
+            this.cmdSectionCache.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdSectionCache.Location = new System.Drawing.Point(489, 512);
+            this.cmdSectionCache.Name = "cmdSectionCache";
+            this.cmdSectionCache.Size = new System.Drawing.Size(100, 25);
+            this.cmdSectionCache.TabIndex = 3;
+            this.cmdSectionCache.Text = "Section Cache ...";
+            this.cmdSectionCache.UseVisualStyleBackColor = true;
             // 
             // frmClient
             // 
@@ -3274,6 +2883,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
             this.ClientSize = new System.Drawing.Size(910, 546);
+            this.Controls.Add(this.cmdSectionCache);
             this.Controls.Add(this.tabClient);
             this.Controls.Add(this.gbxConnect);
             this.Controls.Add(this.cmdPoll);
@@ -3297,10 +2907,8 @@
             this.gbxOther.PerformLayout();
             this.gbxCapabilities.ResumeLayout(false);
             this.gbxCapabilities.PerformLayout();
-            this.gbxFetchBodyWrite.ResumeLayout(false);
-            this.gbxFetchBodyWrite.PerformLayout();
-            this.gbxFetchBodyRead.ResumeLayout(false);
-            this.gbxFetchBodyRead.PerformLayout();
+            this.gbxFetchBody.ResumeLayout(false);
+            this.gbxFetchBody.PerformLayout();
             this.gbxFetchCacheItems.ResumeLayout(false);
             this.gbxFetchCacheItems.PerformLayout();
             this.gbxTimeout.ResumeLayout(false);
@@ -3345,15 +2953,9 @@
             this.groupBox4.ResumeLayout(false);
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
-            this.groupBox2.ResumeLayout(false);
-            this.groupBox2.PerformLayout();
             this.gbxAppendBatch.ResumeLayout(false);
             this.gbxAppendBatch.PerformLayout();
-            this.gbxAppendStreamRead.ResumeLayout(false);
-            this.gbxAppendStreamRead.PerformLayout();
             this.tabPage5.ResumeLayout(false);
-            this.gbxQPReadWriteConfiguration.ResumeLayout(false);
-            this.gbxQPReadWriteConfiguration.PerformLayout();
             this.groupBox5.ResumeLayout(false);
             this.groupBox5.PerformLayout();
             this.gbxQPSourceType.ResumeLayout(false);
@@ -3437,17 +3039,7 @@
         private System.Windows.Forms.TextBox txtFAMaxTime;
         private System.Windows.Forms.TextBox txtFAMax;
         private System.Windows.Forms.TextBox txtFAMin;
-        private System.Windows.Forms.GroupBox gbxFetchBodyWrite;
-        private System.Windows.Forms.Button cmdFWSet;
-        private System.Windows.Forms.Label label18;
-        private System.Windows.Forms.Label label19;
-        private System.Windows.Forms.Label label20;
-        private System.Windows.Forms.Label label21;
-        private System.Windows.Forms.TextBox txtFWInitial;
-        private System.Windows.Forms.TextBox txtFWMaxTime;
-        private System.Windows.Forms.TextBox txtFWMax;
-        private System.Windows.Forms.TextBox txtFWMin;
-        private System.Windows.Forms.GroupBox gbxFetchBodyRead;
+        private System.Windows.Forms.GroupBox gbxFetchBody;
         private System.Windows.Forms.Button cmdFRSet;
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.Label label15;
@@ -3575,16 +3167,6 @@
         private System.Windows.Forms.CheckBox chkRTTByeGreeting;
         private System.Windows.Forms.Button cmdCTSAllocate;
         private System.Windows.Forms.TabPage tabPage4;
-        private System.Windows.Forms.GroupBox gbxAppendStreamRead;
-        private System.Windows.Forms.Button cmdASSet;
-        private System.Windows.Forms.Label label33;
-        private System.Windows.Forms.Label label34;
-        private System.Windows.Forms.Label label35;
-        private System.Windows.Forms.Label label36;
-        private System.Windows.Forms.TextBox txtASInitial;
-        private System.Windows.Forms.TextBox txtASMaxTime;
-        private System.Windows.Forms.TextBox txtASMax;
-        private System.Windows.Forms.TextBox txtASMin;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Button cmdCTSDispose;
         private System.Windows.Forms.Button cmdCTSCancel;
@@ -3599,9 +3181,6 @@
         private System.Windows.Forms.TextBox txtABMax;
         private System.Windows.Forms.TextBox txtABMin;
         private System.Windows.Forms.Button cmdAppend;
-        private System.Windows.Forms.GroupBox groupBox2;
-        private System.Windows.Forms.Button cmdATSet;
-        private System.Windows.Forms.TextBox txtAppendTargetBufferSize;
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.Button cmdDefaultFlags;
         private System.Windows.Forms.Label lblDefaultFlags;
@@ -3613,16 +3192,6 @@
         private System.Windows.Forms.Button cmdAppendTestsSecond;
         private System.Windows.Forms.Label label44;
         private System.Windows.Forms.TabPage tabPage5;
-        private System.Windows.Forms.GroupBox gbxQPReadWriteConfiguration;
-        private System.Windows.Forms.Button cmdQPSet;
-        private System.Windows.Forms.Label label41;
-        private System.Windows.Forms.Label label42;
-        private System.Windows.Forms.Label label43;
-        private System.Windows.Forms.Label label45;
-        private System.Windows.Forms.TextBox txtQPInitial;
-        private System.Windows.Forms.TextBox txtQPMaxTime;
-        private System.Windows.Forms.TextBox txtQPMax;
-        private System.Windows.Forms.TextBox txtQPMin;
         private System.Windows.Forms.GroupBox groupBox5;
         private System.Windows.Forms.RadioButton rdoEBCDIC;
         private System.Windows.Forms.RadioButton rdoMinimal;
@@ -3631,6 +3200,6 @@
         private System.Windows.Forms.RadioButton rdoCRLF;
         private System.Windows.Forms.RadioButton rdoBinary;
         private System.Windows.Forms.Button cmdEncode;
-        private System.Windows.Forms.Button cmdEncodeProgress;
+        private System.Windows.Forms.Button cmdSectionCache;
     }
 }

@@ -41,15 +41,19 @@
             this.tab = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.lblSectionCache = new System.Windows.Forms.Label();
+            this.cmdGlobalSectionCache = new System.Windows.Forms.Button();
             this.tab.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage3.SuspendLayout();
+            this.tabPage2.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(9, 130);
+            this.label1.Location = new System.Drawing.Point(-1, 130);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(78, 13);
             this.label1.TabIndex = 1;
@@ -58,7 +62,7 @@
             // lblProofOfASync
             // 
             this.lblProofOfASync.AutoSize = true;
-            this.lblProofOfASync.Location = new System.Drawing.Point(94, 130);
+            this.lblProofOfASync.Location = new System.Drawing.Point(83, 130);
             this.lblProofOfASync.Name = "lblProofOfASync";
             this.lblProofOfASync.Size = new System.Drawing.Size(55, 13);
             this.lblProofOfASync.TabIndex = 2;
@@ -96,7 +100,7 @@
             // 
             // cmdCreate
             // 
-            this.cmdCreate.Location = new System.Drawing.Point(91, 32);
+            this.cmdCreate.Location = new System.Drawing.Point(88, 32);
             this.cmdCreate.Name = "cmdCreate";
             this.cmdCreate.Size = new System.Drawing.Size(100, 25);
             this.cmdCreate.TabIndex = 2;
@@ -120,7 +124,7 @@
             // 
             // txtInstanceName
             // 
-            this.txtInstanceName.Location = new System.Drawing.Point(91, 6);
+            this.txtInstanceName.Location = new System.Drawing.Point(88, 6);
             this.txtInstanceName.Name = "txtInstanceName";
             this.txtInstanceName.Size = new System.Drawing.Size(206, 20);
             this.txtInstanceName.TabIndex = 1;
@@ -128,11 +132,12 @@
             // tab
             // 
             this.tab.Controls.Add(this.tabPage1);
+            this.tab.Controls.Add(this.tabPage2);
             this.tab.Controls.Add(this.tabPage3);
             this.tab.Location = new System.Drawing.Point(2, 2);
             this.tab.Name = "tab";
             this.tab.SelectedIndex = 0;
-            this.tab.Size = new System.Drawing.Size(317, 125);
+            this.tab.Size = new System.Drawing.Size(311, 125);
             this.tab.TabIndex = 0;
             // 
             // tabPage1
@@ -143,7 +148,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(309, 99);
+            this.tabPage1.Size = new System.Drawing.Size(303, 99);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "IMAP Client";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -156,17 +161,47 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(309, 99);
+            this.tabPage3.Size = new System.Drawing.Size(303, 99);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Library Tests";
             this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // tabPage2
+            // 
+            this.tabPage2.Controls.Add(this.cmdGlobalSectionCache);
+            this.tabPage2.Controls.Add(this.lblSectionCache);
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
+            this.tabPage2.Name = "tabPage2";
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage2.Size = new System.Drawing.Size(303, 99);
+            this.tabPage2.TabIndex = 3;
+            this.tabPage2.Text = "Global Section Cache";
+            this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // lblSectionCache
+            // 
+            this.lblSectionCache.AutoSize = true;
+            this.lblSectionCache.Location = new System.Drawing.Point(3, 3);
+            this.lblSectionCache.Name = "lblSectionCache";
+            this.lblSectionCache.Size = new System.Drawing.Size(43, 13);
+            this.lblSectionCache.TabIndex = 0;
+            this.lblSectionCache.Text = "<none>";
+            // 
+            // cmdGlobalSectionCache
+            // 
+            this.cmdGlobalSectionCache.Location = new System.Drawing.Point(6, 68);
+            this.cmdGlobalSectionCache.Name = "cmdGlobalSectionCache";
+            this.cmdGlobalSectionCache.Size = new System.Drawing.Size(100, 25);
+            this.cmdGlobalSectionCache.TabIndex = 1;
+            this.cmdGlobalSectionCache.Text = "Choose ...";
+            this.cmdGlobalSectionCache.UseVisualStyleBackColor = true;
             // 
             // frmStart
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
-            this.ClientSize = new System.Drawing.Size(322, 145);
+            this.ClientSize = new System.Drawing.Size(316, 146);
             this.Controls.Add(this.tab);
             this.Controls.Add(this.lblProofOfASync);
             this.Controls.Add(this.label1);
@@ -177,6 +212,8 @@
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
             this.tabPage3.ResumeLayout(false);
+            this.tabPage2.ResumeLayout(false);
+            this.tabPage2.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -196,6 +233,9 @@
         private System.Windows.Forms.TabControl tab;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage3;
+        private System.Windows.Forms.TabPage tabPage2;
+        private System.Windows.Forms.Button cmdGlobalSectionCache;
+        private System.Windows.Forms.Label lblSectionCache;
     }
 }
 

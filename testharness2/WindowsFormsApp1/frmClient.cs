@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using work.bacome.mailclient;
 using work.bacome.imapclient;
 
 namespace testharness2
@@ -147,7 +148,7 @@ namespace testharness2
                 {
                     mClient.SetServer(txtHost.Text.Trim(), int.Parse(txtPort.Text), chkSSL.Checked);
 
-                    if (rdoCredNone.Checked) mClient.Authentication = cAuthenticationParameters.None;
+                    if (rdoCredNone.Checked) mClient.Authentication = cIMAPAuthentication.None;
                     else
                     {
                         eTLSRequirement lTLSRequirement;
@@ -155,8 +156,8 @@ namespace testharness2
                         else if (rdoTLSRequired.Checked) lTLSRequirement = eTLSRequirement.required;
                         else lTLSRequirement = eTLSRequirement.disallowed;
 
-                        if (rdoCredAnon.Checked) mClient.Authentication = cAuthenticationParameters.Anonymous(txtTrace.Text.Trim(), lTLSRequirement, chkTryIfNotAdvertised.Checked);
-                        else mClient.SetPlainAuthenticationParameters(txtUserId.Text.Trim(), txtPassword.Text.Trim(), lTLSRequirement, chkTryIfNotAdvertised.Checked);
+                        if (rdoCredAnon.Checked) mClient.Authentication = cIMAPAuthentication.GetAnonymous(txtTrace.Text.Trim(), lTLSRequirement, chkTryIfNotAdvertised.Checked);
+                        else mClient.SetPlainAuthentication(txtUserId.Text.Trim(), txtPassword.Text.Trim(), lTLSRequirement, chkTryIfNotAdvertised.Checked);
                     }
                 }
                 else
@@ -178,36 +179,36 @@ namespace testharness2
 
                 mClient.MailboxCacheDataItems = lMailboxCacheData;
 
-                fCapabilities lKnownCapabilities = 0;
+                fIMAPCapabilities lKnownCapabilities = 0;
 
-                if (chkIgnoreStartTLS.Checked) lKnownCapabilities |= fCapabilities.starttls;
-                if (chkIgnoreEnable.Checked) lKnownCapabilities |= fCapabilities.enable;
-                if (chkIgnoreUTF8.Checked) lKnownCapabilities |= fCapabilities.utf8accept | fCapabilities.utf8only;
-                if (chkIgnoreId.Checked) lKnownCapabilities |= fCapabilities.id;
-                if (chkIgnoreNamespace.Checked) lKnownCapabilities |= fCapabilities.namespaces;
+                if (chkIgnoreStartTLS.Checked) lKnownCapabilities |= fIMAPCapabilities.starttls;
+                if (chkIgnoreEnable.Checked) lKnownCapabilities |= fIMAPCapabilities.enable;
+                if (chkIgnoreUTF8.Checked) lKnownCapabilities |= fIMAPCapabilities.utf8accept | fIMAPCapabilities.utf8only;
+                if (chkIgnoreId.Checked) lKnownCapabilities |= fIMAPCapabilities.id;
+                if (chkIgnoreNamespace.Checked) lKnownCapabilities |= fIMAPCapabilities.namespaces;
 
-                if (chkIgnoreMailboxReferrals.Checked) lKnownCapabilities |= fCapabilities.mailboxreferrals;
-                if (chkIgnoreListExtended.Checked) lKnownCapabilities |= fCapabilities.listextended;
-                if (chkIgnoreListStatus.Checked) lKnownCapabilities |= fCapabilities.liststatus;
-                if (chkIgnoreSpecialUse.Checked) lKnownCapabilities |= fCapabilities.specialuse;
+                if (chkIgnoreMailboxReferrals.Checked) lKnownCapabilities |= fIMAPCapabilities.mailboxreferrals;
+                if (chkIgnoreListExtended.Checked) lKnownCapabilities |= fIMAPCapabilities.listextended;
+                if (chkIgnoreListStatus.Checked) lKnownCapabilities |= fIMAPCapabilities.liststatus;
+                if (chkIgnoreSpecialUse.Checked) lKnownCapabilities |= fIMAPCapabilities.specialuse;
 
-                if (chkIgnoreCondStore.Checked) lKnownCapabilities |= fCapabilities.condstore;
-                if (chkIgnoreQResync.Checked) lKnownCapabilities |= fCapabilities.qresync;
+                if (chkIgnoreCondStore.Checked) lKnownCapabilities |= fIMAPCapabilities.condstore;
+                if (chkIgnoreQResync.Checked) lKnownCapabilities |= fIMAPCapabilities.qresync;
 
-                if (chkIgnoreLiteralPlus.Checked) lKnownCapabilities |= fCapabilities.literalplus | fCapabilities.literalminus;
-                if (chkIgnoreBinary.Checked) lKnownCapabilities |= fCapabilities.binary;
-                if (chkIgnoreIdle.Checked) lKnownCapabilities |= fCapabilities.idle;
-                if (chkIgnoreSASLIR.Checked) lKnownCapabilities |= fCapabilities.sasl_ir;
+                if (chkIgnoreLiteralPlus.Checked) lKnownCapabilities |= fIMAPCapabilities.literalplus | fIMAPCapabilities.literalminus;
+                if (chkIgnoreBinary.Checked) lKnownCapabilities |= fIMAPCapabilities.binary;
+                if (chkIgnoreIdle.Checked) lKnownCapabilities |= fIMAPCapabilities.idle;
+                if (chkIgnoreSASLIR.Checked) lKnownCapabilities |= fIMAPCapabilities.sasl_ir;
 
-                if (chkIgnoreESearch.Checked) lKnownCapabilities |= fCapabilities.esearch;
-                if (chkIgnoreSort.Checked) lKnownCapabilities |= fCapabilities.sort;
-                if (chkIgnoreSortDisplay.Checked) lKnownCapabilities |= fCapabilities.sortdisplay;
-                //if (chkIgnoreThreadOrderedSubject.Checked) lKnownCapabilities |= fCapabilities.threadorderedsubject;
-                //if (chkIgnoreThreadReferences.Checked) lKnownCapabilities |= fCapabilities.threadreferences;
-                if (chkIgnoreESort.Checked) lKnownCapabilities |= fCapabilities.esort;
+                if (chkIgnoreESearch.Checked) lKnownCapabilities |= fIMAPCapabilities.esearch;
+                if (chkIgnoreSort.Checked) lKnownCapabilities |= fIMAPCapabilities.sort;
+                if (chkIgnoreSortDisplay.Checked) lKnownCapabilities |= fIMAPCapabilities.sortdisplay;
+                //if (chkIgnoreThreadOrderedSubject.Checked) lKnownCapabilities |= fIMAPCapabilities.threadorderedsubject;
+                //if (chkIgnoreThreadReferences.Checked) lKnownCapabilities |= fIMAPCapabilities.threadreferences;
+                if (chkIgnoreESort.Checked) lKnownCapabilities |= fIMAPCapabilities.esort;
 
-                if (chkIgnoreMultiAppend.Checked) lKnownCapabilities |= fCapabilities.multiappend;
-                if (chkIgnoreCatenate.Checked) lKnownCapabilities |= fCapabilities.catenate;
+                if (chkIgnoreMultiAppend.Checked) lKnownCapabilities |= fIMAPCapabilities.multiappend;
+                if (chkIgnoreCatenate.Checked) lKnownCapabilities |= fIMAPCapabilities.catenate;
 
                 mClient.IgnoreCapabilities = lKnownCapabilities;
 
@@ -406,8 +407,7 @@ namespace testharness2
             txtTimeout.Text = mClient.Timeout.ToString();
 
             ZLoadBatchSizerConfiguration(mClient.FetchCacheItemsConfiguration, txtFAMin, txtFAMax, txtFAMaxTime, txtFAInitial);
-            ZLoadBatchSizerConfiguration(mClient.FetchBodyReadConfiguration, txtFRMin, txtFRMax, txtFRMaxTime, txtFRInitial);
-            ZLoadBatchSizerConfiguration(mClient.FetchBodyWriteConfiguration, txtFWMin, txtFWMax, txtFWMaxTime, txtFWInitial);
+            ZLoadBatchSizerConfiguration(mClient.FetchBodyConfiguration, txtFRMin, txtFRMax, txtFRMaxTime, txtFRInitial);
 
             ZSortDescriptionSet();
 
@@ -423,10 +423,6 @@ namespace testharness2
             ZDefaultFlagsDescriptionSet();
 
             ZLoadBatchSizerConfiguration(mClient.AppendBatchConfiguration, txtABMin, txtABMax, txtABMaxTime, txtABInitial);
-            txtAppendTargetBufferSize.Text = mClient.AppendTargetBufferSize.ToString();
-            ZLoadBatchSizerConfiguration(mClient.AppendStreamReadConfiguration, txtASMin, txtASMax, txtASMaxTime, txtASInitial);
-
-            ZLoadBatchSizerConfiguration(mClient.QuotedPrintableEncodeReadWriteConfiguration, txtQPMin, txtQPMax, txtQPMaxTime, txtQPInitial);
         }
 
         private void ZLoadBatchSizerConfiguration(cBatchSizerConfiguration pConfig, TextBox pMin, TextBox pMax, TextBox pMaxTime, TextBox pInitial)
@@ -488,24 +484,14 @@ namespace testharness2
             ZValBatchSizerConfiguration(gbxFetchCacheItems, txtFAMin, txtFAMax, txtFAInitial, e);
         }
 
-        private void gbxFetchBodyRead_Validating(object sender, CancelEventArgs e)
+        private void gbxFetchBody_Validating(object sender, CancelEventArgs e)
         {
-            ZValBatchSizerConfiguration(gbxFetchBodyRead, txtFRMin, txtFRMax, txtFRInitial, e);
-        }
-
-        private void gbxFetchBodyWrite_Validating(object sender, CancelEventArgs e)
-        {
-            ZValBatchSizerConfiguration(gbxFetchBodyWrite, txtFWMin, txtFWMax, txtFWInitial, e);
+            ZValBatchSizerConfiguration(gbxFetchBody, txtFRMin, txtFRMax, txtFRInitial, e);
         }
 
         private void gbxNetworkWrite_Validating(object sender, CancelEventArgs e)
         {
             ZValBatchSizerConfiguration(gbxNetworkWrite, txtNWMin, txtNWMax, txtNWInitial, e);
-        }
-
-        private void gbxAppendStreamRead_Validating(object sender, CancelEventArgs e)
-        {
-            ZValBatchSizerConfiguration(gbxAppendStreamRead, txtASMin, txtASMax, txtASInitial, e);
         }
 
         private void cmdIdleSet_Click(object sender, EventArgs e)
@@ -601,54 +587,54 @@ namespace testharness2
             {
                 int lMaxMessages = int.Parse(txtResponseText.Text);
 
-                List<eResponseTextContext> lTypes = new List<eResponseTextContext>();
+                List<eIMAPResponseTextContext> lTypes = new List<eIMAPResponseTextContext>();
 
-                if (chkRTTOKGreeting.Checked) lTypes.Add(eResponseTextContext.greetingok);
-                if (chkRTTPreAuthGreeting.Checked) lTypes.Add(eResponseTextContext.greetingpreauth);
-                if (chkRTTByeGreeting.Checked) lTypes.Add(eResponseTextContext.greetingbye);
-                if (chkRTTContinue.Checked) lTypes.Add(eResponseTextContext.continuerequest);
-                if (chkRTTBye.Checked) lTypes.Add(eResponseTextContext.bye);
-                if (chkRTTInformation.Checked) lTypes.Add(eResponseTextContext.information);
-                if (chkRTTWarning.Checked) lTypes.Add(eResponseTextContext.warning);
-                if (chkRTTError.Checked) lTypes.Add(eResponseTextContext.error);
-                if (chkRTTSuccess.Checked) lTypes.Add(eResponseTextContext.success);
-                if (chkRTTFailure.Checked) lTypes.Add(eResponseTextContext.failure);
-                if (chkRTTProtocolError.Checked) lTypes.Add(eResponseTextContext.protocolerror);
-                if (chkRTTAuthenticationCancelled.Checked) lTypes.Add(eResponseTextContext.authenticationcancelled);
+                if (chkRTTOKGreeting.Checked) lTypes.Add(eIMAPResponseTextContext.greetingok);
+                if (chkRTTPreAuthGreeting.Checked) lTypes.Add(eIMAPResponseTextContext.greetingpreauth);
+                if (chkRTTByeGreeting.Checked) lTypes.Add(eIMAPResponseTextContext.greetingbye);
+                if (chkRTTContinue.Checked) lTypes.Add(eIMAPResponseTextContext.continuerequest);
+                if (chkRTTBye.Checked) lTypes.Add(eIMAPResponseTextContext.bye);
+                if (chkRTTInformation.Checked) lTypes.Add(eIMAPResponseTextContext.information);
+                if (chkRTTWarning.Checked) lTypes.Add(eIMAPResponseTextContext.warning);
+                if (chkRTTError.Checked) lTypes.Add(eIMAPResponseTextContext.error);
+                if (chkRTTSuccess.Checked) lTypes.Add(eIMAPResponseTextContext.success);
+                if (chkRTTFailure.Checked) lTypes.Add(eIMAPResponseTextContext.failure);
+                if (chkRTTProtocolError.Checked) lTypes.Add(eIMAPResponseTextContext.protocolerror);
+                if (chkRTTAuthenticationCancelled.Checked) lTypes.Add(eIMAPResponseTextContext.authenticationcancelled);
 
-                List<eResponseTextCode> lCodes = new List<eResponseTextCode>();
+                List<eIMAPResponseTextCode> lCodes = new List<eIMAPResponseTextCode>();
 
-                if (chkRTCNone.Checked) lCodes.Add(eResponseTextCode.none);
-                if (chkRTCOther.Checked) lCodes.Add(eResponseTextCode.other);
-                if (chkRTCAlert.Checked) lCodes.Add(eResponseTextCode.alert);
-                if (chkRTCBadCharset.Checked) lCodes.Add(eResponseTextCode.badcharset);
-                if (chkRTCParse.Checked) lCodes.Add(eResponseTextCode.parse);
-                if (chkRTCTryCreate.Checked) lCodes.Add(eResponseTextCode.trycreate);
+                if (chkRTCNone.Checked) lCodes.Add(eIMAPResponseTextCode.none);
+                if (chkRTCOther.Checked) lCodes.Add(eIMAPResponseTextCode.other);
+                if (chkRTCAlert.Checked) lCodes.Add(eIMAPResponseTextCode.alert);
+                if (chkRTCBadCharset.Checked) lCodes.Add(eIMAPResponseTextCode.badcharset);
+                if (chkRTCParse.Checked) lCodes.Add(eIMAPResponseTextCode.parse);
+                if (chkRTCTryCreate.Checked) lCodes.Add(eIMAPResponseTextCode.trycreate);
 
                 if (chkRTCRFC5530.Checked)
                 {
-                    lCodes.Add(eResponseTextCode.unavailable);
-                    lCodes.Add(eResponseTextCode.authenticationfailed);
-                    lCodes.Add(eResponseTextCode.authorizationfailed);
-                    lCodes.Add(eResponseTextCode.expired);
-                    lCodes.Add(eResponseTextCode.privacyrequired);
-                    lCodes.Add(eResponseTextCode.contactadmin);
-                    lCodes.Add(eResponseTextCode.noperm);
-                    lCodes.Add(eResponseTextCode.inuse);
-                    lCodes.Add(eResponseTextCode.expungeissued);
-                    lCodes.Add(eResponseTextCode.corruption);
-                    lCodes.Add(eResponseTextCode.serverbug);
-                    lCodes.Add(eResponseTextCode.clientbug);
-                    lCodes.Add(eResponseTextCode.cannot);
-                    lCodes.Add(eResponseTextCode.limit);
-                    lCodes.Add(eResponseTextCode.overquota);
-                    lCodes.Add(eResponseTextCode.alreadyexists);
-                    lCodes.Add(eResponseTextCode.nonexistent);
+                    lCodes.Add(eIMAPResponseTextCode.unavailable);
+                    lCodes.Add(eIMAPResponseTextCode.authenticationfailed);
+                    lCodes.Add(eIMAPResponseTextCode.authorizationfailed);
+                    lCodes.Add(eIMAPResponseTextCode.expired);
+                    lCodes.Add(eIMAPResponseTextCode.privacyrequired);
+                    lCodes.Add(eIMAPResponseTextCode.contactadmin);
+                    lCodes.Add(eIMAPResponseTextCode.noperm);
+                    lCodes.Add(eIMAPResponseTextCode.inuse);
+                    lCodes.Add(eIMAPResponseTextCode.expungeissued);
+                    lCodes.Add(eIMAPResponseTextCode.corruption);
+                    lCodes.Add(eIMAPResponseTextCode.serverbug);
+                    lCodes.Add(eIMAPResponseTextCode.clientbug);
+                    lCodes.Add(eIMAPResponseTextCode.cannot);
+                    lCodes.Add(eIMAPResponseTextCode.limit);
+                    lCodes.Add(eIMAPResponseTextCode.overquota);
+                    lCodes.Add(eIMAPResponseTextCode.alreadyexists);
+                    lCodes.Add(eIMAPResponseTextCode.nonexistent);
                 }
 
-                if (chkRTCReferral.Checked) lCodes.Add(eResponseTextCode.referral);
-                if (chkRTCUseAttr.Checked) lCodes.Add(eResponseTextCode.useattr);
-                if (chkRTCUnknownCTE.Checked) lCodes.Add(eResponseTextCode.unknowncte);
+                if (chkRTCReferral.Checked) lCodes.Add(eIMAPResponseTextCode.referral);
+                if (chkRTCUseAttr.Checked) lCodes.Add(eIMAPResponseTextCode.useattr);
+                if (chkRTCUnknownCTE.Checked) lCodes.Add(eIMAPResponseTextCode.unknowncte);
 
                 ZNamedChildAdd(new frmResponseText(mClient, lMaxMessages, lTypes, lCodes));
             }
@@ -668,21 +654,7 @@ namespace testharness2
             }
         }
 
-        private void cmdFRSet_Click(object sender, EventArgs e)
-        {
-            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
-
-            try
-            {
-                mClient.FetchBodyReadConfiguration = new cBatchSizerConfiguration(int.Parse(txtFRMin.Text), int.Parse(txtFRMax.Text), int.Parse(txtFRMaxTime.Text), int.Parse(txtFRInitial.Text));
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this, $"Set fetch body read error\n{ex}");
-            }
-        }
-
-        private void cmdFASet_Click(object sender, EventArgs e)
+        private void cmdFetchCacheItemsSet_Click(object sender, EventArgs e)
         {
             if (!ValidateChildren(ValidationConstraints.Enabled)) return;
 
@@ -692,35 +664,7 @@ namespace testharness2
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, $"Set fetch attributes error\n{ex}");
-            }
-        }
-
-        private void cmdFWSet_Click(object sender, EventArgs e)
-        {
-            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
-
-            try
-            {
-                mClient.FetchBodyWriteConfiguration = new cBatchSizerConfiguration(int.Parse(txtFWMin.Text), int.Parse(txtFWMax.Text), int.Parse(txtFWMaxTime.Text), int.Parse(txtFWInitial.Text));
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this, $"Set fetch body write error\n{ex}");
-            }
-        }
-
-        private void cmdASSet_Click(object sender, EventArgs e)
-        {
-            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
-
-            try
-            {
-                mClient.AppendStreamReadConfiguration = new cBatchSizerConfiguration(int.Parse(txtASMin.Text), int.Parse(txtASMax.Text), int.Parse(txtASMaxTime.Text), int.Parse(txtASInitial.Text));
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this, $"Set append stream read error\n{ex}");
+                MessageBox.Show(this, $"Set fetch cache items error\n{ex}");
             }
         }
 
@@ -829,25 +773,25 @@ namespace testharness2
 
         private void cmdPSet_Click(object sender, EventArgs e)
         {
-            fMessageProperties lProperties = 0;
+            fIMAPMessageProperties lProperties = 0;
 
-            if (chkPEnvelope.Checked) lProperties |= fMessageProperties.envelope;
-            if (chkPSent.Checked) lProperties |= fMessageProperties.sent;
-            if (chkPSubject.Checked) lProperties |= fMessageProperties.subject;
-            if (chkPMessageId.Checked) lProperties |= fMessageProperties.messageid;
-            if (chkPFlags.Checked) lProperties |= fMessageProperties.flags;
-            if (chkPAnswered.Checked) lProperties |= fMessageProperties.answered;
-            if (chkPFlagged.Checked) lProperties |= fMessageProperties.flagged;
-            if (chkPSubmitted.Checked) lProperties |= fMessageProperties.submitted;
-            if (chkPReceived.Checked) lProperties |= fMessageProperties.received;
-            if (chkPSize.Checked) lProperties |= fMessageProperties.size;
-            if (chkPUID.Checked) lProperties |= fMessageProperties.uid;
-            if (chkPModSeq.Checked) lProperties |= fMessageProperties.modseq;
-            if (chkPBodyStructure.Checked) lProperties |= fMessageProperties.bodystructure;
-            if (chkPAttachments.Checked) lProperties |= fMessageProperties.attachments;
-            if (chkPPlainTextSize.Checked) lProperties |= fMessageProperties.plaintextsizeinbytes;
-            if (chkPReferences.Checked) lProperties |= fMessageProperties.references;
-            if (chkPImportance.Checked) lProperties |= fMessageProperties.importance;
+            if (chkPEnvelope.Checked) lProperties |= fIMAPMessageProperties.envelope;
+            if (chkPSent.Checked) lProperties |= fIMAPMessageProperties.sent;
+            if (chkPSubject.Checked) lProperties |= fIMAPMessageProperties.subject;
+            if (chkPMessageId.Checked) lProperties |= fIMAPMessageProperties.messageid;
+            if (chkPFlags.Checked) lProperties |= fIMAPMessageProperties.flags;
+            if (chkPAnswered.Checked) lProperties |= fIMAPMessageProperties.answered;
+            if (chkPFlagged.Checked) lProperties |= fIMAPMessageProperties.flagged;
+            if (chkPSubmitted.Checked) lProperties |= fIMAPMessageProperties.submitted;
+            if (chkPReceived.Checked) lProperties |= fIMAPMessageProperties.received;
+            if (chkPSize.Checked) lProperties |= fIMAPMessageProperties.size;
+            if (chkPUID.Checked) lProperties |= fIMAPMessageProperties.uid;
+            if (chkPModSeq.Checked) lProperties |= fIMAPMessageProperties.modseq;
+            if (chkPBodyStructure.Checked) lProperties |= fIMAPMessageProperties.bodystructure;
+            if (chkPAttachments.Checked) lProperties |= fIMAPMessageProperties.attachments;
+            if (chkPPlainTextSize.Checked) lProperties |= fIMAPMessageProperties.plaintextsizeinbytes;
+            if (chkPReferences.Checked) lProperties |= fIMAPMessageProperties.references;
+            if (chkPImportance.Checked) lProperties |= fIMAPMessageProperties.importance;
 
             mClient.DefaultMessageCacheItems = lProperties;
         }
@@ -893,20 +837,6 @@ namespace testharness2
             ZValBatchSizerConfiguration(gbxFetchCacheItems, txtABMin, txtABMax, txtABInitial, e);
         }
 
-        private void cmdATSet_Click(object sender, EventArgs e)
-        {
-            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
-
-            try
-            {
-                mClient.AppendTargetBufferSize = int.Parse(txtAppendTargetBufferSize.Text);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this, $"Set timeout error\n{ex}");
-            }
-        }
-
         private void cmdAppend_Click(object sender, EventArgs e)
         {
             if (mNamedChildren.TryGetValue(nameof(frmAppend), out var lForm)) Program.Focus(lForm);
@@ -937,29 +867,7 @@ namespace testharness2
             else ZNamedChildAdd(new frmAppendTests(mClient, mFirst));
         }
 
-        private void cmdQPSet_Click(object sender, EventArgs e)
-        {
-            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
-
-            try
-            {
-                mClient.QuotedPrintableEncodeReadWriteConfiguration = new cBatchSizerConfiguration(int.Parse(txtQPMin.Text), int.Parse(txtQPMax.Text), int.Parse(txtQPMaxTime.Text), int.Parse(txtQPInitial.Text));
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this, $"set qp config error\n{ex}");
-            }
-        }
-
-        private void gbxQPReadWriteConfiguration_Validating(object sender, CancelEventArgs e)
-        {
-            ZValBatchSizerConfiguration(gbxQPReadWriteConfiguration, txtQPMin, txtQPMax, txtQPInitial, e);
-        }
-
-        private void cmdEncode_Click(object sender, EventArgs e) => ZEncodeAsync(false);
-        private void cmdEncodeProgress_Click(object sender, EventArgs e) => ZEncodeAsync(true);
-
-        private async void ZEncodeAsync(bool pProgress)
+        private async void cmdEncode_Click(object sender, EventArgs e)
         {
             var lOpenFileDialog = new OpenFileDialog();
             if (lOpenFileDialog.ShowDialog() != DialogResult.OK) return;
@@ -985,16 +893,12 @@ namespace testharness2
             {
                 using (var lSource = new FileStream(lOpenFileDialog.FileName, FileMode.Open, FileAccess.Read))
                 {
-                    if (pProgress)
-                    {
-                        lProgress = new frmProgress("encoding " + lOpenFileDialog.FileName, lSource.Length);
-                        ZUnnamedChildAdd(lProgress, this);
-                    }
+                    lProgress = new frmProgress("encoding " + lOpenFileDialog.FileName, lSource.Length);
+                    ZUnnamedChildAdd(lProgress, this);
 
                     using (FileStream lTarget = new FileStream(lSaveFileDialog.FileName, FileMode.Create))
                     {
-                        if (pProgress) await mClient.QuotedPrintableEncodeAsync(lSource, lSourceType, lQuotingRule, lTarget, new cQuotedPrintableEncodeConfiguration(lProgress.CancellationToken, lProgress.Increment));
-                        else await mClient.QuotedPrintableEncodeAsync(lSource, lSourceType, lQuotingRule, lTarget);
+                        await mClient.QuotedPrintableEncodeAsync(lSource, lSourceType, lQuotingRule, lTarget, new cIncrementConfiguration(lProgress.CancellationToken, lProgress.Increment));
                     }
                 }
             }
@@ -1006,6 +910,20 @@ namespace testharness2
             finally
             {
                 if (lProgress != null) lProgress.Complete();
+            }
+        }
+
+        private void cmdFetchBodySet_Click(object sender, EventArgs e)
+        {
+            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
+
+            try
+            {
+                mClient.FetchBodyConfiguration = new cBatchSizerConfiguration(int.Parse(txtFRMin.Text), int.Parse(txtFRMax.Text), int.Parse(txtFRMaxTime.Text), int.Parse(txtFRInitial.Text));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"Set fetch body error\n{ex}");
             }
         }
     }

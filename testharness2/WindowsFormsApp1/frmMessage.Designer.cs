@@ -89,8 +89,6 @@
             this.lblQueryError = new System.Windows.Forms.Label();
             this.erp = new System.Windows.Forms.ErrorProvider(this.components);
             this.cmdCopyTo = new System.Windows.Forms.Button();
-            this.cmdCopyForAppend = new System.Windows.Forms.Button();
-            this.cmdCopyAsStreamForAppend = new System.Windows.Forms.Button();
             this.tab.SuspendLayout();
             this.tpgEnvelope.SuspendLayout();
             this.tpgText.SuspendLayout();
@@ -790,36 +788,12 @@
             this.cmdCopyTo.UseVisualStyleBackColor = true;
             this.cmdCopyTo.Click += new System.EventHandler(this.cmdCopyTo_Click);
             // 
-            // cmdCopyForAppend
-            // 
-            this.cmdCopyForAppend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdCopyForAppend.Location = new System.Drawing.Point(580, 5);
-            this.cmdCopyForAppend.Name = "cmdCopyForAppend";
-            this.cmdCopyForAppend.Size = new System.Drawing.Size(100, 25);
-            this.cmdCopyForAppend.TabIndex = 4;
-            this.cmdCopyForAppend.Text = "Copy for Append";
-            this.cmdCopyForAppend.UseVisualStyleBackColor = true;
-            this.cmdCopyForAppend.Click += new System.EventHandler(this.cmdCopyForAppend_Click);
-            // 
-            // cmdCopyAsStreamForAppend
-            // 
-            this.cmdCopyAsStreamForAppend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdCopyAsStreamForAppend.Location = new System.Drawing.Point(474, 5);
-            this.cmdCopyAsStreamForAppend.Name = "cmdCopyAsStreamForAppend";
-            this.cmdCopyAsStreamForAppend.Size = new System.Drawing.Size(100, 25);
-            this.cmdCopyAsStreamForAppend.TabIndex = 3;
-            this.cmdCopyAsStreamForAppend.Text = "Stream Append";
-            this.cmdCopyAsStreamForAppend.UseVisualStyleBackColor = true;
-            this.cmdCopyAsStreamForAppend.Click += new System.EventHandler(this.cmdCopyAsStreamForAppend_Click);
-            // 
             // frmMessage
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
             this.ClientSize = new System.Drawing.Size(792, 573);
-            this.Controls.Add(this.cmdCopyAsStreamForAppend);
-            this.Controls.Add(this.cmdCopyForAppend);
             this.Controls.Add(this.cmdCopyTo);
             this.Controls.Add(this.lblQueryError);
             this.Controls.Add(this.tab);
@@ -920,9 +894,7 @@
         private System.Windows.Forms.RadioButton rdoMSTUID;
         private System.Windows.Forms.Panel pnlMessageStream;
         private System.Windows.Forms.RadioButton rdoMSDOther;
-        private System.Windows.Forms.Button cmdCopyForAppend;
         private System.Windows.Forms.Button cmdCopyPartForAppend;
-        private System.Windows.Forms.Button cmdCopyAsStreamForAppend;
         private System.Windows.Forms.Button cmdCopyPartAsStreamForAppendRaw;
         private System.Windows.Forms.GroupBox gbxCopyAsStreamForAppendRaw;
         private System.Windows.Forms.Label label6;

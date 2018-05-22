@@ -88,7 +88,7 @@ namespace work.bacome.imapclient
             return Client.GetDecodedSizeInBytesAsync(MessageHandle, Part, lContext);
         }
 
-        public override Stream GetMessageDataStream() => new cIMAPMessageDataStream(this);
+        public override Stream GetMessageDataStream(bool pDecoded = true) => new cIMAPMessageDataStream(Client, MessageHandle, Part, pDecoded);
 
         public override void SaveAs(string pPath, cSetMaximumConfiguration pConfiguration = null)
         {
@@ -127,7 +127,7 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPAttachment), nameof(ZZSaveAsAsync), pMC, pPath);
 
-            using (var lMessageDataStream = new cIMAPMessageDataStream(this))
+            using (var lMessageDataStream = new cIMAPMessageDataStream(Client, MessageHandle, Part, true))
             {
                 long? lProgressLength;
                 if (pSetMaximum == null) lProgressLength = null;

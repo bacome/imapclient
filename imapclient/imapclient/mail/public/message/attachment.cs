@@ -116,7 +116,7 @@ namespace work.bacome.mailclient
         /// <remarks>
         /// The returned stream must be disposed when you are finished with it.
         /// </remarks>
-        public abstract Stream GetMessageDataStream();
+        public abstract Stream GetMessageDataStream(bool pDecoded = true);
 
         /// <summary>
         /// Saves the attachment to the specified path.

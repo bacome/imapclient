@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using work.bacome.imapclient;
+using work.bacome.mailclient;
 
 namespace testharness2
 {
@@ -19,13 +20,12 @@ namespace testharness2
         private readonly string mInstanceName;
         private readonly frmSelectedMailbox mParent; // for previous/next
         private readonly Action<Form, Form> mAddChildForm;
-        private readonly bool mProgressBar;
         private readonly cMailbox mMailbox;
         private readonly int mMaxTextBytes;
-        private int mCopyAttachmentForAppend;
-        private int mCopyAttachmentAsStreamForAppendRaw;
-        private int mCopyAttachmentAsBase64StreamForAppend;
-        private cMessage mMessage;
+        //private int mCopyAttachmentForAppend;
+        //private int mCopyAttachmentAsStreamForAppendRaw;
+        //private int mCopyAttachmentAsBase64StreamForAppend;
+        private cIMAPMessage mMessage;
         private bool mSubscribed = false;
         private bool mEnvelopeDisplayed = false;
         private bool mTextDisplayed = false;
@@ -40,17 +40,15 @@ namespace testharness2
         private string mRawSectionData = null;
 
         private bool mQueryingFlagCheckboxes = false;
-        private frmProgress mImageLoadProgress = null;
-        private MemoryStream mImageStream = null;
+        private Stream mImageStream = null;
 
         private List<Form> mDownloads = new List<Form>();
 
-        public frmMessage(string pInstanceName, frmSelectedMailbox pParent, Action<Form, Form> pAddChildForm, bool pProgressBar, cMailbox pMailbox, int pMaxTextBytes, cMessage pMessage)
+        public frmMessage(string pInstanceName, frmSelectedMailbox pParent, Action<Form, Form> pAddChildForm, cMailbox pMailbox, int pMaxTextBytes, cIMAPMessage pMessage)
         {
             mInstanceName = pInstanceName;
             mParent = pParent;
             mAddChildForm = pAddChildForm;
-            mProgressBar = pProgressBar;
             mMailbox = pMailbox;
             mMaxTextBytes = pMaxTextBytes;
             mMessage = pMessage;
@@ -97,9 +95,9 @@ namespace testharness2
             dgv.Columns.Add(LColumn(nameof(cGridRowData.Description)));
             dgv.Columns.Add(LColumn(nameof(cGridRowData.Size)));
             dgv.Columns.Add(LColumn(nameof(cGridRowData.FileName)));
-            mCopyAttachmentForAppend = dgv.Columns.Add(LButtonColumn("Copy for Append"));
-            mCopyAttachmentAsStreamForAppendRaw = dgv.Columns.Add(LButtonColumn("Stream Append Raw"));
-            mCopyAttachmentAsBase64StreamForAppend = dgv.Columns.Add(LButtonColumn("Base 64 Stream Append"));
+            //mCopyAttachmentForAppend = dgv.Columns.Add(LButtonColumn("Copy for Append"));
+            //mCopyAttachmentAsStreamForAppendRaw = dgv.Columns.Add(LButtonColumn("Stream Append Raw"));
+            //mCopyAttachmentAsBase64StreamForAppend = dgv.Columns.Add(LButtonColumn("Base 64 Stream Append"));
 
             DataGridViewColumn LColumn(string pName)
             {
@@ -110,6 +108,7 @@ namespace testharness2
                 return lResult;
             }
 
+            /*
             DataGridViewColumn LButtonColumn(string pName)
             {
                 DataGridViewColumn lResult = new DataGridViewColumn();
@@ -117,7 +116,7 @@ namespace testharness2
                 lResult.HeaderCell.Value = pName;
                 lResult.CellTemplate = lButtonColumnTemplate;
                 return lResult;
-            }
+            } */
         }
 
         private string ZTooBig(uint pBytes) => $"<too big: estimated size: {pBytes}>";
@@ -138,7 +137,7 @@ namespace testharness2
                 mBodyStructureDisplayed = false;
                 mOtherDisplayed = false;
 
-                ZImageLoadCancel();
+                ZImageStreamDispose();
                 ZDownloadsClose();
             }
 
@@ -169,7 +168,7 @@ namespace testharness2
                         string lText;
                         uint lBytes = mMessage.PlainTextSizeInBytes;
                         if (lBytes > mMaxTextBytes) lText = ZTooBig(lBytes);
-                        else lText = await mMessage.PlainTextAsync();
+                        else lText = await mMessage.GetPlainTextAsync();
 
                         if (IsDisposed || lQueryAsyncEntryNumber != mQueryAsyncEntryNumber) return;
                         rtxText.Text = lText;
@@ -339,7 +338,7 @@ namespace testharness2
                 mMessageStreamDisplayed = false;
                 mRawSectionData = null;
 
-                ZImageLoadCancel();
+                ZImageStreamDispose();
             }
 
             lblQueryError.Text = "";
@@ -542,29 +541,10 @@ namespace testharness2
 
                 if (lTag.BodyPart is cSinglePartBody lSinglePart && lSinglePart.TypeCode == eBodyPartTypeCode.image)
                 {
-                    string lError = "<something went wrong>";
-
-                    try
-                    {
-                        uint lSize = await mMessage.FetchSizeInBytesAsync(lSinglePart);
-                        if (IsDisposed || pQueryBodyStructureDetailEntryNumber != mQueryBodyStructureDetailEntryNumber) return;
-
-                        await ZImageLoadAsync(pQueryBodyStructureDetailEntryNumber, lSinglePart, lSize);
-                        if (IsDisposed || pQueryBodyStructureDetailEntryNumber != mQueryBodyStructureDetailEntryNumber) return;
-
-                        pbx.Image = Image.FromStream(mImageStream);
-                        pbx.Visible = true;
-                        rtxDecoded.Visible = false;
-                        return;
-                    }
-                    catch (Exception e)
-                    {
-                        lError = e.ToString();
-                    }
-
-                    if (pQueryBodyStructureDetailEntryNumber != mQueryBodyStructureDetailEntryNumber) return;
-
-                    rtxDecoded.Text = lError;
+                    mImageStream = mMessage.GetMessageDataStream(lSinglePart);
+                    pbx.Image = Image.FromStream(mImageStream);
+                    pbx.Visible = true;
+                    rtxDecoded.Visible = false;
                     return;
                 }
             }
@@ -572,54 +552,8 @@ namespace testharness2
             ZQueryBodyStructureRawSectionDataAsync(lTag, pQueryBodyStructureDetailEntryNumber, rtxDecoded);
         }
 
-        private async Task ZImageLoadAsync(int pQueryBodyStructureDetailEntryNumber, cSinglePartBody pPart, uint pSize)
+        private void ZImageStreamDispose()
         {
-            frmProgress lProgress = null;
-            MemoryStream lStream = null;
-
-            try
-            {
-                cBodyFetchConfiguration lConfiguration;
-
-                if (mProgressBar)
-                {
-                    lProgress = new frmProgress("image " + pPart.Section.Part + " [" + pSize + " bytes]", pSize);
-                    lProgress.ShowAndFocus(this);
-                    lConfiguration = new cBodyFetchConfiguration(lProgress.CancellationToken, lProgress.Increment);
-                    mImageLoadProgress = lProgress; // so it can be cancelled from code
-                }
-                else lConfiguration = null;
-
-                lStream = new MemoryStream();
-
-                await mMessage.FetchAsync(pPart, lStream, lConfiguration);
-                if (IsDisposed || pQueryBodyStructureDetailEntryNumber != mQueryBodyStructureDetailEntryNumber) throw new Exception();
-
-                mImageStream = lStream; // so it can be closed
-            }
-            catch (Exception e)
-            {
-                if (lStream != null) lStream.Dispose();
-                if (IsDisposed || pQueryBodyStructureDetailEntryNumber != mQueryBodyStructureDetailEntryNumber) return;
-                rtxDecoded.Text = e.ToString();
-                throw;
-            }
-            finally
-            {
-                if (lProgress != null) lProgress.Complete();
-            }
-        }
-
-        private void ZImageLoadCancel()
-        {
-            if (mImageLoadProgress != null)
-            {
-                try { mImageLoadProgress.Cancel(); }
-                catch { }
-
-                mImageLoadProgress = null;
-            }
-
             if (mImageStream != null)
             {
                 try { mImageStream.Dispose(); }
@@ -659,7 +593,7 @@ namespace testharness2
 
         private void frmMessage_FormClosing(object sender, FormClosingEventArgs e)
         {
-            ZImageLoadCancel();
+            ZImageStreamDispose();
             ZDownloadsClose();
 
             // to allow closing with validation errors
@@ -739,7 +673,7 @@ namespace testharness2
             ZAppendAddresses(pBuilder, "CC: ", pEnvelope.CC);
             ZAppendAddresses(pBuilder, "BCC: ", pEnvelope.BCC);
             pBuilder.AppendLine("In Reply To: " + pEnvelope.InReplyTo);
-            pBuilder.AppendLine("Message Id: " + pEnvelope.MessageId);
+            pBuilder.AppendLine("Msg Id: " + pEnvelope.MsgId);
         }
 
         private void ZAppendAddresses(StringBuilder pBuilder, string pAddressType, cAddresses pAddresses)
@@ -806,7 +740,7 @@ namespace testharness2
             var lData = dgv.Rows[e.RowIndex].DataBoundItem as cGridRowData;
             if (lData == null) return;
 
-            cAttachment lAttachment = lData.Attachment;
+            var lAttachment = lData.Attachment;
 
             var lSaveFileDialog = new SaveFileDialog();
             lSaveFileDialog.FileName = lAttachment.FileName ?? lAttachment.Part.Section.Part + "." + lAttachment.Part.SubType;
@@ -816,10 +750,9 @@ namespace testharness2
 
             try
             {
-                uint lSize = lAttachment.FetchSizeInBytes();
-                lProgress = new frmProgress("saving " + lSaveFileDialog.FileName, lSize);
+                lProgress = new frmProgress("saving " + lSaveFileDialog.FileName);
                 ZDownloadAdd(lProgress);
-                await lAttachment.SaveAsAsync(lSaveFileDialog.FileName, new cBodyFetchConfiguration(lProgress.CancellationToken, lProgress.Increment));
+                await lAttachment.SaveAsAsync(lSaveFileDialog.FileName, new cSetMaximumConfiguration(lProgress.CancellationToken, lProgress.SetMaximum, lProgress.Increment));
             }
             catch (OperationCanceledException) { }
             catch (Exception ex)
@@ -834,6 +767,7 @@ namespace testharness2
 
         private void dgv_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
+            /*
             if (e.RowIndex < 0) return;
 
             var lData = dgv.Rows[e.RowIndex].DataBoundItem as cGridRowData;
@@ -868,7 +802,7 @@ namespace testharness2
                 cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(lData.Attachment), lLength.Value, true);
 
                 return;
-            }
+            } */
         }
 
         private string ZDownloadFileName(cSection pSection)
@@ -878,6 +812,83 @@ namespace testharness2
             if (pSection.TextPart != eSectionTextPart.all) lFileName += "." + pSection.TextPart;
             return lFileName;
         }
+
+        private async void ZDownloadRawAsync(cIMAPMessageDataStream pStream)
+        {
+            var lSaveFileDialog = new SaveFileDialog();
+            lSaveFileDialog.FileName = ZDownloadFileName(pStream.Section) + ".txt";
+            if (lSaveFileDialog.ShowDialog() != DialogResult.OK) return;
+
+            using (var lProgress = new frmProgress("saving " + lSaveFileDialog.FileName))
+            {
+                try
+                {
+                    ZDownloadAdd(lProgress);
+
+                    var lProgressLength = await pStream.GetProgressLengthAsync(lProgress.CancellationToken);
+                    if (lProgressLength != null) lProgress.SetMaximum(lProgressLength.Value);
+
+                    using (FileStream lStream = new FileStream(lSaveFileDialog.FileName, FileMode.Create, FileAccess.Write, FileShare.None))
+                    {
+                        var lBuffer = new byte[1000];
+
+
+
+                        await mMessage.FetchAsync(pSection, eDecodingRequired.none, lStream, new cBodyFetchConfiguration(lProgress.CancellationToken, lProgress.Increment));
+                    }
+                }
+                catch (OperationCanceledException) { }
+                catch (Exception ex)
+                {
+                    if (!IsDisposed) MessageBox.Show(this, $"problem when saving '{lSaveFileDialog.FileName}'\n{ex}");
+                }
+            }
+        }
+
+
+        private void cmdDownloadRaw_Click(object sender, EventArgs e)
+        {
+            if (tvwBodyStructure.SelectedNode == null) return;
+            var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
+
+
+            cIMAPMessageDataStream lStream = null;
+
+            try
+            {
+                if (lTag.Section == null)
+                {
+                    if (lTag.BodyPart is cSinglePartBody lSinglePart) lStream = mMessage.GetIMAPMessageDataStream(lSinglePart, false);
+                    else lStream = mMessage.GetIMAPMessageDataStream(lTag.BodyPart.Section);
+                }
+                else lStream = mMessage.GetIMAPMessageDataStream(lTag.Section);
+
+
+            }
+            finally
+            {
+                if (lStream != null) lStream.Dispose();
+            }
+
+            cSection lSection =
+            uint lSize;
+
+            if (lTag.Section == null)
+            {
+                lSection = lTag.BodyPart.Section;
+                if (lTag.BodyPart is cSinglePartBody lSinglePart) lSize = lSinglePart.SizeInBytes;
+                else lSize = 0;
+            }
+            else
+            {
+                lSection = lTag.Section;
+                if (lTag.Section == cSection.All) lSize = mMessage.Size;
+                else lSize = 0;
+            }
+
+            ZDownloadRaw(lSection, lSize);
+        }
+
 
         private async void ZDownloadRaw(cSection pSection, uint pSize)
         {
@@ -980,9 +991,9 @@ namespace testharness2
 
         private class cGridRowData
         {
-            public readonly cAttachment Attachment;
+            public readonly cMailAttachment Attachment;
 
-            public cGridRowData(cAttachment pAttachment)
+            public cGridRowData(cMailAttachment pAttachment)
             {
                 Attachment = pAttachment ?? throw new ArgumentNullException(nameof(pAttachment));
             }

@@ -90,5 +90,10 @@ namespace testharness2
                 tab.Enabled = true;
             }
         }
+
+        private void cmdDirectory_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

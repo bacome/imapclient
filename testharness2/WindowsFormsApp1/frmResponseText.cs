@@ -15,13 +15,13 @@ namespace testharness2
     {
         private readonly cIMAPClient mClient;
         private readonly int mMaxMessages;
-        private readonly IList<eResponseTextContext> mContexts;
-        private readonly IList<eResponseTextCode> mCodes;
+        private readonly IList<eIMAPResponseTextContext> mContexts;
+        private readonly IList<eIMAPResponseTextCode> mCodes;
         private readonly Queue<string> mQueue = new Queue<string>();
         private readonly StringBuilder mBuilder = new StringBuilder();
         private bool mRefreshRequired = false;
 
-        public frmResponseText(cIMAPClient pClient, int pMaxMessages, IList<eResponseTextContext> pContexts, IList<eResponseTextCode> pCodes)
+        public frmResponseText(cIMAPClient pClient, int pMaxMessages, IList<eIMAPResponseTextContext> pContexts, IList<eIMAPResponseTextCode> pCodes)
         {
             mClient = pClient;
             mMaxMessages = pMaxMessages;
@@ -36,7 +36,7 @@ namespace testharness2
             mClient.ResponseText += mClient_ResponseText;
         }
 
-        private void mClient_ResponseText(object sender, cResponseTextEventArgs e)
+        private void mClient_ResponseText(object sender, cIMAPResponseTextEventArgs e)
         {
             if (mContexts.Contains(e.Context) || mCodes.Contains(e.Text.Code))
             {

@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using work.bacome.imapclient;
+using work.bacome.mailclient;
 
 namespace testharness2
 {

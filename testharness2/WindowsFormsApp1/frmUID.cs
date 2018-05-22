@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using work.bacome.imapclient;
+using work.bacome.mailclient;
 
 namespace testharness2
 {
@@ -319,24 +320,26 @@ namespace testharness2
             return false;
         }
 
-        private async void cmdDisplay_Click(object sender, EventArgs e)
+        private void cmdDisplay_Click(object sender, EventArgs e)
         {
             if (!ZFetchParameters(out var lUID, out var lSection, out var lDecoding)) return;
 
             string lData;
 
-            using (MemoryStream lStream = new MemoryStream())
+            using (var lStream = mClient.SelectedMailbox.GetMessageDataStream(lUID, lSection, lDecoding))
             {
-                if (!await ZFetchToStream(lUID, lSection, lDecoding, $"fetching {lUID} {lSection}", lStream)) return;
-                if (IsDisposed) return;
+                // NOTE: I wouldn't recommend doing it this way, but this demonstrates the ReadByte() method
+                //  (better to use ReadAsync)
 
-                lStream.Position = 0;
+                lStream.ReadTimeout = 1000;
+
                 bool lBufferedCR = false;
                 StringBuilder lBuilder = new StringBuilder();
 
-                while (lStream.Position < lStream.Length)
+                while (true)
                 {
                     int lByte = lStream.ReadByte();
+                    if (lByte == -1) break;
 
                     if (lBufferedCR)
                     {
