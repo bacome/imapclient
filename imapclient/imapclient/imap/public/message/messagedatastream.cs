@@ -22,10 +22,10 @@ namespace work.bacome.imapclient
 
         private int mReadTimeout;
 
-        private iSectionCacheItemReader mSectionCacheItemReader = null;
-        private cSectionCacheItemReader mReader = null;
+        private iSectionReader mSectionReader = null;
+        private cSectionCacheItemReader mCacheItemReader = null;
         private cSectionCacheItem mSectionCacheItem = null;
-        private cSectionCacheItemReaderWriter mReaderWriter = null;
+        private cSectionCacheItemReaderWriter mCacheItemReaderWriter = null;
 
         // support for progress
         private long? mProgressLength = null;
@@ -124,7 +124,7 @@ namespace work.bacome.imapclient
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
 
-            if (mSectionCacheItemReader == null)
+            if (mSectionReader == null)
             {
                 // see if the cache knows
 
@@ -133,10 +133,13 @@ namespace work.bacome.imapclient
                 if (lPersistentKey == null)
                 {
                     if (Client.SectionCache.TryGetItemLength(lNonPersistentKey, out var lLength, lContext)) return lLength;
+                    ;?; // if part and none and not committed, see if I have it decoded; set the qp or b64 reader, start background conversion and 
+                    // if b64 calculate length, set reader, start background converter, return, if qp convert (waiting), set reader, return length
                 }
                 else
                 {
                     if (Client.SectionCache.TryGetItemLength(lPersistentKey, out var lLength, lContext)) return lLength;
+                    ;?; // ditto
                 }
 
                 // see if IMAP knows
@@ -161,7 +164,12 @@ namespace work.bacome.imapclient
                     }
                     else
                     {
-                        if (Decoding == eDecodingRequired.none) return Part.SizeInBytes;
+                        if (Decoding == eDecodingRequired.none)
+                        {
+                            ;?; // commit to not encoding
+                            return Part.SizeInBytes;
+                        }
+
                         var lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(MessageHandle, Part, lContext).ConfigureAwait(false);
                         if (lDecodedSizeInBytes != null) return lDecodedSizeInBytes.Value;
                     }
@@ -172,9 +180,10 @@ namespace work.bacome.imapclient
                 ZSetSectionCacheItemReader(lContext);
             }
 
-            if (mReader != null) return mReader.Length;
-            if (mReaderWriter == null) throw new cInternalErrorException(lContext);
-            return await mReaderWriter.GetLengthAsync(pMC, lContext).ConfigureAwait(false);
+            ;?; // this would need enhancing - if encodingreader, getlengthasync
+            if (mCacheItemReader != null) return mCacheItemReader.Length;
+            if (mCacheItemReaderWriter == null) throw new cInternalErrorException(lContext);
+            return await mCacheItemReaderWriter.GetLengthAsync(pMC, lContext).ConfigureAwait(false);
         }
 
         public override long Position
@@ -182,8 +191,8 @@ namespace work.bacome.imapclient
             get
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
-                if (mSectionCacheItemReader == null) return 0;
-                return mSectionCacheItemReader.ReadPosition;
+                if (mSectionReader == null) return 0;
+                return mSectionReader.ReadPosition;
             }
 
             set
@@ -192,13 +201,14 @@ namespace work.bacome.imapclient
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
                 if (value < 0) throw new ArgumentOutOfRangeException();
-                if (value == 0 && mSectionCacheItemReader == null) return;
+                if (value == 0 && mSectionReader == null) return;
 
                 ZSetSectionCacheItemReader(lContext);
 
-                if (mReader != null) mReader.ReadPosition = value;
-                else if (mReaderWriter == null) throw new cInternalErrorException(lContext);
-                else Client.Wait(mReaderWriter.SetReadPositionAsync(value, lContext), lContext);
+                ;?; // this would need enhancing - if b64 setreadpositionasync, if qp just set?
+                if (mCacheItemReader != null) mCacheItemReader.ReadPosition = value;
+                else if (mCacheItemReaderWriter == null) throw new cInternalErrorException(lContext);
+                else Client.Wait(mCacheItemReaderWriter.SetReadPositionAsync(value, lContext), lContext);
             }
         }
     
@@ -274,11 +284,13 @@ namespace work.bacome.imapclient
 
             ZSetSectionCacheItemReader(lContext);
 
-            if (mReader != null) return mReader.ReadByte();
+            ;?;
+            if (mCacheItemReader != null) return mCacheItemReader.ReadByte();
 
-            if (mReaderWriter == null) throw new cInternalErrorException(lContext);
+            if (mCacheItemReaderWriter == null) throw new cInternalErrorException(lContext);
 
-            var lTask = mReaderWriter.ReadByteAsync(mReadTimeout, lContext);
+            ;?;
+            var lTask = mCacheItemReaderWriter.ReadByteAsync(mReadTimeout, lContext);
             Client.Wait(lTask, lContext);
             return lTask.Result;
         }
@@ -295,7 +307,7 @@ namespace work.bacome.imapclient
             if (pOffset + pCount > pBuffer.Length) throw new ArgumentException();
 
             ZSetSectionCacheItemReader(lContext);
-            return mSectionCacheItemReader.ReadAsync(pBuffer, pOffset, pCount, mReadTimeout, pCancellationToken, lContext);
+            return mSectionReader.ReadAsync(pBuffer, pOffset, pCount, mReadTimeout, pCancellationToken, lContext);
         }
 
         public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
@@ -339,17 +351,20 @@ namespace work.bacome.imapclient
 
             // see if we know the length from the open stream
 
-            if (mReader != null)
+            if (mCacheItemReader != null)
             {
-                mProgressLength = mReader.Length;
+                mProgressLength = mCacheItemReader.Length;
                 return;
             }
 
-            if (mReaderWriter != null && mReaderWriter.WritingHasCompletedOK)
+            if (mCacheItemReaderWriter != null)
             {
-                mProgressLength = await mReaderWriter.GetLengthAsync(pMC, lContext).ConfigureAwait(false);
+                ;?; // this will wait for the read to be finished
+                mProgressLength = await mCacheItemReaderWriter.GetLengthAsync(pMC, lContext).ConfigureAwait(false);
                 return;
             }
+
+            ;?; // if b64 reader, get length, if qpreader, getlengthasync
 
             // see if the cache has the data
 
@@ -362,6 +377,8 @@ namespace work.bacome.imapclient
                     mProgressLength = lProgressLength;
                     return;
                 }
+
+                ;?; // if part and none and not committed, see if I have it decoded; set the qp or b64reader, st ...
             }
             else
             {
@@ -370,6 +387,8 @@ namespace work.bacome.imapclient
                     mProgressLength = lProgressLength;
                     return;
                 }
+
+                ;?; // ditto
             }
 
             // see if IMAP can be used to find the length
@@ -395,14 +414,21 @@ namespace work.bacome.imapclient
                 }
                 else
                 {
-                    if (Decoding != eDecodingRequired.none)
+                    if (Decoding == eDecodingRequired.none)
+                    {
+                        m
+                        ;?; // committed
+
+                        ;?; // and set progress length
+                    }
+                    else
                     {
                         mProgressLength = await Client.GetDecodedSizeInBytesAsync(MessageHandle, Part, lContext).ConfigureAwait(false);
                         if (mProgressLength != null) return;
-                    }
 
-                    mProgressLength = await Client.GetFetchSizeInBytesAsync(MessageHandle, Part, lContext).ConfigureAwait(false);
-                    mProgressLengthIsFetchSizeInBytes = true;
+                        mProgressLength = await Client.GetFetchSizeInBytesAsync(MessageHandle, Part, lContext).ConfigureAwait(false);
+                        mProgressLengthIsFetchSizeInBytes = true;
+                    }
                 }
             }
         }
@@ -413,18 +439,19 @@ namespace work.bacome.imapclient
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
 
-            if (mSectionCacheItemReader == null || mSectionCacheItemReader.ReadPosition == 0) return 0;
+            if (mSectionReader == null || mSectionReader.ReadPosition == 0) return 0;
 
             if (mProgressLengthIsFetchSizeInBytes)
             {
-                if (mReaderWriter == null)
+                if (mCacheItemReaderWriter == null)
                 {
-                    if (mReader == null) throw new cInternalErrorException(lContext);
-                    return mProgressLength.Value * mReader.ReadPosition / mReader.Length;
+                    ;?; // put the others here
+                    if (mCacheItemReader == null) throw new cInternalErrorException(lContext);
+                    return mProgressLength.Value * mCacheItemReader.ReadPosition / mCacheItemReader.Length;
                 }
-                else return mReaderWriter.FetchedBytesReadPosition;
+                else return mCacheItemReaderWriter.FetchedBytesReadPosition;
             }
-            else return mSectionCacheItemReader.ReadPosition;
+            else return mSectionReader.ReadPosition;
         }
 
         private void ZGetSectionCacheKey(out cSectionCacheNonPersistentKey rNonPersistentKey, out iMailboxHandle rMailboxHandle, out cUID rUID, out cSectionCachePersistentKey rPersistentKey)
@@ -458,22 +485,25 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ZSetSectionCacheItemReader));
 
-            if (mSectionCacheItemReader != null) return;
+            if (mSectionReader != null) return;
 
             var lSectionCache = Client.SectionCache;
             ZGetSectionCacheKey(out var lNonPersistentKey, out var lMailboxHandle, out var lUID, out var lPersistentKey);
 
             if (lPersistentKey == null)
             {
-                if (lSectionCache.TryGetItemReader(lNonPersistentKey, out mReader, lContext))
+                if (lSectionCache.TryGetItemReader(lNonPersistentKey, out mCacheItemReader, lContext))
                 {
-                    mSectionCacheItemReader = mReader;
+                    mSectionReader = mCacheItemReader;
                 }
                 else
                 {
+                    ;?; // if part and none and not committed, see if I have it decoded; set and start background conversion
+
+
                     mSectionCacheItem = lSectionCache.GetNewItem(lContext);
-                    mReaderWriter = mSectionCacheItem.GetReaderWriter(lContext);
-                    mSectionCacheItemReader = mReaderWriter;
+                    mCacheItemReaderWriter = mSectionCacheItem.GetReaderWriter(lContext);
+                    mSectionReader = mCacheItemReaderWriter;
 
                     mBackgroundCancellationTokenSource = new CancellationTokenSource();
                     mBackgroundTask = ZBackgroundFetchAsync(lNonPersistentKey, lContext);
@@ -481,15 +511,17 @@ namespace work.bacome.imapclient
             }
             else
             {
-                if (lSectionCache.TryGetItemReader(lPersistentKey, out mReader, lContext))
+                if (lSectionCache.TryGetItemReader(lPersistentKey, out mCacheItemReader, lContext))
                 {
-                    mSectionCacheItemReader = mReader;
+                    mSectionReader = mCacheItemReader;
                 }
                 else
                 {
+                    ;?; // if part and none and not committed, see if I have it decoded; set and start background conversion
+
                     mSectionCacheItem = lSectionCache.GetNewItem(lContext);
-                    mReaderWriter = mSectionCacheItem.GetReaderWriter(lContext);
-                    mSectionCacheItemReader = mReaderWriter;
+                    mCacheItemReaderWriter = mSectionCacheItem.GetReaderWriter(lContext);
+                    mSectionReader = mCacheItemReaderWriter;
 
                     mBackgroundCancellationTokenSource = new CancellationTokenSource();
                     mBackgroundTask = ZBackgroundFetchAsync(lMailboxHandle, lUID, lPersistentKey, lContext);
@@ -505,13 +537,13 @@ namespace work.bacome.imapclient
 
             try
             {
-                mReaderWriter.WriteBegin(lContext);
-                await Client.FetchSectionAsync(MessageHandle, Section, Decoding, mReaderWriter, lCancellationToken, lContext).ConfigureAwait(false);
-                await mReaderWriter.WritingCompletedOKAsync(lCancellationToken, lContext).ConfigureAwait(false);
+                mCacheItemReaderWriter.WriteBegin(lContext);
+                await Client.FetchSectionAsync(MessageHandle, Section, Decoding, mCacheItemReaderWriter, lCancellationToken, lContext).ConfigureAwait(false);
+                await mCacheItemReaderWriter.WritingCompletedOKAsync(lCancellationToken, lContext).ConfigureAwait(false);
             }
             catch (Exception e)
             {
-                mReaderWriter.WritingFailed(e, lContext);
+                mCacheItemReaderWriter.WritingFailed(e, lContext);
                 return;
             }
 
@@ -526,13 +558,13 @@ namespace work.bacome.imapclient
 
             try
             {
-                mReaderWriter.WriteBegin(lContext);
-                await Client.UIDFetchSectionAsync(pMailboxHandle, pUID, Section, Decoding, mReaderWriter, lCancellationToken, lContext).ConfigureAwait(false);
-                await mReaderWriter.WritingCompletedOKAsync(lCancellationToken, lContext).ConfigureAwait(false);
+                mCacheItemReaderWriter.WriteBegin(lContext);
+                await Client.UIDFetchSectionAsync(pMailboxHandle, pUID, Section, Decoding, mCacheItemReaderWriter, lCancellationToken, lContext).ConfigureAwait(false);
+                await mCacheItemReaderWriter.WritingCompletedOKAsync(lCancellationToken, lContext).ConfigureAwait(false);
             }
             catch (Exception e)
             {
-                mReaderWriter.WritingFailed(e, lContext);
+                mCacheItemReaderWriter.WritingFailed(e, lContext);
                 return;
             }
 
@@ -564,15 +596,15 @@ namespace work.bacome.imapclient
                     catch { }
                 }
 
-                if (mReader != null)
+                if (mCacheItemReader != null)
                 {
-                    try { mReader.Dispose(); }
+                    try { mCacheItemReader.Dispose(); }
                     catch { }
                 }
 
-                if (mReaderWriter != null)
+                if (mCacheItemReaderWriter != null)
                 {
-                    try { mReaderWriter.Dispose(); }
+                    try { mCacheItemReaderWriter.Dispose(); }
                     catch { }
                 }
             }

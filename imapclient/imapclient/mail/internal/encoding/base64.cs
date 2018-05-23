@@ -44,6 +44,7 @@ namespace work.bacome.mailclient
 
         public static cByteList Encode(IList<byte> pBytes)
         {
+            if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
             if (pBytes.Count == 0) return new cByteList();
             var lBytes = new cByteList((pBytes.Count + 2) / 3 * 4);
             var lBuffer = new cToBase64Buffer(lBytes);
@@ -51,6 +52,19 @@ namespace work.bacome.mailclient
             lBuffer.Flush();
             return lBytes;
         }
+
+        /*
+        public static cByteList Encode(byte[] pBytes, int pCount)
+        {
+            if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
+            if (pCount == 0) return new cByteList();
+            if (pCount > pBytes.Length) throw new ArgumentOutOfRangeException(nameof(pCount));
+            var lBytes = new cByteList((pCount + 2) / 3 * 4);
+            var lBuffer = new cToBase64Buffer(lBytes);
+            for (int i = 0; i < pCount; i++) lBuffer.Add(pBytes[i]);
+            lBuffer.Flush();
+            return lBytes;
+        } */
 
         public static bool IsInAlphabet(byte lByte) => ZTryDecodeBase64Byte(lByte, out _) || lByte == cASCII.EQUALS;
 

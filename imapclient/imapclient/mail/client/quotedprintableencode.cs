@@ -74,7 +74,7 @@ namespace work.bacome.mailclient
         {
             var lContext = pParentContext.NewMethod(nameof(cMailClient), nameof(ZZQuotedPrintableEncodeAsync), pMC, pSourceType, pQuotingRule);
 
-            byte[] lReadBuffer = new byte[LocalStreamBufferSize];
+            byte[] lReadBuffer = new byte[BufferSize];
             bool lPendingCR = false;
             cQuotedPrintableTarget lTarget = new cQuotedPrintableTarget(pMC, pQuotingRule, pTarget, mSynchroniser, pIncrement, lContext);
 
@@ -85,7 +85,7 @@ namespace work.bacome.mailclient
                 if (pSource.CanTimeout) pSource.ReadTimeout = pMC.Timeout;
                 else _ = pMC.Timeout; // check for timeout
 
-                int lBytesReadIntoBuffer = await pSource.ReadAsync(lReadBuffer, 0, LocalStreamBufferSize, pMC.CancellationToken).ConfigureAwait(false);
+                int lBytesReadIntoBuffer = await pSource.ReadAsync(lReadBuffer, 0, BufferSize, pMC.CancellationToken).ConfigureAwait(false);
 
                 if (lBytesReadIntoBuffer == 0) break;
 
@@ -157,7 +157,7 @@ namespace work.bacome.mailclient
             private readonly List<byte> mPendingWSP = new List<byte>();
             private readonly List<byte> mPendingNonWSP = new List<byte>();
 
-            private byte[] mWriteBuffer = new byte[LocalStreamBufferSize];
+            private byte[] mWriteBuffer = new byte[BufferSize];
             private int mBytesInWriteBuffer = 0;
             private int mWriteBufferInputByteCount = 0;
 
@@ -326,7 +326,7 @@ namespace work.bacome.mailclient
 
             private async Task ZWriteLineAsync()
             {
-                if (mBytesInWriteBuffer + mPendingBytes.Count > LocalStreamBufferSize)
+                if (mBytesInWriteBuffer + mPendingBytes.Count > BufferSize)
                 {
                     await ZWriteBufferAsync().ConfigureAwait(false);
                     mBytesInWriteBuffer = 0;

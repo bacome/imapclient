@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
     internal abstract class cDecoder
     {
         private readonly iFetchSectionTarget mTarget;
-        private readonly byte[] mBuffer = new byte[cMailClient.LocalStreamBufferSize];
+        private readonly byte[] mBuffer = new byte[cMailClient.BufferSize];
 
         public cDecoder(iFetchSectionTarget pTarget)
         {
@@ -45,7 +45,7 @@ namespace work.bacome.imapclient
             do
             {
                 int lBytesInBuffer = 0;
-                while (lBytesInBuffer < cMailClient.LocalStreamBufferSize && pOffset < pDecodedBytes.Count) mBuffer[lBytesInBuffer++] = pDecodedBytes[pOffset++];
+                while (lBytesInBuffer < cMailClient.BufferSize && pOffset < pDecodedBytes.Count) mBuffer[lBytesInBuffer++] = pDecodedBytes[pOffset++];
                 await mTarget.WriteAsync(mBuffer, lBytesInBuffer, lBytesInBuffer + lExtraFetchedBytesProcessed, pCancellationToken, lContext).ConfigureAwait(false);
                 lExtraFetchedBytesProcessed = 0;
             } while (pOffset < pDecodedBytes.Count);

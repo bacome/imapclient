@@ -257,6 +257,7 @@ namespace work.bacome.mailclient
             mComplete = true;
             if (!mCurrentLineHasNonWSP) return null;
             mBytes.AddRange(kCRLF);
+            ;?; // doesn't this mean i've also used 8bit?
             return new cLiteralMessageDataPart(new cBytes(mBytes), mUsedUTF8 ? fMessageDataFormat.utf8headers : 0);
         }
 

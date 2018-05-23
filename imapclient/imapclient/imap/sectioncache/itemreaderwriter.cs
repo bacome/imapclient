@@ -7,7 +7,7 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    internal sealed class cSectionCacheItemReaderWriter : iSectionCacheItemReader, iFetchSectionTarget, IDisposable
+    internal sealed class cSectionCacheItemReaderWriter : iSectionReader, iFetchSectionTarget, IDisposable
     {
         private enum eWritingState { notstarted, inprogress, completedok, failed }
 
@@ -17,8 +17,8 @@ namespace work.bacome.imapclient
         private readonly Stream mStream;
         private readonly Action<cTrace.cContext> mDecrementOpenStreamCount;
         private readonly cTrace.cContext mContextToUseWhenDisposing;
-        private readonly SemaphoreSlim mSemaphore = new SemaphoreSlim(1, 1);
         private readonly CancellationTokenSource mCancellationTokenSource = new CancellationTokenSource();
+        private readonly SemaphoreSlim mSemaphore = new SemaphoreSlim(1, 1);
         private readonly cReleaser mReleaser;
 
         // read
@@ -138,7 +138,6 @@ namespace work.bacome.imapclient
                 lContext.TraceVerbose("reading bytes");
 
                 if (mStream.CanTimeout) mStream.ReadTimeout = lMC.Timeout;
-                else _ = lMC.Timeout; // check for timeout
 
                 mStream.Position = mReadPosition;
                 var lBytesRead = await mStream.ReadAsync(pBuffer, pOffset, pCount, lMC.CancellationToken).ConfigureAwait(false);
@@ -166,7 +165,6 @@ namespace work.bacome.imapclient
                 lContext.TraceVerbose("reading byte");
 
                 if (mStream.CanTimeout) mStream.ReadTimeout = lMC.Timeout;
-                else _ = lMC.Timeout; // check for timeout
 
                 mStream.Position = mReadPosition;
                 var lResult = mStream.ReadByte();
@@ -282,20 +280,6 @@ namespace work.bacome.imapclient
         {
             if (mDisposed) return;
 
-            if (mStream != null)
-            {
-                try { mStream.Dispose(); }
-                catch { }
-            }
-
-            if (Interlocked.Decrement(ref mCount) == 0) mDecrementOpenStreamCount(mContextToUseWhenDisposing);
-
-            if (mSemaphore != null)
-            {
-                try { mSemaphore.Dispose(); }
-                catch { }
-            }
-
             if (mCancellationTokenSource != null)
             {
                 try { mCancellationTokenSource.Cancel(); }
@@ -307,6 +291,20 @@ namespace work.bacome.imapclient
                 try { mReleaser.Dispose(); }
                 catch { }
             }
+
+            if (mSemaphore != null)
+            {
+                try { mSemaphore.Dispose(); }
+                catch { }
+            }
+
+            if (mStream != null)
+            {
+                try { mStream.Dispose(); }
+                catch { }
+            }
+
+            if (Interlocked.Decrement(ref mCount) == 0) mDecrementOpenStreamCount(mContextToUseWhenDisposing);
 
             if (mCancellationTokenSource != null)
             {

@@ -41,7 +41,7 @@ namespace work.bacome.imapclient
                 try
                 {
                     lFullName = Path.GetTempFileName();
-                    lStream = new FileStream(lFullName, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read);
+                    lStream = new FileStream(lFullName, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
                     break;
                 }
                 catch (IOException) { }

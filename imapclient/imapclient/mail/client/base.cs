@@ -33,8 +33,8 @@ namespace work.bacome.mailclient
         // tracing
         internal static readonly cTrace Trace = new cTrace("work.bacome.cMailClient");
 
-        // arbitrary statics
-        internal static readonly int LocalStreamBufferSize = 10000;
+        // arbitrary size
+        internal const int BufferSize = 4096;
 
         // mechanics
         private bool mDisposed = false;

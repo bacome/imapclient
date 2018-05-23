@@ -834,6 +834,7 @@ namespace testharness2
 
 
 
+
                         await mMessage.FetchAsync(pSection, eDecodingRequired.none, lStream, new cBodyFetchConfiguration(lProgress.CancellationToken, lProgress.Increment));
                     }
                 }

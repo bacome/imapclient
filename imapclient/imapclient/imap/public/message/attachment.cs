@@ -137,7 +137,7 @@ namespace work.bacome.imapclient
 
                 using (var lFileStream = new FileStream(pPath, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
-                    var lBuffer = new byte[cMailClient.LocalStreamBufferSize];
+                    var lBuffer = new byte[cMailClient.BufferSize];
 
                     long lLastProgressPosition = 0;
 

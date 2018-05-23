@@ -6,13 +6,7 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    internal interface iSectionCacheItemReader
-    {
-        long ReadPosition { get; }
-        Task<int> ReadAsync(byte[] pBuffer, int pOffset, int pCount, int pTimeout, CancellationToken pCancellationToken, cTrace.cContext pParentContext);
-    }
-
-    internal sealed class cSectionCacheItemReader : iSectionCacheItemReader, IDisposable
+    internal sealed class cSectionCacheItemReader : iSectionReader, IDisposable
     {
         private bool mDisposed = false;
         private readonly Stream mStream;
