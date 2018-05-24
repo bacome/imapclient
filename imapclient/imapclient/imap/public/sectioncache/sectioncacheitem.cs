@@ -6,6 +6,8 @@ namespace work.bacome.imapclient
 {
     public abstract class cSectionCacheItem
     {
+        protected enum eItemState { deleted, exists }
+
         private readonly object mLock = new object();
 
         public readonly cSectionCache Cache;
@@ -64,9 +66,10 @@ namespace work.bacome.imapclient
         }
 
         // the persistent key should be set here if it can only be set while the item is closed
-        protected virtual void Touch(cTrace.cContext pParentContext)
+        protected virtual eItemState Touch(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(Touch));
+            return eItemState.exists;
         }
 
         // called periodically and in cache closedown if the persistent key is not assigned but one is available
@@ -83,9 +86,9 @@ namespace work.bacome.imapclient
             mPersistentKeyAssigned = true;
         }
 
-        protected internal bool PersistentKeyAssigned => mPersistentKeyAssigned;
+        public bool PersistentKeyAssigned => mPersistentKeyAssigned;
 
-        protected internal cSectionCachePersistentKey PersistentKey
+        public cSectionCachePersistentKey PersistentKey
         {
             get
             {
@@ -270,9 +273,18 @@ namespace work.bacome.imapclient
 
                 try
                 {
-                    Touch(lContext);
-                    mChangeSequence++;
-                    return true;
+                    if (Touch(lContext) == eItemState.exists)
+                    {
+                        lContext.TraceVerbose("touched");
+                        mChangeSequence++;
+                        return true;
+                    }
+                    else
+                    {
+                        lContext.TraceVerbose("deleted");
+                        mDeleted = true;
+                        return false;
+                    }
                 }
                 catch (Exception e)
                 {
@@ -292,8 +304,9 @@ namespace work.bacome.imapclient
                 if (!mCached || mPersistentKey == null) throw new InvalidOperationException();
 
                 if (mDeleted || mPersistentKeyAssigned) return;
-                if (mNonPersistentKey.MailboxHandle.SelectedProperties.UIDNotSticky != false) return;
-                
+
+                if (mNonPersistentKey != null && mNonPersistentKey.MailboxHandle.SelectedProperties.UIDNotSticky != false) return;
+
                 try { AssignPersistentKey(mOpenStreamCount == 0, lContext); }
                 catch (Exception e) { lContext.TraceException("assignpersistentkey failure", e); }
 
@@ -337,8 +350,16 @@ namespace work.bacome.imapclient
 
                 try
                 {
-                    Touch(lContext);
-                    mChangeSequence++;
+                    if (Touch(lContext) == eItemState.exists)
+                    {
+                        lContext.TraceVerbose("touched");
+                        mChangeSequence++;
+                    }
+                    else
+                    {
+                        lContext.TraceVerbose("deleted");
+                        mDeleted = true;
+                    }
                 }
                 catch (Exception e)
                 {

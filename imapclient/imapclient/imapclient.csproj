@@ -48,6 +48,7 @@
     <Compile Include="imap\internal\sectioncacheitembase64encoder.cs" />
     <Compile Include="imap\internal\sectioncacheitemquotedprintableencoder.cs" />
     <Compile Include="imap\public\sectioncache\directorysectioncache.cs" />
+    <Compile Include="imap\sectioncache\defaultsectioncache.cs" />
     <Compile Include="imap\public\sectioncache\tempfilesectioncache.cs" />
     <Compile Include="imap\sectioncache\nonpersistentkey.cs" />
     <Compile Include="imap\sectioncache\itemreaderwriter.cs" />
@@ -64,9 +65,13 @@
     <Compile Include="mail\client\quotedprintableencode.cs" />
     <Compile Include="mail\internal\bytescursor\rfc822\getphrase.cs" />
     <Compile Include="mail\convertmailmessage\attachmentdetail.cs" />
+    <Compile Include="mail\internal\encoding\base64decoder.cs" />
     <Compile Include="mail\internal\encoding\base64encoder.cs" />
+    <Compile Include="mail\internal\encoding\encoder.cs" />
     <Compile Include="mail\internal\encoding\encodingrequired.cs" />
     <Compile Include="mail\internal\encoding\headerfieldbytes.cs" />
+    <Compile Include="mail\internal\encoding\quotedprintabledecoder.cs" />
+    <Compile Include="mail\internal\encoding\quotedprintableencoder.cs" />
     <Compile Include="mail\internal\message\message.cs" />
     <Compile Include="mail\internal\other\incrementer.cs" />
     <Compile Include="mail\public\configuration\setmaximumconfiguration.cs" />

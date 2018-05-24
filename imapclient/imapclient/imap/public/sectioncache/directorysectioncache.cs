@@ -561,14 +561,14 @@ namespace work.bacome.imapclient
                 ZCreateInfoFileIfPossible(lContext);
             }
 
-            protected override void Touch(cTrace.cContext pParentContext)
+            protected override eItemState Touch(cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cItem), nameof(Touch));
 
                 if (!PersistentKeyAssigned)
                 {
                     ZCreateInfoFileIfPossible(lContext);
-                    if (PersistentKeyAssigned) return;
+                    if (PersistentKeyAssigned) return eItemState.exists;
                 }
 
                 if (mInfoFileExpectedToExist)
@@ -578,13 +578,15 @@ namespace work.bacome.imapclient
                     if (lFileInfo.Exists)
                     {
                         lFileInfo.CreationTimeUtc = DateTime.UtcNow;
-                        return;
+                        return eItemState.exists;
                     }
                 }
 
                 // create an empty file
                 File.Create(mInfoFileFullName).Dispose();
                 mInfoFileExpectedToExist = true;
+
+                return eItemState.exists;
             }
 
             protected override void AssignPersistentKey(bool pItemClosed, cTrace.cContext pParentContext)

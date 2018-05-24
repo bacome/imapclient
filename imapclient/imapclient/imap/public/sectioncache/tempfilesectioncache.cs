@@ -126,7 +126,11 @@ namespace work.bacome.imapclient
 
             protected override void YDelete(cTrace.cContext pParentContext) => File.Delete(ItemKey);
 
-            protected override void Touch(cTrace.cContext pParentContext) => Interlocked.Increment(ref mTouchSequenceSource);
+            protected override eItemState Touch(cTrace.cContext pParentContext)
+            {
+                Interlocked.Increment(ref mTouchSequenceSource);
+                return eItemState.exists;
+            }
 
             public int TouchSequence => mTouchSequence;
         }

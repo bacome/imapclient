@@ -139,7 +139,7 @@ namespace work.bacome.mailclient
             return lTarget.BytesWritten;
         }
 
-        private class cQuotedPrintableTarget
+        private class cQuotedPrintableTargetx
         {
             private static readonly cBytes kCRLF = new cBytes("\r\n");
             private static readonly cBytes kEQUALSCRLF = new cBytes("=\r\n");
@@ -458,7 +458,6 @@ namespace work.bacome.mailclient
                     "123456789012345678901234567890123456789012345678901234567890123456789012   "
                     },
                     pParentContext);
-
 
 
 

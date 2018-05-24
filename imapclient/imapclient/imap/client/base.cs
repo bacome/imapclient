@@ -82,7 +82,7 @@ namespace work.bacome.imapclient
         //   so at this stage the MDNSent features are commented out as they aren't useful by themselves
 
 
-        private static cSectionCache mDefaultSectionCache = new cTempFileSectionCache("cIMAPClient.DefaultSectionCache", 60000, 100000000, 1000, 2);
+        private static cSectionCache mDefaultSectionCache = new cDefaultSectionCache();
         public static cSectionCache GlobalSectionCache { get; set; } = null;
 
         // mechanics
