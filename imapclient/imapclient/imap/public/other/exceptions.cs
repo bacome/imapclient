@@ -301,13 +301,14 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Thrown when the required content-transfer-decoding can't be done client-side.
     /// </summary>
-    /// <remarks>
-    /// Will be thrown either due to an error in the decoder or due to the library not having a suitable decoder to use.
-    /// </remarks>
-    public class cContentTransferDecodingException : cMailException
+    public class cContentTransferDecodingNotSupportedException : cMailException
     {
-        internal cContentTransferDecodingException(cTrace.cContext pContext) => pContext.TraceError(nameof(cContentTransferDecodingException));
-        internal cContentTransferDecodingException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cContentTransferDecodingException), pMessage);
+        public readonly eDecodingRequired Decoding;
+
+        internal cContentTransferDecodingNotSupportedException(eDecodingRequired pDecoding)
+        {
+            Decoding = pDecoding;
+        }
     }
 
     /// <summary>

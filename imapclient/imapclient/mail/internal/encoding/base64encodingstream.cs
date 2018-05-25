@@ -13,9 +13,11 @@ namespace work.bacome.mailclient
     {
         private readonly Stream mStream;
         private readonly cBase64Encoder mEncoder;
-        private readonly byte[] mInputBytesBuffer = new byte[cMailClient.BufferSize];
-        private readonly Queue<byte> mOutputBytesBuffer = new Queue<byte>();
+        private readonly byte[] mInputBuffer = new byte[cMailClient.BufferSize];
+        private byte[] mBuffer = null;
+        private int mBufferPosition = 0;
         private bool mStreamReadToEnd = false;
+        private
 
         public cBase64EncodingStream(Stream pStream)
         {
@@ -24,11 +26,11 @@ namespace work.bacome.mailclient
             mEncoder = new cBase64Encoder();
         }
 
-        public override bool CanRead => true;
+        public override bool CanRead => mStream.CanRead;
 
         public override bool CanSeek => false;
 
-        public override bool CanTimeout => true;
+        public override bool CanTimeout => mStream.CanTimeout;
 
         public override bool CanWrite => false;
 
@@ -38,12 +40,11 @@ namespace work.bacome.mailclient
 
         public override int ReadTimeout
         {
-            ;?; // nope ... what if the stream can't timeout?
             get => mStream.ReadTimeout;
             set => mStream.ReadTimeout = value;
         }
 
-        public override void Flush() => throw new NotSupportedException();
+        public override void Flush() => mStream.Flush();
 
         public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
 
@@ -55,25 +56,18 @@ namespace work.bacome.mailclient
 
             ZReadInit(pBuffer, pOffset, pCount);
 
-            var lMC = new cMethodControl();
+            int lBytesRead;
 
-            int lBytesRead = 0;
-
-            while (true)
-            {
-                lBytesRead += ZReadFromOutputBytesBuffer(pBuffer, ref pOffset, ref pCount);
-
-                if (pCount == 0 || mStreamReadToEnd) return lBytesRead;
-
-                if (mStream.CanTimeout) mStream.ReadTimeout = lMC.Timeout;
-                else _ = lMC.Timeout;
+            lBytesRead = ZReadFromBuffer(pBuffer, pOffset, pCount);
+            if (lBytesRead != 0 || mStreamReadToEnd) return lBytesRead;
                     
-                var lBytesReadIntoInputBuffer = mStream.Read(mInputBytesBuffer, 0, cMailClient.BufferSize);
+            lBytesRead = mStream.Read(mInputBuffer, 0, cMailClient.BufferSize);
+            if (lBytesRead == 0) mStreamReadToEnd = true;
 
-                mEncoder.Encode(lMC, mInputBytesBuffer, lBytesReadIntoInputBuffer, lcontext);
+            mBuffer = mEncoder.Encode(mInputBuffer, lBytesRead);
 
-                if (lBytesReadIntoInputBuffer == 0) mStreamReadToEnd = true;
-            }
+
+            ;?; // enqueue?
         }
 
         public override async Task<int> ReadAsync(byte[] pBuffer, int pOffset, int pCount, CancellationToken pCancellationToken)

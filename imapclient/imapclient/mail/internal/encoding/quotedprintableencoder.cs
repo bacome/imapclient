@@ -13,11 +13,9 @@ namespace work.bacome.mailclient
         private readonly eQuotedPrintableEncodeSourceType mSourceType;
         private readonly eQuotedPrintableEncodeQuotingRule mQuotingRule;
 
-        private bool mComplete = false;
-
         private bool mPendingCR = false;
-
         private List<byte> mPendingBytes = new List<byte>();
+        private int mPendingInputBytes = 0;
         private readonly List<byte> mPendingWSP = new List<byte>();
         private readonly List<byte> mPendingNonWSP = new List<byte>();
 
@@ -73,6 +71,14 @@ namespace work.bacome.mailclient
             }
         }
 
+        protected sealed override int YGetBufferedInputBytes()
+        {
+            var lResult = mPendingInputBytes + mPendingWSP.Count;
+            if (mPendingCR) lResult++;
+            if (mPendingNonWSP.Count != 0) lResult++;
+            return lResult;
+        }
+
         private void ZAdd(byte pByte)
         {
             bool lNeedsQuoting;
@@ -114,6 +120,7 @@ namespace work.bacome.mailclient
             }
 
             mPendingBytes.AddRange(mPendingWSP);
+            mPendingInputBytes += mPendingWSP.Count;
             mPendingWSP.Clear();
 
             if (lNeedsQuoting)
@@ -122,6 +129,8 @@ namespace work.bacome.mailclient
                 mPendingBytes.AddRange(cTools.ByteToHexBytes(pByte));
             }
             else mPendingBytes.Add(pByte);
+
+            mPendingInputBytes++;
         }
 
         private void ZSoftLineBreak()
@@ -144,6 +153,7 @@ namespace work.bacome.mailclient
 
                     if (mPendingNonWSP.Count == 0)
                     {
+                        mPendingInputBytes = 0;
                         mPendingWSP.Add(lCarriedWSP);
                         return;
                     }
@@ -151,18 +161,24 @@ namespace work.bacome.mailclient
                     mPendingBytes.Add(lCarriedWSP);
                     mPendingBytes.AddRange(mPendingNonWSP);
                     mPendingNonWSP.Clear();
+                    mPendingInputBytes = 2;
 
                     return;
                 }
 
                 mOutput.AddRange(kEQUALSCRLF);
 
-                if (mPendingNonWSP.Count == 0) return;
+                if (mPendingNonWSP.Count == 0)
+                {
+                    mPendingInputBytes = 0;
+                    return;
+                }
 
                 mPendingBytes.AddRange(mPendingWSP);
                 mPendingWSP.Clear();
                 mPendingBytes.AddRange(mPendingNonWSP);
                 mPendingNonWSP.Clear();
+                mPendingInputBytes = 2;
 
                 return;
             }
@@ -172,8 +188,14 @@ namespace work.bacome.mailclient
             mOutput.AddRange(mPendingWSP);
             mPendingWSP.Clear();
             mOutput.AddRange(kEQUALSCRLF);
-            mPendingBytes.AddRange(mPendingNonWSP);
-            mPendingNonWSP.Clear();
+
+            if (mPendingNonWSP.Count == 0) mPendingInputBytes = 0;
+            else
+            {
+                mPendingBytes.AddRange(mPendingNonWSP);
+                mPendingNonWSP.Clear();
+                mPendingInputBytes = 1;
+            }
         }
 
         private void ZAddHardLineBreak()
@@ -185,6 +207,7 @@ namespace work.bacome.mailclient
             mOutput.AddRange(mPendingNonWSP);
             mPendingNonWSP.Clear();
             mOutput.AddRange(kCRLF);
+            mPendingInputBytes = 0;
         }
 
         private void ZFlush()
@@ -201,7 +224,7 @@ namespace work.bacome.mailclient
                 return;
             }
 
-            // this code handles the case where the file doesn't finish with a line terminator
+            // this code handles the case where the data finishes with white space
             //  in that case I have to avoid leaving the output finishing with a soft line break
             //   consider the input line          "12345678901234567890123456789012345678901234567890123456789012345678901234 "
             //     which might go to              "12345678901234567890123456789012345678901234567890123456789012345678901234=20" , but this is too long [over the 76 char line length limit]

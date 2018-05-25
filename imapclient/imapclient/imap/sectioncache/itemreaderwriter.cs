@@ -216,16 +216,15 @@ namespace work.bacome.imapclient
             mWritingState = eWritingState.inprogress;
         }
 
-        public async Task WriteAsync(byte[] pBuffer, int pBytesInBuffer, int pFetchedBytesInBuffer, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        public async Task WriteAsync(byte[] pBuffer, int pFetchedBytesInBuffer, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItemReaderWriter), nameof(WriteAsync), pBytesInBuffer, pFetchedBytesInBuffer);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItemReaderWriter), nameof(WriteAsync), pFetchedBytesInBuffer);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cSectionCacheItemReaderWriter));
             if (mWritingState != eWritingState.inprogress) throw new InvalidOperationException();
 
             if (pBuffer == null) throw new ArgumentNullException(nameof(pBuffer));
-            if (pBytesInBuffer < 0 || pBytesInBuffer > pBuffer.Length) throw new ArgumentOutOfRangeException(nameof(pBytesInBuffer));
-            if (pFetchedBytesInBuffer < pBytesInBuffer) throw new ArgumentOutOfRangeException(nameof(pFetchedBytesInBuffer));
+            if (pFetchedBytesInBuffer < pBuffer.Length) throw new ArgumentOutOfRangeException(nameof(pFetchedBytesInBuffer));
 
             await mSemaphore.WaitAsync(pCancellationToken).ConfigureAwait(false);
 
@@ -233,10 +232,10 @@ namespace work.bacome.imapclient
             {
                 lContext.TraceVerbose("writing");
 
-                if (pBytesInBuffer > 0)
+                if (pBuffer.Length > 0)
                 {
                     mStream.Position = mWritePosition;
-                    await mStream.WriteAsync(pBuffer, 0, pBytesInBuffer, pCancellationToken).ConfigureAwait(false);
+                    await mStream.WriteAsync(pBuffer, 0, pBuffer.Length, pCancellationToken).ConfigureAwait(false);
                     mWritePosition = mStream.Position;
                 }
 

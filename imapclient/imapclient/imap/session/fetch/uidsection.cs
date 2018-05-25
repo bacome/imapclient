@@ -27,7 +27,7 @@ namespace work.bacome.imapclient
                 if (pTarget == null) throw new ArgumentNullException(nameof(pTarget));
 
                 bool lBinary = _Capabilities.Binary && pSection.TextPart == eSectionTextPart.all && pDecoding != eDecodingRequired.none;
-                cDecoder lDecoder = cDecoder.GetDecoder(lBinary, pDecoding, pTarget, lContext);
+                cFetchSectionTargetWriter lWriter = new cFetchSectionTargetWriter(lBinary, pDecoding, pTarget);
 
                 uint lOrigin = 0;
                 Stopwatch lStopwatch = new Stopwatch();
@@ -49,7 +49,7 @@ namespace work.bacome.imapclient
                     int lOffset = (int)(lOrigin - lBodyOrigin);
 
                     // write the bytes
-                    await lDecoder.WriteAsync(lBody.Bytes, lOffset, pCancellationToken, lContext).ConfigureAwait(false);
+                    await lWriter.WriteAsync(lBody.Bytes, lOffset, pCancellationToken, lContext).ConfigureAwait(false);
 
                     // if the body we got was the whole body, we are done
                     if (lBody.Origin == null) break;
@@ -62,7 +62,7 @@ namespace work.bacome.imapclient
                 }
 
                 // finish the write
-                await lDecoder.FlushAsync(pCancellationToken, lContext).ConfigureAwait(false);
+                await lWriter.WriteAsync(cBytes.Empty, 0, pCancellationToken, lContext).ConfigureAwait(false);
             }
         }
     }

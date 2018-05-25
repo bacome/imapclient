@@ -22,6 +22,7 @@ namespace work.bacome.imapclient
 
         private int mReadTimeout;
 
+        private bool mCommittedToNotEncodingACachedCopy = false; // I become committed if I make a statement about the length
         private iSectionReader mSectionReader = null;
         private cSectionCacheItemReader mCacheItemReader = null;
         private cSectionCacheItem mSectionCacheItem = null;
@@ -33,8 +34,8 @@ namespace work.bacome.imapclient
 
         // background fetch task
         private CancellationTokenSource mBackgroundCancellationTokenSource = null;
-        private Task mBackgroundTask = null;        
-
+        private Task mBackgroundTask = null;   
+        
         internal cIMAPMessageDataStream(cIMAPClient pClient, iMessageHandle pMessageHandle, cSinglePartBody pPart, bool pDecoded)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
@@ -166,7 +167,7 @@ namespace work.bacome.imapclient
                     {
                         if (Decoding == eDecodingRequired.none)
                         {
-                            ;?; // commit to not encoding
+                            ;?; // commit to not encoding a local copy
                             return Part.SizeInBytes;
                         }
 

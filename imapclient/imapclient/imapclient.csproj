@@ -45,8 +45,6 @@
   <ItemGroup>
     <Compile Include="imap\client\fetchsectiontarget.cs" />
     <Compile Include="imap\internal\sectionreader.cs" />
-    <Compile Include="imap\internal\sectioncacheitembase64encoder.cs" />
-    <Compile Include="imap\internal\sectioncacheitemquotedprintableencoder.cs" />
     <Compile Include="imap\public\sectioncache\directorysectioncache.cs" />
     <Compile Include="imap\sectioncache\defaultsectioncache.cs" />
     <Compile Include="imap\public\sectioncache\tempfilesectioncache.cs" />
@@ -58,6 +56,7 @@
     <Compile Include="imap\public\sectioncache\sectioncacheitem.cs" />
     <Compile Include="imap\public\sectioncache\sectioncachepersistentkey.cs" />
     <Compile Include="imap\public\message\messagedatastream.cs" />
+    <Compile Include="imap\session\fetch\sectiontargetwriter.cs" />
     <Compile Include="imap\session\fetch\uidsection.cs" />
     <Compile Include="imap\support\mailboxcache.cs" />
     <Compile Include="mail\convertmailmessage\base.cs" />
@@ -67,6 +66,7 @@
     <Compile Include="mail\convertmailmessage\attachmentdetail.cs" />
     <Compile Include="mail\internal\encoding\base64decoder.cs" />
     <Compile Include="mail\internal\encoding\base64encoder.cs" />
+    <Compile Include="mail\internal\encoding\decoder.cs" />
     <Compile Include="mail\internal\encoding\encoder.cs" />
     <Compile Include="mail\internal\encoding\encodingrequired.cs" />
     <Compile Include="mail\internal\encoding\headerfieldbytes.cs" />

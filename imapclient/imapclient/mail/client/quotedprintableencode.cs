@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -25,7 +24,7 @@ namespace work.bacome.mailclient
             return lTask.Result;
         }
 
-        public Task<long> QuotedPrintableEncodeAsync(Stream pSource, Stream pTarget, cIncrementConfiguration pConfiguration = null)
+        public Task<long> QuotedPrintableEncodeAsync(Stream pSource, Stream pTarget = null, cIncrementConfiguration pConfiguration = null)
         {
             var lContext = RootContext.NewMethodV(nameof(cMailClient), nameof(QuotedPrintableEncodeAsync), 1, pConfiguration);
             return ZQuotedPrintableEncodeAsync(pSource, kQuotedPrintableEncodeDefaultSourceType, eQuotedPrintableEncodeQuotingRule.EBCDIC, pTarget, pConfiguration, lContext);
@@ -74,71 +73,45 @@ namespace work.bacome.mailclient
         {
             var lContext = pParentContext.NewMethod(nameof(cMailClient), nameof(ZZQuotedPrintableEncodeAsync), pMC, pSourceType, pQuotingRule);
 
-            byte[] lReadBuffer = new byte[BufferSize];
-            bool lPendingCR = false;
-            cQuotedPrintableTarget lTarget = new cQuotedPrintableTarget(pMC, pQuotingRule, pTarget, mSynchroniser, pIncrement, lContext);
+            long lResult = 0;
+            byte[] lBuffer = new byte[BufferSize];
+            cQuotedPrintableEncoder lEncoder = new cQuotedPrintableEncoder(pSourceType, pQuotingRule);
+            int lLastBufferedInputBytes = 0;
 
             while (true)
             {
-                // read some data
-
                 if (pSource.CanTimeout) pSource.ReadTimeout = pMC.Timeout;
                 else _ = pMC.Timeout; // check for timeout
 
-                int lBytesReadIntoBuffer = await pSource.ReadAsync(lReadBuffer, 0, BufferSize, pMC.CancellationToken).ConfigureAwait(false);
+                int lBytesRead = await pSource.ReadAsync(lBuffer, 0, BufferSize, pMC.CancellationToken).ConfigureAwait(false);
 
-                if (lBytesReadIntoBuffer == 0) break;
-
-                // process the data
-
-                int lReadBufferPosition = 0;
-
-                while (lReadBufferPosition < lBytesReadIntoBuffer)
+                if (pTarget == null) lResult += lEncoder.GetEncodedLength(lBuffer, lBytesRead);
+                else
                 {
-                    var lByte = lReadBuffer[lReadBufferPosition++];
+                    var lWriteBuffer = lEncoder.Encode(lBuffer, lBytesRead);
 
-                    if (pSourceType == eQuotedPrintableEncodeSourceType.CRLFTerminatedLines)
+                    if (lWriteBuffer != null)
                     {
-                        if (lPendingCR)
-                        {
-                            lPendingCR = false;
+                        lResult += lWriteBuffer.Length;
 
-                            if (lByte == cASCII.LF)
-                            {
-                                await lTarget.AddHardLineBreakAsync(2).ConfigureAwait(false);
-                                continue;
-                            }
+                        if (pTarget.CanTimeout) pTarget.WriteTimeout = pMC.Timeout;
+                        else _ = pMC.Timeout; // check for timeout
 
-                            await lTarget.AddAsync(cASCII.CR).ConfigureAwait(false);
-                        }
-
-                        if (lByte == cASCII.CR)
-                        {
-                            lPendingCR = true;
-                            continue;
-                        }
+                        await pTarget.WriteAsync(lWriteBuffer, 0, lWriteBuffer.Length, pMC.CancellationToken).ConfigureAwait(false);
                     }
-                    else if (pSourceType == eQuotedPrintableEncodeSourceType.LFTerminatedLines)
-                    {
-                        if (lByte == cASCII.LF)
-                        {
-                            await lTarget.AddHardLineBreakAsync(1).ConfigureAwait(false);
-                            continue;
-                        }
-                    }
-
-                    await lTarget.AddAsync(lByte).ConfigureAwait(false);
                 }
+
+                int lThisBufferedInputBytes = lEncoder.GetBufferedInputBytes();
+                int lBytesThatWereBuffered = lThisBufferedInputBytes - lLastBufferedInputBytes;
+                lLastBufferedInputBytes = lThisBufferedInputBytes;
+
+                mSynchroniser.InvokeActionInt(pIncrement, lBytesRead - lBytesThatWereBuffered, lContext);
+
+                if (lBytesRead == 0) return lResult;
             }
-
-            // flush any cached output data
-            if (lPendingCR) await lTarget.AddAsync(cASCII.CR).ConfigureAwait(false);
-            await lTarget.FlushAsync().ConfigureAwait(false);
-
-            // done
-            return lTarget.BytesWritten;
         }
 
+        /* TODO: remove
         private class cQuotedPrintableTargetx
         {
             private static readonly cBytes kCRLF = new cBytes("\r\n");
@@ -354,6 +327,7 @@ namespace work.bacome.mailclient
                 mSynchroniser.InvokeActionInt(mIncrement, mWriteBufferInputByteCount, mContextForIncrement);
             }
         }
+        */
 
         internal static partial class cTests
         {

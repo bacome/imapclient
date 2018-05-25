@@ -9,7 +9,8 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    internal abstract class cDecoder
+    /* TODO delete
+    internal abstract class cFetchDecoderx
     {
         private readonly iFetchSectionTarget mTarget;
         private readonly byte[] mBuffer = new byte[cMailClient.BufferSize];
@@ -236,40 +237,5 @@ namespace work.bacome.imapclient
         }
 
         [Conditional("DEBUG")]
-        public static void _Tests(cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cQuotedPrintableDecoder), nameof(_Tests));
-
-            using (var lCache = new cTempFileSectionCache("test_decoder", 60000, 1000, 1, 2))
-            {
-                if (LTest("testNow's the time =    \r\n", "for all folk to come=\t \t \r\n", " to the aid of their country.   \t\r\n") != "Now's the time for all folk to come to the aid of their country.\r\n") throw new cTestsException($"{nameof(cQuotedPrintableDecoder)}.1");
-                if (LTest("testNow's the time =    \r\n", "for all folk to come=\t \t \r\n", " to the aid of their country.   \t") != "Now's the time for all folk to come to the aid of their country.") throw new cTestsException($"{nameof(cQuotedPrintableDecoder)}.2");
-            }
-
-            string LTest(params string[] pLines)
-            {
-                using (var lTester = new _Tester())
-                {
-                    cDecoder lDecoder = new cQuotedPrintableDecoder(lTester);
-
-                    long lBytesSent = 0;
-                    int lOffset = 4;
-
-                    foreach (var lLine in pLines)
-                    {
-                        var lBytes = new cBytes(lLine);
-                        lDecoder.WriteAsync(lBytes, lOffset, CancellationToken.None, lContext).Wait();
-                        lBytesSent += lBytes.Count - lOffset;
-                        lOffset = 0;
-                    }
-
-                    lDecoder.FlushAsync(CancellationToken.None, lContext).Wait();
-
-                    if (lTester.FetchedBytesWritten != lBytesSent) throw new cTestsException("bytes sent/written mismatch");
-
-                    return new string(System.Text.Encoding.UTF8.GetChars(lTester.GetBuffer(), 0, lTester.Length));
-                }
-            }
-        }
-    }
+    } */
 }

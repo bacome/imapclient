@@ -155,6 +155,11 @@ namespace work.bacome.mailclient
         public cDeserialiseException(string pMessage) : base(pMessage) { }
     }
 
+    public class cDecodingException : cMailException
+    {
+        public cDecodingException(string pMessage) : base(pMessage) { }
+    }
+
     internal class cTestsException : Exception
     {
         internal cTestsException() { }
