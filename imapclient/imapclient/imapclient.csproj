@@ -61,7 +61,6 @@
     <Compile Include="imap\support\mailboxcache.cs" />
     <Compile Include="mail\convertmailmessage\base.cs" />
     <Compile Include="imap\client\getdecodedsizeinbytes.cs" />
-    <Compile Include="mail\client\quotedprintableencode.cs" />
     <Compile Include="mail\internal\bytescursor\rfc822\getphrase.cs" />
     <Compile Include="mail\convertmailmessage\attachmentdetail.cs" />
     <Compile Include="mail\internal\encoding\base64decoder.cs" />
@@ -72,9 +71,13 @@
     <Compile Include="mail\internal\encoding\headerfieldbytes.cs" />
     <Compile Include="mail\internal\encoding\quotedprintabledecoder.cs" />
     <Compile Include="mail\internal\encoding\quotedprintableencoder.cs" />
+    <Compile Include="mail\internal\encoding\tests.cs" />
     <Compile Include="mail\internal\message\message.cs" />
     <Compile Include="mail\internal\other\incrementer.cs" />
     <Compile Include="mail\public\configuration\setmaximumconfiguration.cs" />
+    <Compile Include="mail\public\other\encoding.cs" />
+    <Compile Include="mail\support\decodingstream.cs" />
+    <Compile Include="mail\support\encodingstream.cs" />
     <Compile Include="mail\public\message\attachment.cs" />
     <Compile Include="mail\public\message\message.cs" />
     <Compile Include="mail\public\other\convertmailmessagedisposables.cs" />
@@ -105,7 +108,6 @@
     <Compile Include="imap\session\imap_commands\authenticated\append.cs" />
     <Compile Include="imap\session\imap_commands\not_authenticated\authenticated.cs" />
     <Compile Include="smtp\client.cs" />
-    <Compile Include="mail\internal\encoding\base64encodingstream.cs" />
     <Compile Include="imap\internal\appenddatalist.cs" />
     <Compile Include="mail\internal\other\mailmessagelist.cs" />
     <Compile Include="mail\internal\other\apidocumentation.cs" />

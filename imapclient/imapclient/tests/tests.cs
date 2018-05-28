@@ -32,10 +32,9 @@ namespace work.bacome.imapclient
             cStorableFlagList._Tests(lContext);
             //cHeaderFieldAppendDataPart._Tests(lContext);
             cQuotedPrintableDecoder._Tests(lContext);
-            cBase64EncodingStream._Tests(lContext);
+            cEncodingTests._Tests(lContext);
             cHeaderFieldBytes._Tests(lContext);
             //cHeaderFieldValuePart._Tests(lContext);
-            cTests.QuotedPrintableEncodeTests(lContext);
             cAccountId._Tests();
             cValidation._Tests();
         }

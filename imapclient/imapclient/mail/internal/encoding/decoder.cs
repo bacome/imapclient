@@ -15,7 +15,7 @@ namespace work.bacome.mailclient
         public byte[] Decode(IList<byte> pInput, int pOffset, int pCount)
         {
             ZDecode(pInput, pOffset, pCount);
-            if (mOutput.Count == 0) return null;
+            if (mOutput.Count == 0) return cMailClient.ZeroLengthBuffer;
             var lOutput = mOutput.ToArray();
             mOutput.Clear();
             return lOutput;

@@ -10,8 +10,8 @@ namespace work.bacome.mailclient
         private static readonly cBytes kEQUALSCRLF = new cBytes("=\r\n");
         private static readonly cBytes kEBCDICNotSome = new cBytes("!\"#$@[\\]^`{|}~");
 
-        private readonly eQuotedPrintableEncodeSourceType mSourceType;
-        private readonly eQuotedPrintableEncodeQuotingRule mQuotingRule;
+        private readonly eQuotedPrintableEncodingType mType;
+        private readonly eQuotedPrintableEncodingRule mRule;
 
         private bool mPendingCR = false;
         private List<byte> mPendingBytes = new List<byte>();
@@ -19,10 +19,10 @@ namespace work.bacome.mailclient
         private readonly List<byte> mPendingWSP = new List<byte>();
         private readonly List<byte> mPendingNonWSP = new List<byte>();
 
-        public cQuotedPrintableEncoder(eQuotedPrintableEncodeSourceType pSourceType, eQuotedPrintableEncodeQuotingRule pQuotingRule)
+        public cQuotedPrintableEncoder(eQuotedPrintableEncodingType pType, eQuotedPrintableEncodingRule pRule)
         {
-            mSourceType = pSourceType;
-            mQuotingRule = pQuotingRule;
+            mType = pType;
+            mRule = pRule;
         }
 
         protected sealed override void YEncode(byte[] pInput, int pCount)
@@ -37,7 +37,7 @@ namespace work.bacome.mailclient
             {
                 var lByte = pInput[i];
 
-                if (mSourceType == eQuotedPrintableEncodeSourceType.CRLFTerminatedLines)
+                if (mType == eQuotedPrintableEncodingType.CRLFTerminatedLines)
                 {
                     if (mPendingCR)
                     {
@@ -58,7 +58,7 @@ namespace work.bacome.mailclient
                         continue;
                     }
                 }
-                else if (mSourceType == eQuotedPrintableEncodeSourceType.LFTerminatedLines)
+                else if (mType == eQuotedPrintableEncodingType.LFTerminatedLines)
                 {
                     if (lByte == cASCII.LF)
                     {
@@ -88,7 +88,7 @@ namespace work.bacome.mailclient
             else if (pByte == cASCII.EQUALS) lNeedsQuoting = true;
             else if (pByte < cASCII.DEL)
             {
-                if (mQuotingRule == eQuotedPrintableEncodeQuotingRule.EBCDIC && kEBCDICNotSome.Contains(pByte)) lNeedsQuoting = true;
+                if (mRule == eQuotedPrintableEncodingRule.EBCDIC && kEBCDICNotSome.Contains(pByte)) lNeedsQuoting = true;
                 else lNeedsQuoting = false;
             }
             else lNeedsQuoting = true;
@@ -212,6 +212,8 @@ namespace work.bacome.mailclient
 
         private void ZFlush()
         {
+            // this code handles the case where the data does not finish with a line terminator
+
             if (mPendingCR) ZAdd(cASCII.CR);
             else if (mPendingBytes.Count == 0 && mPendingWSP.Count == 0) return; // can't have pending nonwsp unless there is something else pending
 
@@ -247,9 +249,6 @@ namespace work.bacome.mailclient
             // add the last white space, encoded
             mOutput.Add(cASCII.EQUALS);
             mOutput.AddRange(cTools.ByteToHexBytes(mPendingWSP[mPendingWSP.Count - 1]));
-
-            // terminate the line
-            mOutput.AddRange(kCRLF);
         }
     }
 }

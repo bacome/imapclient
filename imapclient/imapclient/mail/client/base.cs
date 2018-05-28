@@ -33,6 +33,9 @@ namespace work.bacome.mailclient
         // tracing
         internal static readonly cTrace Trace = new cTrace("work.bacome.cMailClient");
 
+        // empty byte buffer
+        internal static readonly byte[] ZeroLengthBuffer = new byte[0];
+
         // arbitrary size
         internal const int BufferSize = 4096;
 

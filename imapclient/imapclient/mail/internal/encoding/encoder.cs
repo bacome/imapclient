@@ -13,7 +13,7 @@ namespace work.bacome.mailclient
         public byte[] Encode(byte[] pInput, int pCount)
         {
             ZEncode(pInput, pCount);
-            if (mOutput.Count == 0) return null;
+            if (mOutput.Count == 0) return cMailClient.ZeroLengthBuffer;
             var lOutput = mOutput.ToArray();
             mOutput.Clear();
             return lOutput;

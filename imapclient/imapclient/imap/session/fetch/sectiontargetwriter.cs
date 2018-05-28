@@ -47,12 +47,6 @@ namespace work.bacome.imapclient
 
                         var lBuffer = mDecoder.Decode(pBytes, pOffset, lCount);
 
-                        if (lBuffer == null)
-                        {
-                            mLastBufferedInputBytes = mDecoder.GetBufferedInputBytes();
-                            return Task.WhenAll(); // TODO: convert to completed task
-                        }
-
                         int lThisBufferedInputBytes = mDecoder.GetBufferedInputBytes();
                         int lBytesThatWereBuffered = lThisBufferedInputBytes - mLastBufferedInputBytes;
                         mLastBufferedInputBytes = mDecoder.GetBufferedInputBytes();

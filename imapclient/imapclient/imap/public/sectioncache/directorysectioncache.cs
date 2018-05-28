@@ -63,6 +63,7 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cDirectorySectionCache), nameof(YGetNewItem));
 
+            ;?;
             ZNewFile(kData, FileShare.Read, out var lItemKey, out var lDataFileFullName, out var lStream);
 
             var lInfoFileFullName = ZFullName(lItemKey, kInfo);

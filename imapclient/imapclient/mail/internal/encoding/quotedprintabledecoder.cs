@@ -99,12 +99,12 @@ namespace work.bacome.mailclient
                     {
                         var lBytes = new cBytes(lLine);
                         lBuffer = lDecoder.Decode(lBytes, lOffset, lBytes.Count - lOffset);
-                        if (lBuffer != null) lStream.Write(lBuffer, 0, lBuffer.Length);
+                        lStream.Write(lBuffer, 0, lBuffer.Length);
                         lOffset = 0;
                     }
 
                     lBuffer = lDecoder.Decode(cBytes.Empty, 0, 0);
-                    if (lBuffer != null) lStream.Write(lBuffer, 0, lBuffer.Length);
+                    lStream.Write(lBuffer, 0, lBuffer.Length);
 
                     return new string(System.Text.Encoding.UTF8.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
                 }
