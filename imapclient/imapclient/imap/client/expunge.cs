@@ -22,7 +22,13 @@ namespace work.bacome.imapclient
             using (var lToken = CancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
-                if (pAndUnselect) await lSession.CloseAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
+
+                if (pAndUnselect)
+                {
+                    await lSession.CloseAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
+                    ;?; // chache hook
+                }
+
                 else await lSession.ExpungeAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
             }
         }

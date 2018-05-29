@@ -34,7 +34,7 @@ namespace work.bacome.mailclient
 
         protected sealed override int YGetBufferedInputBytes() => mPendingInput.Count;
 
-        public static long EncodedLength(long pUnencodedLength)
+        public static long GetEncodedLength(long pUnencodedLength)
         {
             if (pUnencodedLength < 0) throw new ArgumentOutOfRangeException(nameof(pUnencodedLength));
 

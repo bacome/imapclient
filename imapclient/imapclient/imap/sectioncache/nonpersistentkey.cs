@@ -19,7 +19,14 @@ namespace work.bacome.imapclient
             Decoding = pDecoding;
         }
 
-        public bool IsValid => ReferenceEquals(Client.SelectedMailboxDetails?.MessageCache, MessageHandle.MessageCache);
+        public bool IsValidToCache
+        {
+            get
+            {
+                if (MessageHandle.Expunged) return false;
+                return ReferenceEquals(Client.SelectedMailboxDetails?.MessageCache, MessageHandle.MessageCache);
+            }
+        }
 
         public cAccountId AccountId => MessageHandle.MessageCache.MailboxHandle.MailboxCache.AccountId;
         public iMailboxHandle MailboxHandle => MessageHandle.MessageCache.MailboxHandle;

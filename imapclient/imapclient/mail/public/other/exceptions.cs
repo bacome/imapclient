@@ -150,6 +150,11 @@ namespace work.bacome.mailclient
         internal cStreamRanOutOfDataException() { }
     }
 
+    public class cStreamPositionException : cMailException
+    {
+        internal cStreamPositionException() { }
+    }
+
     public class cDeserialiseException : cMailException
     {
         public cDeserialiseException(string pMessage) : base(pMessage) { }

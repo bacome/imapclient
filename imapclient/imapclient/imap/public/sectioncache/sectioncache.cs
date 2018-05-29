@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
@@ -56,6 +57,11 @@ namespace work.bacome.imapclient
             return false;
         }
 
+        protected virtual void Copy(cAccountId pAccountId, cMailboxName pSourceMailboxName, cMailboxName pDestinationMailboxName, cCopyFeedback pCopyFeedback, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(Copy), pAccountId, pSourceMailboxName, pDestinationMailboxName, pCopyFeedback);
+        }
+
         protected virtual void Maintenance(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(Maintenance));
@@ -64,6 +70,25 @@ namespace work.bacome.imapclient
         public bool IsDisposed => mDisposed || mDisposing;
 
         protected internal int GetItemSequence() => Interlocked.Increment(ref mItemSequence);
+
+
+
+
+
+        ;?; // uidvalidity, expunge, copy
+
+        internal void Expunged(iMessageHandle pMessageHandle, cTrace.cContext pParentContext)
+        {
+
+        }
+
+        internal void Closed(cMessageHandleList pExpungedMessageHandles, cTrace.cContext pParentContext)
+        {
+
+        }
+
+
+
 
         internal bool TryGetItemLength(cSectionCachePersistentKey pKey, out long rLength, cTrace.cContext pParentContext)
         {
@@ -320,7 +345,7 @@ namespace work.bacome.imapclient
 
                 if (lNPKItem.PersistentKey == null)
                 {
-                    if (mDisposing || !lPair.Key.IsValid)
+                    if (mDisposing || !lPair.Key.IsValidToCache)
                     {
                         lNPKItem.TryDelete(-1, lContext);
                         if (pCancellationToken.IsCancellationRequested) return;

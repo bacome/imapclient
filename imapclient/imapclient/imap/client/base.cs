@@ -81,6 +81,19 @@ namespace work.bacome.imapclient
         //    or there are errors (like duplicate headers)
         //   so at this stage the MDNSent features are commented out as they aren't useful by themselves
 
+        // TODO
+        //  sectioncache enhancements;
+        //   introduce a new attribute on the item: to be deleted ... this is set if any of the following deletes can't be done because the item is open,
+        //    then when the item is closed, it would do the delete
+        //
+        //   on learning a UIDValidity, or of a UIDValidity change, tell the cache so it can delete items for that mailbox that do not have the UIDValidity
+        //    [this would be passed on to the concrete implementation so it can delete files, the abstract would scan its list of PK items and trydelete(markastobe) ]
+        //
+        //   on learning of an expunge for a message that I have a UID for tell the cache. delete all PK files (and pass on if none), also, delete any NPK file that matches
+        //   on mailbox close, give a list of tobedeleted messages (with UID) 
+        //
+        //   on a copy/ uidcopy; if there is feedback, tell the cache so if it wants to it can copy the entries for the items
+
 
         private static cSectionCache mDefaultSectionCache = new cDefaultSectionCache();
         public static cSectionCache GlobalSectionCache { get; set; } = null;

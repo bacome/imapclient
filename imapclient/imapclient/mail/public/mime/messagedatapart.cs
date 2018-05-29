@@ -40,7 +40,7 @@ namespace work.bacome.mailclient
             if (pBase64)
             {
                 if (pFormat != fMessageDataFormat.sevenbit) throw new ArgumentOutOfRangeException(nameof(pFormat));
-                lLength = cBase64EncodingStream.EncodedLength(lFileInfo.Length);
+                lLength = cBase64EncodingStream.GetEncodedLength(lFileInfo.Length);
             }
             else lLength = lFileInfo.Length;
 
@@ -74,7 +74,7 @@ namespace work.bacome.mailclient
             if (pBase64)
             {
                 if (pFormat != fMessageDataFormat.sevenbit) throw new ArgumentOutOfRangeException(nameof(pFormat));
-                lLength = cBase64EncodingStream.EncodedLength(pStream.Length);
+                lLength = cBase64EncodingStream.GetEncodedLength(pStream.Length);
             }
             else lLength = pStream.Length;
 

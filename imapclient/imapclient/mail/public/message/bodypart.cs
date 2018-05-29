@@ -345,7 +345,7 @@ namespace work.bacome.mailclient
             Parts = new cBodyParts(pParts);
 
             foreach (var lPart in pParts) mFormat |= lPart.Format;
-            if (pUTF8Headers) mFormat = mFormat | fMessageDataFormat.eightbit | fMessageDataFormat.utf8headers; // just in case the mime headers have utf8 in them
+            if (pUTF8Headers) mFormat = mFormat | fMessageDataFormat.eightbitutf8headers; // just in case the mime headers have utf8 in them
 
             if (SubType.Equals("MIXED", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eMultiPartBodySubTypeCode.mixed;
             else if (SubType.Equals("DIGEST", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eMultiPartBodySubTypeCode.digest;
@@ -536,15 +536,15 @@ namespace work.bacome.mailclient
             }
             else if (ContentTransferEncoding.Equals("8BIT", StringComparison.InvariantCultureIgnoreCase))
             {
-                if (p8bitImpliesUTF8Headers) mFormat = fMessageDataFormat.utf8headers; // should be a message subtype
+                if (p8bitImpliesUTF8Headers) mFormat = fMessageDataFormat.eightbitutf8headers; // should be a message subtype
                 else mFormat = fMessageDataFormat.eightbit;
 
                 DecodingRequired = eDecodingRequired.none;
             }
             else if (ContentTransferEncoding.Equals("BINARY", StringComparison.InvariantCultureIgnoreCase))
             {
-                if (p8bitImpliesUTF8Headers) mFormat = fMessageDataFormat.binary | fMessageDataFormat.utf8headers; // should be a message subtype
-                else mFormat = fMessageDataFormat.binary;
+                if (p8bitImpliesUTF8Headers) mFormat = fMessageDataFormat.all; // should be a message subtype
+                else mFormat = fMessageDataFormat.eightbitbinary;
 
                 DecodingRequired = eDecodingRequired.none;
             }
@@ -562,7 +562,7 @@ namespace work.bacome.mailclient
             {
                 // note that rfc 2045 section 6.4 specifies that if 'unknown' then the part has to be treated as application/octet-stream
                 //  however I think I should be able to assume that it is 7bit data (otherwise the CTE should be binary)
-                mFormat = 0; // | fMessageDataFormat.binary;
+                mFormat = 0;
                 DecodingRequired = eDecodingRequired.other; 
             }
 

@@ -11,19 +11,16 @@ namespace work.bacome.imapclient
     {
         public readonly long ByteCountBudget;
         public readonly int FileCountBudget;
-        public readonly int Tries;
 
         private readonly ConcurrentDictionary<string, cItem> mItems = new ConcurrentDictionary<string, cItem>();
 
-        public cTempFileSectionCache(string pInstanceName, int pMaintenanceFrequency, long pByteCountBudget, int pFileCountBudget, int pTries) : base(pInstanceName, pMaintenanceFrequency)
+        public cTempFileSectionCache(string pInstanceName, int pMaintenanceFrequency, long pByteCountBudget, int pFileCountBudget) : base(pInstanceName, pMaintenanceFrequency)
         {
             if (pByteCountBudget < 0) throw new ArgumentOutOfRangeException(nameof(pByteCountBudget));
             if (pFileCountBudget < 0) throw new ArgumentOutOfRangeException(nameof(pFileCountBudget));
-            if (pTries < 1) throw new ArgumentOutOfRangeException(nameof(pTries));
 
             ByteCountBudget = pByteCountBudget;
             FileCountBudget = pFileCountBudget;
-            Tries = pTries;
 
             StartMaintenance();
         }
@@ -32,22 +29,8 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cTempFileSectionCache), nameof(YGetNewItem));
 
-            int lTries = 0;
-            string lFullName;
-            Stream lStream;
-
-            while (true)
-            {
-                try
-                {
-                    lFullName = Path.GetTempFileName();
-                    lStream = new FileStream(lFullName, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
-                    break;
-                }
-                catch (IOException) { }
-
-                if (++lTries == Tries) throw new IOException();
-            }
+            string lFullName = Path.GetTempFileName();
+            Stream lStream = new FileStream(lFullName, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
 
             var lFileInfo = new FileInfo(lFullName);
             var lItem = new cItem(this, lFullName, lStream, lFileInfo.CreationTimeUtc);

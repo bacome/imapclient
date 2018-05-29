@@ -24,6 +24,7 @@ namespace work.bacome.imapclient
 
         private int mOpenStreamCount = 0;
         private bool mDeleted = false;
+        private bool mToBeDeleted = false;
         private bool mIndexed = false;
         private cSectionCachePersistentKey mPersistentKey = null;
         private cSectionCacheNonPersistentKey mNonPersistentKey = null;
@@ -115,20 +116,32 @@ namespace work.bacome.imapclient
 
                 if (mOpenStreamCount != 0)
                 {
-                    lContext.TraceVerbose("open");
+                    if (pChangeSequence == -2)
+                    {
+                        lContext.TraceVerbose("open, marking as todelete");
+                        mToBeDeleted = true;
+                    }
+                    else lContext.TraceVerbose("open, not deleting");
+
                     return false;
                 }
 
-                if (pChangeSequence != -1 && pChangeSequence != mChangeSequence)
+                if (pChangeSequence >= 0 && pChangeSequence != mChangeSequence)
                 {
-                    lContext.TraceVerbose("modified");
+                    lContext.TraceVerbose("modified, not deleting");
                     return false;
                 }
 
-                try { YDelete(lContext); }
-                catch (Exception e) { lContext.TraceException("delete failure", e); }
+                try
+                {
+                    YDelete(lContext);
+                    lContext.TraceVerbose("deleted");
+                }
+                catch (Exception e)
+                {
+                    lContext.TraceException("delete failure, marked as deleted", e);
+                }
 
-                lContext.TraceVerbose("deleted");
                 mDeleted = true;
             }
 
@@ -233,6 +246,13 @@ namespace work.bacome.imapclient
                     return false;
                 }
 
+                if (mToBeDeleted)
+                {
+                    lContext.TraceVerbose("to be deleted");
+                    rReader = null;
+                    return false;
+                }
+
                 Stream lStream = null;
 
                 try { lStream = YGetReadStream(lContext); }
@@ -267,7 +287,7 @@ namespace work.bacome.imapclient
             {
                 if (!mCached) throw new InvalidOperationException();
 
-                if (mDeleted) return false;
+                if (mDeleted || mToBeDeleted) return false;
 
                 if (mOpenStreamCount != 0) return true;
 
@@ -303,7 +323,7 @@ namespace work.bacome.imapclient
             {
                 if (!mCached || mPersistentKey == null) throw new InvalidOperationException();
 
-                if (mDeleted || mPersistentKeyAssigned) return;
+                if (mDeleted || mToBeDeleted || mPersistentKeyAssigned) return;
 
                 if (mNonPersistentKey != null && mNonPersistentKey.MailboxHandle.SelectedProperties.UIDNotSticky != false) return;
 
@@ -326,10 +346,35 @@ namespace work.bacome.imapclient
                 {
                     lContext.TraceVerbose("item closed but not cached");
 
-                    try { YDelete(lContext); }
-                    catch (Exception e) { lContext.TraceException("delete failure", e); }
+                    try
+                    {
+                        YDelete(lContext);
+                        lContext.TraceVerbose("deleted");
+                    }
+                    catch (Exception e)
+                    {
+                        lContext.TraceException("delete failure, marked as deleted", e);
+                    }
 
-                    lContext.TraceVerbose("deleted");
+                    mDeleted = true;
+
+                    return;
+                }
+
+                if (mToBeDeleted)
+                {
+                    lContext.TraceVerbose("item closed and marked as to be deleted");
+
+                    try
+                    {
+                        YDelete(lContext);
+                        lContext.TraceVerbose("deleted");
+                    }
+                    catch (Exception e)
+                    {
+                        lContext.TraceException("delete failure, marked as deleted", e);
+                    }
+
                     mDeleted = true;
 
                     return;
@@ -337,12 +382,18 @@ namespace work.bacome.imapclient
 
                 if (Cache.IsDisposed && !mPersistentKeyAssigned)
                 {
-                    lContext.TraceVerbose("item closed but cache disposed and no persistent key");
+                    lContext.TraceVerbose("item closed and cache disposed and no persistent key");
 
-                    try { YDelete(lContext); }
-                    catch (Exception e) { lContext.TraceException("delete failure", e); }
+                    try
+                    {
+                        YDelete(lContext);
+                        lContext.TraceVerbose("deleted");
+                    }
+                    catch (Exception e)
+                    {
+                        lContext.TraceException("delete failure, marked as deleted", e);
+                    }
 
-                    lContext.TraceVerbose("deleted");
                     mDeleted = true;
 
                     return;
@@ -357,7 +408,7 @@ namespace work.bacome.imapclient
                     }
                     else
                     {
-                        lContext.TraceVerbose("deleted");
+                        lContext.TraceVerbose("deleted by touch");
                         mDeleted = true;
                     }
                 }

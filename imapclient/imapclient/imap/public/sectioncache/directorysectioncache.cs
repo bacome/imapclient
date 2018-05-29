@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
@@ -30,17 +31,16 @@ namespace work.bacome.imapclient
         public readonly DirectoryInfo DirectoryInfo;
         public readonly long ByteCountBudget;
         public readonly int FileCountBudget;
-        public readonly int NewFileTries;
         public readonly TimeSpan RecentFileAge;
 
-        private Dictionary<cPersistentKey, cInfo> mItems = null;
+        private readonly ConcurrentDictionary<cPersistentKey, cInfo> mItems = null;
 
         // info retained from one iteration of maintenance to the next
         private readonly List<string> mOldListFileFullNames = new List<string>();
         private List<string> mItemKeysWithInfoButNoDataFile = new List<string>();
         private List<string> mItemKeysWithDataButNoInfoFile = new List<string>();
 
-        public cDirectorySectionCache(string pInstanceName, int pMaintenanceFrequency, string pDirectory, long pByteCountBudget, int pFileCountBudget, int pNewFileTries, TimeSpan pRecentFileAge) : base(pInstanceName, pMaintenanceFrequency)
+        public cDirectorySectionCache(string pInstanceName, int pMaintenanceFrequency, string pDirectory, long pByteCountBudget, int pFileCountBudget, TimeSpan pRecentFileAge) : base(pInstanceName, pMaintenanceFrequency)
         {
             if (pDirectory == null) throw new ArgumentNullException(nameof(pDirectory));
             DirectoryInfo = new DirectoryInfo(pDirectory);
@@ -48,12 +48,10 @@ namespace work.bacome.imapclient
 
             if (pByteCountBudget < 0) throw new ArgumentOutOfRangeException(nameof(pByteCountBudget));
             if (pFileCountBudget < 0) throw new ArgumentOutOfRangeException(nameof(pFileCountBudget));
-            if (pNewFileTries < 1) throw new ArgumentOutOfRangeException(nameof(pNewFileTries));
             if (pRecentFileAge < TimeSpan.FromSeconds(1)) throw new ArgumentOutOfRangeException(nameof(pRecentFileAge));
 
             ByteCountBudget = pByteCountBudget;
             FileCountBudget = pFileCountBudget;
-            NewFileTries = pNewFileTries;
             RecentFileAge = pRecentFileAge;
 
             StartMaintenance();
@@ -63,7 +61,6 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cDirectorySectionCache), nameof(YGetNewItem));
 
-            ;?;
             ZNewFile(kData, FileShare.Read, out var lItemKey, out var lDataFileFullName, out var lStream);
 
             var lInfoFileFullName = ZFullName(lItemKey, kInfo);
@@ -88,6 +85,31 @@ namespace work.bacome.imapclient
 
             rItem = null;
             return false;
+        }
+
+        protected override void Copy(string pHost, string pCredentialId, cMailboxName pSourceMailboxName, cMailboxName pDestinationMailboxName, cCopyFeedback pCopyFeedback, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cDirectorySectionCache), nameof(Copy), pAccountId, pSourceMailboxName, pDestinationMailboxName, pCopyFeedback);
+
+            if (pAccountId == null) throw new ArgumentNullException(nameof(pAccountId));
+            if (pSourceMailboxName == null) throw new ArgumentNullException(nameof(pSourceMailboxName));
+            if (pDestinationMailboxName == null) throw new ArgumentNullException(nameof(pDestinationMailboxName));
+            if (pCopyFeedback == null) throw new ArgumentNullException(nameof(pCopyFeedback));
+            if (pCopyFeedback.Count == 0) return;
+
+            var lInfos = new List<iComparableByUID>(mItems.Values);
+            lInfos.Sort();
+
+            foreach (var lItem in pCopyFeedback)
+            {
+                cSearchByUID lUID = new cSearchByUID(pHost, pCredentialId, pSourceMailboxName, lItem.SourceMessageUID);
+
+                var lIndex = lInfos.BinarySearch(lUID);
+
+                if (lIndex < 0) continue;
+
+                ;?;
+            }
         }
 
         protected override void Maintenance(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
@@ -287,8 +309,8 @@ namespace work.bacome.imapclient
 
             if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
+            var lUniqueInfos = new List<cInfo>();
             cPersistentKey lLastPersistentKey = null;
-            var lItems = new Dictionary<cPersistentKey, cInfo>();
 
             foreach (var lInfo in lItemKeyInfos)
             {
@@ -317,13 +339,15 @@ namespace work.bacome.imapclient
                 else
                 {
                     lLastPersistentKey = lInfo.PersistentKey;
-                    lItems.Add(lInfo.PersistentKey, lInfo);
+                    lUniqueInfos.Add(lInfo);
                 }
             }
 
             if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
-            mItems = lItems;
+            foreach (var lInfo in lUniqueInfos) mItems[lInfo.PersistentKey] = lInfo;
+
+            if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
             // delete data files that look abandoned
 
@@ -465,20 +489,16 @@ namespace work.bacome.imapclient
 
         private void ZNewFile(string pExtension, FileShare pFileShare, out string rItemKey, out string rFullName, out Stream rStream)
         {
-            int lTries = 0;
-
             while (true)
             {
                 try
-                {
+                { 
                     rItemKey = ZRandomItemKey();
                     rFullName = ZFullName(rItemKey, pExtension);
                     rStream = new FileStream(rFullName, FileMode.CreateNew, FileAccess.ReadWrite, pFileShare);
                     return;
                 }
                 catch (IOException) { }
-
-                if (++lTries == NewFileTries) throw new IOException();
             }
         }
 
@@ -487,6 +507,7 @@ namespace work.bacome.imapclient
             byte[] lRandomBytes = new byte[4];
             mRandom.NextBytes(lRandomBytes);
             uint lNumber = BitConverter.ToUInt32(lRandomBytes, 0);
+
             var lBuilder = new StringBuilder();
 
             do
@@ -615,9 +636,23 @@ namespace work.bacome.imapclient
             }
         }
 
+        private class iComparableByUID : IComparable<iComparableByUID>
+        {
+            string Host { get; }
+            string CredentialId { get; }
+            cMailboxName MailboxName { get; }
+            uint UIDValidity { get; }
+            uint UID { get; }
+        }
+
+        private class cSearchByUID : iComparableByUID
+        {
+
+        }
+
         [Serializable]
         [DataContract]
-        private class cInfo : IComparable<cInfo>
+        private class cInfo : IComparable<cInfo>, iComparableByUID
         {
             [DataMember]
             public readonly string ItemKey; 

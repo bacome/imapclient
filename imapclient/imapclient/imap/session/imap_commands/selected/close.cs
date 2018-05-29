@@ -37,6 +37,7 @@ namespace work.bacome.imapclient
 
                     if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
+                        ;?; // return the list of message UIDs that were likely expunged
                         lContext.TraceInformation("close success");
                         return;
                     }
@@ -53,6 +54,11 @@ namespace work.bacome.imapclient
                 {
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                 }
+
+                ;?;
+                // if the mailbox is selected for update and not readonly, assemble a list of messages with the deleted flag AND a UID
+                //  (on the command start)
+                // on successful close, tell the cache that all those messages are expunged
 
                 public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)
                 {

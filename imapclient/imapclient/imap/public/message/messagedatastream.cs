@@ -41,6 +41,7 @@ namespace work.bacome.imapclient
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
             if (!ReferenceEquals(pClient.SelectedMailboxDetails?.MessageCache, pMessageHandle.MessageCache)) throw new ArgumentOutOfRangeException(nameof(pMessageHandle));
+            if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
 
             Part = pPart ?? throw new ArgumentNullException(nameof(pPart));
 
@@ -60,6 +61,7 @@ namespace work.bacome.imapclient
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
             if (!ReferenceEquals(pClient.SelectedMailboxDetails?.MessageCache, pMessageHandle.MessageCache)) throw new ArgumentOutOfRangeException(nameof(pMessageHandle));
+            if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
 
             Part = null;
 
@@ -283,6 +285,7 @@ namespace work.bacome.imapclient
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
 
+            ;?; // VERIFY THAT TH
             ZSetSectionCacheItemReader(lContext);
 
             ;?;
@@ -487,6 +490,8 @@ namespace work.bacome.imapclient
             var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ZSetSectionCacheItemReader));
 
             if (mSectionReader != null) return;
+
+            ;?; // VERIFY that the item exists first
 
             var lSectionCache = Client.SectionCache;
             ZGetSectionCacheKey(out var lNonPersistentKey, out var lMailboxHandle, out var lUID, out var lPersistentKey);

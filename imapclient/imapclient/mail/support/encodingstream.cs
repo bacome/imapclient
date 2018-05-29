@@ -17,8 +17,6 @@ namespace work.bacome.mailclient.support
         private long mUnencodedBytesRead = 0;
         private long mEncodedBytesProduced = 0;
 
-        ;?; // how to do length
-
         internal cEncodingStream(Stream pStream, cEncoder pEncoder)
         {
             mStream = pStream ?? throw new ArgumentNullException(nameof(pStream));
@@ -127,7 +125,15 @@ namespace work.bacome.mailclient.support
         private void ZPositionCheck()
         {
             if (!mStream.CanSeek) return;
+
             if (mStream.Position == mUnencodedBytesRead) return;
+
+            if (mUnencodedBytesRead == 0)
+            {
+                mStream.Position = 0;
+                return;
+            }
+
             throw new cStreamPositionException();
         }
 

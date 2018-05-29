@@ -139,6 +139,8 @@ namespace work.bacome.imapclient
                         mMailboxStatus = lMailboxStatus;
                     }
 
+                    ;?; // if the uidvalidity has a value, tell the sectioncache
+
                     mSynchroniser.InvokeMailboxPropertiesChanged(this, lDifferences, lContext);
                 }
 
@@ -148,6 +150,9 @@ namespace work.bacome.imapclient
                     if (pMailboxStatus == null) throw new ArgumentNullException(nameof(pMailboxStatus));
                     fMailboxProperties lDifferences = ZSetExists(true) | cMailboxStatus.Differences(mMailboxStatus, pMailboxStatus);
                     mMailboxStatus = pMailboxStatus;
+
+                    ;?; // if the uidvalidity has a value, tell the sectioncache
+
                     mSynchroniser.InvokeMailboxPropertiesChanged(this, lDifferences, lContext);
                 }
 

@@ -9,5 +9,9 @@ namespace work.bacome.mailclient
         eightbit = 1 << 0, // 8bit MIME (RFC 2045, 6152)
         binary = 1 << 1, // binary MIME (RFC 2045, 3030, 3516) [requires eightbit]
         utf8headers = 1 << 2, // internationalised email headers (RFC 6531, 6532, 6855) [requires eightbit]
+
+        eightbitbinary = eightbit | binary,
+        eightbitutf8headers = eightbit | utf8headers,
+        all = eightbit | binary | utf8headers
     }
 }

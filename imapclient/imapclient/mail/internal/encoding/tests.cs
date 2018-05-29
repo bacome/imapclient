@@ -15,7 +15,7 @@ namespace work.bacome.mailclient
         {
             ZBasicTests(pParentContext);
             ZTestProgress(pParentContext);
-            ;?;
+            ZQuotedPrintableTests(pParentContext);
         }
 
         private static void ZBasicTests(cTrace.cContext pParentContext)
@@ -63,7 +63,7 @@ namespace work.bacome.mailclient
         private static void ZBasicTest(string pTestName, string pInputString, cTrace.cContext pParentContext)
         {
             ZBasicTestB64(pTestName, pInputString, pParentContext);
-            ZBasicTestQP(pTestName, pInputString, pParentContext);
+            ZBasicTestQP(pTestName, pInputString, eQuotedPrintableEncodingType.Binary, eQuotedPrintableEncodingRule.EBCDIC, out _, out _, out _, pParentContext);
         }
 
         private static void ZBasicTestB64(string pTestName, string pInputString, cTrace.cContext pParentContext)
@@ -76,11 +76,15 @@ namespace work.bacome.mailclient
             {
                 lEncoder.CopyTo(lIntermediate);
                 if (lEncoder.GetBufferedBytes() != 0) throw new cTestsException($"{nameof(ZBasicTestB64)}({pTestName}.bb.1)");
-                if (lIntermediate.Length != cBase64EncodingStream.EncodedLength(lInput.Length)) throw new cTestsException($"{nameof(ZBasicTestB64)}({pTestName}.l)");
+                if (lIntermediate.Length != cBase64EncodingStream.GetEncodedLength(lInput.Length)) throw new cTestsException($"{nameof(ZBasicTestB64)}({pTestName}.l1)");
+
                 var lIntermediateString = new string(Encoding.UTF8.GetChars(lIntermediate.ToArray()));
-                lIntermediate.Position = 0;
+
+                var lExpectedDecodedLength = cBase64DecodingStream.GetDecodedLength(lIntermediate);
+
                 lDecoder.CopyTo(lFinal);
                 if (lDecoder.GetBufferedBytes() != 0) throw new cTestsException($"{nameof(ZBasicTestB64)}({pTestName}.bb.2)");
+                if (lFinal.Length != lExpectedDecodedLength) throw new cTestsException($"{nameof(ZBasicTestB64)}({pTestName}.l2)");
 
                 var lFinalString = new string(Encoding.UTF8.GetChars(lFinal.ToArray()));
                 if (lFinalString != pInputString) throw new cTestsException($"{nameof(ZBasicTestB64)}({pTestName}.f)");
@@ -102,32 +106,58 @@ namespace work.bacome.mailclient
                 long lLastInputPosition = 0;
                 long lTotalIncrement = 0;
 
+                var lExpectedEncodedLength = cQuotedPrintableEncodingStream.GetEncodedLength(lInput, pType, pRule);
+
                 while (true)
                 {
                     var lBytesRead = lEncoder.Read(lBuffer, 0, 1 + lRandom.Next(99));
                     lTotalRead += lBytesRead;
                     long lThisInputPosition = lInput.Position - lEncoder.GetBufferedBytes();
                     long lIncrement = lThisInputPosition - lLastInputPosition;
-                    if (lIncrement < 0) throw new cTestsException($"{nameof(ZBasicTestQP)}({pTestName}.i)");
+                    if (lIncrement < 0) throw new cTestsException($"{nameof(ZBasicTestQP)}({pTestName}.i1)");
                     lTotalIncrement += lIncrement;
                     lLastInputPosition = lThisInputPosition;
                     if (lBytesRead == 0) break;
                     lIntermediate.Write(lBuffer, 0, lBytesRead);
                 }
 
+                if (lEncoder.GetBufferedBytes() != 0) throw new cTestsException($"{nameof(ZBasicTestQP)}({pTestName}.bb.1)");
+
                 if (lTotalIncrement != lInput.Length) throw new cTestsException($"{nameof(ZBasicTestQP)}({pTestName}.l.1)");
                 if (lLastInputPosition != lInput.Length) throw new cTestsException($"{nameof(ZBasicTestQP)}({pTestName}.l.2)");
-
-                if (lEncoder.GetBufferedBytes() != 0) throw new cTestsException($"{nameof(ZBasicTestQP)}({pTestName}.bb.1)");
+                if (lIntermediate.Length != lExpectedEncodedLength) throw new cTestsException($"{nameof(ZBasicTestQP)}({pTestName}.l.3)");
 
                 rIntermediateString = new string(Encoding.UTF8.GetChars(lIntermediate.ToArray()));
 
-                if (rIntermediateString.Length > 0 && rIntermediateString[rIntermediateString.Length - 1] == '=') throw new cTestsException($"{nameof(ZBasicTestQP)}({pTestName}.e.1)");
-                if (rIntermediateString.Length > 1 && rIntermediateString[rIntermediateString.Length - 2] == '=') throw new cTestsException($"{nameof(ZBasicTestQP)}({pTestName}.e.1)");
+                if (rIntermediateString.EndsWith("=")) throw new cTestsException($"{nameof(ZBasicTestQP)}({pTestName}.e.1)");
+                if (rIntermediateString.Length > 1 && rIntermediateString[rIntermediateString.Length - 2] == '=') throw new cTestsException($"{nameof(ZBasicTestQP)}({pTestName}.e.2)");
+                if (rIntermediateString.EndsWith("=\r\n")) throw new cTestsException($"{nameof(ZBasicTestQP)}({pTestName}.e.3)");
+                if (rIntermediateString.Length > 3 && rIntermediateString[rIntermediateString.Length - 4] == '=' && rIntermediateString.EndsWith("\r\n")) throw new cTestsException($"{nameof(ZBasicTestQP)}({pTestName}.e.4)");
 
-                lIntermediate.Position = 0;
-                lDecoder.CopyTo(lFinal);
+                lTotalRead = 0;
+                lLastInputPosition = 0;
+                lTotalIncrement = 0;
+
+                var lExpectedDecodedLength = cQuotedPrintableDecodingStream.GetDecodedLength(lIntermediate);
+
+                while (true)
+                {
+                    var lBytesRead = lDecoder.Read(lBuffer, 0, 1 + lRandom.Next(99));
+                    lTotalRead += lBytesRead;
+                    long lThisInputPosition = lIntermediate.Position - lEncoder.GetBufferedBytes();
+                    long lIncrement = lThisInputPosition - lLastInputPosition;
+                    if (lIncrement < 0) throw new cTestsException($"{nameof(ZBasicTestQP)}({pTestName}.i2)");
+                    lTotalIncrement += lIncrement;
+                    lLastInputPosition = lThisInputPosition;
+                    if (lBytesRead == 0) break;
+                    lFinal.Write(lBuffer, 0, lBytesRead);
+                }
+
                 if (lDecoder.GetBufferedBytes() != 0) throw new cTestsException($"{nameof(ZBasicTestB64)}({pTestName}.bb.2)");
+
+                if (lTotalIncrement != lIntermediate.Length) throw new cTestsException($"{nameof(ZBasicTestQP)}({pTestName}.l.4)");
+                if (lLastInputPosition != lIntermediate.Length) throw new cTestsException($"{nameof(ZBasicTestQP)}({pTestName}.l.5)");
+                if (lFinal.Length != lExpectedDecodedLength) throw new cTestsException($"{nameof(ZBasicTestQP)}({pTestName}.l.6)");
 
                 rFinalString = new string(Encoding.UTF8.GetChars(lFinal.ToArray()));
                 if (rFinalString != pInputString) throw new cTestsException($"{nameof(ZBasicTestQP)}({pTestName}.f)");
@@ -238,7 +268,6 @@ namespace work.bacome.mailclient
             if (lLastPosition != pInput.Length) throw new cTestsException("progress base 64.2");
 
             var lIntermediateString = new string(Encoding.UTF8.GetChars(pIntermediate.ToArray()));
-            pIntermediate.Position = 0;
 
             lLastPosition = 0;
 
@@ -260,9 +289,9 @@ namespace work.bacome.mailclient
 
         }
 
-        private static void ZQuotedPrintableEncodeTests(cTrace.cContext pParentContext)
+        private static void ZQuotedPrintableTests(cTrace.cContext pParentContext)
         {
-            ZQuotedPrintableEncodeTest(
+            ZQuotedPrintableTest(
                 "1",
                 new string[]
                 {
@@ -290,7 +319,7 @@ namespace work.bacome.mailclient
                 },
                 pParentContext);
 
-            ZQuotedPrintableEncodeTest(
+            ZQuotedPrintableTest(
                 "2",
                 new string[]
                 {
@@ -300,12 +329,12 @@ namespace work.bacome.mailclient
                 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \n@bcdefghijklmnopqrstuv",
                 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \t@bcdefghijklmnopqrstuv\r",
                 },
-                eQuotedPrintablet.CRLFTerminatedLines,
+                eQuotedPrintableEncodingType.CRLFTerminatedLines,
                 false,
-                eQuotedPrintableEncodeQuotingRule.Minimal,
+                eQuotedPrintableEncodingRule.Minimal,
                 pParentContext);
 
-            ZQuotedPrintableEncodeTest(
+            ZQuotedPrintableTests(
                 "3",
                 new string[]
                 {
@@ -316,10 +345,9 @@ namespace work.bacome.mailclient
                 " \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t",
                 ""
                 },
-                true,
                 pParentContext);
 
-            ZQuotedPrintableEncodeTest(
+            ZQuotedPrintableTests(
                 "3.1",
                 new string[]
                 {
@@ -330,10 +358,9 @@ namespace work.bacome.mailclient
                 " \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t \t  \t\t",
                 ""
                 },
-                true,
                 pParentContext);
 
-            ZQuotedPrintableEncodeTest(
+            ZQuotedPrintableTest(
                 "4",
                 new string[]
                 {
@@ -342,7 +369,7 @@ namespace work.bacome.mailclient
                 },
                 pParentContext);
 
-            ZQuotedPrintableEncodeTest(
+            ZQuotedPrintableTest(
                 "5",
                 new string[]
                 {
@@ -351,7 +378,7 @@ namespace work.bacome.mailclient
                 },
                 pParentContext);
 
-            ZQuotedPrintableEncodeTest(
+            ZQuotedPrintableTest(
                 "6",
                 new string[]
                 {
@@ -363,32 +390,10 @@ namespace work.bacome.mailclient
 
 
 
-            ZQuotedPrintableEncodeTestRandomLines(pParentContext);
-
-
-            long lExpectedLength =
-                ZQuotedPrintableEncodeTest(
-                    "poem",
-                    new string[]
-                    {
-                                "All doggies go to heaven (or so I've been told).",
-                                "They run and play along the streets of Gold.",
-                                "Why is heaven such a doggie-delight?",
-                                "Why, because there's not a single cat in sight!"
-                    },
-                    eQuotedPrintableEncodeSourceType.CRLFTerminatedLines,
-                    false,
-                    eQuotedPrintableEncodeQuotingRule.EBCDIC, pParentContext);
-
-            using (var lClient = new cIMAPClient())
-            using (var lInput = new MemoryStream(Encoding.UTF8.GetBytes("All doggies go to heaven (or so I've been told).\r\nThey run and play along the streets of Gold.\r\nWhy is heaven such a doggie-delight?\r\nWhy, because there's not a single cat in sight!")))
-            {
-                long lLength = lClient.QuotedPrintableEncode(lInput);
-                if (lLength != lExpectedLength) throw new cTestsException($"dev/null: {lLength} vs {lExpectedLength}");
-            }
+            ZQuotedPrintableTestRandomLines(pParentContext);
         }
 
-        private static void ZQuotedPrintableEncodeTestRandomLines(cTrace.cContext pParentContext)
+        private static void ZQuotedPrintableTestRandomLines(cTrace.cContext pParentContext)
         {
             Random lRandom = new Random();
 
@@ -432,56 +437,53 @@ namespace work.bacome.mailclient
                     lLines[i] = lBuilder.ToString();
                 }
 
-                ZQuotedPrintableEncodeTest(
-                    "ZTestQuotedPrintableRandomLines",
+                ZQuotedPrintableTest(
+                    "random",
                     lLines,
                     pParentContext);
             }
         }
 
-        private static void ZQuotedPrintableEncodeTest(string pTestName, string[] pLines, cTrace.cContext pParentContext)
+        private static void ZQuotedPrintableTest(string pTestName, string[] pLines, cTrace.cContext pParentContext)
         {
-            var lLFFalseMinimal = ZQuotedPrintableEncodeTest(pTestName + ".lf.false.Mininal", pLines, eQuotedPrintableEncodeSourceType.LFTerminatedLines, false, eQuotedPrintableEncodeQuotingRule.Minimal, pParentContext);
-            var lLFTrueMinimal = ZQuotedPrintableEncodeTest(pTestName + ".lf.true.Mininal", pLines, eQuotedPrintableEncodeSourceType.LFTerminatedLines, true, eQuotedPrintableEncodeQuotingRule.Minimal, pParentContext);
+            var lLFFalseMinimal = ZQuotedPrintableTest(pTestName + ".lf.false.Mininal", pLines, eQuotedPrintableEncodingType.LFTerminatedLines, false, eQuotedPrintableEncodingRule.Minimal, pParentContext);
+            var lLFTrueMinimal = ZQuotedPrintableTest(pTestName + ".lf.true.Mininal", pLines, eQuotedPrintableEncodingType.LFTerminatedLines, true, eQuotedPrintableEncodingRule.Minimal, pParentContext);
 
             if (lLFFalseMinimal >= lLFTrueMinimal) throw new cTestsException(pTestName + ".compare.1");
 
-            var lCRLFFalseMinimal = ZQuotedPrintableEncodeTest(pTestName + ".crlf.false.Mininal", pLines, eQuotedPrintableEncodeSourceType.CRLFTerminatedLines, false, eQuotedPrintableEncodeQuotingRule.Minimal, pParentContext);
+            var lCRLFFalseMinimal = ZQuotedPrintableTest(pTestName + ".crlf.false.Mininal", pLines, eQuotedPrintableEncodingType.CRLFTerminatedLines, false, eQuotedPrintableEncodingRule.Minimal, pParentContext);
 
             if (lLFFalseMinimal != lCRLFFalseMinimal) throw new cTestsException(pTestName + ".compare.2");
 
-            var lCRLFTrueMinimal = ZQuotedPrintableEncodeTest(pTestName + ".crlf.true.Mininal", pLines, eQuotedPrintableEncodeSourceType.CRLFTerminatedLines, true, eQuotedPrintableEncodeQuotingRule.Minimal, pParentContext);
+            var lCRLFTrueMinimal = ZQuotedPrintableTest(pTestName + ".crlf.true.Mininal", pLines, eQuotedPrintableEncodingType.CRLFTerminatedLines, true, eQuotedPrintableEncodingRule.Minimal, pParentContext);
 
             if (lCRLFFalseMinimal >= lCRLFTrueMinimal) throw new cTestsException(pTestName + ".compare.3");
 
-            var lBinaryFalseMinimal = ZQuotedPrintableEncodeTest(pTestName + ".binary.false.Mininal", pLines, eQuotedPrintableEncodeSourceType.Binary, false, eQuotedPrintableEncodeQuotingRule.Minimal, pParentContext);
+            var lBinaryFalseMinimal = ZQuotedPrintableTest(pTestName + ".binary.false.Mininal", pLines, eQuotedPrintableEncodingType.Binary, false, eQuotedPrintableEncodingRule.Minimal, pParentContext);
 
             if (lCRLFFalseMinimal >= lBinaryFalseMinimal) throw new cTestsException(pTestName + ".compare.4");
 
-            var lBinaryTrueMinimal = ZQuotedPrintableEncodeTest(pTestName + ".binary.true.Mininal", pLines, eQuotedPrintableEncodeSourceType.Binary, true, eQuotedPrintableEncodeQuotingRule.Minimal, pParentContext);
+            var lBinaryTrueMinimal = ZQuotedPrintableTest(pTestName + ".binary.true.Mininal", pLines, eQuotedPrintableEncodingType.Binary, true, eQuotedPrintableEncodingRule.Minimal, pParentContext);
 
             if (lBinaryFalseMinimal >= lBinaryTrueMinimal) throw new cTestsException(pTestName + ".compare.5");
 
-            var lLFFalseEBCDIC = ZQuotedPrintableEncodeTest(pTestName + ".lf.false.EBCDIC", pLines, eQuotedPrintableEncodeSourceType.LFTerminatedLines, false, eQuotedPrintableEncodeQuotingRule.EBCDIC, pParentContext);
+            var lLFFalseEBCDIC = ZQuotedPrintableTest(pTestName + ".lf.false.EBCDIC", pLines, eQuotedPrintableEncodingType.LFTerminatedLines, false, eQuotedPrintableEncodingRule.EBCDIC, pParentContext);
 
             if (lLFFalseMinimal >= lLFFalseEBCDIC) throw new cTestsException(pTestName + ".compare.6");
         }
 
-        private static void ZQuotedPrintableEncodeTestx(string pTestName, string[] pLines, bool pNoNo, cTrace.cContext pParentContext)
+        private static void ZQuotedPrintableTests(string pTestName, string[] pLines, cTrace.cContext pParentContext)
         {
-            ;?; // who calles this?
-            var lLFTrueMinimal = ZQuotedPrintableEncodeTest(pTestName + ".lf.true.Mininal", pLines, eQuotedPrintableEncodeSourceType.LFTerminatedLines, true, eQuotedPrintableEncodeQuotingRule.Minimal, pParentContext);
-            var lCRLFTrueMinimal = ZQuotedPrintableEncodeTest(pTestName + ".crlf.true.Mininal", pLines, eQuotedPrintableEncodeSourceType.CRLFTerminatedLines, true, eQuotedPrintableEncodeQuotingRule.Minimal, pParentContext);
+            var lLFTrueMinimal = ZQuotedPrintableTest(pTestName + ".lf.true.Mininal", pLines, eQuotedPrintableEncodingType.LFTerminatedLines, true, eQuotedPrintableEncodingRule.Minimal, pParentContext);
+            var lCRLFTrueMinimal = ZQuotedPrintableTest(pTestName + ".crlf.true.Mininal", pLines, eQuotedPrintableEncodingType.CRLFTerminatedLines, true, eQuotedPrintableEncodingRule.Minimal, pParentContext);
             if (lLFTrueMinimal != lCRLFTrueMinimal) throw new cTestsException(pTestName + ".compare.1");
-            var lBinaryTrueMinimal = ZQuotedPrintableEncodeTest(pTestName + ".binary.true.Mininal", pLines, eQuotedPrintableEncodeSourceType.Binary, true, eQuotedPrintableEncodeQuotingRule.Minimal, pParentContext);
+            var lBinaryTrueMinimal = ZQuotedPrintableTest(pTestName + ".binary.true.Mininal", pLines, eQuotedPrintableEncodingType.Binary, true, eQuotedPrintableEncodingRule.Minimal, pParentContext);
             if (lCRLFTrueMinimal >= lBinaryTrueMinimal) throw new cTestsException(pTestName + ".compare.2");
-            var lLFTrueEBCDIC = ZQuotedPrintableEncodeTest(pTestName + ".lf.true.EBCDIC", pLines, eQuotedPrintableEncodeSourceType.LFTerminatedLines, true, eQuotedPrintableEncodeQuotingRule.EBCDIC, pParentContext);
+            var lLFTrueEBCDIC = ZQuotedPrintableTest(pTestName + ".lf.true.EBCDIC", pLines, eQuotedPrintableEncodingType.LFTerminatedLines, true, eQuotedPrintableEncodingRule.EBCDIC, pParentContext);
         }
 
-        private static long ZQuotedPrintableEncodeTest(string pTestName, string[] pLines, eQuotedPrintableEncodingType pType, bool pTerminateLastLine, eQuotedPrintableEncodingRule pRule, cTrace.cContext pParentContext)
+        private static int ZQuotedPrintableTest(string pTestName, string[] pLines, eQuotedPrintableEncodingType pType, bool pTerminateLastLine, eQuotedPrintableEncodingRule pRule, cTrace.cContext pParentContext)
         {
-            long lBytesWritten;
-
             StringBuilder lBuilder = new StringBuilder();
 
             for (int i = 0; i < pLines.Length; i++)
@@ -499,9 +501,10 @@ namespace work.bacome.mailclient
 
             int lExpectedHardLineBreaks;
             if (pType == eQuotedPrintableEncodingType.Binary) lExpectedHardLineBreaks = 0;
+            else if (pTerminateLastLine) lExpectedHardLineBreaks = pLines.Length;
+            else lExpectedHardLineBreaks = pLines.Length - 1;
 
-            ;?;
-            if (lHardLineBreaks != pLines.Length) throw new cTestsException($"{nameof(ZQuotedPrintableEncodeTest)}({pTestName}.hlb)");
+            if (lHardLineBreaks != lExpectedHardLineBreaks) throw new cTestsException($"{nameof(ZQuotedPrintableTest)}({pTestName}.hlb)");
 
             var lLines = new List<string>();
 
@@ -523,7 +526,7 @@ namespace work.bacome.mailclient
             {
                 // note: this is the error that lead to the inclusion of ordinal string searches ... the occasional \r\n was missed without it
 
-                pParentContext.TraceError("TestQuotedPrintable {0}: {1} roundtrip vs {2} input", pTestName, lLines.Count, pLines.Length);
+                pParentContext.TraceError("{0} {1}: {2} roundtrip vs {3} input", nameof(ZQuotedPrintableTest), pTestName, lLines.Count, pLines.Length);
 
                 for (int i = 0; i < Math.Max(pLines.Length, lLines.Count); i++)
                 {
@@ -541,123 +544,10 @@ namespace work.bacome.mailclient
                     pParentContext.TraceInformation(pLines[i]);
                 }
 
-                throw new cTestsException($"TestQuotedPrintable.{pTestName}.r.1");
+                throw new cTestsException($"{nameof(ZQuotedPrintableTest)}({pTestName}.r)");
             }
 
-
-
-
-
-            using (var lInput = new MemoryStream(Encoding.UTF8.GetBytes(lBuilder.ToString())))
-            using (var lEncoded = new MemoryStream())
-            {
-                var lIncrement = new cTestActionInt();
-                cIncrementConfiguration lConfig = new cIncrementConfiguration(CancellationToken.None, lIncrement.ActionInt);
-
-                lBytesWritten = lClient.QuotedPrintableEncode(lInput, pType, pRule, lEncoded, lConfig);
-
-                string lEncodedString = new string(Encoding.UTF8.GetChars(lEncoded.GetBuffer(), 0, (int)lEncoded.Length));
-                if (lBytesWritten > 0 && lEncodedString[lEncodedString.Length - 1] == '=') throw new cTestsException($"TestQuotedPrintable.{pTestName}.e.1");
-                if (lBytesWritten > 1 && lEncodedString[lEncodedString.Length - 2] == '=') throw new cTestsException($"TestQuotedPrintable.{pTestName}.e.2");
-
-                // check the length outputs
-                if (lBytesWritten != lEncoded.Length) throw new cTestsException($"TestQuotedPrintable.{pTestName}.l.1");
-                if (lIncrement.Total != lInput.Length) throw new cTestsException($"TestQuotedPrintable.{pTestName}.l.2");
-
-                // round trip test
-
-                lEncoded.Position = 0;
-
-                using (var lDecoded = new cDecoder._Tester())
-                {
-                    var lDecoder = new cQuotedPrintableDecoder(lDecoded);
-
-                    var lReadBuffer = new byte[10000];
-
-                    while (true)
-                    {
-                        int lBytesRead = lEncoded.Read(lReadBuffer, 0, lReadBuffer.Length);
-                        if (lBytesRead == 0) break;
-                        var lWriteBuffer = new byte[lBytesRead];
-                        Array.Copy(lReadBuffer, lWriteBuffer, lBytesRead);
-                        lDecoder.WriteAsync(lWriteBuffer, 0, CancellationToken.None, pParentContext).Wait();
-                    }
-
-                    lDecoder.FlushAsync(CancellationToken.None, pParentContext).Wait();
-
-                    var lTemp1 = new string(Encoding.UTF8.GetChars(lDecoded.GetBuffer(), 0, lDecoded.Length));
-
-                    var lLines = new List<string>();
-
-                    int lStartIndex = 0;
-
-                    while (lStartIndex < lTemp1.Length)
-                    {
-                        int lEOL = lTemp1.IndexOf("\r\n", lStartIndex, StringComparison.Ordinal);
-                        if (lEOL == -1) lEOL = lTemp1.Length;
-                        lLines.Add(lTemp1.Substring(lStartIndex, lEOL - lStartIndex));
-                        lStartIndex = lEOL + 2;
-                    }
-
-                    bool lDump = false;
-                    if (lLines.Count != pLines.Length) lDump = true;
-                    for (int i = 0; i < lLines.Count; i++) if (lLines[i] != pLines[i]) lDump = true;
-
-                    if (lDump)
-                    {
-                        // note: this is the error that lead to the inclusion of ordinal string searches ... the occasional \r\n was missed without it
-
-                        pParentContext.TraceError("TestQuotedPrintable {0}: {1} roundtrip vs {2} input", pTestName, lLines.Count, pLines.Length);
-
-                        for (int i = 0; i < Math.Max(pLines.Length, lLines.Count); i++)
-                        {
-                            if (i >= lLines.Count || i >= pLines.Length || lLines[i] != pLines[i])
-                            {
-                                for (int j = i; j < Math.Max(pLines.Length, lLines.Count) && j < i + 3; j++)
-                                {
-                                    if (j < pLines.Length) pParentContext.TraceError(pLines[j]);
-                                    if (j < lLines.Count) pParentContext.TraceWarning(lLines[j]);
-                                }
-
-                                break;
-                            }
-
-                            pParentContext.TraceInformation(pLines[i]);
-                        }
-
-                        throw new cTestsException($"TestQuotedPrintable.{pTestName}.r.1");
-                    }
-                }
-
-                // check lines are no longer than 76 chars
-                //  every line in a binary file should end with an =
-                //  the number of lines not ending with = should be the same as the number of input lines
-
-                lEncoded.Position = 0;
-
-                int lLinesNotEndingWithEquals = 0;
-
-                using (var lReader = new StreamReader(lEncoded))
-                {
-                    while (!lReader.EndOfStream)
-                    {
-                        var lLine = lReader.ReadLine();
-                        if (lLine.Length > 76) throw new cTestsException($"TestQuotedPrintable.{pTestName}.l.4");
-                        if (lLine.Length == 0 || lLine[lLine.Length - 1] != '=') lLinesNotEndingWithEquals++;
-                    }
-                }
-
-                if (pType == eQuotedPrintableEncodeSourceType.Binary)
-                {
-                    if (lLinesNotEndingWithEquals != 1) throw new cTestsException($"TestQuotedPrintable.{pTestName}.i.1");
-                }
-                else
-                {
-                    if (lLinesNotEndingWithEquals != pLines.Length) throw new cTestsException($"TestQuotedPrintable.{pTestName}.i.2");
-                }
-            }
-
-            return lBytesWritten;
+            return lFinalString.Length;
         }
     }
 }

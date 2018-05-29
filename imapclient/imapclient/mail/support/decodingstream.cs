@@ -113,6 +113,42 @@ namespace work.bacome.mailclient.support
             return lBufferedUndecodedBytes + lEstimatedUndecodedBytesInBufferedDecodedBytes;
         }
 
+        internal static long GetDecodedLength(Stream pStream, cDecoder pDecoder)
+        {
+            if (pStream == null) throw new ArgumentNullException(nameof(pStream));
+            if (!pStream.CanRead) throw new ArgumentOutOfRangeException(nameof(pStream));
+            if (pDecoder == null) throw new ArgumentNullException(nameof(pDecoder));
+            if (pStream.CanSeek && pStream.Position != 0) pStream.Position = 0;
+
+            byte[] lUndecodedBuffer = new byte[cMailClient.BufferSize];
+            long lDecodedLength = 0;
+
+            while (true)
+            {
+                int lBytesRead = pStream.Read(lUndecodedBuffer, 0, cMailClient.BufferSize);
+                lDecodedLength += pDecoder.GetDecodedLength(lUndecodedBuffer, 0, lBytesRead);
+                if (lBytesRead == 0) return lDecodedLength;
+            }
+        }
+
+        internal static async Task<long> GetDecodedLengthAsync(Stream pStream, cDecoder pDecoder)
+        {
+            if (pStream == null) throw new ArgumentNullException(nameof(pStream));
+            if (!pStream.CanRead) throw new ArgumentOutOfRangeException(nameof(pStream));
+            if (pDecoder == null) throw new ArgumentNullException(nameof(pDecoder));
+            if (pStream.CanSeek && pStream.Position != 0) pStream.Position = 0;
+
+            byte[] lUndecodedBuffer = new byte[cMailClient.BufferSize];
+            long lDecodedLength = 0;
+
+            while (true)
+            {
+                int lBytesRead = await pStream.ReadAsync(lUndecodedBuffer, 0, cMailClient.BufferSize).ConfigureAwait(false);
+                lDecodedLength += pDecoder.GetDecodedLength(lUndecodedBuffer, 0, lBytesRead);
+                if (lBytesRead == 0) return lDecodedLength;
+            }
+        }
+
         private void ZReadInit(byte[] pBuffer, int pOffset, int pCount)
         {
             if (pBuffer == null) throw new ArgumentNullException(nameof(pBuffer));
@@ -125,7 +161,15 @@ namespace work.bacome.mailclient.support
         private void ZPositionCheck()
         {
             if (!mStream.CanSeek) return;
+
             if (mStream.Position == mUndecodedBytesRead) return;
+
+            if (mUndecodedBytesRead == 0)
+            {
+                mStream.Position = 0;
+                return;
+            }
+
             throw new cStreamPositionException();
         }
 

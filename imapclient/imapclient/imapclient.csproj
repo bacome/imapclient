@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="imap\client\fetchsectiontarget.cs" />
+    <Compile Include="imap\client\sectioncache.cs" />
     <Compile Include="imap\internal\sectionreader.cs" />
     <Compile Include="imap\public\sectioncache\directorysectioncache.cs" />
     <Compile Include="imap\sectioncache\defaultsectioncache.cs" />

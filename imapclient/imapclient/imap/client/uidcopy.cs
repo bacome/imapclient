@@ -23,11 +23,21 @@ namespace work.bacome.imapclient
 
             if (pSourceUIDs.Count == 0) return null;
 
+            cCopyFeedback lFeedback;
+
             using (var lToken = CancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
-                return await lSession.UIDCopyAsync(lMC, pSourceMailboxHandle, pSourceUIDs, pDestinationMailboxHandle, lContext).ConfigureAwait(false);
+                lFeedback = await lSession.UIDCopyAsync(lMC, pSourceMailboxHandle, pSourceUIDs, pDestinationMailboxHandle, lContext).ConfigureAwait(false);
             }
+
+            if (lFeedback != null && lFeedback.Count > 0)
+            {
+                var lSectionCache = SectionCache;
+                lSectionCache.Copy(lSession.ConnectedAccountId, pSourceMailboxHandle.MailboxName, pDestinationMailboxHandle.MailboxName, lFeedback);
+            }
+
+            return lFeedback;
         }
     }
 }
