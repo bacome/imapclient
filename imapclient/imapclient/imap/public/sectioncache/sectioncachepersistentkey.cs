@@ -6,9 +6,7 @@ namespace work.bacome.imapclient
 {
     public class cSectionCachePersistentKey : IEquatable<cSectionCachePersistentKey>
     {
-        public readonly cAccountId AccountId;
-        public readonly cMailboxName MailboxName;
-        public readonly cUID UID;
+        public readonly cSectionCacheMessageId MessageId;
         public readonly cSection Section;
         public readonly eDecodingRequired Decoding;
 

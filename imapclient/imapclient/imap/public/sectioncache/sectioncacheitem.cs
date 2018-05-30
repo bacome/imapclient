@@ -114,6 +114,12 @@ namespace work.bacome.imapclient
                     return true;
                 }
 
+                if (mToBeDeleted)
+                {
+                    lContext.TraceVerbose("already scheduled for deletion");
+                    return true;
+                }
+
                 if (mOpenStreamCount != 0)
                 {
                     if (pChangeSequence == -2)
@@ -149,6 +155,8 @@ namespace work.bacome.imapclient
         }
 
         internal bool Deleted => mDeleted;
+
+        internal bool ToBeDeleted => mToBeDeleted;
 
         internal long Length => mLength;
 
@@ -189,7 +197,7 @@ namespace work.bacome.imapclient
                 mCached = true;
                 mPersistentKey = pKey;
 
-                if (!mDeleted)
+                if (!mDeleted && !mToBeDeleted)
                 {
                     try { ItemCached(lContext); }
                     catch (Exception e) { lContext.TraceException("itemcached event failure", e); }
@@ -213,7 +221,7 @@ namespace work.bacome.imapclient
                 mCached = true;
                 mNonPersistentKey = pKey;
 
-                if (!mDeleted)
+                if (!mDeleted && !mToBeDeleted)
                 {
                     try { ItemCached(lContext); }
                     catch (Exception e) { lContext.TraceException("itemcached event failure", e); }

@@ -47,6 +47,9 @@
     <Compile Include="imap\client\sectioncache.cs" />
     <Compile Include="imap\internal\sectionreader.cs" />
     <Compile Include="imap\public\sectioncache\directorysectioncache.cs" />
+    <Compile Include="imap\public\sectioncache\mailboxid.cs" />
+    <Compile Include="imap\public\sectioncache\maintenanceinfo.cs" />
+    <Compile Include="imap\public\sectioncache\messageid.cs" />
     <Compile Include="imap\sectioncache\defaultsectioncache.cs" />
     <Compile Include="imap\public\sectioncache\tempfilesectioncache.cs" />
     <Compile Include="imap\sectioncache\nonpersistentkey.cs" />

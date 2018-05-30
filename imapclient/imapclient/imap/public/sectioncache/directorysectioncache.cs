@@ -678,7 +678,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        private class cMessageID : cInfoUID
+        private class cMessageId : cInfoUID
         {
             private readonly string mHost;
             private readonly string mCredentialId;
@@ -686,7 +686,7 @@ namespace work.bacome.imapclient
             private readonly uint mUIDValidity;
             private readonly uint mUID;
 
-            public cMessageID(string pHost, string pCredentialId, cMailboxName pMailboxName, uint pUIDValidity, uint pUID = 0)
+            public cMessageId(string pHost, string pCredentialId, cMailboxName pMailboxName, uint pUIDValidity, uint pUID = 0)
             {
                 mHost = pHost ?? throw new ArgumentNullException(nameof(pHost));
                 mCredentialId = pCredentialId ?? throw new ArgumentNullException(nameof(pCredentialId));
@@ -701,7 +701,7 @@ namespace work.bacome.imapclient
             public override uint UIDValidity => mUIDValidity;
             public override uint UID => mUID;
 
-            public override string ToString() => $"{nameof(cMessageID)}({mHost},{mCredentialId},{mMailboxName},{mUIDValidity},{mUID})";
+            public override string ToString() => $"{nameof(cMessageId)}({mHost},{mCredentialId},{mMailboxName},{mUIDValidity},{mUID})";
         }
 
         [Serializable]

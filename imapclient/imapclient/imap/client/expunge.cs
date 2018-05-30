@@ -19,24 +19,24 @@ namespace work.bacome.imapclient
 
             if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
 
-            cMessageHandleList lDeletedMessages;
+            cMessageHandleList lExpungedMessages;
 
             using (var lToken = CancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
 
-                if (pAndUnselect) lDeletedMessages = await lSession.CloseAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
+                if (pAndUnselect) lExpungedMessages = await lSession.CloseAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
                 else
                 {
                     await lSession.ExpungeAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
-                    lDeletedMessages = null;
+                    lExpungedMessages = null;
                 }
             }
 
-            if (lDeletedMessages != null && lDeletedMessages.Count > 0)
+            if (lExpungedMessages != null && lExpungedMessages.Count > 0)
             {
                 var lSectionCache = SectionCache;
-                lSectionCache.Deleted(lDeletedMessages, lContext);
+                lSectionCache.Expunged(lExpungedMessages, lContext);
             }
         }
     }

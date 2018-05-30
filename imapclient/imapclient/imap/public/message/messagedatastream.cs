@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
         private bool mDisposed = false;
 
         public readonly cIMAPClient Client;
-        public readonly iMessageHandle MessageHandle;
+        public readonly iMessageHandle MessageHandle; ?????????????; // before getting 
         public readonly cSinglePartBody Part;
         public readonly iMailboxHandle MailboxHandle;
         public readonly cUID UID;

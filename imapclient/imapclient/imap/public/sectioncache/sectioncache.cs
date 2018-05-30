@@ -27,6 +27,10 @@ namespace work.bacome.imapclient
         private readonly ConcurrentDictionary<cSectionCachePersistentKey, cSectionCacheItem> mPersistentKeyItems = new ConcurrentDictionary<cSectionCachePersistentKey, cSectionCacheItem>();
         private readonly ConcurrentDictionary<cSectionCacheNonPersistentKey, cSectionCacheItem> mNonPersistentKeyItems = new ConcurrentDictionary<cSectionCacheNonPersistentKey, cSectionCacheItem>();
 
+        private readonly object mLock = new object();
+        private HashSet<iMessageHandle> mExpunged = new HashSet<iMessageHandle>();
+        private Dictionary<cSectionCacheMailboxId, uint> mUIDValiditiesDiscovered = new Dictionary<cSectionCacheMailboxId, uint>();
+
         private int mItemSequence = 7;
         private Task mBackgroundTask = null;
 
@@ -65,21 +69,7 @@ namespace work.bacome.imapclient
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(Copied), pAccountId, pSourceMailboxName, pDestinationMailboxName, pCopyFeedback);
         }
 
-        // tells the cache that it might want to delete any cached data for these UIDs
-        //
-        protected virtual void Deleted(cAccountId pAccountId, cMailboxName pMailboxName, List<cUID> pUIDs, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(Deleted), pAccountId, pMailboxName);
-        }
-
-        // tells the cache that it might want to delete any cached data for this mailbox if it doesn't have the specified UIDValidity
-        //
-        protected virtual void UIDValidityDiscovered(cAccountId pAccountId, cMailboxName pMailboxName, uint pUIDValidity, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(UIDValidityDiscovered), pAccountId, pMailboxName, pUIDValidity);
-        }
-
-        protected virtual void Maintenance(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        protected virtual void Maintenance(cSectionCacheMaintenanceInfo pInfo, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(Maintenance));
         }
@@ -96,18 +86,26 @@ namespace work.bacome.imapclient
 
         internal void Expunged(iMessageHandle pMessageHandle, cTrace.cContext pParentContext)
         {
+            ;?; // these should be honoured in maintenance only
+            ;?; // and if it can't be the request to delete should be recorded somehow against the item, the cache won't remember
+            ;?; // the expunged items should have account/.../UID
+            ;?; // the uidvals account/../uidvalid
+
+
             ;?;
             // note that this must trydelete(-2) on npk and pk items before passing on the request if it has a UID
         }
 
-        internal void Deleted(cMessageHandleList pDeletedMessageHandles, cTrace.cContext pParentContext)
+        internal void Expunged(cMessageHandleList pMessageHandles, cTrace.cContext pParentContext)
         {
+            ;?; // these should be honoured in maintenance only
             ;?;
             // note that this must trydelete(-2) on npk and pk items before passing on the requests that have UIDs
         }
 
         internal void UIDValidityDiscovered(iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
         {
+            ;?; // these should be honoured in maintenance only
             ;?;
         }
 
@@ -359,19 +357,27 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewRootMethod(nameof(cSectionCache), nameof(ZMaintenance));
 
+            // 
+
+            ;?; // build the maintenance info that we are going to use this time from the synchronised queues
+
             // delete duplicates and invalids, index items that can be indexed
 
             foreach (var lPair in mNonPersistentKeyItems)
             {
                 var lNPKItem = lPair.Value;
 
-                if (lNPKItem.Deleted || lNPKItem.Indexed) continue;
+                if (lNPKItem.Deleted || lNPKItem.ToBeDeleted || lNPKItem.Indexed) continue;
+
+                ;?; // check if it is on the deleted list and delete
+                ;?; // check if the UIDvalidity is wrong and dekete
+
 
                 if (lNPKItem.PersistentKey == null)
                 {
                     if (mDisposing || !lPair.Key.IsValidToCache)
                     {
-                        lNPKItem.TryDelete(-1, lContext);
+                        lNPKItem.TryDelete(-2, lContext);
                         if (pCancellationToken.IsCancellationRequested) return;
                     }
 
@@ -383,7 +389,7 @@ namespace work.bacome.imapclient
                     if (lPKItem.ItemKey == lNPKItem.ItemKey) lNPKItem.SetIndexed(lContext);
                     else
                     {
-                        if (lPKItem.TryTouch(lContext)) lNPKItem.TryDelete(-1, lContext);
+                        if (lPKItem.TryTouch(lContext)) lNPKItem.TryDelete(-2, lContext);
                         else if (mPersistentKeyItems.TryUpdate(lNPKItem.PersistentKey, lNPKItem, lPKItem)) lNPKItem.SetIndexed(lContext);
                         if (pCancellationToken.IsCancellationRequested) return;
                     }
@@ -398,9 +404,16 @@ namespace work.bacome.imapclient
             foreach (var lPair in mPersistentKeyItems)
             {
                 var lPKItem = lPair.Value;
-                if (lPKItem.Deleted || lPKItem.PersistentKeyAssigned) continue;
+
+                if (lPKItem.Deleted || lPKItem.ToBeDeleted) continue;
+
+                ;?; // check if it is on the deleted list and delete
+                ;?; // check if the UIDvalidity is wrong and dekete
+
+                if (lPKItem.PersistentKeyAssigned) continue;
+
                 lPKItem.TryAssignPersistentKey(lContext);
-                if (!lPKItem.PersistentKeyAssigned && mDisposing) lPKItem.TryDelete(-1, lContext);
+                if (!lPKItem.PersistentKeyAssigned && mDisposing) lPKItem.TryDelete(-2, lContext);
                 if (pCancellationToken.IsCancellationRequested) return;
             }
 

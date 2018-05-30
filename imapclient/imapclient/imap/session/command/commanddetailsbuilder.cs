@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
+using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
@@ -682,8 +683,8 @@ namespace work.bacome.imapclient
 
                     cIMAPCallbackSynchroniser lES = new cIMAPCallbackSynchroniser();
                     cStrings lStrings = new cStrings(new List<string>());
-                    cMailboxCache lMC = new cMailboxCache(lES, 0, cCommandPartFactory.Validation, new cIMAPCapabilities(lStrings, lStrings, 0), new cAccountId("localhost", "fred"), (eIMAPConnectionState pCS, cTrace.cContext pC) => { });
-                    cSelectedMailbox lSelectedMailbox = new cSelectedMailbox(lES, new cMailboxCacheItem(lES, lMC, "fred"), false, true, 10, 5, 1111, 1, 0, cTrace.cContext.None);
+                    cMailboxCache lMC = new cMailboxCache(lES, LExpunged, LUIDValidityDiscovered, 0, cCommandPartFactory.Validation, new cIMAPCapabilities(lStrings, lStrings, 0), new cAccountId("localhost", "fred"), (eIMAPConnectionState pCS, cTrace.cContext pC) => { });
+                    cSelectedMailbox lSelectedMailbox = new cSelectedMailbox(lES, LExpunged, new cMailboxCacheItem(lES, LUIDValidityDiscovered, lMC, "fred"), false, true, 10, 5, 1111, 1, 0, cTrace.cContext.None);
                     //cSelectedMailbox lSelectedMailbox2 = new cSelectedMailbox(lES, new cMailboxCacheItem(lES, lMC, "fred"), false, true, 10, 5, 1111, 2222, 0, cTrace.cContext.Null);
 
 
@@ -853,6 +854,9 @@ namespace work.bacome.imapclient
 
                         return lBuilder.ToString();
                     }
+
+                    void LExpunged(iMessageHandle pMessageHandle, cTrace.cContext p2) { };
+                    void LUIDValidityDiscovered(iMailboxHandle pMailboxHandle, cTrace.cContext p2) { };
                 }
             }
 
