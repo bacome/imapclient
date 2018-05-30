@@ -16,6 +16,8 @@ namespace work.bacome.imapclient
             private eIMAPConnectionState _ConnectionState = eIMAPConnectionState.notconnected;
 
             private readonly cIMAPCallbackSynchroniser mSynchroniser;
+            private readonly Action<iMessageHandle, cTrace.cContext> mExpunged;
+            private readonly Action<iMailboxHandle, cTrace.cContext> mUIDValidityDiscovered;
             private readonly fIMAPCapabilities mIgnoreCapabilities;
             private readonly fMailboxCacheDataItems mMailboxCacheDataItems;
             private readonly cBatchSizer mFetchCacheItemsSizer;
@@ -48,7 +50,8 @@ namespace work.bacome.imapclient
             // (note for when adding more: they need to be disposed)
 
             public cSession(
-                cIMAPCallbackSynchroniser pSynchroniser, cBatchSizerConfiguration pNetworkWriteConfiguration,
+                cIMAPCallbackSynchroniser pSynchroniser, Action<iMessageHandle, cTrace.cContext> pExpunged, Action<iMailboxHandle, cTrace.cContext> pUIDValidityDiscovered,
+                cBatchSizerConfiguration pNetworkWriteConfiguration,
                 fIMAPCapabilities pIgnoreCapabilities, fMailboxCacheDataItems pMailboxCacheDataItems,
                 cBatchSizerConfiguration pFetchCacheItemsConfiguration, cBatchSizerConfiguration pFetchBodyConfiguration,
                 cStorableFlags pAppendDefaultFlags, cBatchSizerConfiguration pAppendBatchConfiguration, 
@@ -66,6 +69,8 @@ namespace work.bacome.imapclient
                         pIdleConfiguration);
 
                 mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
+                mExpunged = pExpunged ?? throw new ArgumentNullException(nameof(pExpunged));
+                mUIDValidityDiscovered = pUIDValidityDiscovered ?? throw new ArgumentNullException(nameof(pUIDValidityDiscovered));
                 mIgnoreCapabilities = pIgnoreCapabilities;
                 mMailboxCacheDataItems = pMailboxCacheDataItems;
                 mFetchCacheItemsSizer = new cBatchSizer(pFetchCacheItemsConfiguration);
@@ -99,7 +104,7 @@ namespace work.bacome.imapclient
                 mStatusAttributes = mMailboxCacheDataItems & fMailboxCacheDataItems.allstatus;
                 if (!_Capabilities.CondStore) mStatusAttributes &= ~fMailboxCacheDataItems.highestmodseq;
 
-                mMailboxCache = new cMailboxCache(mSynchroniser, mMailboxCacheDataItems, mCommandPartFactory, _Capabilities, _ConnectedAccountId, ZSetState);
+                mMailboxCache = new cMailboxCache(mSynchroniser, mExpunged, mUIDValidityDiscovered, mMailboxCacheDataItems, mCommandPartFactory, _Capabilities, _ConnectedAccountId, ZSetState);
 
                 mPipeline.Install(new cResponseTextCodeParserSelect(_Capabilities));
                 mPipeline.Install(new cResponseDataParserSelect());

@@ -33,7 +33,16 @@ namespace work.bacome.imapclient
         public readonly int FileCountBudget;
         public readonly TimeSpan RecentFileAge;
 
-        private readonly ConcurrentDictionary<cPersistentKey, cInfo> mItems = null;
+        private readonly ConcurrentDictionary<cPersistentKey, cInfo> mPersistentKeyToInfo = new ConcurrentDictionary<cPersistentKey, cInfo>();
+        private readonly ConcurrentQueue<cInfo> mNewInfos = new ConcurrentQueue<cInfo>();
+
+            
+        private List<cInfoUID> mInfoUIDs = null; // sorted
+
+
+        ;?; // need a list of new pk items here [for copy]
+        ;?; // and a list of UIDs to delete
+        ;?;
 
         // info retained from one iteration of maintenance to the next
         private readonly List<string> mOldListFileFullNames = new List<string>();
@@ -108,6 +117,7 @@ namespace work.bacome.imapclient
 
                 if (lIndex < 0) continue;
 
+                // generic routine for finding the start and end of the group (for uidval and uid)
                 ;?;
             }
         }
@@ -115,6 +125,9 @@ namespace work.bacome.imapclient
         protected override void Maintenance(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cDirectorySectionCache), nameof(Maintenance));
+
+            // manage new items
+            var lNewInfos = mNewInfos.Count;
 
             // delete the index files discovered in the last maintenance run
 
@@ -302,14 +315,13 @@ namespace work.bacome.imapclient
 
             if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
-            // delete files that contain duplicate data, build the new internal list
+            // delete files that contain duplicate data, update the map from key to info
 
             List<cInfo> lItemKeyInfos = new List<cInfo>(lItemKeyToInfo.Values);
             lItemKeyInfos.Sort();
 
             if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
-            var lUniqueInfos = new List<cInfo>();
             cPersistentKey lLastPersistentKey = null;
 
             foreach (var lInfo in lItemKeyInfos)
@@ -338,14 +350,10 @@ namespace work.bacome.imapclient
                 }
                 else
                 {
+                    mPersistentKeyToInfo[lInfo.PersistentKey] = lInfo;
                     lLastPersistentKey = lInfo.PersistentKey;
-                    lUniqueInfos.Add(lInfo);
                 }
             }
-
-            if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
-
-            foreach (var lInfo in lUniqueInfos) mItems[lInfo.PersistentKey] = lInfo;
 
             if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
@@ -485,6 +493,14 @@ namespace work.bacome.imapclient
                 mOldListFileFullNames.Clear();
             }
             finally { lListWriteStream.Dispose(); }
+
+            // update the list of files we know about
+            var lInfoUIDs = new List<cInfoUID>(lInfos);
+            lInfoUIDs.Sort();
+            mInfoUIDs = lInfoUIDs;
+
+            // remove new items we saw at the start (they should now be in the mInfoUIDs list)
+            for (int i = 0; i < lNewInfos; i++) if (!mNewInfos.TryDequeue(out _)) throw new cInternalErrorException(lContext);
         }
 
         private void ZNewFile(string pExtension, FileShare pFileShare, out string rItemKey, out string rFullName, out Stream rStream)
@@ -625,34 +641,72 @@ namespace work.bacome.imapclient
                 var lPersistentKey = ZPersistentKey(PersistentKey);
                 if (lPersistentKey == null) return;
 
+                var lInfo = new cInfo(ItemKey, lPersistentKey, mCreationTimeUTC, Length);
+
                 using (var lStream = new FileStream(mInfoFileFullName, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
                     BinaryFormatter lFormatter = new BinaryFormatter();
-                    lFormatter.Serialize(lStream, new cInfo(ItemKey, lPersistentKey, mCreationTimeUTC, Length));
+                    lFormatter.Serialize(lStream, lInfo);
                 }
 
                 mInfoFileExpectedToExist = true;
                 SetPersistentKeyAssigned(lContext);
+
+                ((cDirectorySectionCache)Cache).mNewInfos.Enqueue(lInfo);
             }
         }
 
-        private class iComparableByUID : IComparable<iComparableByUID>
+        private abstract class cInfoUID : IComparable<cInfoUID>
         {
-            string Host { get; }
-            string CredentialId { get; }
-            cMailboxName MailboxName { get; }
-            uint UIDValidity { get; }
-            uint UID { get; }
+            public abstract string Host { get; }
+            public abstract string CredentialId { get; }
+            public abstract cMailboxName MailboxName { get; }
+            public abstract uint UIDValidity { get; }
+            public abstract uint UID { get; }
+
+            public int CompareTo(cInfoUID pOther)
+            {
+                if (pOther == null) return 1;
+
+                int lCompareTo;
+                if ((lCompareTo = Host.CompareTo(pOther.Host)) != 0) return lCompareTo;
+                if ((lCompareTo = CredentialId.CompareTo(pOther.CredentialId)) != 0) return lCompareTo;
+                if ((lCompareTo = MailboxName.CompareTo(pOther.MailboxName)) != 0) return lCompareTo;
+                if ((lCompareTo = UIDValidity.CompareTo(pOther.UIDValidity)) != 0) return lCompareTo;
+
+                return UID.CompareTo(pOther.UID);
+            }
         }
 
-        private class cSearchByUID : iComparableByUID
+        private class cMessageID : cInfoUID
         {
+            private readonly string mHost;
+            private readonly string mCredentialId;
+            private readonly cMailboxName mMailboxName;
+            private readonly uint mUIDValidity;
+            private readonly uint mUID;
 
+            public cMessageID(string pHost, string pCredentialId, cMailboxName pMailboxName, uint pUIDValidity, uint pUID = 0)
+            {
+                mHost = pHost ?? throw new ArgumentNullException(nameof(pHost));
+                mCredentialId = pCredentialId ?? throw new ArgumentNullException(nameof(pCredentialId));
+                mMailboxName = pMailboxName ?? throw new ArgumentNullException(nameof(pMailboxName));
+                mUIDValidity = pUIDValidity;
+                mUID = pUID;
+            }
+
+            public override string Host => mHost;
+            public override string CredentialId => mCredentialId;
+            public override cMailboxName MailboxName => mMailboxName;
+            public override uint UIDValidity => mUIDValidity;
+            public override uint UID => mUID;
+
+            public override string ToString() => $"{nameof(cMessageID)}({mHost},{mCredentialId},{mMailboxName},{mUIDValidity},{mUID})";
         }
 
         [Serializable]
         [DataContract]
-        private class cInfo : IComparable<cInfo>, iComparableByUID
+        private class cInfo : cInfoUID, IComparable<cInfo>
         {
             [DataMember]
             public readonly string ItemKey; 
@@ -678,6 +732,7 @@ namespace work.bacome.imapclient
                 if (PersistentKey == null) new cDeserialiseException($"{nameof(cInfo)}.{nameof(PersistentKey)}.null");
             }
 
+            // sort by key then creation time: for deleting duplicates
             public int CompareTo(cInfo pOther)
             {
                 if (pOther == null) return 1;
@@ -688,6 +743,12 @@ namespace work.bacome.imapclient
 
                 return ItemKey.CompareTo(pOther.ItemKey);
             }
+
+            public override string Host => PersistentKey.Host;
+            public override string CredentialId => PersistentKey.CredentialId;
+            public override cMailboxName MailboxName => PersistentKey.MailboxName;
+            public override uint UIDValidity => PersistentKey.UID.UIDValidity;
+            public override uint UID => PersistentKey.UID.UID;
 
             public override string ToString() => $"{nameof(cInfo)}({ItemKey},{PersistentKey},{CreationTimeUTC},{Length})";
         }

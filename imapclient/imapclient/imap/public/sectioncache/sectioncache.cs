@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
@@ -57,9 +58,25 @@ namespace work.bacome.imapclient
             return false;
         }
 
-        protected virtual void Copy(cAccountId pAccountId, cMailboxName pSourceMailboxName, cMailboxName pDestinationMailboxName, cCopyFeedback pCopyFeedback, cTrace.cContext pParentContext)
+        // tells the cache that it might want to copy any cached data to exist under a new UID
+        //
+        protected internal virtual void Copied(cAccountId pAccountId, cMailboxName pSourceMailboxName, cMailboxName pDestinationMailboxName, cCopyFeedback pCopyFeedback, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(Copy), pAccountId, pSourceMailboxName, pDestinationMailboxName, pCopyFeedback);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(Copied), pAccountId, pSourceMailboxName, pDestinationMailboxName, pCopyFeedback);
+        }
+
+        // tells the cache that it might want to delete any cached data for these UIDs
+        //
+        protected virtual void Deleted(cAccountId pAccountId, cMailboxName pMailboxName, List<cUID> pUIDs, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(Deleted), pAccountId, pMailboxName);
+        }
+
+        // tells the cache that it might want to delete any cached data for this mailbox if it doesn't have the specified UIDValidity
+        //
+        protected virtual void UIDValidityDiscovered(cAccountId pAccountId, cMailboxName pMailboxName, uint pUIDValidity, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(UIDValidityDiscovered), pAccountId, pMailboxName, pUIDValidity);
         }
 
         protected virtual void Maintenance(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
@@ -79,12 +96,19 @@ namespace work.bacome.imapclient
 
         internal void Expunged(iMessageHandle pMessageHandle, cTrace.cContext pParentContext)
         {
-
+            ;?;
+            // note that this must trydelete(-2) on npk and pk items before passing on the request if it has a UID
         }
 
-        internal void Closed(cMessageHandleList pExpungedMessageHandles, cTrace.cContext pParentContext)
+        internal void Deleted(cMessageHandleList pDeletedMessageHandles, cTrace.cContext pParentContext)
         {
+            ;?;
+            // note that this must trydelete(-2) on npk and pk items before passing on the requests that have UIDs
+        }
 
+        internal void UIDValidityDiscovered(iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
+        {
+            ;?;
         }
 
 

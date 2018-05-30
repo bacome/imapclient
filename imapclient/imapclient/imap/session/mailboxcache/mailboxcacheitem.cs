@@ -11,6 +11,7 @@ namespace work.bacome.imapclient
             private class cMailboxCacheItem : iMailboxHandle
             {
                 private readonly cIMAPCallbackSynchroniser mSynchroniser;
+                private readonly Action<iMailboxHandle, cTrace.cContext> mUIDValidityDiscovered;
                 private readonly cMailboxCache mMailboxCache;
                 private readonly string mEncodedMailboxPath;
 
@@ -21,9 +22,10 @@ namespace work.bacome.imapclient
                 private cMailboxStatus mMailboxStatus = null;
                 private cMailboxSelectedProperties mSelectedProperties = cMailboxSelectedProperties.NeverBeenSelected;
 
-                public cMailboxCacheItem(cIMAPCallbackSynchroniser pSynchroniser, cMailboxCache pMailboxCache, string pEncodedMailboxPath)
+                public cMailboxCacheItem(cIMAPCallbackSynchroniser pSynchroniser, Action<iMailboxHandle, cTrace.cContext> pUIDValidityDiscovered, cMailboxCache pMailboxCache, string pEncodedMailboxPath)
                 {
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
+                    mUIDValidityDiscovered = pUIDValidityDiscovered ?? throw new ArgumentNullException(nameof(pUIDValidityDiscovered));
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                     mEncodedMailboxPath = pEncodedMailboxPath ?? throw new ArgumentNullException(nameof(pEncodedMailboxPath));
                 }
@@ -127,6 +129,10 @@ namespace work.bacome.imapclient
 
                     fMailboxProperties lDifferences;
 
+                    uint lUIDValidity;
+                    if (mMailboxStatus == null) lUIDValidity = 0;
+                    else lUIDValidity = mMailboxStatus.UIDValidity;
+
                     if (mStatus == null)
                     {
                         lDifferences = fMailboxProperties.messagecount | fMailboxProperties.recentcount | fMailboxProperties.uidnext | fMailboxProperties.unseencount | fMailboxProperties.highestmodseq; // not uidvalidity because it is likely to have some heavy processing attached to it if it is monitored
@@ -137,9 +143,9 @@ namespace work.bacome.imapclient
                         cMailboxStatus lMailboxStatus = new cMailboxStatus(mStatus.Messages ?? 0, mStatus.Recent ?? 0, mStatus.UIDNext ?? 0, mStatus.UIDValidity ?? 0, mStatus.Unseen ?? 0, mStatus.HighestModSeq ?? 0);
                         lDifferences = ZSetExists(true) | cMailboxStatus.Differences(mMailboxStatus, lMailboxStatus);
                         mMailboxStatus = lMailboxStatus;
-                    }
 
-                    ;?; // if the uidvalidity has a value, tell the sectioncache
+                        if (mMailboxStatus.UIDValidity != lUIDValidity) mUIDValidityDiscovered(this, lContext);
+                    }
 
                     mSynchroniser.InvokeMailboxPropertiesChanged(this, lDifferences, lContext);
                 }
@@ -148,10 +154,15 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetMailboxStatus), pMailboxStatus);
                     if (pMailboxStatus == null) throw new ArgumentNullException(nameof(pMailboxStatus));
+
+                    uint lUIDValidity;
+                    if (mMailboxStatus == null) lUIDValidity = 0;
+                    else lUIDValidity = mMailboxStatus.UIDValidity;
+
                     fMailboxProperties lDifferences = ZSetExists(true) | cMailboxStatus.Differences(mMailboxStatus, pMailboxStatus);
                     mMailboxStatus = pMailboxStatus;
 
-                    ;?; // if the uidvalidity has a value, tell the sectioncache
+                    if (mMailboxStatus.UIDValidity != lUIDValidity) mUIDValidityDiscovered(this, lContext);
 
                     mSynchroniser.InvokeMailboxPropertiesChanged(this, lDifferences, lContext);
                 }

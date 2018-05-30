@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kCloseCommandPart = new cTextCommandPart("CLOSE");
 
-            public async Task CloseAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
+            public async Task<cMessageHandleList> CloseAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(CloseAsync), pMC);
 
@@ -37,9 +37,8 @@ namespace work.bacome.imapclient
 
                     if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
-                        ;?; // return the list of message UIDs that were likely expunged
                         lContext.TraceInformation("close success");
-                        return;
+                        return lHook.MessagesToBeExpunged;
                     }
 
                     throw new cIMAPProtocolErrorException(lResult, 0, lContext);
@@ -55,10 +54,13 @@ namespace work.bacome.imapclient
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                 }
 
-                ;?;
-                // if the mailbox is selected for update and not readonly, assemble a list of messages with the deleted flag AND a UID
-                //  (on the command start)
-                // on successful close, tell the cache that all those messages are expunged
+                public cMessageHandleList MessagesToBeExpunged { get; private set; }
+
+                public override void CommandStarted(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCloseCommandHook), nameof(CommandStarted));
+                    MessagesToBeExpunged = mMailboxCache.GetMessagesToBeExpunged(lContext);
+                }
 
                 public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)
                 {

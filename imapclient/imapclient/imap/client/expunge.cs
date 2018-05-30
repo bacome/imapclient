@@ -19,17 +19,24 @@ namespace work.bacome.imapclient
 
             if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
 
+            cMessageHandleList lDeletedMessages;
+
             using (var lToken = CancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
 
-                if (pAndUnselect)
+                if (pAndUnselect) lDeletedMessages = await lSession.CloseAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
+                else
                 {
-                    await lSession.CloseAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
-                    ;?; // chache hook
+                    await lSession.ExpungeAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
+                    lDeletedMessages = null;
                 }
+            }
 
-                else await lSession.ExpungeAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
+            if (lDeletedMessages != null && lDeletedMessages.Count > 0)
+            {
+                var lSectionCache = SectionCache;
+                lSectionCache.Deleted(lDeletedMessages, lContext);
             }
         }
     }

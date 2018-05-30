@@ -17,14 +17,14 @@ namespace work.bacome.imapclient
                 private bool mAccessReadOnly;
                 private cSelectedMailboxCache mCache;
 
-                public cSelectedMailbox(cIMAPCallbackSynchroniser pSynchroniser, cMailboxCacheItem pMailboxCacheItem, bool pSelectedForUpdate, bool pAccessReadOnly, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
+                public cSelectedMailbox(cIMAPCallbackSynchroniser pSynchroniser, Action<iMessageHandle, cTrace.cContext> pExpunged, cMailboxCacheItem pMailboxCacheItem, bool pSelectedForUpdate, bool pAccessReadOnly, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cSelectedMailbox), pMailboxCacheItem, pSelectedForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq);
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                     mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
                     mSelectedForUpdate = pSelectedForUpdate;
                     mAccessReadOnly = pAccessReadOnly;
-                    mCache = new cSelectedMailboxCache(pSynchroniser, pMailboxCacheItem, pUIDValidity, pExists, pRecent, pUIDNext, pHighestModSeq, lContext);
+                    mCache = new cSelectedMailboxCache(pSynchroniser, pExpunged, pMailboxCacheItem, pUIDValidity, pExists, pRecent, pUIDNext, pHighestModSeq, lContext);
                 }
 
                 public iMailboxHandle MailboxHandle => mMailboxCacheItem;
@@ -40,6 +40,14 @@ namespace work.bacome.imapclient
                 public uint GetMSN(iMessageHandle pMessageHandle) => mCache.GetMSN(pMessageHandle); // this should only be called when no msnunsafe commands are running
 
                 public cMessageHandleList SetUnseenCount(int pMessageCount, cUIntList pMSNs, cTrace.cContext pParentContext) => mCache.SetUnseenCount(pMessageCount, pMSNs, pParentContext); // this should only be called from a commandcompletion
+
+                // this should only be called when messages aren't being processed (e.g. from command start)
+                public cMessageHandleList GetMessagesToBeExpunged(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(GetMessagesToBeExpunged));
+                    if (!mSelectedForUpdate || mAccessReadOnly) return null;
+                    return mCache.GetDeletedMessages(lContext);
+                }
 
                 public override string ToString() => $"{nameof(cSelectedMailbox)}({mMailboxCacheItem},{mSelectedForUpdate},{mAccessReadOnly})";
             }
