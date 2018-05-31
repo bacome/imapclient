@@ -133,6 +133,7 @@ namespace work.bacome.imapclient
 
                 ZGetSectionCacheKey(out var lNonPersistentKey, out _, out _, out var lPersistentKey);
 
+                ;?; // check both
                 if (lPersistentKey == null)
                 {
                     if (Client.SectionCache.TryGetItemLength(lNonPersistentKey, out var lLength, lContext)) return lLength;
@@ -146,6 +147,9 @@ namespace work.bacome.imapclient
                 }
 
                 // see if IMAP knows
+
+                ;?; // note: now that we can find the handle, this needs revision ... but, get size not uid
+                //  and could get bodystructure and search for the part if the part was for the whole part and it was a single part body
 
                 if (MessageHandle != null)
                 {
@@ -374,6 +378,7 @@ namespace work.bacome.imapclient
 
             ZGetSectionCacheKey(out var lNonPersistentKey, out _, out _, out var lPersistentKey);
 
+            ;?; // check both
             if (lPersistentKey == null)
             {
                 if (Client.SectionCache.TryGetItemLength(lNonPersistentKey, out var lProgressLength, lContext))
@@ -460,6 +465,7 @@ namespace work.bacome.imapclient
 
         private void ZGetSectionCacheKey(out cSectionCacheNonPersistentKey rNonPersistentKey, out iMailboxHandle rMailboxHandle, out cUID rUID, out cSectionCachePersistentKey rPersistentKey)
         {
+            ;?; // return both
             if (UID == null && MessageHandle.UID == null)
             {
                 rNonPersistentKey = new cSectionCacheNonPersistentKey(Client, MessageHandle, Section, Decoding);
@@ -491,10 +497,16 @@ namespace work.bacome.imapclient
 
             if (mSectionReader != null) return;
 
-            ;?; // VERIFY that the item exists first
+            ;?; // VERIFY that the item exists BEFORE returning hte reader: NOTE: get the reader first, then check for existance
+                //  ONLY check if accessing with a UID: otherwise the handles expunged is sufficient
+                //   use Client.GetMessageHandleAsync() and then check the expunged (the API will return null if the item doesn't exist)
+
 
             var lSectionCache = Client.SectionCache;
             ZGetSectionCacheKey(out var lNonPersistentKey, out var lMailboxHandle, out var lUID, out var lPersistentKey);
+
+            ;?; // check both
+            ;?; //  NOTE that getting the readerwriter by the nonpersistent key is preferred as that key contains the handle
 
             if (lPersistentKey == null)
             {

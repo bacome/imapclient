@@ -26,6 +26,7 @@ namespace work.bacome.imapclient
         private bool mDeleted = false;
         private bool mToBeDeleted = false;
         private bool mIndexed = false;
+
         private cSectionCachePersistentKey mPersistentKey = null;
         private cSectionCacheNonPersistentKey mNonPersistentKey = null;
 
@@ -53,6 +54,18 @@ namespace work.bacome.imapclient
             mCanGetReaderWriter = true;
             mCached = false;
             mPersistentKeyAssigned = false;
+        }
+
+        internal void SetKey(cSectionCachePersistentKey pKey)
+        {
+            if (mCached || mPersistentKey != null || mNonPersistentKey != null) throw new InvalidOperationException();
+            mPersistentKey = pKey;
+        }
+
+        internal void SetKey(cSectionCacheNonPersistentKey pKey)
+        {
+            if (mCached || mPersistentKey != null || mNonPersistentKey != null) throw new InvalidOperationException();
+            mNonPersistentKey = pKey;
         }
 
         protected abstract Stream YGetReadStream(cTrace.cContext pParentContext);
@@ -89,16 +102,8 @@ namespace work.bacome.imapclient
 
         public bool PersistentKeyAssigned => mPersistentKeyAssigned;
 
-        public cSectionCachePersistentKey PersistentKey
-        {
-            get
-            {
-                if (mPersistentKey != null) return mPersistentKey;
-                if (mNonPersistentKey == null || mNonPersistentKey.UID == null) return null;
-                mPersistentKey = new cSectionCachePersistentKey(mNonPersistentKey);
-                return mPersistentKey;
-            }
-        }
+        protected internal cSectionCachePersistentKey PersistentKey => mPersistentKey;
+        internal cSectionCacheNonPersistentKey NonPersistentKey => mNonPersistentKey;
 
         protected internal bool TryDelete(int pChangeSequence, cTrace.cContext pParentContext)
         {
@@ -179,37 +184,19 @@ namespace work.bacome.imapclient
             return lReaderWriter;
         }
 
-        internal bool Cached => mCached;
-
-        internal void SetCached(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
+        internal void TrySetPersistentKey()
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(SetCached), pKey);
-
-            if (pKey == null) throw new ArgumentNullException(nameof(pKey));
-
-            if (mCanGetReaderWriter) throw new InvalidOperationException();
-
-            lock (mLock)
-            {
-                if (mCached) throw new InvalidOperationException();
-
-                mLength = mReadWriteStream.Length;
-                mCached = true;
-                mPersistentKey = pKey;
-
-                if (!mDeleted && !mToBeDeleted)
-                {
-                    try { ItemCached(lContext); }
-                    catch (Exception e) { lContext.TraceException("itemcached event failure", e); }
-                }
-            }
+            if (mNonPersistentKey == null) throw new InvalidOperationException();
+            if (mPersistentKey != null) return;
+            if (mNonPersistentKey.MessageHandle.UID == null) return;
+            mPersistentKey = new cSectionCachePersistentKey(mNonPersistentKey);
         }
 
-        internal void SetCached(cSectionCacheNonPersistentKey pKey, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(SetCached), pKey);
+        internal bool Cached => mCached;
 
-            if (pKey == null) throw new ArgumentNullException(nameof(pKey));
+        internal void SetCached(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(SetCached));
 
             if (mCanGetReaderWriter) throw new InvalidOperationException();
 
@@ -219,7 +206,6 @@ namespace work.bacome.imapclient
 
                 mLength = mReadWriteStream.Length;
                 mCached = true;
-                mNonPersistentKey = pKey;
 
                 if (!mDeleted && !mToBeDeleted)
                 {
@@ -329,11 +315,15 @@ namespace work.bacome.imapclient
 
             lock (mLock)
             {
-                if (!mCached || mPersistentKey == null) throw new InvalidOperationException();
+                if (!mCached || PersistentKey == null) throw new InvalidOperationException();
 
                 if (mDeleted || mToBeDeleted || mPersistentKeyAssigned) return;
 
-                if (mNonPersistentKey != null && mNonPersistentKey.MailboxHandle.SelectedProperties.UIDNotSticky != false) return;
+                if (PersistentKey.UIDNotSticky)
+                {
+                    mPersistentKeyAssigned = true;
+                    return;
+                }
 
                 try { AssignPersistentKey(mOpenStreamCount == 0, lContext); }
                 catch (Exception e) { lContext.TraceException("assignpersistentkey failure", e); }

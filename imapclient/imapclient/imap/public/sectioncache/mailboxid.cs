@@ -9,11 +9,6 @@ namespace work.bacome.imapclient
         public readonly cAccountId AccountId;
         public readonly cMailboxName MailboxName;
 
-        public cSectionCacheMailboxId()
-        {
-            ;?;
-        }
-
         internal cSectionCacheMailboxId(iMailboxHandle pMailboxHandle)
         {
             if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));

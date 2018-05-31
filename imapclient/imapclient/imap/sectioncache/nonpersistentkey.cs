@@ -8,17 +8,20 @@ namespace work.bacome.imapclient
     {
         public readonly cIMAPClient Client;
         public readonly iMessageHandle MessageHandle;
+        public readonly cSectionCacheMailboxId MailboxId;
         public readonly cSection Section;
         public readonly eDecodingRequired Decoding;
 
-        internal cSectionCacheNonPersistentKey(cIMAPClient pClient, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding)
+        public cSectionCacheNonPersistentKey(cIMAPClient pClient, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
+            MailboxId = new cSectionCacheMailboxId(pMessageHandle.MessageCache.MailboxHandle);
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
             Decoding = pDecoding;
         }
 
+        /*
         public bool IsValidToCache
         {
             get
@@ -26,12 +29,9 @@ namespace work.bacome.imapclient
                 if (MessageHandle.Expunged) return false;
                 return ReferenceEquals(Client.SelectedMailboxDetails?.MessageCache, MessageHandle.MessageCache);
             }
-        }
+        } */
 
-        public cAccountId AccountId => MessageHandle.MessageCache.MailboxHandle.MailboxCache.AccountId;
-        public iMailboxHandle MailboxHandle => MessageHandle.MessageCache.MailboxHandle;
-        public cMailboxName MailboxName => MessageHandle.MessageCache.MailboxHandle.MailboxName;
-        public cUID UID => MessageHandle.UID;
+        public bool UIDNotSticky => MessageHandle.MessageCache.MailboxHandle.SelectedProperties.UIDNotSticky ?? true;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public bool Equals(cSectionCacheNonPersistentKey pObject) => this == pObject;

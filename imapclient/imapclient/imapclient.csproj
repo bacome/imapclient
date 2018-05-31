@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="imap\client\fetchsectiontarget.cs" />
+    <Compile Include="imap\client\getmessagehandle.cs" />
     <Compile Include="imap\client\sectioncache.cs" />
     <Compile Include="imap\internal\sectionreader.cs" />
     <Compile Include="imap\public\sectioncache\directorysectioncache.cs" />
@@ -56,9 +57,9 @@
     <Compile Include="imap\sectioncache\itemreaderwriter.cs" />
     <Compile Include="imap\sectioncache\itemreader.cs" />
     <Compile Include="imap\client\append.cs" />
-    <Compile Include="imap\public\sectioncache\sectioncache.cs" />
-    <Compile Include="imap\public\sectioncache\sectioncacheitem.cs" />
-    <Compile Include="imap\public\sectioncache\sectioncachepersistentkey.cs" />
+    <Compile Include="imap\public\sectioncache\base.cs" />
+    <Compile Include="imap\public\sectioncache\item.cs" />
+    <Compile Include="imap\public\sectioncache\persistentkey.cs" />
     <Compile Include="imap\public\message\messagedatastream.cs" />
     <Compile Include="imap\session\fetch\sectiontargetwriter.cs" />
     <Compile Include="imap\session\fetch\uidsection.cs" />

@@ -27,9 +27,15 @@ namespace work.bacome.imapclient
         private readonly ConcurrentDictionary<cSectionCachePersistentKey, cSectionCacheItem> mPersistentKeyItems = new ConcurrentDictionary<cSectionCachePersistentKey, cSectionCacheItem>();
         private readonly ConcurrentDictionary<cSectionCacheNonPersistentKey, cSectionCacheItem> mNonPersistentKeyItems = new ConcurrentDictionary<cSectionCacheNonPersistentKey, cSectionCacheItem>();
 
-        private readonly object mLock = new object();
+        // lock and collections for expiring cache items 
+        private readonly object mExpiredLock = new object();
         private HashSet<iMessageHandle> mExpunged = new HashSet<iMessageHandle>();
         private Dictionary<cSectionCacheMailboxId, uint> mUIDValiditiesDiscovered = new Dictionary<cSectionCacheMailboxId, uint>();
+
+        // pending items
+        private readonly object mPendingItemsLock = new object();
+        private readonly HashSet<cSectionCacheItem> mPendingPersistentKeyItems = new HashSet<cSectionCacheItem>();
+        private readonly HashSet<cSectionCacheItem> mPendingNonPersistentKeyItems = new HashSet<cSectionCacheItem>();
 
         private int mItemSequence = 7;
         private Task mBackgroundTask = null;
@@ -51,7 +57,7 @@ namespace work.bacome.imapclient
 
         // asks the cache to create a new item
         //
-        protected abstract cSectionCacheItem YGetNewItem(cTrace.cContext pParentContext);
+        protected abstract cSectionCacheItem YGetNewItem(cSectionCacheMailboxId pMailboxId, cTrace.cContext pParentContext);
 
         // asks the cache if it has an item for the key
         //
@@ -78,39 +84,28 @@ namespace work.bacome.imapclient
 
         protected internal int GetItemSequence() => Interlocked.Increment(ref mItemSequence);
 
-
-
-
-
-        ;?; // uidvalidity, expunge, copy
-
         internal void Expunged(iMessageHandle pMessageHandle, cTrace.cContext pParentContext)
         {
-            ;?; // these should be honoured in maintenance only
-            ;?; // and if it can't be the request to delete should be recorded somehow against the item, the cache won't remember
-            ;?; // the expunged items should have account/.../UID
-            ;?; // the uidvals account/../uidvalid
-
-
-            ;?;
-            // note that this must trydelete(-2) on npk and pk items before passing on the request if it has a UID
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(Expunged), pMessageHandle);
+            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
+            lock (mExpiredLock) { mExpunged.Add(pMessageHandle); }
         }
 
         internal void Expunged(cMessageHandleList pMessageHandles, cTrace.cContext pParentContext)
         {
-            ;?; // these should be honoured in maintenance only
-            ;?;
-            // note that this must trydelete(-2) on npk and pk items before passing on the requests that have UIDs
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(Expunged), pMessageHandles);
+            if (pMessageHandles == null) throw new ArgumentNullException(nameof(pMessageHandles));
+            if (pMessageHandles.Count == 0) return;
+            lock (mExpiredLock) { mExpunged.UnionWith(pMessageHandles); }
         }
 
         internal void UIDValidityDiscovered(iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
         {
-            ;?; // these should be honoured in maintenance only
-            ;?;
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(Expunged), pMailboxHandle);
+            if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
+            if (pMailboxHandle.MailboxStatus == null) throw new ArgumentOutOfRangeException(nameof(pMailboxHandle));
+            lock (mExpiredLock) { mUIDValiditiesDiscovered[new cSectionCacheMailboxId(pMailboxHandle)] = pMailboxHandle.MailboxStatus.UIDValidity; }
         }
-
-
-
 
         internal bool TryGetItemLength(cSectionCachePersistentKey pKey, out long rLength, cTrace.cContext pParentContext)
         {
@@ -137,20 +132,6 @@ namespace work.bacome.imapclient
                 return true;
             }
 
-            foreach (var lPair in mNonPersistentKeyItems)
-            {
-                var lNPKItem = lPair.Value;
-
-                if (lNPKItem.Deleted || lNPKItem.Indexed) continue;
-
-                if (pKey.Equals(lPair.Key))
-                {
-                    if (mPersistentKeyItems.TryAdd(pKey, lNPKItem)) lNPKItem.SetIndexed(lContext);
-                    rLength = lNPKItem.Length;
-                    return true;
-                }
-            }
-
             rLength = -1;
             return false;
         }
@@ -165,89 +146,42 @@ namespace work.bacome.imapclient
 
             if (pKey == null) throw new ArgumentNullException(nameof(pKey));
 
-            bool lSomeThingChanged = true;
-
-            while (lSomeThingChanged)
+            while (true)
             {
                 cSectionCacheItem lPKItem = null;
 
                 if (mPersistentKeyItems.TryGetValue(pKey, out lPKItem)) if (lPKItem.TryGetReader(out rReader, lContext)) return true;
 
-                if (TryGetExistingItem(pKey, out var lExistingItem, lContext))
+                if (!TryGetExistingItem(pKey, out var lExistingItem, lContext))
                 {
-                    if (lExistingItem == null || !lExistingItem.Cached) throw new cUnexpectedSectionCacheActionException(lContext, 2);
-
-                    if (lExistingItem.ItemKey != lPKItem.ItemKey)
-                    {
-                        if (lPKItem == null)
-                        {
-                            if (mPersistentKeyItems.TryAdd(pKey, lExistingItem))
-                            {
-                                lPKItem = lExistingItem;
-                                if (lPKItem.TryGetReader(out rReader, lContext)) return true;
-                            }
-                            else continue; // something changed
-                        }
-                        else
-                        {
-                            if (mPersistentKeyItems.TryUpdate(pKey, lExistingItem, lPKItem))
-                            {
-                                lPKItem = lExistingItem;
-                                if (lPKItem.TryGetReader(out rReader, lContext)) return true;
-                            }
-                            else continue; // something changed
-                        }
-                    }
+                    rReader = null;
+                    return false;
                 }
 
-                lSomeThingChanged = false;
+                if (lExistingItem == null || !lExistingItem.Cached) throw new cUnexpectedSectionCacheActionException(lContext, 2);
 
-                foreach (var lPair in mNonPersistentKeyItems)
+                if (lExistingItem.ItemKey == lPKItem.ItemKey)
                 {
-                    var lNPKItem = lPair.Value;
-
-                    if (lNPKItem.Deleted || lNPKItem.Indexed) continue;
-
-                    if (pKey.Equals(lPair.Key))
-                    {
-                        if (lNPKItem.ItemKey == lPKItem.ItemKey) lNPKItem.SetIndexed(lContext);
-                        else
-                        {
-                            if (lPKItem == null)
-                            {
-                                if (mPersistentKeyItems.TryAdd(pKey, lNPKItem))
-                                {
-                                    lNPKItem.SetIndexed(lContext);
-                                    lPKItem = lNPKItem;
-                                    if (lPKItem.TryGetReader(out rReader, lContext)) return true;
-                                }
-                                else
-                                {
-                                    lSomeThingChanged = true;
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                if (mPersistentKeyItems.TryUpdate(pKey, lNPKItem, lPKItem))
-                                {
-                                    lNPKItem.SetIndexed(lContext);
-                                    lPKItem = lNPKItem;
-                                    if (lPKItem.TryGetReader(out rReader, lContext)) return true;
-                                }
-                                else
-                                {
-                                    lSomeThingChanged = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
+                    rReader = null;
+                    return false;
                 }
+
+                if (lPKItem == null) mPersistentKeyItems.TryAdd(pKey, lExistingItem);
+                else mPersistentKeyItems.TryUpdate(pKey, lExistingItem, lPKItem);
             }
+        }
 
-            rReader = null;
-            return false;
+        internal cSectionCacheItem GetNewItem(cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetNewItem), pKey);
+            if (IsDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
+            if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext);
+            if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
+            var lItem = YGetNewItem(pKey.MessageId.MailboxId, lContext);
+            if (lItem == null || !lItem.CanGetReaderWriter) throw new cUnexpectedSectionCacheActionException(lContext);
+            lItem.SetKey(pKey);
+            lock (mPendingItemsLock) { mPendingPersistentKeyItems.Add(lItem); }
+            return lItem;
         }
 
         internal bool TryGetItemLength(cSectionCacheNonPersistentKey pKey, out long rLength, cTrace.cContext pParentContext)
@@ -282,59 +216,68 @@ namespace work.bacome.imapclient
             return false;
         }
 
-        internal cSectionCacheItem GetNewItem(cTrace.cContext pParentContext)
+        internal cSectionCacheItem GetNewItem(cSectionCacheNonPersistentKey pKey, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetNewItem));
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetNewItem), pKey);
             if (IsDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
             if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext);
             if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
-            var lItem = YGetNewItem(lContext);
+            var lItem = YGetNewItem(pKey.MailboxId, lContext);
             if (lItem == null || !lItem.CanGetReaderWriter) throw new cUnexpectedSectionCacheActionException(lContext);
+            lItem.SetKey(pKey);
+            lock (mPendingItemsLock) { mPendingNonPersistentKeyItems.Add(lItem); }
             return lItem;
         }
 
-        internal void AddItem(cSectionCachePersistentKey pKey, cSectionCacheItem pItem, cTrace.cContext pParentContext)
+        internal void AddItem(cSectionCacheItem pItem, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(AddItem), pKey, pItem);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(AddItem), pItem);
 
-            if (pKey == null) throw new ArgumentNullException(nameof(pKey));
             if (pItem == null) throw new ArgumentNullException(nameof(pItem));
-            if (pItem.Cache != this || pItem.Cached) throw new ArgumentOutOfRangeException(nameof(pItem));
+            if (pItem.Cache != this || pItem.Cached || (pItem.PersistentKey == null && pItem.NonPersistentKey == null)) throw new ArgumentOutOfRangeException(nameof(pItem));
 
             if (IsDisposed) return;
             if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext);
             if (mBackgroundTask.IsCompleted) return;
 
-            if (mPersistentKeyItems.TryGetValue(pKey, out var lPKItem))
+            ;?; // note that the remove has to be done: NO RETURNS!
+
+            if (!pItem.Deleted && !pItem.ToBeDeleted) // these will be set by maintenance if it discovers that the item has been expunged or the UIDValidity has changed
             {
-                if (lPKItem.TryTouch(lContext)) return;
-                if (mPersistentKeyItems.TryUpdate(pKey, pItem, lPKItem)) pItem.SetCached(pKey, lContext);
-                return;
+                if (pItem.NonPersistentKey != null)
+                {
+                    pItem.TrySetPersistentKey();
+
+                    var lMessageHandle = pItem.NonPersistentKey.MessageHandle;
+                    if (lMessageHandle.Expunged) return; ;?; // NONONONO
+
+                    if (pItem.PersistentKey == null)
+                    {
+                        var lClient = pItem.NonPersistentKey.Client;
+                        if (!ReferenceEquals(lMessageHandle.MessageCache, lClient.SelectedMailboxDetails?.MessageCache)) return;
+                    }
+                }
+
+                if (pItem.PersistentKey == null)
+                {
+                    if (mNonPersistentKeyItems.TryGetValue(pItem.NonPersistentKey, out var lNPKItem))
+                    {
+                        if (!lNPKItem.TryTouch(lContext) && mNonPersistentKeyItems.TryUpdate(pItem.NonPersistentKey, pItem, lNPKItem)) pItem.SetCached(lContext);
+                    }
+                    else if (mNonPersistentKeyItems.TryAdd(pItem.NonPersistentKey, pItem)) pItem.SetCached(lContext);
+                }
+                else
+                {
+                    if (mPersistentKeyItems.TryGetValue(pItem.PersistentKey, out var lPKItem))
+                    {
+                        if (!lPKItem.TryTouch(lContext) && mPersistentKeyItems.TryUpdate(pItem.PersistentKey, pItem, lPKItem)) pItem.SetCached(lContext);
+                    }
+                    else if (mPersistentKeyItems.TryAdd(pItem.PersistentKey, pItem)) pItem.SetCached(lContext);
+                }
             }
 
-            if (mPersistentKeyItems.TryAdd(pKey, pItem)) pItem.SetCached(pKey, lContext);
-        }
-
-        internal void AddItem(cSectionCacheNonPersistentKey pKey, cSectionCacheItem pItem, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(AddItem), pKey, pItem);
-
-            if (pKey == null) throw new ArgumentNullException(nameof(pKey));
-            if (pItem == null) throw new ArgumentNullException(nameof(pItem));
-            if (pItem.Cache != this || pItem.Cached) throw new ArgumentOutOfRangeException(nameof(pItem));
-
-            if (IsDisposed) return;
-            if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext);
-            if (mBackgroundTask.IsCompleted) return;
-
-            if (mNonPersistentKeyItems.TryGetValue(pKey, out var lNPKItem))
-            {
-                if (lNPKItem.TryTouch(lContext)) return;
-                if (mNonPersistentKeyItems.TryUpdate(pKey, pItem, lNPKItem)) pItem.SetCached(pKey, lContext);
-                return;
-            }
-
-            if (mNonPersistentKeyItems.TryAdd(pKey, pItem)) pItem.SetCached(pKey, lContext);
+            ;?; // remove from the right one;?;
+            lock (mPendingLock) { mPendingNewItems.Remove(pItem); }
         }
 
         private async Task ZBackgroundTaskAsync(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
@@ -357,7 +300,45 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewRootMethod(nameof(cSectionCache), nameof(ZMaintenance));
 
-            // 
+            // take a copy and replace the sets that tell us about expired items
+
+            HashSet<iMessageHandle> lExpungedMessageHandles;
+            Dictionary<cSectionCacheMailboxId, uint> lUIDValiditiesDiscovered;
+
+            lock (mExpiredLock)
+            {
+                lExpungedMessageHandles = mExpunged;
+                mExpunged = new HashSet<iMessageHandle>();
+                lUIDValiditiesDiscovered = mUIDValiditiesDiscovered;
+                mUIDValiditiesDiscovered = new Dictionary<cSectionCacheMailboxId, uint>();
+            }
+
+            HashSet<cSectionCacheMessageId> lExpungedMessageIds = new HashSet<cSectionCacheMessageId>();
+            foreach (var lMessageHandle in mExpunged) if (lMessageHandle.UID != null) lExpungedMessageIds.Add(new cSectionCacheMessageId(lMessageHandle));
+
+            // check if any pending items should be canned
+
+            HashSet<cSectionCacheItem> lPendingPersistentKeyItems;
+            HashSet<cSectionCacheItem> lPendingNonPersistentKeyItems;
+
+            lock (mPendingItemsLock)
+            {
+                lPendingPersistentKeyItems = new HashSet<cSectionCacheItem>(mPendingPersistentKeyItems);
+                lPendingNonPersistentKeyItems = new HashSet<cSectionCacheItem>(mPendingNonPersistentKeyItems);
+            }
+
+            foreach (var lItem in lPendingPersistentKeyItems)
+            {
+                var lMessageId = lItem.PersistentKey.MessageId;
+                if (lExpungedMessageIds.Contains(lMessageId) || (lUIDValiditiesDiscovered.TryGetValue(lMessageId.MailboxId, out var lUIDValidity) && lMessageId.UID.UIDValidity != lUIDValidity)) lItem.TryDelete(-2, lContext);
+            }
+
+            foreach (var lItem in lPendingNonPersistentKeyItems)
+            {
+                ;?;
+                var lMessageHandle = lItem.NonPersistentKey.MessageHandle;
+                if (lExpungedMessageHandles.Contains(lMessageHandle) || (lUIDValiditiesDiscovered.TryGetValue(lMessageId.MailboxId, out var lUIDValidity) && lMessageId.UID.UIDValidity != lUIDValidity)) lItem.TryDelete(-2, lContext);
+            }
 
             ;?; // build the maintenance info that we are going to use this time from the synchronised queues
 
@@ -369,11 +350,30 @@ namespace work.bacome.imapclient
 
                 if (lNPKItem.Deleted || lNPKItem.ToBeDeleted || lNPKItem.Indexed) continue;
 
+                ;?; // if it is expunged, try delete
+                ;?; // if there is no UID and the message cache has changed, trydelete
+                ;?; // if there is no UID continue [note that the API GetPerstentkey should be changed to SET persistent key and should only be allowed on npk items]
+                ;?; // check for uidvalidity change: trydelete
+
+
+                if ()
+
+                if (!lNPKItem.IsValidToCache)
+                {
+                    ;?; // try delete
+                    lNPKItem.SetIndexed(lContext);
+                    continue;
+                }
+
+                ;?;
+
+                if (!lNPKItem.IsValidToCache || lNPKItem.Indexed) continue;
+
                 ;?; // check if it is on the deleted list and delete
                 ;?; // check if the UIDvalidity is wrong and dekete
 
 
-                if (lNPKItem.PersistentKey == null)
+                if (lNPKItem.GetPersistentKey() == null)
                 {
                     if (mDisposing || !lPair.Key.IsValidToCache)
                     {
@@ -384,17 +384,17 @@ namespace work.bacome.imapclient
                     continue;
                 }
 
-                if (mPersistentKeyItems.TryGetValue(lNPKItem.PersistentKey, out var lPKItem))
+                if (mPersistentKeyItems.TryGetValue(lNPKItem.GetPersistentKey(), out var lPKItem))
                 {
                     if (lPKItem.ItemKey == lNPKItem.ItemKey) lNPKItem.SetIndexed(lContext);
                     else
                     {
                         if (lPKItem.TryTouch(lContext)) lNPKItem.TryDelete(-2, lContext);
-                        else if (mPersistentKeyItems.TryUpdate(lNPKItem.PersistentKey, lNPKItem, lPKItem)) lNPKItem.SetIndexed(lContext);
+                        else if (mPersistentKeyItems.TryUpdate(lNPKItem.GetPersistentKey(), lNPKItem, lPKItem)) lNPKItem.SetIndexed(lContext);
                         if (pCancellationToken.IsCancellationRequested) return;
                     }
                 }
-                else if (mPersistentKeyItems.TryAdd(lNPKItem.PersistentKey, lNPKItem)) lNPKItem.SetIndexed(lContext);
+                else if (mPersistentKeyItems.TryAdd(lNPKItem.GetPersistentKey(), lNPKItem)) lNPKItem.SetIndexed(lContext);
             }
 
             if (pCancellationToken.IsCancellationRequested) return;
@@ -405,7 +405,7 @@ namespace work.bacome.imapclient
             {
                 var lPKItem = lPair.Value;
 
-                if (lPKItem.Deleted || lPKItem.ToBeDeleted) continue;
+                if (!lPKItem.IsValidToCache) continue;
 
                 ;?; // check if it is on the deleted list and delete
                 ;?; // check if the UIDvalidity is wrong and dekete
