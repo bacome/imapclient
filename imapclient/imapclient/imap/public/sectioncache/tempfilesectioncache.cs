@@ -7,14 +7,16 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    public class cTempFileSectionCache : cSectionCache
+    // sealed because startmaintenance is called in construction
+    public sealed class cTempFileSectionCache : cSectionCache
     {
         public readonly long ByteCountBudget;
         public readonly int FileCountBudget;
+        ;?; // max file age
 
         private readonly ConcurrentDictionary<string, cItem> mItems = new ConcurrentDictionary<string, cItem>();
 
-        public cTempFileSectionCache(string pInstanceName, int pMaintenanceFrequency, long pByteCountBudget, int pFileCountBudget) : base(pInstanceName, pMaintenanceFrequency)
+        public cTempFileSectionCache(string pInstanceName, int pMaintenanceFrequency, long pByteCountBudget, int pFileCountBudget, ?) : base(pInstanceName, pMaintenanceFrequency)
         {
             if (pByteCountBudget < 0) throw new ArgumentOutOfRangeException(nameof(pByteCountBudget));
             if (pFileCountBudget < 0) throw new ArgumentOutOfRangeException(nameof(pFileCountBudget));
@@ -100,14 +102,14 @@ namespace work.bacome.imapclient
             protected override Stream YGetReadStream(cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cItem), nameof(YGetReadStream));
-                var lStream = new FileStream(ItemKey, FileMode.Open, FileAccess.Read, FileShare.Read);
-                var lFileInfo = new FileInfo(ItemKey);
+                var lStream = new FileStream(ItemId, FileMode.Open, FileAccess.Read, FileShare.Read);
+                var lFileInfo = new FileInfo(ItemId);
                 if (FileTimesAreTheSame(lFileInfo.CreationTimeUtc, mCreationTimeUTC)) return lStream; // length is checked by the cache
                 lStream.Dispose();
                 return null;
             }
 
-            protected override void YDelete(cTrace.cContext pParentContext) => File.Delete(ItemKey);
+            protected override void YDelete(cTrace.cContext pParentContext) => File.Delete(ItemId);
 
             protected override eItemState Touch(cTrace.cContext pParentContext)
             {

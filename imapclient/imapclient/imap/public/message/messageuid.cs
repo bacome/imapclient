@@ -3,36 +3,29 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    public class cSectionCacheMessageId : IEquatable<cSectionCacheMessageId>
+    public class cMessageUID : IEquatable<cMessageUID>
     {
-        public readonly cSectionCacheMailboxId MailboxId;
+        public readonly cMailboxId MailboxId;
         public readonly cUID UID;
 
-        internal cSectionCacheMessageId(iMessageHandle pMessageHandle)
+        internal cMessageUID(cMailboxId pMailboxId, cUID pUID)
         {
-            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
-            MailboxId = new cSectionCacheMailboxId(pMessageHandle.MessageCache.MailboxHandle);
-            UID = pMessageHandle.UID ?? throw new ArgumentOutOfRangeException(nameof(pMessageHandle));
-        }
-
-        internal cSectionCacheMessageId(iMailboxHandle pMailboxHandle, cUID pUID)
-        {
-            MailboxId = new cSectionCacheMailboxId(pMailboxHandle);
+            MailboxId = pMailboxId ?? throw new ArgumentOutOfRangeException(nameof(pMailboxId));
             UID = pUID ?? throw new ArgumentOutOfRangeException(nameof(pUID));
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
-        public bool Equals(cSectionCacheMessageId pObject) => this == pObject;
+        public bool Equals(cMessageUID pObject) => this == pObject;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
-        internal bool Equals(cSectionCacheNonPersistentKey pObject)
+        internal bool Equals(cSectionHandle pObject)
         {
             if (pObject == null) return false;
             return MailboxId == pObject.MailboxId && UID == pObject.MessageHandle.UID;
         }
 
         /// <inheritdoc />
-        public override bool Equals(object pObject) => this == pObject as cSectionCacheMessageId;
+        public override bool Equals(object pObject) => this == pObject as cMessageUID;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
@@ -49,10 +42,10 @@ namespace work.bacome.imapclient
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cSectionCacheMessageId)}({MailboxId},{UID})";
+        public override string ToString() => $"{nameof(cMessageUID)}({MailboxId},{UID})";
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
-        public static bool operator ==(cSectionCacheMessageId pA, cSectionCacheMessageId pB)
+        public static bool operator ==(cMessageUID pA, cMessageUID pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
@@ -61,6 +54,6 @@ namespace work.bacome.imapclient
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
-        public static bool operator !=(cSectionCacheMessageId pA, cSectionCacheMessageId pB) => !(pA == pB);
+        public static bool operator !=(cMessageUID pA, cMessageUID pB) => !(pA == pB);
     }
 }

@@ -11,6 +11,7 @@ namespace work.bacome.imapclient.support
         iMailboxCache MailboxCache { get; }
         /**<summary>Gets the name of the mailbox.</summary>*/
         cMailboxName MailboxName { get; }
+        cMailboxId MailboxId { get; }
         /**<summary>Indicates whether the mailbox exists on the server.</summary>*/
         bool? Exists { get; }
         /**<summary>Gets an object that contains a subset of the data held about the mailbox, may be <see langword="null"/>.</summary>*/

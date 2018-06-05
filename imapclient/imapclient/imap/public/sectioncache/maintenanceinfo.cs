@@ -8,13 +8,13 @@ namespace work.bacome.imapclient
 {
     public class cSectionCacheMaintenanceInfo
     {
-        public readonly HashSet<cSectionCacheMessageId> Expunged;
-        public readonly ReadOnlyDictionary<cSectionCacheMailboxId, uint> UIDValiditiesDiscovered;
+        public readonly HashSet<cMessageUID> Expunged;
+        public readonly ReadOnlyDictionary<cMailboxId, uint> UIDValiditiesDiscovered;
 
-        internal cSectionCacheMaintenanceInfo(IList<cSectionCacheMessageId> pExpungedMessages, IDictionary<cSectionCacheMailboxId, uint> pUIDValidities)
+        internal cSectionCacheMaintenanceInfo(IList<cMessageUID> pExpungedMessages, IDictionary<cMailboxId, uint> pUIDValidities)
         {
-            ExpungedMessages = new ReadOnlyCollection<cSectionCacheMessageId>(pExpungedMessages);
-            UIDValidities = new ReadOnlyDictionary<cSectionCacheMailboxId, uint>(pUIDValidities);
+            ExpungedMessages = new ReadOnlyCollection<cMessageUID>(pExpungedMessages);
+            UIDValidities = new ReadOnlyDictionary<cMailboxId, uint>(pUIDValidities);
         }
 
 

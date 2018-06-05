@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
 
         public readonly cSectionCache Cache;
         public readonly int ItemSequence;
-        public readonly string ItemKey;
+        public readonly object ItemId;
         private readonly Stream mReadWriteStream;
         private long mLength;
         private bool mCanGetReaderWriter;
@@ -27,14 +27,15 @@ namespace work.bacome.imapclient
         private bool mToBeDeleted = false;
         private bool mIndexed = false;
 
-        private cSectionCachePersistentKey mPersistentKey = null;
-        private cSectionCacheNonPersistentKey mNonPersistentKey = null;
+        private cSectionId mSectionId = null;
+        private cSectionHandle mSectionHandle = null;
+        private bool mUIDNotSticky = true;
 
-        public cSectionCacheItem(cSectionCache pCache, string pItemKey, long pLength)
+        public cSectionCacheItem(cSectionCache pCache, object pItemId, long pLength)
         {
             Cache = pCache ?? throw new ArgumentNullException(nameof(pCache));
             ItemSequence = pCache.GetItemSequence();
-            ItemKey = pItemKey ?? throw new ArgumentNullException(nameof(pItemKey));
+            ItemId = pItemId ?? throw new ArgumentNullException(nameof(pItemId));
             mReadWriteStream = null;
             if (mLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
             mLength = pLength;
@@ -43,11 +44,11 @@ namespace work.bacome.imapclient
             mPersistentKeyAssigned = true;
         }
 
-        public cSectionCacheItem(cSectionCache pCache, string pItemKey, Stream pReadWriteStream)
+        public cSectionCacheItem(cSectionCache pCache, object pItemId, Stream pReadWriteStream)
         {
             Cache = pCache ?? throw new ArgumentNullException(nameof(pCache));
             ItemSequence = pCache.GetItemSequence();
-            ItemKey = pItemKey ?? throw new ArgumentNullException(nameof(pItemKey));
+            ItemId = pItemId ?? throw new ArgumentNullException(nameof(pItemId));
             mReadWriteStream = pReadWriteStream ?? throw new ArgumentNullException(nameof(pReadWriteStream));
             if (!pReadWriteStream.CanRead || !pReadWriteStream.CanSeek || !pReadWriteStream.CanWrite || pReadWriteStream.Position != 0) throw new ArgumentOutOfRangeException(nameof(pReadWriteStream));
             mLength = -1;
@@ -56,13 +57,13 @@ namespace work.bacome.imapclient
             mPersistentKeyAssigned = false;
         }
 
-        internal void SetKey(cSectionCachePersistentKey pKey)
+        internal void SetId(cSectionId pSectionId, bool pUIDNotSticky)
         {
             if (mCached || mPersistentKey != null || mNonPersistentKey != null) throw new InvalidOperationException();
             mPersistentKey = pKey;
         }
 
-        internal void SetKey(cSectionCacheNonPersistentKey pKey)
+        internal void SetHandle(cSectionHandle pSectionHandle, bool pUIDNotSticky)
         {
             if (mCached || mPersistentKey != null || mNonPersistentKey != null) throw new InvalidOperationException();
             mNonPersistentKey = pKey;
@@ -102,8 +103,8 @@ namespace work.bacome.imapclient
 
         public bool PersistentKeyAssigned => mPersistentKeyAssigned;
 
-        protected internal cSectionCachePersistentKey PersistentKey => mPersistentKey;
-        internal cSectionCacheNonPersistentKey NonPersistentKey => mNonPersistentKey;
+        protected internal cSectionId PersistentKey => mPersistentKey;
+        internal cSectionHandle NonPersistentKey => mNonPersistentKey;
 
         protected internal bool TryDelete(int pChangeSequence, cTrace.cContext pParentContext)
         {
@@ -189,7 +190,7 @@ namespace work.bacome.imapclient
             if (mNonPersistentKey == null) throw new InvalidOperationException();
             if (mPersistentKey != null) return;
             if (mNonPersistentKey.MessageHandle.UID == null) return;
-            mPersistentKey = new cSectionCachePersistentKey(mNonPersistentKey);
+            mPersistentKey = new cSectionId(mNonPersistentKey);
         }
 
         internal bool Cached => mCached;
@@ -418,6 +419,6 @@ namespace work.bacome.imapclient
             }
         }
 
-        public override string ToString() => $"{nameof(cSectionCacheItem)}({Cache},{ItemKey})";
+        public override string ToString() => $"{nameof(cSectionCacheItem)}({Cache},{ItemId})";
     }
 }

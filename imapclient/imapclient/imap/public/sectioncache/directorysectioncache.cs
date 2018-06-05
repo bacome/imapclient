@@ -11,7 +11,8 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    public class cDirectorySectionCache : cSectionCache
+    // sealed because startmaintenance is called in construction
+    public sealed class cDirectorySectionCache : cSectionCache
     {
         private const string kData = ".scd"; // data file extension
         private const string kInfo = ".sci"; // info file extension
@@ -31,6 +32,7 @@ namespace work.bacome.imapclient
         public readonly DirectoryInfo DirectoryInfo;
         public readonly long ByteCountBudget;
         public readonly int FileCountBudget;
+        ;?; // max file age
         public readonly TimeSpan RecentFileAge;
 
         private readonly ConcurrentDictionary<cPersistentKey, cInfo> mPersistentKeyToInfo = new ConcurrentDictionary<cPersistentKey, cInfo>();
@@ -46,10 +48,10 @@ namespace work.bacome.imapclient
 
         // info retained from one iteration of maintenance to the next
         private readonly List<string> mOldListFileFullNames = new List<string>();
-        private List<string> mItemKeysWithInfoButNoDataFile = new List<string>();
-        private List<string> mItemKeysWithDataButNoInfoFile = new List<string>();
+        private List<string> mItemIdsWithInfoButNoDataFile = new List<string>();
+        private List<string> mItemIdsWithDataButNoInfoFile = new List<string>();
 
-        public cDirectorySectionCache(string pInstanceName, int pMaintenanceFrequency, string pDirectory, long pByteCountBudget, int pFileCountBudget, TimeSpan pRecentFileAge) : base(pInstanceName, pMaintenanceFrequency)
+        public cDirectorySectionCache(string pInstanceName, int pMaintenanceFrequency, string pDirectory, long pByteCountBudget, int pFileCountBudget, x, TimeSpan pRecentFileAge) : base(pInstanceName, pMaintenanceFrequency)
         {
             if (pDirectory == null) throw new ArgumentNullException(nameof(pDirectory));
             DirectoryInfo = new DirectoryInfo(pDirectory);
@@ -57,6 +59,7 @@ namespace work.bacome.imapclient
 
             if (pByteCountBudget < 0) throw new ArgumentOutOfRangeException(nameof(pByteCountBudget));
             if (pFileCountBudget < 0) throw new ArgumentOutOfRangeException(nameof(pFileCountBudget));
+            ;?; // max file age
             if (pRecentFileAge < TimeSpan.FromSeconds(1)) throw new ArgumentOutOfRangeException(nameof(pRecentFileAge));
 
             ByteCountBudget = pByteCountBudget;
@@ -70,17 +73,17 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cDirectorySectionCache), nameof(YGetNewItem));
 
-            ZNewFile(kData, FileShare.Read, out var lItemKey, out var lDataFileFullName, out var lStream);
+            ZNewFile(kData, FileShare.Read, out var lItemId, out var lDataFileFullName, out var lStream);
 
-            var lInfoFileFullName = ZFullName(lItemKey, kInfo);
+            var lInfoFileFullName = ZFullName(lItemId, kInfo);
             try { File.Delete(lInfoFileFullName); }
             catch (Exception e) { lContext.TraceException($"failed to delete old info file: {lInfoFileFullName}", e); }
 
             var lFileInfo = new FileInfo(lDataFileFullName);
-            return new cItem(this, lItemKey, lStream, lFileInfo.CreationTimeUtc);
+            return new cItem(this, lItemId, lStream, lFileInfo.CreationTimeUtc);
         }
 
-        protected override bool TryGetExistingItem(cSectionCachePersistentKey pKey, out cSectionCacheItem rItem, cTrace.cContext pParentContext)
+        protected override bool TryGetExistingItem(cSectionId pKey, out cSectionCacheItem rItem, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cDirectorySectionCache), nameof(TryGetExistingItem), pKey);
 
@@ -88,7 +91,7 @@ namespace work.bacome.imapclient
 
             if (lPersistentKey != null && mItems.TryGetValue(lPersistentKey, out var lInfo))
             {
-                rItem = new cItem(this, lInfo.ItemKey, lInfo.CreationTimeUTC, lInfo.Length);
+                rItem = new cItem(this, lInfo.ItemId, lInfo.CreationTimeUTC, lInfo.Length);
                 return true;
             }
 
@@ -145,8 +148,8 @@ namespace work.bacome.imapclient
             var lFileInfos1 = DirectoryInfo.GetFiles("*.sc?", SearchOption.TopDirectoryOnly);
             if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
-            Dictionary<string, FileInfo> lItemKeyToDataFileFileInfo = new Dictionary<string, FileInfo>();
-            Dictionary<string, FileInfo> lItemKeyToInfoFileFileInfo = new Dictionary<string, FileInfo>();
+            Dictionary<string, FileInfo> lItemIdToDataFileFileInfo = new Dictionary<string, FileInfo>();
+            Dictionary<string, FileInfo> lItemIdToInfoFileFileInfo = new Dictionary<string, FileInfo>();
             List<string> lListFileFullNames = new List<string>();
 
             foreach (var lFileInfo in lFileInfos1)
@@ -155,13 +158,13 @@ namespace work.bacome.imapclient
 
                 if (lExtension == kData)
                 {
-                    var lItemKey = Path.GetFileNameWithoutExtension(lFileInfo.Name);
-                    lItemKeyToDataFileFileInfo.Add(lItemKey, lFileInfo);
+                    var lItemId = Path.GetFileNameWithoutExtension(lFileInfo.Name);
+                    lItemIdToDataFileFileInfo.Add(lItemId, lFileInfo);
                 }
                 else if (lExtension == kInfo)
                 {
-                    var lItemKey = Path.GetFileNameWithoutExtension(lFileInfo.Name);
-                    lItemKeyToInfoFileFileInfo.Add(lItemKey, lFileInfo);
+                    var lItemId = Path.GetFileNameWithoutExtension(lFileInfo.Name);
+                    lItemIdToInfoFileFileInfo.Add(lItemId, lFileInfo);
                 }
                 else if (lExtension == kList)
                 {
@@ -174,7 +177,7 @@ namespace work.bacome.imapclient
 
             // build a list of files with a known key
 
-            Dictionary<string, cInfo> lItemKeyToInfo = new Dictionary<string, cInfo>();
+            Dictionary<string, cInfo> lItemIdToInfo = new Dictionary<string, cInfo>();
 
             BinaryFormatter lFormatter = new BinaryFormatter();
 
@@ -221,41 +224,41 @@ namespace work.bacome.imapclient
 
                 if (lListFileInfos != null)
                 {
-                    foreach (var lInfo in lListFileInfos) if (lItemKeyToDataFileFileInfo.TryGetValue(lInfo.ItemKey, out var lDataFileFileInfo) && FileTimesAreTheSame(lDataFileFileInfo.CreationTimeUtc, lInfo.CreationTimeUTC) && lDataFileFileInfo.Length == lInfo.Length) lItemKeyToInfo[lInfo.ItemKey] = lInfo;
+                    foreach (var lInfo in lListFileInfos) if (lItemIdToDataFileFileInfo.TryGetValue(lInfo.ItemId, out var lDataFileFileInfo) && FileTimesAreTheSame(lDataFileFileInfo.CreationTimeUtc, lInfo.CreationTimeUTC) && lDataFileFileInfo.Length == lInfo.Length) lItemIdToInfo[lInfo.ItemId] = lInfo;
                     mOldListFileFullNames.Add(lListFileFullName);
                 }
 
                 if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
             }
 
-            var lItemKeysWithInfoButNoDataFile = mItemKeysWithInfoButNoDataFile;
-            mItemKeysWithInfoButNoDataFile = new List<string>();
-            lItemKeysWithInfoButNoDataFile.Sort();
+            var lItemIdsWithInfoButNoDataFile = mItemIdsWithInfoButNoDataFile;
+            mItemIdsWithInfoButNoDataFile = new List<string>();
+            lItemIdsWithInfoButNoDataFile.Sort();
 
-            foreach (var lPair in lItemKeyToInfoFileFileInfo)
+            foreach (var lPair in lItemIdToInfoFileFileInfo)
             {
-                var lItemKey = lPair.Key;
+                var lItemId = lPair.Key;
 
-                if (lItemKeyToInfo.ContainsKey(lItemKey)) continue; // already have the details
+                if (lItemIdToInfo.ContainsKey(lItemId)) continue; // already have the details
 
-                if (!lItemKeyToDataFileFileInfo.TryGetValue(lItemKey, out var lDataFileFileInfo))
+                if (!lItemIdToDataFileFileInfo.TryGetValue(lItemId, out var lDataFileFileInfo))
                 {
-                    if (lItemKeysWithInfoButNoDataFile.BinarySearch(lItemKey) < 0)
+                    if (lItemIdsWithInfoButNoDataFile.BinarySearch(lItemId) < 0)
                     {
-                        lContext.TraceVerbose("found an info file with no data file (1): {0}", lItemKey);
-                        mItemKeysWithInfoButNoDataFile.Add(lItemKey);
+                        lContext.TraceVerbose("found an info file with no data file (1): {0}", lItemId);
+                        mItemIdsWithInfoButNoDataFile.Add(lItemId);
                     }
                     else
                     {
-                        lContext.TraceVerbose("found an info file with no data file (2): {0}", lItemKey);
+                        lContext.TraceVerbose("found an info file with no data file (2): {0}", lItemId);
 
-                        var lInfoFileFullName = ZFullName(lItemKey, kInfo);
+                        var lInfoFileFullName = ZFullName(lItemId, kInfo);
 
                         try { File.Delete(lInfoFileFullName); }
                         catch (Exception e)
                         {
                             lContext.TraceException($"failed to delete orphaned info file: {lInfoFileFullName}", e);
-                            mItemKeysWithInfoButNoDataFile.Add(lItemKey);
+                            mItemIdsWithInfoButNoDataFile.Add(lItemId);
                         }
 
                         if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
@@ -268,7 +271,7 @@ namespace work.bacome.imapclient
 
                 if (lInfoFileFileInfo.Length > 0)
                 {
-                    var lInfoFileFullName = ZFullName(lItemKey, kInfo);
+                    var lInfoFileFullName = ZFullName(lItemId, kInfo);
 
                     cInfo lInfo;
 
@@ -280,7 +283,7 @@ namespace work.bacome.imapclient
                             {
                                 lInfo = lFormatter.Deserialize(lInfoReadStream) as cInfo;
 
-                                if (lInfo == null || lInfo.ItemKey != lItemKey)
+                                if (lInfo == null || lInfo.ItemId != lItemId)
                                 {
                                     lContext.TraceError("corrupt info file (1): {0}", lInfoFileFullName);
 
@@ -307,7 +310,7 @@ namespace work.bacome.imapclient
                         lInfo = null;
                     }
 
-                    if (lInfo != null && FileTimesAreTheSame(lDataFileFileInfo.CreationTimeUtc, lInfo.CreationTimeUTC) && lDataFileFileInfo.Length == lInfo.Length) lItemKeyToInfo.Add(lItemKey, lInfo);
+                    if (lInfo != null && FileTimesAreTheSame(lDataFileFileInfo.CreationTimeUtc, lInfo.CreationTimeUTC) && lDataFileFileInfo.Length == lInfo.Length) lItemIdToInfo.Add(lItemId, lInfo);
 
                     if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
                 }
@@ -317,18 +320,18 @@ namespace work.bacome.imapclient
 
             // delete files that contain duplicate data, update the map from key to info
 
-            List<cInfo> lItemKeyInfos = new List<cInfo>(lItemKeyToInfo.Values);
-            lItemKeyInfos.Sort();
+            List<cInfo> lItemIdInfos = new List<cInfo>(lItemIdToInfo.Values);
+            lItemIdInfos.Sort();
 
             if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
             cPersistentKey lLastPersistentKey = null;
 
-            foreach (var lInfo in lItemKeyInfos)
+            foreach (var lInfo in lItemIdInfos)
             {
                 if (lInfo.PersistentKey == lLastPersistentKey)
                 {
-                    string lDataFileFullName = ZFullName(lInfo.ItemKey, kData);
+                    string lDataFileFullName = ZFullName(lInfo.ItemId, kData);
 
                     try
                     {
@@ -336,11 +339,11 @@ namespace work.bacome.imapclient
                         File.Delete(lDataFileFullName);
 
                         // remove from the list of data files and the list of keyed data files
-                        lItemKeyToDataFileFileInfo.Remove(lInfo.ItemKey);
-                        lItemKeyToInfo.Remove(lInfo.ItemKey);
+                        lItemIdToDataFileFileInfo.Remove(lInfo.ItemId);
+                        lItemIdToInfo.Remove(lInfo.ItemId);
 
                         // remove the info file
-                        string lInfoFileFullName = ZFullName(lInfo.ItemKey, kInfo);
+                        string lInfoFileFullName = ZFullName(lInfo.ItemId, kInfo);
                         try { File.Delete(lInfoFileFullName); }
                         catch (Exception e) { lContext.TraceException($"failed to delete duplicate's info file: {lInfoFileFullName}", e); }
                     }
@@ -359,25 +362,25 @@ namespace work.bacome.imapclient
 
             // delete data files that look abandoned
 
-            var lItemKeysWithDataButNoInfoFile = mItemKeysWithDataButNoInfoFile;
-            mItemKeysWithDataButNoInfoFile = new List<string>();
-            lItemKeysWithDataButNoInfoFile.Sort();
+            var lItemIdsWithDataButNoInfoFile = mItemIdsWithDataButNoInfoFile;
+            mItemIdsWithDataButNoInfoFile = new List<string>();
+            lItemIdsWithDataButNoInfoFile.Sort();
 
             if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
             var lRecentFileLimit = DateTime.UtcNow - RecentFileAge;
 
-            List<string> lItemKeysToRemove = new List<string>();
+            List<string> lItemIdsToRemove = new List<string>();
 
-            foreach (var lPair in lItemKeyToDataFileFileInfo)
+            foreach (var lPair in lItemIdToDataFileFileInfo)
             {
-                var lItemKey = lPair.Key;
-                if (lItemKeyToInfoFileFileInfo.ContainsKey(lItemKey) || lItemKeyToInfo.ContainsKey(lItemKey)) continue; // there is an info file or we know what it in the file
+                var lItemId = lPair.Key;
+                if (lItemIdToInfoFileFileInfo.ContainsKey(lItemId) || lItemIdToInfo.ContainsKey(lItemId)) continue; // there is an info file or we know what it in the file
 
                 var lFileInfo = lPair.Value;
                 if (lFileInfo.CreationTimeUtc > lRecentFileLimit) continue; // the file is recent
 
-                if (lItemKeysWithDataButNoInfoFile.BinarySearch(lItemKey) < 0)
+                if (lItemIdsWithDataButNoInfoFile.BinarySearch(lItemId) < 0)
                 {
                     try { new FileStream(lFileInfo.FullName, FileMode.Open, FileAccess.Write, FileShare.Read).Dispose(); }
                     catch (Exception e)
@@ -388,7 +391,7 @@ namespace work.bacome.imapclient
                     }
 
                     lContext.TraceVerbose("found a closed data file with no info file: {0}", lFileInfo.FullName);
-                    mItemKeysWithDataButNoInfoFile.Add(lItemKey);
+                    mItemIdsWithDataButNoInfoFile.Add(lItemId);
                 }
                 else
                 {
@@ -403,7 +406,7 @@ namespace work.bacome.imapclient
                     }
 
                     // mark this item as needing to be removed from the list of data files
-                    lItemKeysToRemove.Add(lItemKey);
+                    lItemIdsToRemove.Add(lItemId);
                 }
 
                 if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
@@ -412,31 +415,31 @@ namespace work.bacome.imapclient
             if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
             // remove the deleted items from the list of data files
-            foreach (var lItemKey in lItemKeysToRemove) lItemKeyToDataFileFileInfo.Remove(lItemKey);
+            foreach (var lItemId in lItemIdsToRemove) lItemIdToDataFileFileInfo.Remove(lItemId);
             if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
             // tidy up
 
             long lByteCount = 0;
-            foreach (var lPair in lItemKeyToDataFileFileInfo) lByteCount += lPair.Value.Length;
+            foreach (var lPair in lItemIdToDataFileFileInfo) lByteCount += lPair.Value.Length;
             if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
-            if (lByteCount > ByteCountBudget || lItemKeyToDataFileFileInfo.Count > FileCountBudget)
+            if (lByteCount > ByteCountBudget || lItemIdToDataFileFileInfo.Count > FileCountBudget)
             {
-                int lFileCount = lItemKeyToDataFileFileInfo.Count;
+                int lFileCount = lItemIdToDataFileFileInfo.Count;
 
                 var lItemsToDelete = new List<cItemToDelete>();
 
-                foreach (var lPair in lItemKeyToDataFileFileInfo)
+                foreach (var lPair in lItemIdToDataFileFileInfo)
                 {
-                    var lItemKey = lPair.Key;
+                    var lItemId = lPair.Key;
                     var lFileInfo = lPair.Value;
 
                     DateTime lTouchTimeUTC;
-                    if (lItemKeyToInfoFileFileInfo.TryGetValue(lItemKey, out var lInfoFileFileInfo) && lInfoFileFileInfo.CreationTimeUtc > lFileInfo.CreationTimeUtc) lTouchTimeUTC = lInfoFileFileInfo.CreationTimeUtc;
+                    if (lItemIdToInfoFileFileInfo.TryGetValue(lItemId, out var lInfoFileFileInfo) && lInfoFileFileInfo.CreationTimeUtc > lFileInfo.CreationTimeUtc) lTouchTimeUTC = lInfoFileFileInfo.CreationTimeUtc;
                     else lTouchTimeUTC = lFileInfo.CreationTimeUtc;
 
-                    lItemsToDelete.Add(new cItemToDelete(lItemKey, lFileInfo.FullName, ZFullName(lItemKey, kInfo), lTouchTimeUTC, lFileInfo.Length));
+                    lItemsToDelete.Add(new cItemToDelete(lItemId, lFileInfo.FullName, ZFullName(lItemId, kInfo), lTouchTimeUTC, lFileInfo.Length));
                 }
 
                 if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
@@ -452,7 +455,7 @@ namespace work.bacome.imapclient
                         File.Delete(lItemToDelete.DataFileFullName);
 
                         // remove it from the list of keyed data files (if it is there)
-                        lItemKeyToInfo.Remove(lItemToDelete.ItemKey);
+                        lItemIdToInfo.Remove(lItemToDelete.ItemId);
 
                         // decrement the counts
                         lByteCount -= lItemToDelete.Length;
@@ -477,7 +480,7 @@ namespace work.bacome.imapclient
 
             // write out new index file
 
-            var lInfos = new List<cInfo>(lItemKeyToInfo.Values);
+            var lInfos = new List<cInfo>(lItemIdToInfo.Values);
             if (pCancellationToken.IsCancellationRequested) throw new OperationCanceledException();
 
             ZNewFile(kList, FileShare.None, out _, out var lNewListFileFullName, out var lListWriteStream);
@@ -503,14 +506,14 @@ namespace work.bacome.imapclient
             for (int i = 0; i < lNewInfos; i++) if (!mNewInfos.TryDequeue(out _)) throw new cInternalErrorException(lContext);
         }
 
-        private void ZNewFile(string pExtension, FileShare pFileShare, out string rItemKey, out string rFullName, out Stream rStream)
+        private void ZNewFile(string pExtension, FileShare pFileShare, out string rItemId, out string rFullName, out Stream rStream)
         {
             while (true)
             {
                 try
                 { 
-                    rItemKey = ZRandomItemKey();
-                    rFullName = ZFullName(rItemKey, pExtension);
+                    rItemId = ZRandomItemId();
+                    rFullName = ZFullName(rItemId, pExtension);
                     rStream = new FileStream(rFullName, FileMode.CreateNew, FileAccess.ReadWrite, pFileShare);
                     return;
                 }
@@ -518,7 +521,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        private string ZRandomItemKey()
+        private string ZRandomItemId()
         {
             byte[] lRandomBytes = new byte[4];
             mRandom.NextBytes(lRandomBytes);
@@ -536,9 +539,9 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
 
-        private string ZFullName(string pItemKey, string pExtension) => Path.Combine(DirectoryInfo.FullName, pItemKey + pExtension);
+        private string ZFullName(string pItemId, string pExtension) => Path.Combine(DirectoryInfo.FullName, pItemId + pExtension);
 
-        private static cPersistentKey ZPersistentKey(cSectionCachePersistentKey pKey)
+        private static cPersistentKey ZPersistentKey(cSectionId pKey)
         {
             if (pKey == null) return null;
 
@@ -558,18 +561,18 @@ namespace work.bacome.imapclient
             private readonly DateTime mCreationTimeUTC;
             private bool mInfoFileExpectedToExist;
 
-            public cItem(cDirectorySectionCache pCache, string pItemKey, DateTime pCreationTimeUTC, long pLength) : base(pCache, pItemKey, pLength)
+            public cItem(cDirectorySectionCache pCache, string pItemId, DateTime pCreationTimeUTC, long pLength) : base(pCache, pItemId, pLength)
             {
-                mDataFileFullName = pCache.ZFullName(pItemKey, kData);
-                mInfoFileFullName = pCache.ZFullName(pItemKey, kInfo);
+                mDataFileFullName = pCache.ZFullName(pItemId, kData);
+                mInfoFileFullName = pCache.ZFullName(pItemId, kInfo);
                 mCreationTimeUTC = pCreationTimeUTC;
                 mInfoFileExpectedToExist = true;
             }
 
-            public cItem(cDirectorySectionCache pCache, string pItemKey, Stream pReadWriteStream, DateTime pCreationTimeUTC) : base(pCache, pItemKey, pReadWriteStream)
+            public cItem(cDirectorySectionCache pCache, string pItemId, Stream pReadWriteStream, DateTime pCreationTimeUTC) : base(pCache, pItemId, pReadWriteStream)
             {
-                mDataFileFullName = pCache.ZFullName(pItemKey, kData);
-                mInfoFileFullName = pCache.ZFullName(pItemKey, kInfo);
+                mDataFileFullName = pCache.ZFullName(pItemId, kData);
+                mInfoFileFullName = pCache.ZFullName(pItemId, kInfo);
                 mCreationTimeUTC = pCreationTimeUTC;
                 mInfoFileExpectedToExist = false;
             }
@@ -641,7 +644,7 @@ namespace work.bacome.imapclient
                 var lPersistentKey = ZPersistentKey(PersistentKey);
                 if (lPersistentKey == null) return;
 
-                var lInfo = new cInfo(ItemKey, lPersistentKey, mCreationTimeUTC, Length);
+                var lInfo = new cInfo(ItemId, lPersistentKey, mCreationTimeUTC, Length);
 
                 using (var lStream = new FileStream(mInfoFileFullName, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
@@ -709,7 +712,7 @@ namespace work.bacome.imapclient
         private class cInfo : cInfoUID, IComparable<cInfo>
         {
             [DataMember]
-            public readonly string ItemKey; 
+            public readonly string ItemId; 
             [DataMember]
             public readonly cPersistentKey PersistentKey;
             [DataMember]
@@ -717,9 +720,9 @@ namespace work.bacome.imapclient
             [DataMember]
             public readonly long Length;
 
-            public cInfo(string pItemKey, cPersistentKey pPersistentKey, DateTime pCreationTimeUTC, long pLength)
+            public cInfo(string pItemId, cPersistentKey pPersistentKey, DateTime pCreationTimeUTC, long pLength)
             {
-                ItemKey = pItemKey ?? throw new ArgumentNullException(nameof(pItemKey));
+                ItemId = pItemId ?? throw new ArgumentNullException(nameof(pItemId));
                 PersistentKey = pPersistentKey ?? throw new ArgumentNullException(nameof(pPersistentKey));
                 CreationTimeUTC = pCreationTimeUTC;
                 Length = pLength;
@@ -728,7 +731,7 @@ namespace work.bacome.imapclient
             [OnDeserialized]
             private void OnDeserialised(StreamingContext pSC)
             {
-                if (ItemKey == null) new cDeserialiseException($"{nameof(cInfo)}.{nameof(ItemKey)}.null");
+                if (ItemId == null) new cDeserialiseException($"{nameof(cInfo)}.{nameof(ItemId)}.null");
                 if (PersistentKey == null) new cDeserialiseException($"{nameof(cInfo)}.{nameof(PersistentKey)}.null");
             }
 
@@ -741,7 +744,7 @@ namespace work.bacome.imapclient
                 if ((lCompareTo = PersistentKey.CompareTo(pOther.PersistentKey)) != 0) return lCompareTo;
                 if ((lCompareTo = CreationTimeUTC.CompareTo(pOther.CreationTimeUTC)) != 0) return lCompareTo;
 
-                return ItemKey.CompareTo(pOther.ItemKey);
+                return ItemId.CompareTo(pOther.ItemId);
             }
 
             public override string Host => PersistentKey.Host;
@@ -750,7 +753,7 @@ namespace work.bacome.imapclient
             public override uint UIDValidity => PersistentKey.UID.UIDValidity;
             public override uint UID => PersistentKey.UID.UID;
 
-            public override string ToString() => $"{nameof(cInfo)}({ItemKey},{PersistentKey},{CreationTimeUTC},{Length})";
+            public override string ToString() => $"{nameof(cInfo)}({ItemId},{PersistentKey},{CreationTimeUTC},{Length})";
         }
 
         [Serializable]
@@ -770,7 +773,7 @@ namespace work.bacome.imapclient
             [DataMember]
             public readonly eDecodingRequired Decoding;
 
-            public cPersistentKey(cSectionCachePersistentKey pKey, string pCredentialId)
+            public cPersistentKey(cSectionId pKey, string pCredentialId)
             {
                 Host = pKey.AccountId.Host;
                 CredentialId = pCredentialId ?? throw new ArgumentNullException(nameof(pCredentialId));
@@ -840,15 +843,15 @@ namespace work.bacome.imapclient
 
         private class cItemToDelete : IComparable<cItemToDelete>
         {
-            public readonly string ItemKey;
+            public readonly string ItemId;
             public readonly string DataFileFullName;
             public readonly string InfoFileFullName;
             public readonly DateTime TouchTimeUTC;
             public readonly long Length;
 
-            public cItemToDelete(string pItemKey, string pDataFileFullName, string pInfoFileFullName, DateTime pTouchTimeUTC, long pLength)
+            public cItemToDelete(string pItemId, string pDataFileFullName, string pInfoFileFullName, DateTime pTouchTimeUTC, long pLength)
             {
-                ItemKey = pItemKey;
+                ItemId = pItemId;
                 DataFileFullName = pDataFileFullName;
                 InfoFileFullName = pInfoFileFullName;
                 TouchTimeUTC = pTouchTimeUTC;

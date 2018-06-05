@@ -45,21 +45,21 @@
   <ItemGroup>
     <Compile Include="imap\client\fetchsectiontarget.cs" />
     <Compile Include="imap\client\getmessagehandle.cs" />
-    <Compile Include="imap\client\sectioncache.cs" />
+    <Compile Include="imap\client\cachehooks.cs" />
     <Compile Include="imap\internal\sectionreader.cs" />
     <Compile Include="imap\public\sectioncache\directorysectioncache.cs" />
-    <Compile Include="imap\public\sectioncache\mailboxid.cs" />
+    <Compile Include="imap\public\mailbox\mailboxid.cs" />
     <Compile Include="imap\public\sectioncache\maintenanceinfo.cs" />
-    <Compile Include="imap\public\sectioncache\messageid.cs" />
+    <Compile Include="imap\public\message\messageuid.cs" />
     <Compile Include="imap\sectioncache\defaultsectioncache.cs" />
     <Compile Include="imap\public\sectioncache\tempfilesectioncache.cs" />
-    <Compile Include="imap\sectioncache\nonpersistentkey.cs" />
+    <Compile Include="imap\sectioncache\sectionhandle.cs" />
     <Compile Include="imap\sectioncache\itemreaderwriter.cs" />
     <Compile Include="imap\sectioncache\itemreader.cs" />
     <Compile Include="imap\client\append.cs" />
     <Compile Include="imap\public\sectioncache\base.cs" />
     <Compile Include="imap\public\sectioncache\item.cs" />
-    <Compile Include="imap\public\sectioncache\persistentkey.cs" />
+    <Compile Include="imap\public\sectioncache\sectionid.cs" />
     <Compile Include="imap\public\message\messagedatastream.cs" />
     <Compile Include="imap\session\fetch\sectiontargetwriter.cs" />
     <Compile Include="imap\session\fetch\uidsection.cs" />

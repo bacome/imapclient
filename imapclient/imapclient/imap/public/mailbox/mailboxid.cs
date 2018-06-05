@@ -1,26 +1,24 @@
 ﻿using System;
-using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 
 namespace work.bacome.imapclient
 {
-    public class cSectionCacheMailboxId : IEquatable<cSectionCacheMailboxId>
+    public class cMailboxId : IEquatable<cMailboxId>
     {
         public readonly cAccountId AccountId;
         public readonly cMailboxName MailboxName;
 
-        internal cSectionCacheMailboxId(iMailboxHandle pMailboxHandle)
+        internal cMailboxId(cAccountId pAccountId, cMailboxName pMailboxName)
         {
-            if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
-            AccountId = pMailboxHandle.MailboxCache.AccountId;
-            MailboxName = pMailboxHandle.MailboxName;
+            AccountId = pAccountId ?? throw new ArgumentNullException(nameof(pAccountId));
+            MailboxName = pMailboxName ?? throw new ArgumentNullException(nameof(pMailboxName));
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
-        public bool Equals(cSectionCacheMailboxId pObject) => this == pObject;
+        public bool Equals(cMailboxId pObject) => this == pObject;
 
         /// <inheritdoc />
-        public override bool Equals(object pObject) => this == pObject as cSectionCacheMailboxId;
+        public override bool Equals(object pObject) => this == pObject as cMailboxId;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
@@ -37,10 +35,10 @@ namespace work.bacome.imapclient
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cSectionCacheMailboxId)}({AccountId},{MailboxName})";
+        public override string ToString() => $"{nameof(cMailboxId)}({AccountId},{MailboxName})";
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
-        public static bool operator ==(cSectionCacheMailboxId pA, cSectionCacheMailboxId pB)
+        public static bool operator ==(cMailboxId pA, cMailboxId pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
@@ -49,6 +47,6 @@ namespace work.bacome.imapclient
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
-        public static bool operator !=(cSectionCacheMailboxId pA, cSectionCacheMailboxId pB) => !(pA == pB);
+        public static bool operator !=(cMailboxId pA, cMailboxId pB) => !(pA == pB);
     }
 }

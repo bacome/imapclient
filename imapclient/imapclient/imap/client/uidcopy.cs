@@ -34,7 +34,7 @@ namespace work.bacome.imapclient
             if (lFeedback != null && lFeedback.Count > 0)
             {
                 var lSectionCache = SectionCache;
-                lSectionCache.Copied(lSession.ConnectedAccountId, pSourceMailboxHandle.MailboxName, pDestinationMailboxHandle.MailboxName, lFeedback, lContext);
+                lSectionCache.Copy(pSourceMailboxHandle.MailboxId, lFeedback, pDestinationMailboxHandle.MailboxName, lContext);
             }
 
             return lFeedback;

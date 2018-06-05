@@ -37,6 +37,8 @@ namespace work.bacome.imapclient
                 public cMailboxName MailboxName { get; set; }
                 public cCommandPart MailboxNameCommandPart { get; set; }
 
+                public cMailboxId MailboxId => new cMailboxId(mMailboxCache.AccountId, MailboxName);
+
                 public bool? Exists => mExists;
 
                 public void SetJustCreated(cTrace.cContext pParentContext)
@@ -144,6 +146,7 @@ namespace work.bacome.imapclient
                         lDifferences = ZSetExists(true) | cMailboxStatus.Differences(mMailboxStatus, lMailboxStatus);
                         mMailboxStatus = lMailboxStatus;
 
+                        ;?; // only if the uidvalidity is non-zero: and even then the uidvalidity should be passed
                         if (mMailboxStatus.UIDValidity != lUIDValidity) mUIDValidityDiscovered(this, lContext);
                     }
 
@@ -162,6 +165,7 @@ namespace work.bacome.imapclient
                     fMailboxProperties lDifferences = ZSetExists(true) | cMailboxStatus.Differences(mMailboxStatus, pMailboxStatus);
                     mMailboxStatus = pMailboxStatus;
 
+                    ;?; // only if the uidvalidity is non-zero
                     if (mMailboxStatus.UIDValidity != lUIDValidity) mUIDValidityDiscovered(this, lContext);
 
                     mSynchroniser.InvokeMailboxPropertiesChanged(this, lDifferences, lContext);

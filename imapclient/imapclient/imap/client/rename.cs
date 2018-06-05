@@ -26,6 +26,10 @@ namespace work.bacome.imapclient
                 var lMailboxHandle = await lSession.RenameAsync(lMC, pMailboxHandle, pMailboxName, lContext).ConfigureAwait(false);
                 return new cMailbox(this, lMailboxHandle);
             }
+
+            ;?;
+
+            if (pMailboxHandle.is)
         }
     }
 }

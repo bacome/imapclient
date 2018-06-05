@@ -463,12 +463,12 @@ namespace work.bacome.imapclient
             else return mSectionReader.ReadPosition;
         }
 
-        private void ZGetSectionCacheKey(out cSectionCacheNonPersistentKey rNonPersistentKey, out iMailboxHandle rMailboxHandle, out cUID rUID, out cSectionCachePersistentKey rPersistentKey)
+        private void ZGetSectionCacheKey(out cSectionHandle rNonPersistentKey, out iMailboxHandle rMailboxHandle, out cUID rUID, out cSectionId rPersistentKey)
         {
             ;?; // return both
             if (UID == null && MessageHandle.UID == null)
             {
-                rNonPersistentKey = new cSectionCacheNonPersistentKey(Client, MessageHandle, Section, Decoding);
+                rNonPersistentKey = new cSectionHandle(Client, MessageHandle, Section, Decoding);
                 rMailboxHandle = null;
                 rUID = null;
                 rPersistentKey = null;
@@ -488,7 +488,7 @@ namespace work.bacome.imapclient
                 rUID = UID;
             }
 
-            rPersistentKey = new cSectionCachePersistentKey(rMailboxHandle, rUID, Section, Decoding);
+            rPersistentKey = new cSectionId(rMailboxHandle, rUID, Section, Decoding);
         }
 
         private void ZSetSectionCacheItemReader(cTrace.cContext pParentContext)
@@ -547,7 +547,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        private async Task ZBackgroundFetchAsync(cSectionCacheNonPersistentKey pKey, cTrace.cContext pParentContext)
+        private async Task ZBackgroundFetchAsync(cSectionHandle pKey, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewRootMethod(nameof(cIMAPMessageDataStream), nameof(ZBackgroundFetchAsync), pKey);
 
@@ -568,7 +568,7 @@ namespace work.bacome.imapclient
             mSectionCacheItem.Cache.AddItem(pKey, mSectionCacheItem, lContext);
         }
 
-        private async Task ZBackgroundFetchAsync(iMailboxHandle pMailboxHandle, cUID pUID, cSectionCachePersistentKey pKey, cTrace.cContext pParentContext)
+        private async Task ZBackgroundFetchAsync(iMailboxHandle pMailboxHandle, cUID pUID, cSectionId pKey, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewRootMethod(nameof(cIMAPMessageDataStream), nameof(ZBackgroundFetchAsync), pMailboxHandle, pUID, pKey);
 

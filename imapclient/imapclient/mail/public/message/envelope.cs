@@ -3,6 +3,10 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.mailclient
 {
+    ;?; // this should be serializable
+
+
+
     /// <summary>
     /// Contains message envelope data.
     /// </summary>

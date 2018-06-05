@@ -4,24 +4,24 @@ using work.bacome.mailclient;
 
 namespace work.bacome.imapclient
 {
-    internal class cSectionCacheNonPersistentKey : IEquatable<cSectionCacheNonPersistentKey>
+    internal class cSectionHandle : IEquatable<cSectionHandle>
     {
         public readonly cIMAPClient Client;
         public readonly iMessageHandle MessageHandle;
-        public readonly cSectionCacheMailboxId MailboxId;
+        public readonly cMailboxId MailboxId;
         public readonly cSection Section;
         public readonly eDecodingRequired Decoding;
 
-        public cSectionCacheNonPersistentKey(cIMAPClient pClient, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding)
+        public cSectionHandle(cIMAPClient pClient, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
-            MailboxId = new cSectionCacheMailboxId(pMessageHandle.MessageCache.MailboxHandle);
+            MailboxId = new cMailboxId(pMessageHandle.MessageCache.MailboxHandle);
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
             Decoding = pDecoding;
         }
 
-        /*
+        /* TODO: remove
         public bool IsValidToCache
         {
             get
@@ -34,17 +34,17 @@ namespace work.bacome.imapclient
         public bool UIDNotSticky => MessageHandle.MessageCache.MailboxHandle.SelectedProperties.UIDNotSticky ?? true;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
-        public bool Equals(cSectionCacheNonPersistentKey pObject) => this == pObject;
+        public bool Equals(cSectionHandle pObject) => this == pObject;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
-        public bool Equals(cSectionCachePersistentKey pObject)
+        public bool Equals(cSectionId pObject)
         {
             if (pObject == null) return false;
             return pObject.Equals(this);
         }
 
         /// <inheritdoc />
-        public override bool Equals(object pObject) => this == pObject as cSectionCacheNonPersistentKey;
+        public override bool Equals(object pObject) => this == pObject as cSectionHandle;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
@@ -62,10 +62,10 @@ namespace work.bacome.imapclient
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cSectionCacheNonPersistentKey)}({MessageHandle},{Section},{Decoding})";
+        public override string ToString() => $"{nameof(cSectionHandle)}({MessageHandle},{Section},{Decoding})";
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
-        public static bool operator ==(cSectionCacheNonPersistentKey pA, cSectionCacheNonPersistentKey pB)
+        public static bool operator ==(cSectionHandle pA, cSectionHandle pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
@@ -74,6 +74,6 @@ namespace work.bacome.imapclient
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
-        public static bool operator !=(cSectionCacheNonPersistentKey pA, cSectionCacheNonPersistentKey pB) => !(pA == pB);
+        public static bool operator !=(cSectionHandle pA, cSectionHandle pB) => !(pA == pB);
     }
 }

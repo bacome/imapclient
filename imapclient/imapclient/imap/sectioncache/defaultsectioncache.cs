@@ -4,9 +4,10 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    internal class cDefaultSectionCache : cSectionCache
+    // sealed because startmaintenance is called in construction
+    internal sealed class cDefaultSectionCache : cSectionCache
     {
-        public cDefaultSectionCache() : base(nameof(cDefaultSectionCache), 60000)
+        public  cDefaultSectionCache() : base(nameof(cDefaultSectionCache), 60000)
         {
             StartMaintenance();
         }
@@ -36,18 +37,18 @@ namespace work.bacome.imapclient
             protected override Stream YGetReadStream(cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cItem), nameof(YGetReadStream));
-                var lStream = new FileStream(ItemKey, FileMode.Open, FileAccess.Read, FileShare.Read);
-                var lFileInfo = new FileInfo(ItemKey);
+                var lStream = new FileStream(ItemId, FileMode.Open, FileAccess.Read, FileShare.Read);
+                var lFileInfo = new FileInfo(ItemId);
                 if (FileTimesAreTheSame(lFileInfo.CreationTimeUtc, mCreationTimeUTC)) return lStream; // length is checked by the cache
                 lStream.Dispose();
                 return null;
             }
 
-            protected override void YDelete(cTrace.cContext pParentContext) => File.Delete(ItemKey);
+            protected override void YDelete(cTrace.cContext pParentContext) => File.Delete(ItemId);
 
             protected override eItemState Touch(cTrace.cContext pParentContext)
             {
-                File.Delete(ItemKey);
+                File.Delete(ItemId);
                 return eItemState.deleted;
             }
         }
