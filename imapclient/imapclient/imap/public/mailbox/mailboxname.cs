@@ -35,6 +35,8 @@ namespace work.bacome.imapclient
         [DataMember]
         public readonly char? Delimiter;
 
+        private string mDescendantsStartWith = null;
+
         private cMailboxName(string pPath, char? pDelimiter, bool pValid)
         {
             mPath = pPath;
@@ -121,6 +123,36 @@ namespace work.bacome.imapclient
         /// Indicates whether this is 'INBOX'.
         /// </summary>
         public bool IsInbox => ReferenceEquals(mPath, InboxString);
+
+        public bool IsTopLevelOf(cNamespaceName pNamespaceName, IEnumerable<cNamespaceName> pNamespaceNames)
+        {
+            if (pNamespaceName.Delimiter != Delimiter) return false;
+            if (!mPath.StartsWith(pNamespaceName.Prefix)) return false;
+            if (Delimiter != null && mPath.IndexOf(Delimiter.Value, pNamespaceName.Prefix.Length) != -1) return false;
+
+            foreach (var lNamespaceName in pNamespaceNames)
+                if (lNamespaceName.Delimiter == Delimiter && lNamespaceName.Prefix.Length > pNamespaceName.Prefix.Length && mPath.StartsWith(lNamespaceName.Prefix))
+                    return false;
+
+            return true;
+        }
+
+        public bool IsChildOf(cMailboxName pOther)
+        {
+            if (Delimiter == null) return false;
+            if (pOther.Delimiter != Delimiter) return false;
+            if (pOther.mDescendantsStartWith == null) pOther.mDescendantsStartWith = pOther.mPath + Delimiter;
+            if (!mPath.StartsWith(pOther.mDescendantsStartWith)) return false;
+            return mPath.IndexOf(Delimiter.Value, pOther.mDescendantsStartWith.Length) == -1;
+        }
+
+        public bool IsDescendantOf(cMailboxName pOther)
+        {
+            if (Delimiter == null) return false;
+            if (pOther.Delimiter != Delimiter) return false;
+            if (pOther.mDescendantsStartWith == null) pOther.mDescendantsStartWith = pOther.mPath + Delimiter;
+            return mPath.StartsWith(pOther.mDescendantsStartWith);
+        }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals"/>
         public bool Equals(cMailboxName pOther) => this == pOther;

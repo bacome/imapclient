@@ -402,7 +402,7 @@ namespace work.bacome.mailclient.support
             public abstract bool ContextTraceDelay { get; }
 
             /**<summary></summary>*/
-            protected abstract void TraceContext();
+            protected abstract void YTraceContext();
 
             /// <summary>
             /// Writes a trace message.
@@ -497,7 +497,7 @@ namespace work.bacome.mailclient.support
                 public override cContext NewMethodV(bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs) => this;
 
                 public override bool ContextTraceDelay => true;
-                protected override void TraceContext() { }
+                protected override void YTraceContext() { }
                 public override void TraceEvent(TraceEventType pTraceEventType, string pMessage, params object[] pArgs) { }
                 public override bool EmitsVerbose => false;
             }
@@ -562,7 +562,7 @@ namespace work.bacome.mailclient.support
 
                     mLock = new object();
 
-                    if (!mContextTraceDelay) TraceContext();
+                    if (!mContextTraceDelay) YTraceContext();
                 }
 
                 /// <inheritdoc/>
@@ -592,7 +592,7 @@ namespace work.bacome.mailclient.support
                     if (mTrace == null) return this;
                     bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
                     var lResult = new cSubGeneric(this, this, 1, lContextTraceDelay, pMessage, pArgs);
-                    if (!lContextTraceDelay) lResult.TraceContext();
+                    if (!lContextTraceDelay) lResult.YTraceContext();
                     return lResult;
                 }
 
@@ -602,7 +602,7 @@ namespace work.bacome.mailclient.support
                     if (mTrace == null) return this;
                     bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
                     var lResult = new cSubObjectV(this, this, 1, lContextTraceDelay, pClass, pVersion, pArgs);
-                    if (!lContextTraceDelay) lResult.TraceContext();
+                    if (!lContextTraceDelay) lResult.YTraceContext();
                     return lResult;
                 }
 
@@ -612,7 +612,7 @@ namespace work.bacome.mailclient.support
                     if (mTrace == null) return this;
                     bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
                     var lResult = new cSubSetProp(this, this, 1, lContextTraceDelay, pClass, pProperty, pValue);
-                    if (!lContextTraceDelay) lResult.TraceContext();
+                    if (!lContextTraceDelay) lResult.YTraceContext();
                     return lResult;
                 }
 
@@ -622,7 +622,7 @@ namespace work.bacome.mailclient.support
                     if (mTrace == null) return this;
                     bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
                     var lResult = new cSubGetProp(this, this, 1, lContextTraceDelay, pClass, pProperty);
-                    if (!lContextTraceDelay) lResult.TraceContext();
+                    if (!lContextTraceDelay) lResult.YTraceContext();
                     return lResult;
                 }
 
@@ -632,7 +632,7 @@ namespace work.bacome.mailclient.support
                     if (mTrace == null) return this;
                     bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
                     var lResult = new cSubMethodV(this, this, 1, lContextTraceDelay, pClass, pMethod, pVersion, pArgs);
-                    if (!lContextTraceDelay) lResult.TraceContext();
+                    if (!lContextTraceDelay) lResult.YTraceContext();
                     return lResult;
                 }
 
@@ -640,7 +640,7 @@ namespace work.bacome.mailclient.support
                 public override bool ContextTraceDelay => mContextTraceDelay;
 
                 /**<summary></summary>*/
-                protected override void TraceContext()
+                protected override void YTraceContext()
                 {
                     if (mLogged) return;
 
@@ -657,7 +657,7 @@ namespace work.bacome.mailclient.support
                 {
                     if (mTrace == null) return;
                     if (!mTrace.Emits(pTraceEventType)) return;
-                    TraceContext();
+                    YTraceContext();
                     mTrace.TraceEvent(pTraceEventType, mInstanceName, mInstanceNumber, 1, ZStringFormat(pMessage, pArgs));
                 }
 
@@ -697,7 +697,7 @@ namespace work.bacome.mailclient.support
                     {
                         bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
                         var lResult = new cSubGeneric(mRoot, this, mLevel, lContextTraceDelay, pMessage, pArgs);
-                        if (!lContextTraceDelay) lResult.TraceContext();
+                        if (!lContextTraceDelay) lResult.YTraceContext();
                         return lResult;
                     }
 
@@ -705,7 +705,7 @@ namespace work.bacome.mailclient.support
                     {
                         bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
                         var lResult = new cSubObjectV(mRoot, this, mLevel, lContextTraceDelay, pClass, pVersion, pArgs);
-                        if (!lContextTraceDelay) lResult.TraceContext();
+                        if (!lContextTraceDelay) lResult.YTraceContext();
                         return lResult;
                     }
 
@@ -713,7 +713,7 @@ namespace work.bacome.mailclient.support
                     {
                         bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
                         var lResult = new cSubSetProp(mRoot, this, mLevel, lContextTraceDelay, pClass, pProperty, pValue);
-                        if (!lContextTraceDelay) lResult.TraceContext();
+                        if (!lContextTraceDelay) lResult.YTraceContext();
                         return lResult;
                     }
 
@@ -721,7 +721,7 @@ namespace work.bacome.mailclient.support
                     {
                         bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
                         var lResult = new cSubGetProp(mRoot, this, mLevel, lContextTraceDelay, pClass, pProperty);
-                        if (!lContextTraceDelay) lResult.TraceContext();
+                        if (!lContextTraceDelay) lResult.YTraceContext();
                         return lResult;
                     }
 
@@ -729,31 +729,31 @@ namespace work.bacome.mailclient.support
                     {
                         bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
                         var lResult = new cSubMethodV(mRoot, this, mLevel, lContextTraceDelay, pClass, pMethod, pVersion, pArgs);
-                        if (!lContextTraceDelay) lResult.TraceContext();
+                        if (!lContextTraceDelay) lResult.YTraceContext();
                         return lResult;
                     }
 
                     public override bool ContextTraceDelay => mContextTraceDelay;
 
-                    protected override void TraceContext()
+                    protected override void YTraceContext()
                     {
                         if (mLogged) return;
 
                         lock (mLock)
                         {
                             if (mLogged) return;
-                            mParent.TraceContext();
-                            mRoot.mTrace.TraceContext(mRoot.mInstanceName, mRoot.mInstanceNumber, mLevel, Context);
+                            mParent.YTraceContext();
+                            mRoot.mTrace.TraceContext(mRoot.mInstanceName, mRoot.mInstanceNumber, mLevel, YContext);
                             mLogged = true;
                         }
                     }
 
-                    protected abstract string Context { get; }
+                    protected abstract string YContext { get; }
 
                     public override void TraceEvent(TraceEventType pTraceEventType, string pMessage, params object[] pArgs)
                     {
                         if (!mRoot.mTrace.Emits(pTraceEventType)) return;
-                        TraceContext();
+                        YTraceContext();
                         mRoot.mTrace.TraceEvent(pTraceEventType, mRoot.mInstanceName, mRoot.mInstanceNumber, mLevel, ZStringFormat(pMessage, pArgs));
                     }
 
@@ -771,7 +771,7 @@ namespace work.bacome.mailclient.support
                         mArgs = pArgs;
                     }
 
-                    protected override string Context => ZStringFormat(mMessage, mArgs);
+                    protected override string YContext => ZStringFormat(mMessage, mArgs);
                 }
 
                 private class cSubObjectV : cSub
@@ -787,7 +787,7 @@ namespace work.bacome.mailclient.support
                         mArgs = pArgs;
                     }
 
-                    protected override string Context => $"{mClass}.{ZVersionArgs(mVersion, mArgs)}";
+                    protected override string YContext => $"{mClass}.{ZVersionArgs(mVersion, mArgs)}";
                 }
 
                 private class cSubSetProp : cSub
@@ -803,7 +803,7 @@ namespace work.bacome.mailclient.support
                         mValue = pValue;
                     }
 
-                    protected override string Context => $"{mClass}.{mProperty}={mValue}";
+                    protected override string YContext => $"{mClass}.{mProperty}={mValue}";
                 }
 
                 private class cSubGetProp : cSub
@@ -817,7 +817,7 @@ namespace work.bacome.mailclient.support
                         mProperty = pProperty;
                     }
 
-                    protected override string Context => $"{mClass}.{mProperty}";
+                    protected override string YContext => $"{mClass}.{mProperty}";
                 }
 
                 private class cSubMethodV : cSub
@@ -835,7 +835,7 @@ namespace work.bacome.mailclient.support
                         mArgs = pArgs;
                     }
 
-                    protected override string Context => $"{mClass}.{mMethod}.{ZVersionArgs(mVersion, mArgs)}";
+                    protected override string YContext => $"{mClass}.{mMethod}.{ZVersionArgs(mVersion, mArgs)}";
                 }
             }
         }

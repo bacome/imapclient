@@ -24,6 +24,8 @@ namespace work.bacome.imapclient
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
                 await lSession.DeleteAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
             }
+
+            ZAddMailboxUIDValidity(pMailboxHandle.MailboxId, 0, lContext);
         }
     }
 }

@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookFetchBody), nameof(ProcessData));
 
                     if (!(pData is cResponseDataFetch lFetch)) return eProcessDataResult.notprocessed;
-                    if (!IsThisTheMessageThatIAmInterestedIn(lFetch)) return eProcessDataResult.notprocessed;
+                    if (!YIsThisTheMessageThatIAmInterestedIn(lFetch)) return eProcessDataResult.notprocessed;
 
                     eProcessDataResult lResult = eProcessDataResult.notprocessed;
 
@@ -66,7 +66,7 @@ namespace work.bacome.imapclient
                     return lResult;
                 }
 
-                protected abstract bool IsThisTheMessageThatIAmInterestedIn(cResponseDataFetch pFetch);
+                protected abstract bool YIsThisTheMessageThatIAmInterestedIn(cResponseDataFetch pFetch);
             }
 
             private class cCommandHookFetchBodyMSN : cCommandHookFetchBody
@@ -78,7 +78,7 @@ namespace work.bacome.imapclient
                     mMSN = pMSN;
                 }
 
-                protected override bool IsThisTheMessageThatIAmInterestedIn(cResponseDataFetch pFetch) => pFetch.MSN == mMSN;
+                protected override bool YIsThisTheMessageThatIAmInterestedIn(cResponseDataFetch pFetch) => pFetch.MSN == mMSN;
             }
 
             private class cCommandHookFetchBodyUID : cCommandHookFetchBody
@@ -90,7 +90,7 @@ namespace work.bacome.imapclient
                     mUID = pUID;
                 }
 
-                protected override bool IsThisTheMessageThatIAmInterestedIn(cResponseDataFetch pFetch) => pFetch.UID == mUID;
+                protected override bool YIsThisTheMessageThatIAmInterestedIn(cResponseDataFetch pFetch) => pFetch.UID == mUID;
             }
         }
     }

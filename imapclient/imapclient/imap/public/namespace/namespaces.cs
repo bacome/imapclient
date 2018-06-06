@@ -18,6 +18,8 @@ namespace work.bacome.imapclient
         /**<summary>The 'shared' <see cref="cNamespace"/> instances in the collection. May be <see langword="null"/>.</summary>*/
         public readonly ReadOnlyCollection<cNamespace> Shared;
 
+        public readonly ReadOnlyCollection<cNamespaceName> All;
+
         internal cNamespaces(cIMAPClient pClient, IList<cNamespaceName> pPersonal, IList<cNamespaceName> pOtherUsers, IList<cNamespaceName> pShared)
         {
             if (pPersonal != null && pPersonal.Count == 0) throw new ArgumentOutOfRangeException(nameof(pPersonal));
@@ -27,6 +29,14 @@ namespace work.bacome.imapclient
             Personal = ZToNameSpaceCollection(pClient, pPersonal);
             OtherUsers = ZToNameSpaceCollection(pClient, pOtherUsers);
             Shared = ZToNameSpaceCollection(pClient, pShared);
+
+            var lAll = new List<cNamespaceName>();
+
+            if (pPersonal != null) lAll.AddRange(pPersonal);
+            if (pOtherUsers != null) lAll.AddRange(pOtherUsers);
+            if (pShared != null) lAll.AddRange(pShared);
+
+            All = lAll.AsReadOnly();
         }
 
         private static ReadOnlyCollection<cNamespace> ZToNameSpaceCollection(cIMAPClient pClient, IList<cNamespaceName> pNames)

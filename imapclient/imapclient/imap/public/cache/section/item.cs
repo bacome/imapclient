@@ -75,26 +75,26 @@ namespace work.bacome.imapclient
         public int ChangeSequence => mChangeSequence;
 
         // the persistent key should be set here if it can be set while the item is open
-        protected virtual void ItemCached(cTrace.cContext pParentContext)
+        protected virtual void YItemCached(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(ItemCached));
         }
 
         // the persistent key should be set here if it can only be set while the item is closed
-        protected virtual eItemState Touch(cTrace.cContext pParentContext)
+        protected virtual eItemState YTouch(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(Touch));
             return eItemState.exists;
         }
 
         // called periodically and in cache closedown if the persistent key is not assigned but one is available
-        protected virtual void AssignPersistentKey(bool pItemClosed, cTrace.cContext pParentContext)
+        protected virtual void YAssignPersistentKey(bool pItemClosed, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(AssignPersistentKey), pItemClosed);
         }
 
         // for use by the derived class when it sets the persistent key
-        protected void SetPersistentKeyAssigned(cTrace.cContext pParentContext)
+        protected void YSetPersistentKeyAssigned(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(SetPersistentKeyAssigned));
             if (!mCached) throw new InvalidOperationException();
@@ -103,8 +103,8 @@ namespace work.bacome.imapclient
 
         public bool PersistentKeyAssigned => mPersistentKeyAssigned;
 
-        protected internal cSectionId PersistentKey => mPersistentKey;
-        internal cSectionHandle NonPersistentKey => mNonPersistentKey;
+        protected internal cSectionId SectionId => mPersistentKey;
+        internal cSectionHandle SectionHandle => mNonPersistentKey;
 
         protected internal bool TryDelete(int pChangeSequence, cTrace.cContext pParentContext)
         {

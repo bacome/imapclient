@@ -25,6 +25,8 @@ namespace work.bacome.imapclient
                 if (pForUpdate) await lSession.SelectAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
                 else await lSession.ExamineAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
             }
+
+            ;?; // cache reconiliation
         }
     }
 }

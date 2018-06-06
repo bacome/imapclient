@@ -17,14 +17,14 @@ namespace work.bacome.imapclient
                 private bool mAccessReadOnly;
                 private cSelectedMailboxCache mCache;
 
-                public cSelectedMailbox(cIMAPCallbackSynchroniser pSynchroniser, Action<iMessageHandle, cTrace.cContext> pExpunged, cMailboxCacheItem pMailboxCacheItem, bool pSelectedForUpdate, bool pAccessReadOnly, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
+                public cSelectedMailbox(cIMAPCallbackSynchroniser pSynchroniser, Action<cMessageUID, cTrace.cContext> pAddExpungedMessage, cMailboxCacheItem pMailboxCacheItem, bool pSelectedForUpdate, bool pAccessReadOnly, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cSelectedMailbox), pMailboxCacheItem, pSelectedForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq);
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                     mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
                     mSelectedForUpdate = pSelectedForUpdate;
                     mAccessReadOnly = pAccessReadOnly;
-                    mCache = new cSelectedMailboxCache(pSynchroniser, pExpunged, pMailboxCacheItem, pUIDValidity, pExists, pRecent, pUIDNext, pHighestModSeq, lContext);
+                    mCache = new cSelectedMailboxCache(pSynchroniser, pAddExpungedMessage, pMailboxCacheItem, pUIDValidity, pExists, pRecent, pUIDNext, pHighestModSeq, lContext);
                 }
 
                 public iMailboxHandle MailboxHandle => mMailboxCacheItem;

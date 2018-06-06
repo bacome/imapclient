@@ -20,6 +20,8 @@ namespace work.bacome.imapclient
             if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
             if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
 
+            uint lUIDValidity = pMailboxHandle.MailboxStatus?.UIDValidity ?? 0;
+
             using (var lToken = CancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
@@ -27,9 +29,17 @@ namespace work.bacome.imapclient
                 return new cMailbox(this, lMailboxHandle);
             }
 
-            ;?;
+            if (pMailboxHandle.MailboxName.IsInbox)
+            {
 
-            if (pMailboxHandle.is)
+            }
+            else
+            { 
+                if (lUIDValidity != 0) ZRename(pMailboxHandle.MailboxId, lUIDValidity, pMailboxName, lContext);
+
+                ;?; // and children ...
+                ZAddMailboxUIDValidity(pMailboxHandle.MailboxId, 0, lContext);
+            }
         }
     }
 }

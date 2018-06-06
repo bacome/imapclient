@@ -6,12 +6,12 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    public class cSectionCacheMaintenanceInfo
+    public class cSectionCacheMaintenanceData
     {
         public readonly HashSet<cMessageUID> Expunged;
         public readonly ReadOnlyDictionary<cMailboxId, uint> UIDValiditiesDiscovered;
 
-        internal cSectionCacheMaintenanceInfo(IList<cMessageUID> pExpungedMessages, IDictionary<cMailboxId, uint> pUIDValidities)
+        internal cSectionCacheMaintenanceData(IList<cMessageUID> pExpungedMessages, IDictionary<cMailboxId, uint> pUIDValidities)
         {
             ExpungedMessages = new ReadOnlyCollection<cMessageUID>(pExpungedMessages);
             UIDValidities = new ReadOnlyDictionary<cMailboxId, uint>(pUIDValidities);

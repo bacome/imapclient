@@ -9,11 +9,7 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    // currently copy/ rename do not result in cached items being copied to the new UID/ mailbox name(s)
-    //  if this were to be done it has to be done at the time of the copy/ rename in case the copied-to mailbox is selected
-    //   (if rename is implemented remember the exceptional processing for rename INBOX)
-
-    public abstract class cSectionCache : IDisposable
+    public abstract class cSectionCache : cCache, IDisposable
     {
         private static readonly TimeSpan kPlusOneHour = TimeSpan.FromHours(1);
         private static readonly TimeSpan kMinusOneHour = TimeSpan.FromHours(-1);
@@ -26,14 +22,12 @@ namespace work.bacome.imapclient
 
         protected readonly cTrace.cContext mRootContext;
 
-        private readonly CancellationTokenSource mBackgroundCancellationTokenSource = new CancellationTokenSource();
-
         private readonly ConcurrentDictionary<cSectionId, cSectionCacheItem> mSectionIdToItem = new ConcurrentDictionary<cSectionId, cSectionCacheItem>();
         private readonly ConcurrentDictionary<cSectionHandle, cSectionCacheItem> mSectionHandleToItem = new ConcurrentDictionary<cSectionHandle, cSectionCacheItem>();
 
-        // lock and collections for expiring cache items 
+        // lock and collections for expiring cached items 
         private readonly object mExpiredLock = new object();
-        private HashSet<iMessageHandle> mExpungedMessages = new HashSet<iMessageHandle>();
+        private HashSet<cMessageUID> mExpungedMessages = new HashSet<cMessageUID>();
         private Dictionary<cMailboxId, uint> mMailboxToUIDValidity = new Dictionary<cMailboxId, uint>();
 
         // pending items: new items that haven't been added yet
@@ -42,7 +36,10 @@ namespace work.bacome.imapclient
         private readonly HashSet<cSectionCacheItem> mPendingHandleItems = new HashSet<cSectionCacheItem>();
 
         private int mItemSequence = 7;
-        private Task mBackgroundTask = null;
+
+        private readonly object mMaintenanceLock = new object();
+        private CancellationTokenSource mMaintenanceCTS;
+        private Task mMaintenanceTask = null;
 
         protected cSectionCache(string pInstanceName, int pMaintenanceFrequency)
         {
@@ -52,13 +49,41 @@ namespace work.bacome.imapclient
             mRootContext = cMailClient.Trace.NewRoot(pInstanceName);
         }
 
-        // should be called by the derived class at the end of construction before cache use starts
-        //
-        protected void StartMaintenance()
+        public override void MessageExpunged(cMessageUID pMessageUID, cTrace.cContext pParentContext)
         {
-            if (mBackgroundTask != null) throw new InvalidOperationException();
-            mBackgroundTask = ZBackgroundTaskAsync(mBackgroundCancellationTokenSource.Token, mRootContext);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(MessageExpunged), pMessageUID);
+            if (pMessageUID == null) throw new ArgumentNullException(nameof(pMessageUID));
+            ZMaintenanceStart(lContext);
+            lock (mExpiredLock) { mExpungedMessages.Add(pMessageUID); }
         }
+
+        public override void MessagesExpunged(IEnumerable<cMessageUID> pMessageUIDs, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(MessagesExpunged));
+            if (pMessageUIDs == null) throw new ArgumentNullException(nameof(pMessageUIDs));
+            ZMaintenanceStart(lContext);
+            lock (mExpiredLock) { mExpungedMessages.UnionWith(pMessageUIDs); }
+        }
+
+        public override void SetMailboxUIDValidity(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
+        {
+            // NOTE that to delete all the items in the mailbox the UIDValidity can be set to zero
+            //  this happens during child reconcilliation (list), rename and delete
+            //   note that rename of inbox is problematic and has to be handled by add expunged
+            //   rename of non inbox deletes the renamed AND all children (and children of children ...)
+            //   delete just deletes the deleted mailbox
+            //   note that discovering that a mailbox is noselect or non-existent implies that the UIDValidity is zero (this is done during list)
+            //
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(SetMailboxUIDValidity), pMailboxId, pUIDValidity);
+            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
+            lock (mExpiredLock) { mMailboxToUIDValidity[pMailboxId] = pUIDValidity; }
+        }
+
+
+
+
+
+
 
         // asks the cache to create a new item
         //
@@ -68,16 +93,16 @@ namespace work.bacome.imapclient
 
         // asks the cache if it has an item for the section
         //
-        protected virtual bool TryGetExistingItem(cSectionId pSectionId, out cSectionCacheItem rItem, cTrace.cContext pParentContext)
+        protected virtual bool YTryGetExistingItem(cSectionId pSectionId, out cSectionCacheItem rItem, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetExistingItem), pSectionId);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(YTryGetExistingItem), pSectionId);
             rItem = null;
             return false;
         }
 
-        protected virtual void Maintenance(cSectionCacheMaintenanceInfo pInfo, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        protected virtual void YMaintenance(bool pFinal, cSectionCacheMaintenanceData pData, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(Maintenance));
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(YMaintenance), pFinal, pData);
         }
 
         // gives the cache a chance to copy any cached items it has
@@ -101,50 +126,21 @@ namespace work.bacome.imapclient
 
         // asks the cache to return a list of UIDs that it has for a mailbox
         //
-        protected internal virtual List<uint> GetUIDs(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
+        protected virtual List<uint> YGetUIDs(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetUIDs), pMailboxId, pUIDValidity);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(YGetUIDs), pMailboxId, pUIDValidity);
             return null;
         }
 
         // asks the cache to return a list of child mailboxes that it has for a mailbox
         //
-        protected internal virtual List<cMailboxName> GetChildMailboxes(cMailboxId pMailboxId, bool pDescend, cTrace.cContext pParentContext)
+        protected virtual List<cMailboxName> YGetChildMailboxes(cMailboxId pMailboxId, bool pDescend, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetChildMailboxes), pMailboxId);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(YGetChildMailboxes), pMailboxId, pDescend);
             return null;
         }
 
         protected internal int GetItemSequence() => Interlocked.Increment(ref mItemSequence);
-
-        internal void AddExpungedMessage(iMessageHandle pMessageHandle, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(AddExpungedMessage), pMessageHandle);
-            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
-            lock (mExpiredLock) { mExpungedMessages.Add(pMessageHandle); }
-        }
-
-        internal void AddExpungedMessages(cMessageHandleList pMessageHandles, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(AddExpungedMessages), pMessageHandles);
-            if (pMessageHandles == null) throw new ArgumentNullException(nameof(pMessageHandles));
-            if (pMessageHandles.Count == 0) return;
-            lock (mExpiredLock) { mExpungedMessages.UnionWith(pMessageHandles); }
-        }
-
-        internal void AddMailboxUIDValidity(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
-        {
-            // NOTE that to delete all the items in the mailbox the UIDValidity can be set to zero
-            //  this happens during child reconcilliation (list), rename and delete
-            //   note that rename of inbox is problematic and has to be handled by add expunged
-            //   rename of non inbox deletes the renamed AND all children (and children of children ...)
-            //   delete just deletes the deleted mailbox
-            //   note that discovering that a mailbox is noselect or non-existent implies that the UIDValidity is zero (this is done during list)
-            //
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(AddMailboxUIDValidity), pMailboxId, pUIDValidity);
-            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
-            lock (mExpiredLock) { mMailboxToUIDValidity[pMailboxId] = pUIDValidity; }
-        }
 
         internal bool TryGetItemLength(cSectionId pSectionId, out long rLength, cTrace.cContext pParentContext)
         {
@@ -319,23 +315,36 @@ namespace work.bacome.imapclient
             lock (mPendingLock) { mPendingNewItems.Remove(pItem); }
         }
 
-        private async Task ZBackgroundTaskAsync(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+
+        private void ZMaintenanceStart(cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewRootMethod(nameof(cSectionCache), nameof(ZBackgroundTaskAsync));
+            lock (mMaintenanceLock)
+            {
+                if (mMaintenanceTask == null)
+                {
+                    mMaintenanceCTS = new CancellationTokenSource();
+                    mMaintenanceTask = ZMaintenanceAsync(pParentContext);
+                }
+            }
+        }
+
+        private async Task ZMaintenanceAsync(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewRootMethod(nameof(cSectionCache), nameof(ZMaintenanceAsync));
 
             try
             {
                 while (true)
                 {
-                    ZMaintenance(pCancellationToken, lContext);
+                    ZMaintenance(false, lContext);
                     lContext.TraceVerbose("waiting: {0}", MaintenanceFrequency);
-                    await Task.Delay(MaintenanceFrequency, pCancellationToken).ConfigureAwait(false);
+                    await Task.Delay(MaintenanceFrequency, mMaintenanceCTS.Token).ConfigureAwait(false);
                 }
             }
-            catch (Exception e) when (!pCancellationToken.IsCancellationRequested && lContext.TraceException("the background task is stopping due to an unexpected error", e)) { }
+            catch (Exception e) when (!mMaintenanceCTS.IsCancellationRequested && lContext.TraceException("the background task is stopping due to an unexpected error", e)) { }
         }
 
-        private void ZMaintenance(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        private void ZMaintenance(bool pFinal, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewRootMethod(nameof(cSectionCache), nameof(ZMaintenance));
 
@@ -479,32 +488,32 @@ namespace work.bacome.imapclient
             {
                 mDisposing = true;
 
-                if (mBackgroundCancellationTokenSource != null && !mBackgroundCancellationTokenSource.IsCancellationRequested)
+                if (mMaintenanceCTS != null && !mMaintenanceCTS.IsCancellationRequested)
                 {
-                    try { mBackgroundCancellationTokenSource.Cancel(); }
+                    try { mMaintenanceCTS.Cancel(); }
                     catch { }
                 }
 
-                if (mBackgroundTask != null)
+                if (mMaintenanceTask != null)
                 {
                     // wait for the task to exit before disposing it
-                    try { mBackgroundTask.Wait(); }
+                    try { mMaintenanceTask.Wait(); }
                     catch { }
 
-                    try { mBackgroundTask.Dispose(); }
+                    try { mMaintenanceTask.Dispose(); }
                     catch { }
                 }
 
-                if (mBackgroundCancellationTokenSource != null)
+                if (mMaintenanceCTS != null)
                 {
-                    try { mBackgroundCancellationTokenSource.Dispose(); }
+                    try { mMaintenanceCTS.Dispose(); }
                     catch { }
                 }
 
                 try
                 {
                     var lContext = mRootContext.NewMethod(nameof(cSectionCache), nameof(Dispose));
-                    try { ZMaintenance(CancellationToken.None, lContext); }
+                    try { ZMaintenance(true, lContext); }
                     catch (Exception e) { lContext.TraceException(e); }
                 }
                 catch { }
