@@ -33,11 +33,7 @@ namespace work.bacome.imapclient
                 }
             }
 
-            if (lExpungedMessages != null && lExpungedMessages.Count > 0)
-            {
-                var lSectionCache = SectionCache;
-                lSectionCache.Expunged(lExpungedMessages, lContext);
-            }
+            if (lExpungedMessages != null && lExpungedMessages.Count > 0) ZCacheIntegrationMessagesExpunged(lExpungedMessages);
         }
     }
 }

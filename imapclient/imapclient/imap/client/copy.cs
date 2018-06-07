@@ -30,12 +30,7 @@ namespace work.bacome.imapclient
                 lFeedback = await lSession.CopyAsync(lMC, pSourceMessageHandles, pDestinationMailboxHandle, lContext).ConfigureAwait(false);
             }
 
-            if (lFeedback != null && lFeedback.Count > 0)
-            {
-                var lSectionCache = SectionCache;
-                var lExampleMessageHandle = pSourceMessageHandles[0];
-                lSectionCache.Copied(lSession.ConnectedAccountId, lExampleMessageHandle.MessageCache.MailboxHandle.MailboxName, pDestinationMailboxHandle.MailboxName, lFeedback, lContext);
-            }
+            if (lFeedback != null && lFeedback.Count > 0) ZCacheIntegrationCopy(pSourceMessageHandles[0].MessageCache.MailboxHandle.MailboxId, pDestinationMailboxHandle.MailboxName, lFeedback, lContext);
 
             return lFeedback;
         }

@@ -9,6 +9,8 @@ namespace work.bacome.mailclient
     /// </summary>
     public class cStrings : ReadOnlyCollection<string>
     {
+        public static readonly cStrings Empty = new cStrings(new string[] { });
+
         internal cStrings(IList<string> pStrings) : base(pStrings) { }
 
         /// <inheritdoc />

@@ -46,8 +46,9 @@
     <Compile Include="imap\client\fetchsectiontarget.cs" />
     <Compile Include="imap\client\getmessagehandle.cs" />
     <Compile Include="imap\client\cacheintegration.cs" />
+    <Compile Include="imap\client\getnotprefixedwith.cs" />
     <Compile Include="imap\internal\sectionreader.cs" />
-    <Compile Include="imap\public\cache\base.cs" />
+    <Compile Include="imap\public\cache\persistent.cs" />
     <Compile Include="imap\public\cache\section\directorysectioncache.cs" />
     <Compile Include="imap\public\mailbox\mailboxid.cs" />
     <Compile Include="imap\public\cache\section\maintenanceinfo.cs" />

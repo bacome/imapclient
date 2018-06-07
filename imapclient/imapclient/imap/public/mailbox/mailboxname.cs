@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
         [DataMember]
         public readonly char? Delimiter;
 
-        private string mDescendantsStartWith = null;
+        private string mDescendantPathPrefix = null;
 
         private cMailboxName(string pPath, char? pDelimiter, bool pValid)
         {
@@ -56,13 +56,15 @@ namespace work.bacome.imapclient
 
             if (mPath[mPath.Length - 1] == Delimiter) throw new cDeserialiseException($"{nameof(cMailboxName)}.{nameof(mPath)}.endswithdelimiter");
 
-            if (mPath.Equals(InboxString, StringComparison.InvariantCultureIgnoreCase))
-            {
-                mPath = InboxString;
-                return;
-            }
+            mPath = ZPath(mPath);
 
             if (!cCommandPartFactory.Validation.TryAsListMailbox(mPath, Delimiter, out _)) throw new cDeserialiseException($"{nameof(cMailboxName)}.{nameof(mPath)}.tryaslistmailbox");
+        }
+
+        private string ZPath(string pPath)
+        {
+            if (pPath.Equals(InboxString, StringComparison.InvariantCultureIgnoreCase)) return InboxString;
+            return pPath;
         }
 
         /// <summary>
@@ -119,39 +121,77 @@ namespace work.bacome.imapclient
             }
         }
 
+        public string GetDescendantPathPrefix()
+        {
+            if (mDescendantPathPrefix != null) return mDescendantPathPrefix;
+            if (Delimiter == null) throw new InvalidOperationException();
+            mDescendantPathPrefix = mPath + Delimiter;
+            return mDescendantPathPrefix;
+        }
+
         /// <summary>
         /// Indicates whether this is 'INBOX'.
         /// </summary>
         public bool IsInbox => ReferenceEquals(mPath, InboxString);
 
-        public bool IsTopLevelOf(cNamespaceName pNamespaceName, IEnumerable<cNamespaceName> pNamespaceNames)
+        public bool IsFirstLineageMemberPrefixedWith(string pPrefix, cStrings pNotPrefixedWith)
         {
-            if (pNamespaceName.Delimiter != Delimiter) return false;
-            if (!mPath.StartsWith(pNamespaceName.Prefix)) return false;
-            if (Delimiter != null && mPath.IndexOf(Delimiter.Value, pNamespaceName.Prefix.Length) != -1) return false;
-
-            foreach (var lNamespaceName in pNamespaceNames)
-                if (lNamespaceName.Delimiter == Delimiter && lNamespaceName.Prefix.Length > pNamespaceName.Prefix.Length && mPath.StartsWith(lNamespaceName.Prefix))
-                    return false;
-
+            if (pPrefix == null) throw new ArgumentNullException(nameof(pPrefix));
+            if (pNotPrefixedWith == null) throw new ArgumentNullException(nameof(pNotPrefixedWith));
+            if (!mPath.StartsWith(pPrefix)) return false;
+            if (Delimiter != null && mPath.IndexOf(Delimiter.Value, pPrefix.Length) != -1) return false;
+            foreach (var lPrefix in pNotPrefixedWith) if (mPath.StartsWith(lPrefix)) return false;
             return true;
+        }
+
+        public bool IsPrefixedWith(string pPrefix, cStrings pNotPrefixedWith)
+        {
+            if (pPrefix == null) throw new ArgumentNullException(nameof(pPrefix));
+            if (pNotPrefixedWith == null) throw new ArgumentNullException(nameof(pNotPrefixedWith));
+            if (!mPath.StartsWith(pPrefix)) return false;
+            foreach (var lPrefix in pNotPrefixedWith) if (mPath.StartsWith(lPrefix)) return false;
+            return true;
+        }
+
+        public cMailboxName GetFirstLineageMemberPrefixedWith(string pPrefix)
+        {
+            if (pPrefix == null) throw new ArgumentNullException(nameof(pPrefix));
+            if (Delimiter == null) throw new InvalidOperationException();
+            if (!mPath.StartsWith(pPrefix)) throw new InvalidOperationException();
+            var lIndexOf = mPath.IndexOf(Delimiter.Value, pPrefix.Length);
+            if (lIndexOf == -1) return this;
+            return new cMailboxName(ZPath(mPath.Substring(0, lIndexOf)), Delimiter, true);
         }
 
         public bool IsChildOf(cMailboxName pOther)
         {
+            if (pOther == null) throw new ArgumentNullException(nameof(pOther));
             if (Delimiter == null) return false;
             if (pOther.Delimiter != Delimiter) return false;
-            if (pOther.mDescendantsStartWith == null) pOther.mDescendantsStartWith = pOther.mPath + Delimiter;
-            if (!mPath.StartsWith(pOther.mDescendantsStartWith)) return false;
-            return mPath.IndexOf(Delimiter.Value, pOther.mDescendantsStartWith.Length) == -1;
+            var lOtherDescendantPathPrefix = pOther.GetDescendantPathPrefix();
+            if (!mPath.StartsWith(lOtherDescendantPathPrefix)) return false;
+            return mPath.IndexOf(Delimiter.Value, lOtherDescendantPathPrefix.Length) == -1;
         }
 
         public bool IsDescendantOf(cMailboxName pOther)
         {
+            if (pOther == null) throw new ArgumentNullException(nameof(pOther));
             if (Delimiter == null) return false;
             if (pOther.Delimiter != Delimiter) return false;
-            if (pOther.mDescendantsStartWith == null) pOther.mDescendantsStartWith = pOther.mPath + Delimiter;
-            return mPath.StartsWith(pOther.mDescendantsStartWith);
+            var lOtherDescendantPathPrefix = pOther.GetDescendantPathPrefix();
+            return mPath.StartsWith(lOtherDescendantPathPrefix);
+        }
+
+        public cMailboxName GetLineageMemberThatIsChildOf(cMailboxName pAncestor)
+        {
+            if (pAncestor == null) throw new ArgumentNullException(nameof(pAncestor));
+            if (Delimiter == null) throw new InvalidOperationException();
+            if (pAncestor.Delimiter != Delimiter) throw new InvalidOperationException();
+            var lAncestorDescendantPathPrefix = pAncestor.GetDescendantPathPrefix();
+            if (!mPath.StartsWith(lAncestorDescendantPathPrefix)) throw new InvalidOperationException();
+            var lIndexOf = mPath.IndexOf(Delimiter.Value, lAncestorDescendantPathPrefix.Length);
+            if (lIndexOf == -1) return this;
+            return new cMailboxName(ZPath(mPath.Substring(0, lIndexOf)), Delimiter, true);
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals"/>

@@ -22,7 +22,7 @@ namespace work.bacome.imapclient
                 if (pAsFutureParent && pMailboxName.Delimiter == null) throw new ArgumentOutOfRangeException(nameof(pAsFutureParent));
 
                 string lMailboxPath;
-                if (pAsFutureParent) lMailboxPath = pMailboxName.Path + pMailboxName.Delimiter.Value;
+                if (pAsFutureParent) lMailboxPath = pMailboxName.GetDescendantPathPrefix();
                 else lMailboxPath = pMailboxName.Path;
 
                 if (!mCommandPartFactory.TryAsMailbox(lMailboxPath, pMailboxName.Delimiter, out var lMailboxCommandPart, out _)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));

@@ -220,10 +220,10 @@ namespace work.bacome.imapclient
 
                     if (pMailboxHandle.MailboxName.Delimiter == null) return false;
 
-                    cMailboxPathPattern lPattern = new cMailboxPathPattern(pMailboxHandle.MailboxName.Path + pMailboxHandle.MailboxName.Delimiter, "*", pMailboxHandle.MailboxName.Delimiter);
+                    cMailboxPathPattern lPattern = new cMailboxPathPattern(pMailboxHandle.MailboxName.GetDescendantPathPrefix(), cStrings.Empty, "*", pMailboxHandle.MailboxName.Delimiter);
 
                     foreach (var lItem in mDictionary.Values)
-                        if (lItem.Exists == true && lItem.MailboxName != null && lPattern.Matches(lItem.MailboxName.Path))
+                        if (lItem.Exists == true && lItem.MailboxName != null && lItem.MailboxName.Delimiter == pMailboxHandle.MailboxName.Delimiter && lPattern.Matches(lItem.MailboxName.Path))
                             return true;
 
                     return false;

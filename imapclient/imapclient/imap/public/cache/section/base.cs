@@ -9,7 +9,7 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    public abstract class cSectionCache : cCache, IDisposable
+    public abstract class cSectionCache : cPersistentCache, IDisposable
     {
         private static readonly TimeSpan kPlusOneHour = TimeSpan.FromHours(1);
         private static readonly TimeSpan kMinusOneHour = TimeSpan.FromHours(-1);

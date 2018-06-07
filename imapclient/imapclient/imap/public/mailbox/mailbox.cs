@@ -25,13 +25,6 @@ namespace work.bacome.imapclient
     /// <see cref="cIMAPMessage"/> instances are valid only whilst the mailbox they are in remains selected.
     /// </para>
     /// </remarks>
-    /// <seealso cref="cIMAPClient.Inbox"/>
-    /// <seealso cref="cIMAPClient.Mailbox(cMailboxName)"/>
-    /// <seealso cref="cIMAPClient.SelectedMailbox"/>
-    /// <seealso cref="cNamespace.Mailboxes(fMailboxCacheDataSets)"/>
-    /// <seealso cref="cNamespace.Subscribed(bool, fMailboxCacheDataSets)"/>
-    /// <seealso cref="cIMAPClient.Mailboxes(string, char?, fMailboxCacheDataSets)"/>
-    /// <seealso cref="cIMAPClient.Subscribed(string, char?, bool, fMailboxCacheDataSets)"/>
     public class cMailbox : iMailboxContainer, IEquatable<cMailbox>
     {
         private PropertyChangedEventHandler mPropertyChanged;
@@ -844,7 +837,7 @@ namespace work.bacome.imapclient
             if (MailboxHandle.MailboxName.Delimiter == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NoMailboxHierarchy);
             if (string.IsNullOrEmpty(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
             if (pName.IndexOf(MailboxHandle.MailboxName.Delimiter.Value) != -1) throw new ArgumentOutOfRangeException(nameof(pName));
-            if (!cMailboxName.TryConstruct(MailboxHandle.MailboxName.Path + MailboxHandle.MailboxName.Delimiter.Value + pName, MailboxHandle.MailboxName.Delimiter, out var lMailboxName)) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (!cMailboxName.TryConstruct(MailboxHandle.MailboxName.GetDescendantPathPrefix() + pName, MailboxHandle.MailboxName.Delimiter, out var lMailboxName)) throw new ArgumentOutOfRangeException(nameof(pName));
             return lMailboxName;
         }
 
