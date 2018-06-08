@@ -24,7 +24,7 @@ namespace work.bacome.imapclient
                     mHasSubscribedChildren = pHasSubscribedChildren;
                 }
 
-                public List<iMailboxHandle> MailboxHandles { get; private set; } = null;
+                public IEnumerable<iMailboxHandle> MailboxHandles { get; private set; } = null;
 
                 public override void CommandStarted(cTrace.cContext pParentContext)
                 {

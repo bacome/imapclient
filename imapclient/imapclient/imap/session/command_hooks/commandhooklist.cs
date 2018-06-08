@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
             {
                 private readonly cMailboxCache mCache;
                 private readonly cMailboxPathPattern mPattern;
-                private readonly List<cMailboxName> mMailboxes = new List<cMailboxName>();
+                private readonly List<cMailboxName> mMailboxNames = new List<cMailboxName>();
                 private int mSequence;
 
                 public cCommandHookListMailboxes(cMailboxCache pCache, cMailboxPathPattern pPattern)
@@ -22,7 +22,7 @@ namespace work.bacome.imapclient
                     mPattern = pPattern;
                 }
 
-                public List<iMailboxHandle> MailboxHandles { get; private set; } = null;
+                public IEnumerable<iMailboxHandle> MailboxHandles { get; private set; } = null;
 
                 public override void CommandStarted(cTrace.cContext pParentContext)
                 {
@@ -37,7 +37,7 @@ namespace work.bacome.imapclient
                     if (!(pData is cResponseDataListMailbox lListMailbox)) return eProcessDataResult.notprocessed;
                     if (!mPattern.Matches(lListMailbox.MailboxName.Path)) return eProcessDataResult.notprocessed;
 
-                    mMailboxes.Add(lListMailbox.MailboxName);
+                    mMailboxNames.Add(lListMailbox.MailboxName);
                     return eProcessDataResult.observed;
                 }
 
@@ -48,7 +48,7 @@ namespace work.bacome.imapclient
                     if (pResult.ResultType != eIMAPCommandResultType.ok) return;
                     
                     mCache.ResetExists(mPattern, mSequence, lContext);
-                    MailboxHandles = mCache.GetHandles(mMailboxes);
+                    MailboxHandles = mCache.GetHandles(mMailboxNames);
                 }
             }
         }

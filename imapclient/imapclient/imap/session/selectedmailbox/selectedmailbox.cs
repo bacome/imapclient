@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient.support;
 
@@ -39,14 +40,14 @@ namespace work.bacome.imapclient
                 public iMessageHandle GetHandle(cUID pUID) => mCache.GetHandle(pUID);
                 public uint GetMSN(iMessageHandle pMessageHandle) => mCache.GetMSN(pMessageHandle); // this should only be called when no msnunsafe commands are running
 
-                public cMessageHandleList SetUnseenCount(int pMessageCount, cUIntList pMSNs, cTrace.cContext pParentContext) => mCache.SetUnseenCount(pMessageCount, pMSNs, pParentContext); // this should only be called from a commandcompletion
+                public cMessageHandleList SetUnseenCount(int pMessageCount, IEnumerable<uint> pMSNs, cTrace.cContext pParentContext) => mCache.SetUnseenCount(pMessageCount, pMSNs, pParentContext); // this should only be called from a commandcompletion
 
                 // this should only be called when messages aren't being processed (e.g. from command start)
-                public cMessageHandleList GetMessagesToBeExpunged(cTrace.cContext pParentContext)
+                public IEnumerable<cMessageUID> GetKnownDeletedMessageUIDs(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(GetMessagesToBeExpunged));
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(GetKnownDeletedMessageUIDs));
                     if (!mSelectedForUpdate || mAccessReadOnly) return null;
-                    return mCache.GetDeletedMessages(lContext);
+                    return mCache.GetKnownDeletedMessageUIDs(lContext);
                 }
 
                 public override string ToString() => $"{nameof(cSelectedMailbox)}({mMailboxCacheItem},{mSelectedForUpdate},{mAccessReadOnly})";

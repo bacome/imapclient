@@ -12,11 +12,11 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kSearchCommandPart = new cTextCommandPart("SEARCH ");
+            private static readonly cCommandPart kUIDSearchCommandPart = new cTextCommandPart("UID SEARCH ");
 
-            public async Task<cMessageHandleList> SearchAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cFilter pFilter, cTrace.cContext pParentContext)
+            public async Task<IEnumerable<cUID>> UIDSearchAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cFilter pFilter, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SearchAsync), pMC, pMailboxHandle, pFilter);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDSearchAsync), pMC, pMailboxHandle, pFilter);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eIMAPConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
@@ -29,54 +29,52 @@ namespace work.bacome.imapclient
 
                     var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pMailboxHandle, pFilter.UIDValidity);
 
-                    // special cases
-                    if (ReferenceEquals(pFilter, cFilter.All)) return new cMessageHandleList(lSelectedMailbox.MessageCache);
-                    if (ReferenceEquals(pFilter, cFilter.None)) return new cMessageHandleList();
+                    // special case
+                    if (ReferenceEquals(pFilter, cFilter.None)) return new cUIDList();
 
                     lBuilder.Add(await mSearchExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // search commands must be single threaded (so we can tell which result is which)
                     if (pFilter.ContainsMessageHandles) lBuilder.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
 
                     lBuilder.AddUIDValidity(lSelectedMailbox.MessageCache.UIDValidity); // if a UIDValidity change happens while the command is running, disbelieve the results
 
-                    lBuilder.Add(kSearchCommandPart);
+                    lBuilder.Add(kUIDSearchCommandPart);
                     lBuilder.Add(pFilter, lSelectedMailbox, false, mEncodingPartFactory);
 
-                    var lHook = new cSearchCommandHook(lSelectedMailbox);
+                    var lHook = new cUIDSearchCommandHook(lSelectedMailbox.MessageCache.UIDValidity);
                     lBuilder.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
-                        lContext.TraceInformation("search success");
-                        if (lHook.MessageHandles == null) throw new cUnexpectedIMAPServerActionException(lResult, "results not received on a successful search", 0, lContext);
-                        return lHook.MessageHandles;
+                        lContext.TraceInformation("uid search success");
+                        if (lHook.UIDs == null) throw new cUnexpectedIMAPServerActionException(lResult, "results not received on a successful uid search", 0, lContext);
+                        return lHook.UIDs;
                     }
 
-                    if (lHook.MessageHandles != null) lContext.TraceError("results received on a failed search");
+                    if (lHook.UIDs != null) lContext.TraceError("results received on a failed uid search");
 
                     if (lResult.ResultType == eIMAPCommandResultType.no) throw new cUnsuccessfulIMAPCommandException(lResult.ResponseText, 0, lContext);
                     throw new cIMAPProtocolErrorException(lResult, 0, lContext);
                 }
             }
 
-            private class cSearchCommandHook : cCommandHookBaseSearch
+            private class cUIDSearchCommandHook : cCommandHookBaseSearch
             {
-                private readonly cSelectedMailbox mSelectedMailbox;
+                private readonly uint mUIDValidity;
 
-                public cSearchCommandHook(cSelectedMailbox pSelectedMailbox)
+                public cUIDSearchCommandHook(uint pUIDValidity)
                 {
-                    mSelectedMailbox = pSelectedMailbox ?? throw new ArgumentNullException(nameof(pSelectedMailbox));
+                    mUIDValidity = pUIDValidity;
                 }
 
-                public cMessageHandleList MessageHandles { get; private set; } = null;
+                public IEnumerable<cUID> UIDs { get; private set; } = null;
 
                 public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSearchCommandHook), nameof(CommandCompleted), pResult);
+                    var lContext = pParentContext.NewMethod(nameof(cUIDSearchCommandHook), nameof(CommandCompleted), pResult);
                     if (pResult.ResultType != eIMAPCommandResultType.ok || mUInts == null) return;
-                    // NOTE: the collection must be rendered, IEnumerable is not safe as evaluation of it can be delayed
-                    MessageHandles = new cMessageHandleList(mUInts.Distinct().Select(lMSN => mSelectedMailbox.GetHandle(lMSN)));
+                    UIDs = mUInts.Distinct().Select(lUID => new cUID(mUIDValidity, lUID));
                 }
             }
         }

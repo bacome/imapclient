@@ -8,6 +8,7 @@ namespace work.bacome.imapclient
     internal class cUIDList : List<cUID>
     {
         public cUIDList() { }
+        public cUIDList(int pCapacity) : base(pCapacity) { }
         public cUIDList(IEnumerable<cUID> pUIDs) : base(pUIDs) { }
 
         public override string ToString()

@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kListMailboxesCommandPart = new cTextCommandPart("LIST \"\" ");
 
-            public async Task<List<iMailboxHandle>> ListMailboxesAsync(cMethodControl pMC, string pListMailbox, char? pDelimiter, cMailboxPathPattern pPattern, cTrace.cContext pParentContext)
+            public async Task<IEnumerable<iMailboxHandle>> ListMailboxesAsync(cMethodControl pMC, string pListMailbox, char? pDelimiter, cMailboxPathPattern pPattern, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ListMailboxesAsync), pMC, pListMailbox, pDelimiter, pPattern);
 

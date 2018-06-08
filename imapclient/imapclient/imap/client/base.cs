@@ -82,6 +82,7 @@ namespace work.bacome.imapclient
         //   so at this stage the MDNSent features are commented out as they aren't useful by themselves
 
 
+        private static cHeaderCache GlobalHeaderCache { get; set; } = null; // will be public when implemented
         private static cSectionCache mDefaultSectionCache = new cDefaultSectionCache();
         public static cSectionCache GlobalSectionCache { get; set; } = null;
 
@@ -95,7 +96,8 @@ namespace work.bacome.imapclient
         private bool mMailboxReferrals = false;
         private fMailboxCacheDataItems mMailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.uidnext | fMailboxCacheDataItems.uidvalidity | fMailboxCacheDataItems.unseencount;
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
-        private cSectionCache mSectionCache = null;
+        private cHeaderCache _HeaderCache = null;
+        private cSectionCache _SectionCache = null;
         private cBatchSizerConfiguration mFetchCacheItemsConfiguration = new cBatchSizerConfiguration(1, 1000, 10000, 1);
         private cBatchSizerConfiguration mFetchBodyConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cBatchSizerConfiguration mAppendBatchConfiguration = new cBatchSizerConfiguration(1000, int.MaxValue, 10000, 1000);
@@ -365,10 +367,16 @@ namespace work.bacome.imapclient
             }
         }
 
+        private cHeaderCache HeaderCache // will be public when implemented
+        {
+            get => _HeaderCache ?? GlobalHeaderCache;
+            set => _HeaderCache = value;
+        }
+
         public cSectionCache SectionCache
         {
-            get => mSectionCache ?? GlobalSectionCache ?? mDefaultSectionCache;
-            set => mSectionCache = value;
+            get => _SectionCache ?? GlobalSectionCache ?? mDefaultSectionCache;
+            set => _SectionCache = value;
         }
 
         /// <summary>

@@ -19,7 +19,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// <note type="note"><see cref="cMessageCacheItems"/> has implicit conversions from other types including <see cref="fIMAPMessageProperties"/>. This means that you can use values of those types as arguments to this method.</note>
         /// </remarks>
-        public List<cIMAPMessage> FetchCacheItems(IEnumerable<cIMAPMessage> pMessages, cMessageCacheItems pItems, cIncrementConfiguration pConfiguration)
+        public IEnumerable<cIMAPMessage> FetchCacheItems(IEnumerable<cIMAPMessage> pMessages, cMessageCacheItems pItems, cIncrementConfiguration pConfiguration)
         {
             var lContext = RootContext.NewMethod(true, nameof(cIMAPClient), nameof(FetchCacheItems), pItems, pConfiguration);
 
@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
             var lTask = FetchCacheItemsAsync(lMessageHandles, pItems, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
 
-            return new List<cIMAPMessage>(from m in pMessages where !m.MessageHandle.Contains(pItems) select m);
+            return from m in pMessages where !m.MessageHandle.Contains(pItems) select m;
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace work.bacome.imapclient
         /// <param name="pItems"></param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <inheritdoc cref="Fetch(IEnumerable{cIMAPMessage}, cMessageCacheItems, cFetchCacheItemConfiguration)" select="returns|remarks"/>
-        public async Task<List<cIMAPMessage>> FetchCacheItemsAsync(IEnumerable<cIMAPMessage> pMessages, cMessageCacheItems pItems, cIncrementConfiguration pConfiguration)
+        public async Task<IEnumerable<cIMAPMessage>> FetchCacheItemsAsync(IEnumerable<cIMAPMessage> pMessages, cMessageCacheItems pItems, cIncrementConfiguration pConfiguration)
         {
             var lContext = RootContext.NewMethod(true, nameof(cIMAPClient), nameof(FetchCacheItemsAsync), pItems, pConfiguration);
 
@@ -52,7 +52,7 @@ namespace work.bacome.imapclient
 
             await FetchCacheItemsAsync(lMessageHandles, pItems, pConfiguration, lContext).ConfigureAwait(false);
 
-            return new List<cIMAPMessage>(from m in pMessages where !m.MessageHandle.Contains(pItems) select m);
+            return from m in pMessages where !m.MessageHandle.Contains(pItems) select m;
         }
 
         internal async Task FetchCacheItemsAsync(cMessageHandleList pMessageHandles, cMessageCacheItems pItems, cIncrementConfiguration pConfiguration, cTrace.cContext pParentContext)

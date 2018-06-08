@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -87,7 +88,7 @@ namespace work.bacome.mailclient
 
         public abstract fMessageDataFormat Format { get; }
 
-        public abstract List<cMailAttachment> Attachments { get; }
+        public abstract IEnumerable<cMailAttachment> GetAttachments();
 
         /// <summary>
         /// Gets the size in bytes of the plain text of the message. May be zero.
@@ -141,8 +142,7 @@ namespace work.bacome.mailclient
         /// <inheritdoc cref="PlainText" select="returns|remarks"/>
         public virtual async Task<string> GetPlainTextAsync()
         {
-            List<Task<string>> lTasks = new List<Task<string>>();
-            foreach (var lPart in ZPlainTextParts(BodyStructure)) lTasks.Add(FetchAsync(lPart));
+            var lTasks = new List<Task<string>>(from lPart in ZPlainTextParts(BodyStructure) select FetchAsync(lPart));
             await Task.WhenAll(lTasks).ConfigureAwait(false);
 
             StringBuilder lBuilder = new StringBuilder();

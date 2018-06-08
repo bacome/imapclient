@@ -26,7 +26,7 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kListExtendedCommandPartSpecialUse = new cTextCommandPart("SPECIAL-USE");
             private static readonly cCommandPart kListExtendedCommandPartStatus = new cTextCommandPart("STATUS");
 
-            public async Task<List<iMailboxHandle>> ListExtendedAsync(cMethodControl pMC, eListExtendedSelect pSelect, bool pRemote, string pListMailbox, char? pDelimiter, cMailboxPathPattern pPattern, bool pStatus, cTrace.cContext pParentContext)
+            public async Task<IEnumerable<iMailboxHandle>> ListExtendedAsync(cMethodControl pMC, eListExtendedSelect pSelect, bool pRemote, string pListMailbox, char? pDelimiter, cMailboxPathPattern pPattern, bool pStatus, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ListExtendedAsync), pMC, pSelect, pRemote, pListMailbox, pDelimiter, pPattern, pStatus);
 
@@ -121,7 +121,7 @@ namespace work.bacome.imapclient
                     mStatus = pStatus;
                 }
 
-                public List<iMailboxHandle> MailboxHandles { get; private set; } = null;
+                public IEnumerable<iMailboxHandle> MailboxHandles { get; private set; } = null;
 
                 public override void CommandStarted(cTrace.cContext pParentContext)
                 {

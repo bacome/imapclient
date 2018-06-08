@@ -24,14 +24,14 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <returns></returns>
-        List<cMailbox> GetMailboxes(fMailboxCacheDataSets pDataSets = 0);
+        IEnumerable<cMailbox> GetMailboxes(fMailboxCacheDataSets pDataSets = 0);
 
         /// <summary>
         /// Asynchronously gets the mailboxes at the top level of hierarchy in the container.
         /// </summary>
         /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <returns></returns>
-        Task<List<cMailbox>> GetMailboxesAsync(fMailboxCacheDataSets pDataSets = 0);
+        Task<IEnumerable<cMailbox>> GetMailboxesAsync(fMailboxCacheDataSets pDataSets = 0);
 
         /// <summary>
         /// Gets the subscribed mailboxes in the container.
@@ -43,7 +43,7 @@ namespace work.bacome.imapclient
         /// Mailboxes that do not exist may be returned.
         /// Subscribed mailboxes and levels in the mailbox hierarchy do not necessarily exist as mailboxes on the server.
         /// </remarks>
-        List<cMailbox> GetSubscribed(bool pDescend, fMailboxCacheDataSets pDataSets = 0);
+        IEnumerable<cMailbox> GetSubscribed(bool pDescend, fMailboxCacheDataSets pDataSets = 0);
 
         /// <summary>
         /// Asynchronously gets the subscribed mailboxes in the container.
@@ -52,7 +52,7 @@ namespace work.bacome.imapclient
         /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <returns></returns>
         /// <inheritdoc cref="Subscribed(bool, fMailboxCacheDataSets)" select="returns|remarks"/>
-        Task<List<cMailbox>> GetSubscribedAsync(bool pDescend, fMailboxCacheDataSets pDataSets = 0);
+        Task<IEnumerable<cMailbox>> GetSubscribedAsync(bool pDescend, fMailboxCacheDataSets pDataSets = 0);
 
         /// <summary>
         /// Gets the full mailbox name of a contained mailbox with the specified name.

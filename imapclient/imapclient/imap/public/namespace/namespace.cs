@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <returns></returns>
-        public List<cMailbox> GetMailboxes(fMailboxCacheDataSets pDataSets = 0)
+        public IEnumerable<cMailbox> GetMailboxes(fMailboxCacheDataSets pDataSets = 0)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cNamespace), nameof(GetMailboxes), pDataSets);
             var lTask = Client.GetMailboxesAsync(NamespaceName, pDataSets, lContext);
@@ -52,7 +52,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <returns></returns>
-        public Task<List<cMailbox>> GetMailboxesAsync(fMailboxCacheDataSets pDataSets = 0)
+        public Task<IEnumerable<cMailbox>> GetMailboxesAsync(fMailboxCacheDataSets pDataSets = 0)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cNamespace), nameof(GetMailboxesAsync), pDataSets);
             return Client.GetMailboxesAsync(NamespaceName, pDataSets, lContext);
@@ -68,7 +68,7 @@ namespace work.bacome.imapclient
         /// Mailboxes that do not exist may be returned.
         /// Subscribed mailboxes and levels in the mailbox hierarchy do not necessarily exist as mailboxes on the server.
         /// </remarks>
-        public List<cMailbox> GetSubscribed(bool pDescend = true, fMailboxCacheDataSets pDataSets = 0)
+        public IEnumerable<cMailbox> GetSubscribed(bool pDescend = true, fMailboxCacheDataSets pDataSets = 0)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cNamespace), nameof(GetSubscribed), pDescend, pDataSets);
             var lTask = Client.GetSubscribedAsync(NamespaceName, pDescend, pDataSets, lContext);
@@ -83,7 +83,7 @@ namespace work.bacome.imapclient
         /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <returns></returns>
         /// <inheritdoc cref="Subscribed(bool, fMailboxCacheDataSets)" select="returns|remarks"/>
-        public Task<List<cMailbox>> GetSubscribedAsync(bool pDescend = true, fMailboxCacheDataSets pDataSets = 0)
+        public Task<IEnumerable<cMailbox>> GetSubscribedAsync(bool pDescend = true, fMailboxCacheDataSets pDataSets = 0)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cNamespace), nameof(GetSubscribedAsync), pDescend, pDataSets);
             return Client.GetSubscribedAsync(NamespaceName, pDescend, pDataSets, lContext);

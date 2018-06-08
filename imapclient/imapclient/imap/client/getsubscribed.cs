@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient;
@@ -17,7 +18,7 @@ namespace work.bacome.imapclient
         /// <param name="pHasSubscribedChildren">Specifies if mailboxes that are not themselves subscribed, but that have subscribed children, are included in the returned list.</param>
         /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <inheritdoc cref="Mailboxes(string, char?, fMailboxCacheDataSets)" select="returns|remarks"/>
-        public List<cMailbox> GetSubscribed(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets)
+        public IEnumerable<cMailbox> GetSubscribed(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets)
         {
             var lContext = RootContext.NewMethod(nameof(cIMAPClient), nameof(GetSubscribed));
             var lTask = ZGetSubscribedAsync(pListMailbox, pDelimiter, pHasSubscribedChildren, pDataSets, lContext);
@@ -33,13 +34,13 @@ namespace work.bacome.imapclient
         /// <param name="pHasSubscribedChildren">Specifies if mailboxes that are not themselves subscribed, but that have subscribed children, are included in the returned list.</param>
         /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <inheritdoc cref="Mailboxes(string, char?, fMailboxCacheDataSets)" select="returns|remarks"/>
-        public Task<List<cMailbox>> GetSubscribedAsync(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets)
+        public Task<IEnumerable<cMailbox>> GetSubscribedAsync(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets)
         {
             var lContext = RootContext.NewMethod(nameof(cIMAPClient), nameof(GetSubscribedAsync));
             return ZGetSubscribedAsync(pListMailbox, pDelimiter, pHasSubscribedChildren, pDataSets, lContext);
         }
 
-        private Task<List<cMailbox>> ZGetSubscribedAsync(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
+        private Task<IEnumerable<cMailbox>> ZGetSubscribedAsync(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZGetSubscribedAsync), pListMailbox, pDelimiter, pHasSubscribedChildren, pDataSets);
 
@@ -55,14 +56,14 @@ namespace work.bacome.imapclient
             return ZZGetSubscribedAsync(lSession, pListMailbox, pDelimiter, lPattern, pHasSubscribedChildren, pDataSets, lContext);
         }
 
-        internal Task<List<cMailbox>> GetSubscribedAsync(iMailboxHandle pMailboxHandle, bool pDescend, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
+        internal Task<IEnumerable<cMailbox>> GetSubscribedAsync(iMailboxHandle pMailboxHandle, bool pDescend, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetSubscribedAsync), pMailboxHandle, pDescend, pDataSets);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
-            if (pMailboxHandle.MailboxName.Delimiter == null) return Task.FromResult(new List<cMailbox>());
+            if (pMailboxHandle.MailboxName.Delimiter == null) return Task.FromResult(new List<cMailbox>().AsEnumerable());
 
             var lSession = mSession;
             if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
@@ -77,7 +78,7 @@ namespace work.bacome.imapclient
             return ZZGetSubscribedAsync(lSession, lListMailbox, pMailboxHandle.MailboxName.Delimiter, lPattern, !pDescend, pDataSets, lContext);
         }
 
-        internal Task<List<cMailbox>> GetSubscribedAsync(cNamespaceName pNamespaceName, bool pDescend, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
+        internal Task<IEnumerable<cMailbox>> GetSubscribedAsync(cNamespaceName pNamespaceName, bool pDescend, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetSubscribedAsync), pNamespaceName, pDescend, pDataSets);
 
@@ -101,14 +102,14 @@ namespace work.bacome.imapclient
 
         // common processing
 
-        private async Task<List<cMailbox>> ZZGetSubscribedAsync(cSession pSession, string pListMailbox, char? pDelimiter, cMailboxPathPattern pPattern, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
+        private async Task<IEnumerable<cMailbox>> ZZGetSubscribedAsync(cSession pSession, string pListMailbox, char? pDelimiter, cMailboxPathPattern pPattern, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZGetSubscribedAsync), pListMailbox, pDelimiter, pPattern, pHasSubscribedChildren, pDataSets);
 
             if (pListMailbox == null) throw new ArgumentNullException(nameof(pListMailbox));
             if (pPattern == null) throw new ArgumentNullException(nameof(pPattern));
 
-            List<iMailboxHandle> lMailboxHandles;
+            IEnumerable<iMailboxHandle> lMailboxHandles;
 
             using (var lToken = CancellationManager.GetToken(lContext))
             {
@@ -131,7 +132,7 @@ namespace work.bacome.imapclient
                 }
                 else
                 {
-                    Task<List<iMailboxHandle>> lLSubTask;
+                    Task<IEnumerable<iMailboxHandle>> lLSubTask;
                     if (mMailboxReferrals && lCapabilities.MailboxReferrals) lLSubTask = pSession.RLSubAsync(lMC, pListMailbox, pDelimiter, pPattern, pHasSubscribedChildren, lContext);
                     else lLSubTask = pSession.LSubAsync(lMC, pListMailbox, pDelimiter, pPattern, pHasSubscribedChildren, lContext);
 
@@ -152,9 +153,7 @@ namespace work.bacome.imapclient
                 }
             }
 
-            List<cMailbox> lMailboxes = new List<cMailbox>();
-            foreach (var lMailboxHandle in lMailboxHandles) lMailboxes.Add(new cMailbox(this, lMailboxHandle));
-            return lMailboxes;
+            return lMailboxHandles.Select(lMailboxHandle => new cMailbox(this, lMailboxHandle));
         }
     }
 }

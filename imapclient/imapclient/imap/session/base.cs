@@ -163,6 +163,7 @@ namespace work.bacome.imapclient
                 {
                     if (pConnectionState == _ConnectionState) return;
                     if (_ConnectionState == eIMAPConnectionState.disconnected) return;
+                    if (_ConnectionState == eIMAPConnectionState.selected) mMailboxCache.Unselect(lContext);
 
                     lIsUnconnected = IsUnconnected;
                     lIsConnected = IsConnected;

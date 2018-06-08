@@ -19,6 +19,7 @@ namespace work.bacome.imapclient
                 private readonly cIMAPCapabilities mCapabilities;
                 private readonly iMailboxHandle mMailboxHandle;
                 private readonly bool mForUpdate;
+                private readonly cHeaderCache mHeaderCache;
 
                 private cFetchableFlags mFlags = null;
                 private int mExists = 0;
@@ -30,12 +31,13 @@ namespace work.bacome.imapclient
                 private bool mUIDNotSticky = false;
                 private bool mAccessReadOnly = false;
 
-                public cCommandHookSelect(cMailboxCache pMailboxCache, cIMAPCapabilities pCapabilities, iMailboxHandle pMailboxHandle, bool pForUpdate)
+                public cCommandHookSelect(cMailboxCache pMailboxCache, cIMAPCapabilities pCapabilities, iMailboxHandle pMailboxHandle, bool pForUpdate, cHeaderCache pHeaderCache)
                 {
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                     mCapabilities = pCapabilities ?? throw new ArgumentNullException(nameof(pCapabilities));
                     mMailboxHandle = pMailboxHandle ?? throw new ArgumentNullException(nameof(pMailboxHandle));
                     mForUpdate = pForUpdate;
+                    mHeaderCache = pHeaderCache;
                 }
 
                 public override void CommandStarted(cTrace.cContext pParentContext)
@@ -125,7 +127,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(CommandCompleted), pResult);
                     if (pResult.ResultType != eIMAPCommandResultType.ok) return;
-                    mMailboxCache.Select(mMailboxHandle, mForUpdate, mAccessReadOnly, mUIDNotSticky, mFlags, mPermanentFlags, mExists, mRecent, mUIDNext, mUIDValidity, mHighestModSeq, lContext);
+                    mMailboxCache.Select(mMailboxHandle, mForUpdate, mHeaderCache, mAccessReadOnly, mUIDNotSticky, mFlags, mPermanentFlags, mExists, mRecent, mUIDNext, mUIDValidity, mHighestModSeq, lContext);
                 }
             }
         }

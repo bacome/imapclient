@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
@@ -24,6 +25,7 @@ namespace work.bacome.imapclient
                 private readonly ConcurrentDictionary<string, cMailboxCacheItem> mDictionary = new ConcurrentDictionary<string, cMailboxCacheItem>();
 
                 private int mSequence = 7;
+                private cHeaderCache mHeaderCache = null;
                 private cSelectedMailbox mSelectedMailbox = null;
 
                 public cMailboxCache(cIMAPCallbackSynchroniser pSynchroniser, Action<cMessageUID, cTrace.cContext> pMessageExpunged, Action<cMailboxId, uint, cTrace.cContext> pSetMailboxUIDValidity, fMailboxCacheDataItems pMailboxCacheDataItems, cCommandPartFactory pCommandPartFactory, cIMAPCapabilities pCapabilities, cAccountId pAccountId, Action<eIMAPConnectionState, cTrace.cContext> pSetState)
@@ -42,24 +44,10 @@ namespace work.bacome.imapclient
 
                 public iMailboxHandle GetHandle(cMailboxName pMailboxName) => ZItem(pMailboxName);
 
-                public List<iMailboxHandle> GetHandles(List<cMailboxName> pMailboxNames)
+                public IEnumerable<iMailboxHandle> GetHandles(IEnumerable<cMailboxName> pMailboxNames)
                 {
                     if (pMailboxNames == null) return null;
-
-                    List<iMailboxHandle> lMailboxHandles = new List<iMailboxHandle>();
-
-                    pMailboxNames.Sort();
-
-                    cMailboxName lLastMailboxName = null;
-
-                    foreach (var lMailboxName in pMailboxNames)
-                        if (lMailboxName != lLastMailboxName)
-                        {
-                            lMailboxHandles.Add(ZItem(lMailboxName));
-                            lLastMailboxName = lMailboxName;
-                        }
-
-                    return lMailboxHandles;
+                    return from lMailboxName in pMailboxNames.Distinct() select ZItem(lMailboxName);
                 }
 
                 public cMailboxCacheItem CheckHandle(iMailboxHandle pMailboxHandle)
@@ -128,9 +116,23 @@ namespace work.bacome.imapclient
                     return lItem;
                 }
 
+                public void ResetExists(cMailboxName pMailboxName, int pSequence, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetExists), pMailboxName, pSequence);
+
+                    if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
+
+                    foreach (var lItem in mDictionary.Values)
+                        if (lItem.Exists != false && lItem.MailboxName != null && lItem.MailboxName.IsDescendantOf(pMailboxName))
+                            if (lItem.ListFlags == null || lItem.ListFlags.Sequence < pSequence)
+                                lItem.ResetExists(lContext);
+                }
+
                 public void ResetExists(cMailboxPathPattern pPattern, int pSequence, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetExists), pPattern, pSequence);
+
+                    if (pPattern == null) throw new ArgumentNullException(nameof(pPattern));
 
                     foreach (var lItem in mDictionary.Values)
                         if (lItem.Exists != false && lItem.MailboxName != null && pPattern.Matches(lItem.MailboxName.Path))
@@ -144,6 +146,8 @@ namespace work.bacome.imapclient
                     //  called after a list-extended/subscribed with subscribed = true
 
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetLSubFlags), pPattern, pSequence);
+
+                    if (pPattern == null) throw new ArgumentNullException(nameof(pPattern));
 
                     cLSubFlags lNotSubscribed = new cLSubFlags(mSequence++, false);
 
@@ -174,12 +178,18 @@ namespace work.bacome.imapclient
 
                     if (mSelectedMailbox == null) return;
 
+                    if (mHeaderCache != null)
+                    {
+                        // TODO: get the data from the selected mailbox merged with the original data (if there is/was any) and give it to the headercache
+                    }
+
                     var lMailboxHandle = mSelectedMailbox.MailboxHandle;
 
                     fMailboxProperties lProperties = fMailboxProperties.isselected;
                     if (mSelectedMailbox.SelectedForUpdate) lProperties |= fMailboxProperties.isselectedforupdate;
                     if (mSelectedMailbox.AccessReadOnly) lProperties |= fMailboxProperties.isaccessreadonly;
 
+                    mHeaderCache = null;
                     mSelectedMailbox = null;
 
                     mSetState(eIMAPConnectionState.notselected, lContext);
@@ -187,9 +197,9 @@ namespace work.bacome.imapclient
                     mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.SelectedMailbox), lContext);
                 }
 
-                public void Select(iMailboxHandle pMailboxHandle, bool pForUpdate, bool pAccessReadOnly, bool pUIDNotSticky, cFetchableFlags pFlags, cPermanentFlags pPermanentFlags, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
+                public void Select(iMailboxHandle pMailboxHandle, bool pForUpdate, cHeaderCache pHeaderCache, bool pAccessReadOnly, bool pUIDNotSticky, cFetchableFlags pFlags, cPermanentFlags pPermanentFlags, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Select), pMailboxHandle, pForUpdate, pAccessReadOnly, pUIDNotSticky, pFlags, pPermanentFlags, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Select), pMailboxHandle, pForUpdate, pHeaderCache, pAccessReadOnly, pUIDNotSticky, pFlags, pPermanentFlags, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq);
 
                     if (mSelectedMailbox != null) throw new InvalidOperationException();
 
@@ -200,6 +210,20 @@ namespace work.bacome.imapclient
 
                     if (pExists < 0) throw new ArgumentOutOfRangeException(nameof(pExists));
                     if (pRecent < 0) throw new ArgumentOutOfRangeException(nameof(pRecent));
+
+                    if (pHeaderCache != null && !pUIDNotSticky && pUIDValidity != 0)
+                    {
+                        mHeaderCache = pHeaderCache;
+
+                        // TODO
+                        // this is where the call to the headercache would go to get the cached headerdata
+                        //  and the data would be passed to the selectedmailbox
+                        //   this data [in the form of a dictionary (uint -> messagedata)] would be passed to the messagecache and used there when a uid was discovered for a message
+                        //    when the cache was reconstructed (due to uidvalidity change) the dictionary would be null in the new cache
+                        
+                        // this will require the de/serialization of bodystructure, envelope etc
+                    }
+                    else mHeaderCache = null;
 
                     mSelectedMailbox = new cSelectedMailbox(mSynchroniser, mMessageExpunged, lItem, pForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq, lContext);
 
@@ -229,11 +253,11 @@ namespace work.bacome.imapclient
                     return false;
                 }
 
-                public cMessageHandleList GetMessagesToBeExpunged(cTrace.cContext pParentContext)
+                public IEnumerable<cMessageUID> GetKnownDeletedMessageUIDs(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(GetMessagesToBeExpunged));
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(GetKnownDeletedMessageUIDs));
                     if (mSelectedMailbox == null) return null;
-                    return mSelectedMailbox.GetMessagesToBeExpunged(lContext);
+                    return mSelectedMailbox.GetKnownDeletedMessageUIDs(lContext);
                 }
 
                 private cMailboxCacheItem ZItem(string pEncodedMailboxPath) => mDictionary.GetOrAdd(pEncodedMailboxPath, new cMailboxCacheItem(mSynchroniser, mSetMailboxUIDValidity, this, pEncodedMailboxPath));

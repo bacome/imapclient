@@ -54,9 +54,13 @@ namespace work.bacome.imapclient
 
             private class cSetUnseenCountCommandHook : cCommandHookBaseSearch
             {
+                private readonly cSelectedMailbox mSelectedMailbox;
                 private int mMessageCount;
 
-                public cSetUnseenCountCommandHook(cSelectedMailbox pSelectedMailbox) : base(pSelectedMailbox) { }
+                public cSetUnseenCountCommandHook(cSelectedMailbox pSelectedMailbox)
+                {
+                    mSelectedMailbox = pSelectedMailbox;
+                }
 
                 public cMessageHandleList MessageHandles { get; private set; } = null;
 
@@ -68,7 +72,7 @@ namespace work.bacome.imapclient
                 public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSetUnseenCountCommandHook), nameof(CommandCompleted), pResult);
-                    if (pResult.ResultType == eIMAPCommandResultType.ok && mMSNs != null) MessageHandles = mSelectedMailbox.SetUnseenCount(mMessageCount, new cUIntList(mMSNs.Distinct()), lContext);
+                    if (pResult.ResultType == eIMAPCommandResultType.ok && mUInts != null) MessageHandles = mSelectedMailbox.SetUnseenCount(mMessageCount, mUInts.Distinct(), lContext);
                 }
             }
         }

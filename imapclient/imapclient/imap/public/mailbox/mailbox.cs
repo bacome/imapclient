@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.IO;
 using System.Net.Mail;
 using System.Threading.Tasks;
@@ -782,7 +783,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <returns></returns>
-        public List<cMailbox> GetMailboxes(fMailboxCacheDataSets pDataSets = 0)
+        public IEnumerable<cMailbox> GetMailboxes(fMailboxCacheDataSets pDataSets = 0)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cMailbox), nameof(GetMailboxes), pDataSets);
             var lTask = Client.GetMailboxesAsync(MailboxHandle, pDataSets, lContext);
@@ -795,7 +796,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <inheritdoc cref="Mailboxes(fMailboxCacheDataSets)" select="returns|remarks"/>
-        public Task<List<cMailbox>> GetMailboxesAsync(fMailboxCacheDataSets pDataSets = 0)
+        public Task<IEnumerable<cMailbox>> GetMailboxesAsync(fMailboxCacheDataSets pDataSets = 0)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cMailbox), nameof(GetMailboxesAsync), pDataSets);
             return Client.GetMailboxesAsync(MailboxHandle, pDataSets, lContext);
@@ -811,7 +812,7 @@ namespace work.bacome.imapclient
         /// Mailboxes that do not exist may be returned.
         /// Subscribed mailboxes and levels in the mailbox hierarchy do not necessarily exist as mailboxes on the server.
         /// </remarks>
-        public List<cMailbox> GetSubscribed(bool pDescend = false, fMailboxCacheDataSets pDataSets = 0)
+        public IEnumerable<cMailbox> GetSubscribed(bool pDescend = false, fMailboxCacheDataSets pDataSets = 0)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cMailbox), nameof(GetSubscribed), pDescend, pDataSets);
             var lTask = Client.GetSubscribedAsync(MailboxHandle, pDescend, pDataSets, lContext);
@@ -825,7 +826,7 @@ namespace work.bacome.imapclient
         /// <param name="pDescend">If <see langword="true"/> all descendants are returned (not just children, but also grandchildren ...).</param>
         /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <inheritdoc cref="Subscribed(bool, fMailboxCacheDataSets)" select="returns|remarks"/>
-        public Task<List<cMailbox>> GetSubscribedAsync(bool pDescend = false, fMailboxCacheDataSets pDataSets = 0)
+        public Task<IEnumerable<cMailbox>> GetSubscribedAsync(bool pDescend = false, fMailboxCacheDataSets pDataSets = 0)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cMailbox), nameof(GetSubscribedAsync), pDescend, pDataSets);
             return Client.GetSubscribedAsync(MailboxHandle, pDescend, pDataSets, lContext);
@@ -1065,7 +1066,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// <note type="note"><see cref="cMessageCacheItems"/> has implicit conversions from other types including <see cref="fIMAPMessageProperties"/>. This means that you can use values of those types as arguments to this method.</note>
         /// </remarks>
-        public List<cIMAPMessage> GetMessages(cFilter pFilter = null, cSort pSort = null, cMessageCacheItems pItems = null, cSetMaximumConfiguration pConfiguration = null)
+        public IEnumerable<cIMAPMessage> GetMessages(cFilter pFilter = null, cSort pSort = null, cMessageCacheItems pItems = null, cSetMaximumConfiguration pConfiguration = null)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cMailbox), nameof(GetMessages), pFilter, pSort, pItems, pConfiguration);
             var lTask = Client.GetMessagesAsync(MailboxHandle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pItems ?? Client.DefaultMessageCacheItems, pConfiguration, lContext);
@@ -1081,7 +1082,7 @@ namespace work.bacome.imapclient
         /// <param name="pItems">The set of items to ensure are cached for the returned messages. If not specified <see cref="cIMAPClient.DefaultMessageCacheItems"/> will be used.</param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <inheritdoc cref="Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchCacheItemConfiguration)" select="returns|remarks"/>
-        public Task<List<cIMAPMessage>> GetMessagesAsync(cFilter pFilter = null, cSort pSort = null, cMessageCacheItems pItems = null, cSetMaximumConfiguration pConfiguration = null)
+        public Task<IEnumerable<cIMAPMessage>> GetMessagesAsync(cFilter pFilter = null, cSort pSort = null, cMessageCacheItems pItems = null, cSetMaximumConfiguration pConfiguration = null)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cMailbox), nameof(GetMessagesAsync), pFilter, pSort, pItems, pConfiguration);
             return Client.GetMessagesAsync(MailboxHandle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pItems ?? Client.DefaultMessageCacheItems, pConfiguration, lContext);
@@ -1097,13 +1098,13 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// <note type="note"><see cref="cMessageCacheItems"/> has implicit conversions from other types including <see cref="fIMAPMessageProperties"/>. This means that you can use values of those types as arguments to this method.</note>
         /// </remarks>
-        public List<cIMAPMessage> GetMessages(IEnumerable<iMessageHandle> pMessageHandles, cMessageCacheItems pItems = null, cIncrementConfiguration pConfiguration = null)
+        public IEnumerable<cIMAPMessage> GetMessages(IEnumerable<iMessageHandle> pMessageHandles, cMessageCacheItems pItems = null, cIncrementConfiguration pConfiguration = null)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cMailbox), nameof(GetMessages), pItems, pConfiguration);
             var lMessageHandles = cMessageHandleList.FromMessageHandles(pMessageHandles);
             var lTask = Client.FetchCacheItemsAsync(lMessageHandles, pItems ?? Client.DefaultMessageCacheItems, pConfiguration, lContext);
             Client.Wait(lTask, lContext);
-            return ZMessages(pMessageHandles);
+            return from lMessageHandle in pMessageHandles select new cIMAPMessage(Client, lMessageHandle);
         }
 
         /// <summary>
@@ -1113,19 +1114,12 @@ namespace work.bacome.imapclient
         /// <param name="pItems">The set of items to ensure are cached for the returned messages. If not specified <see cref="cIMAPClient.DefaultMessageCacheItems"/> will be used.</param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <inheritdoc cref="Messages(IEnumerable{iMessageHandle}, cMessageCacheItems, cFetchCacheItemConfiguration)" select="returns|remarks"/>
-        public async Task<List<cIMAPMessage>> GetMessagesAsync(IEnumerable<iMessageHandle> pMessageHandles, cMessageCacheItems pItems = null, cIncrementConfiguration pConfiguration = null)
+        public async Task<IEnumerable<cIMAPMessage>> GetMessagesAsync(IEnumerable<iMessageHandle> pMessageHandles, cMessageCacheItems pItems = null, cIncrementConfiguration pConfiguration = null)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cMailbox), nameof(GetMessagesAsync), pItems, pConfiguration);
             var lMessageHandles = cMessageHandleList.FromMessageHandles(pMessageHandles);
             await Client.FetchCacheItemsAsync(lMessageHandles, pItems ?? Client.DefaultMessageCacheItems, pConfiguration, lContext).ConfigureAwait(false);
-            return ZMessages(pMessageHandles);
-        }
-
-        private List<cIMAPMessage> ZMessages(IEnumerable<iMessageHandle> pMessageHandles)
-        {
-            List<cIMAPMessage> lMessages = new List<cIMAPMessage>();
-            foreach (var lMessageHandle in pMessageHandles) lMessages.Add(new cIMAPMessage(Client, lMessageHandle));
-            return lMessages;
+            return from lMessageHandle in pMessageHandles select new cIMAPMessage(Client, lMessageHandle);
         }
 
         /// <summary>
@@ -1183,12 +1177,17 @@ namespace work.bacome.imapclient
             return ZGetMessage(lMessages, lContext);
         }
 
-        private cIMAPMessage ZGetMessage(List<cIMAPMessage> pMessages, cTrace.cContext pParentContext)
+        private cIMAPMessage ZGetMessage(IEnumerable<cIMAPMessage> pMessages, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cMailbox), nameof(ZGetMessage));
-            if (pMessages.Count == 0) return null;
-            if (pMessages.Count == 1) return pMessages[0];
-            throw new cInternalErrorException(lContext);
+
+            cIMAPMessage lResult = null;
+
+            foreach (var lMessage in pMessages)
+                if (lResult != null) throw new cInternalErrorException(lContext);
+                else lResult = lMessage;
+
+            return lResult;
         }
 
         /// <summary>
@@ -1201,7 +1200,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// <note type="note"><see cref="cMessageCacheItems"/> has implicit conversions from other types including <see cref="fIMAPMessageProperties"/>. This means that you can use values of those types as arguments to this method.</note>
         /// </remarks>
-        public List<cIMAPMessage> GetMessages(IEnumerable<cUID> pUIDs, cMessageCacheItems pItems, cIncrementConfiguration pConfiguration = null)
+        public IEnumerable<cIMAPMessage> GetMessages(IEnumerable<cUID> pUIDs, cMessageCacheItems pItems, cIncrementConfiguration pConfiguration = null)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cMailbox), nameof(GetMessages), pItems, pConfiguration);
             var lTask = Client.GetMessagesAsync(MailboxHandle, cUIDList.FromUIDs(pUIDs), pItems, pConfiguration, lContext);
@@ -1216,10 +1215,24 @@ namespace work.bacome.imapclient
         /// <param name="pItems">The set of items to ensure are cached for the returned messages.</param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <inheritdoc cref="Messages(IEnumerable{cUID}, cMessageCacheItems, cFetchCacheItemConfiguration)" select="returns|remarks"/>
-        public Task<List<cIMAPMessage>> GetMessagesAsync(IEnumerable<cUID> pUIDs, cMessageCacheItems pItems, cIncrementConfiguration pConfiguration = null)
+        public Task<IEnumerable<cIMAPMessage>> GetMessagesAsync(IEnumerable<cUID> pUIDs, cMessageCacheItems pItems, cIncrementConfiguration pConfiguration = null)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cMailbox), nameof(GetMessagesAsync), pItems, pConfiguration);
             return Client.GetMessagesAsync(MailboxHandle, cUIDList.FromUIDs(pUIDs), pItems, pConfiguration, lContext);
+        }
+
+        public IEnumerable<cUID> GetUIDs(cFilter pFilter = null, cSort pSort = null, cSetMaximumConfiguration pConfiguration = null)
+        {
+            var lContext = Client.RootContext.NewMethod(nameof(cMailbox), nameof(GetUIDs), pFilter, pSort, pConfiguration);
+            var lTask = Client.GetUIDsAsync(MailboxHandle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pConfiguration, lContext);
+            Client.Wait(lTask, lContext);
+            return lTask.Result;
+        }
+
+        public Task<IEnumerable<cUID>> GetUIDsAsync(cFilter pFilter = null, cSort pSort = null, cSetMaximumConfiguration pConfiguration = null)
+        {
+            var lContext = Client.RootContext.NewMethod(nameof(cMailbox), nameof(GetUIDsAsync), pFilter, pSort, pConfiguration);
+            return Client.GetUIDsAsync(MailboxHandle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pConfiguration, lContext);
         }
 
         /// <summary>

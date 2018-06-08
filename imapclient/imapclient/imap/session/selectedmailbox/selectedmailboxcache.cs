@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient.support;
 
@@ -155,9 +156,9 @@ namespace work.bacome.imapclient
                     return (uint)lIndex + 1;
                 }
 
-                public cMessageHandleList SetUnseenCount(int pMessageCount, cUIntList pMSNs, cTrace.cContext pParentContext)
+                public cMessageHandleList SetUnseenCount(int pMessageCount, IEnumerable<uint> pMSNs, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(SetUnseenCount), pMSNs);
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(SetUnseenCount));
 
                     // the message count is required because messages can be delivered during the search, after the search results are calculated
                     //  it should be the message count that existed when the command was submitted
@@ -208,14 +209,13 @@ namespace work.bacome.imapclient
                     return lMessageHandles;
                 }
 
-                public List<cMessageUID> GetDeletedMessageUIDs(cTrace.cContext pParentContext)
+                public IEnumerable<cMessageUID> GetKnownDeletedMessageUIDs(cTrace.cContext pParentContext)
                 {
                     // should only be called if you are sure that messages (e.g. expunges) aren't being processed
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(GetDeletedMessageUIDs));
-                    var lMessageUIDs = new List<cMessageUID>();
-                    xxx;
-                    foreach (var lItem in mItems) if (lItem.UID != null && lItem.Flags != null && lItem.Flags.Contains(kMessageFlag.Deleted)) lMessageUIDs.Add(new cMessageUID();
-                    return lMessageHandles;
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(GetKnownDeletedMessageUIDs));
+                    var lMailboxId = mMailboxCacheItem.MailboxId;
+                    if (lMailboxId == null) return null; // should never happen
+                    return from lItem in mItems where lItem.UID != null && lItem.Flags != null && lItem.Flags.Contains(kMessageFlag.Deleted) select new cMessageUID(lMailboxId, lItem.UID);
                 }
 
                 private void ZExists(int pMessageCount, cTrace.cContext pParentContext)

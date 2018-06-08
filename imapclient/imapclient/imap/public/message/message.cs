@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -326,15 +327,10 @@ namespace work.bacome.imapclient
             }
         }
 
-        public override List<cMailAttachment> Attachments
+        public override IEnumerable<cMailAttachment> GetAttachments()
         {
-            get
-            {
-                ZFetch(kBodyStructure, true);
-                var lAttachments = new List<cMailAttachment>();
-                foreach (var lPart in YAttachmentParts(MessageHandle.BodyStructure)) lAttachments.Add(new cIMAPAttachment(Client, MessageHandle, lPart));
-                return lAttachments;
-            }
+            ZFetch(kBodyStructure, true);
+            return from lPart in YAttachmentParts(MessageHandle.BodyStructure) select new cIMAPAttachment(Client, MessageHandle, lPart);
         }
 
         /// <summary>
@@ -345,15 +341,10 @@ namespace work.bacome.imapclient
         /// The library defines an attachment as a single-part message body-part with a disposition of ‘attachment’.
         /// If there are alternate versions of an attachment only one of the alternates is included in the list (the first one).
         /// </remarks>
-        public List<cIMAPAttachment> IMAPAttachments
+        public IEnumerable<cIMAPAttachment> GetIMAPAttachments()
         {
-            get
-            {
-                ZFetch(kBodyStructure, true);
-                var lAttachments = new List<cIMAPAttachment>();
-                foreach (var lPart in YAttachmentParts(MessageHandle.BodyStructure)) lAttachments.Add(new cIMAPAttachment(Client, MessageHandle, lPart));
-                return lAttachments;
-            }
+            ZFetch(kBodyStructure, true);
+            return from lPart in YAttachmentParts(MessageHandle.BodyStructure) select new cIMAPAttachment(Client, MessageHandle, lPart);
         }
 
         /// <summary>

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
@@ -12,13 +14,11 @@ namespace work.bacome.imapclient
             private abstract class cCommandHookBaseSearchExtended : cCommandHook
             {
                 private readonly cCommandTag mCommandTag;
-                protected readonly cSelectedMailbox mSelectedMailbox;
                 protected cSequenceSets mSequenceSets = null;
 
-                public cCommandHookBaseSearchExtended(cCommandTag pCommandTag, cSelectedMailbox pSelectedMailbox)
+                public cCommandHookBaseSearchExtended(cCommandTag pCommandTag)
                 {
                     mCommandTag = pCommandTag ?? throw new ArgumentNullException(nameof(pCommandTag));
-                    mSelectedMailbox = pSelectedMailbox ?? throw new ArgumentNullException(nameof(pSelectedMailbox));
                 }
 
                 public override eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext)
@@ -37,10 +37,12 @@ namespace work.bacome.imapclient
 
             private class cCommandHookSearchExtended : cCommandHookBaseSearchExtended
             {
+                private readonly cSelectedMailbox mSelectedMailbox;
                 private readonly bool mSort; // if the results are coming sorted this should be set to true
 
-                public cCommandHookSearchExtended(cCommandTag pCommandTag, cSelectedMailbox pSelectedMailbox, bool pSort) : base(pCommandTag, pSelectedMailbox)
+                public cCommandHookSearchExtended(cCommandTag pCommandTag, cSelectedMailbox pSelectedMailbox, bool pSort) : base(pCommandTag)
                 {
+                    mSelectedMailbox = pSelectedMailbox;
                     mSort = pSort;
                 }
 
@@ -51,7 +53,30 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSearchExtended), nameof(CommandCompleted), pResult);
                     if (pResult.ResultType != eIMAPCommandResultType.ok || mSequenceSets == null) return;
                     if (!cUIntList.TryConstruct(mSequenceSets, mSelectedMailbox.MessageCache.Count, !mSort, out var lMSNs)) return;
+                    // NOTE: the collection must be rendered, IEnumerable is not safe as evaluation of it can be delayed
                     MessageHandles = new cMessageHandleList(lMSNs.Select(lMSN => mSelectedMailbox.GetHandle(lMSN)));
+                }
+            }
+
+            private class cCommandHookUIDSearchExtended : cCommandHookBaseSearchExtended
+            {
+                private readonly uint mUIDValidity;
+                private readonly bool mSort; // if the results are coming sorted this should be set to true
+
+                public cCommandHookUIDSearchExtended(cCommandTag pCommandTag, uint pUIDValidity, bool pSort) : base(pCommandTag)
+                {
+                    mUIDValidity = pUIDValidity;
+                    mSort = pSort;
+                }
+
+                public IEnumerable<cUID> UIDs { get; private set; } = null;
+
+                public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookUIDSearchExtended), nameof(CommandCompleted), pResult);
+                    if (pResult.ResultType != eIMAPCommandResultType.ok || mSequenceSets == null) return;
+                    if (!cUIntList.TryConstruct(mSequenceSets, -1, !mSort, out var lUIDs)) return;
+                    UIDs = lUIDs.Select(lUID => new cUID(mUIDValidity, lUID));
                 }
             }
         }

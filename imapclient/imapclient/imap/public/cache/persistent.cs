@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
@@ -7,17 +8,19 @@ namespace work.bacome.imapclient
 {
     public abstract class cPersistentCache
     {
+        public abstract HashSet<uint> GetUIDs(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext);
         public abstract void MessageExpunged(cMessageUID pMessageUID, cTrace.cContext pParentContext);
         public abstract void MessagesExpunged(IEnumerable<cMessageUID> pMessageUIDs, cTrace.cContext pParentContext);
         public abstract void SetMailboxUIDValidity(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext);
         public abstract void Copy(cMailboxId pSourceMailboxId, cMailboxName pDestinationMailboxName, cCopyFeedback pFeedback, cTrace.cContext pParentContext);
 
         protected abstract HashSet<cMailboxName> YGetMailboxNames(cAccountId pAccountId, cTrace.cContext pParentContext);
-        protected abstract HashSet<uint> YGetUIDs(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext);
         protected abstract void YRename(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext);
 
         internal void Rename(cMailboxId pMailboxId, uint pUIDValidity, cMailboxName pMailboxName, cTrace.cContext pParentContext)
         {
+            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
+            if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
             if (pMailboxId.MailboxName.IsInbox) ZRenameInbox(pMailboxId, pUIDValidity, pParentContext);
             else ZRenameNonInbox(pMailboxId, pMailboxName, pParentContext);
         }
@@ -25,9 +28,15 @@ namespace work.bacome.imapclient
         private void ZRenameInbox(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(ZRenameInbox), pMailboxId, pUIDValidity);
-            var lUIDs = YGetUIDs(pMailboxId, pUIDValidity, lContext);
-            List<cMessageUID> lMessageUIDs = new List<cMessageUID>();
-            foreach (var lUID in lUIDs) lMessageUIDs.Add(new cMessageUID(pMailboxId, new cUID(pUIDValidity, lUID)));
+
+            if (pUIDValidity == 0)
+            {
+                SetMailboxUIDValidity(pMailboxId, 0, lContext);
+                return;
+            }
+
+            var lUIDs = GetUIDs(pMailboxId, pUIDValidity, lContext);
+            var lMessageUIDs = new List<cMessageUID>(lUIDs.Select(lUID => new cMessageUID(pMailboxId, new cUID(pUIDValidity, lUID))));
             MessagesExpunged(lMessageUIDs, lContext);
         }
 
@@ -57,6 +66,10 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(Reconcile), pMailboxId);
 
+            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
+            if (pAllExistentChildMailboxNames == null) throw new ArgumentNullException(nameof(pAllExistentChildMailboxNames));
+            if (pAllSelectableChildMailboxNames == null) throw new ArgumentNullException(nameof(pAllSelectableChildMailboxNames));
+
             foreach (var lMailboxName in YGetMailboxNames(pMailboxId.AccountId, lContext))
             {
                 if (lMailboxName.IsChildOf(pMailboxId.MailboxName))
@@ -71,20 +84,26 @@ namespace work.bacome.imapclient
             }
         }
 
-        public void Reconcile(cAccountId pAccountId, string pPrefix, cStrings pNotPrefixedWith, HashSet<cMailboxName> pAllExistentMailboxNames, HashSet<cMailboxName> pAllSelectableMailboxNames, cTrace.cContext pParentContext)
+        public void Reconcile(cAccountId pAccountId, string pPrefix, cStrings pNotPrefixedWith, HashSet<cMailboxName> pAllExistentChildMailboxNames, HashSet<cMailboxName> pAllSelectableChildMailboxNames, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(Reconcile), pAccountId, pPrefix, pNotPrefixedWith);
+
+            if (pAccountId == null) throw new ArgumentNullException(nameof(pAccountId));
+            if (pPrefix == null) throw new ArgumentNullException(nameof(pPrefix));
+            if (pNotPrefixedWith == null) throw new ArgumentNullException(nameof(pNotPrefixedWith));
+            if (pAllExistentChildMailboxNames == null) throw new ArgumentNullException(nameof(pAllExistentChildMailboxNames));
+            if (pAllSelectableChildMailboxNames == null) throw new ArgumentNullException(nameof(pAllSelectableChildMailboxNames));
 
             foreach (var lMailboxName in YGetMailboxNames(pAccountId, lContext))
             {
                 if (lMailboxName.IsFirstLineageMemberPrefixedWith(pPrefix, pNotPrefixedWith))
                 {
-                    if (!pAllSelectableMailboxNames.Contains(lMailboxName)) SetMailboxUIDValidity(new cMailboxId(pAccountId, lMailboxName), 0, lContext);
+                    if (!pAllSelectableChildMailboxNames.Contains(lMailboxName)) SetMailboxUIDValidity(new cMailboxId(pAccountId, lMailboxName), 0, lContext);
                 }
                 else if (lMailboxName.IsPrefixedWith(pPrefix, pNotPrefixedWith))
                 {
                     var lFirstMailboxName = lMailboxName.GetFirstLineageMemberPrefixedWith(pPrefix);
-                    if (!pAllExistentMailboxNames.Contains(lFirstMailboxName)) SetMailboxUIDValidity(new cMailboxId(pAccountId, lMailboxName), 0, lContext);
+                    if (!pAllExistentChildMailboxNames.Contains(lFirstMailboxName)) SetMailboxUIDValidity(new cMailboxId(pAccountId, lMailboxName), 0, lContext);
                 }
             }
         }

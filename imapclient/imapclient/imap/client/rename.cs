@@ -21,25 +21,17 @@ namespace work.bacome.imapclient
             if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
 
             uint lUIDValidity = pMailboxHandle.MailboxStatus?.UIDValidity ?? 0;
+            iMailboxHandle lNewMailboxHandle;
 
             using (var lToken = CancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
-                var lMailboxHandle = await lSession.RenameAsync(lMC, pMailboxHandle, pMailboxName, lContext).ConfigureAwait(false);
-                return new cMailbox(this, lMailboxHandle);
+                lNewMailboxHandle = await lSession.RenameAsync(lMC, pMailboxHandle, pMailboxName, lContext).ConfigureAwait(false);
             }
 
-            if (pMailboxHandle.MailboxName.IsInbox)
-            {
+            ZCacheIntegrationRename(pMailboxHandle.MailboxId, lUIDValidity, pMailboxName, lContext);
 
-            }
-            else
-            { 
-                if (lUIDValidity != 0) ZRename(pMailboxHandle.MailboxId, lUIDValidity, pMailboxName, lContext);
-
-                ;?; // and children ...
-                ZAddMailboxUIDValidity(pMailboxHandle.MailboxId, 0, lContext);
-            }
+            return new cMailbox(this, lNewMailboxHandle);
         }
     }
 }

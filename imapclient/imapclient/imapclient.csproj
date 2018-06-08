@@ -47,7 +47,9 @@
     <Compile Include="imap\client\getmessagehandle.cs" />
     <Compile Include="imap\client\cacheintegration.cs" />
     <Compile Include="imap\client\getnotprefixedwith.cs" />
+    <Compile Include="imap\client\getuids.cs" />
     <Compile Include="imap\internal\sectionreader.cs" />
+    <Compile Include="imap\public\cache\header\base.cs" />
     <Compile Include="imap\public\cache\persistent.cs" />
     <Compile Include="imap\public\cache\section\directorysectioncache.cs" />
     <Compile Include="imap\public\mailbox\mailboxid.cs" />
@@ -63,8 +65,13 @@
     <Compile Include="imap\public\cache\section\item.cs" />
     <Compile Include="imap\public\cache\section\sectionid.cs" />
     <Compile Include="imap\public\message\messagedatastream.cs" />
+    <Compile Include="imap\session\command_hooks\commandhookbasesort.cs" />
     <Compile Include="imap\session\fetch\sectiontargetwriter.cs" />
     <Compile Include="imap\session\fetch\uidsection.cs" />
+    <Compile Include="imap\session\imap_commands\selected\uidsearch.cs" />
+    <Compile Include="imap\session\imap_commands\selected\uidsearchextended.cs" />
+    <Compile Include="imap\session\imap_commands\selected\uidsort.cs" />
+    <Compile Include="imap\session\imap_commands\selected\uidsortextended.cs" />
     <Compile Include="imap\support\mailboxcache.cs" />
     <Compile Include="mail\convertmailmessage\base.cs" />
     <Compile Include="imap\client\getdecodedsizeinbytes.cs" />

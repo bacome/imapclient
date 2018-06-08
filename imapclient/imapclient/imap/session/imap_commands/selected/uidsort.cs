@@ -12,11 +12,11 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kSortCommandPart = new cTextCommandPart("SORT ");
+            private static readonly cCommandPart kUIDSortCommandPart = new cTextCommandPart("UID SORT ");
 
-            public async Task<cMessageHandleList> SortAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cFilter pFilter, cSort pSort, cTrace.cContext pParentContext)
+            public async Task<IEnumerable<cUID>> UIDSortAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cFilter pFilter, cSort pSort, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SortAsync), pMC, pMailboxHandle, pFilter, pSort);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDSortAsync), pMC, pMailboxHandle, pFilter, pSort);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eIMAPConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
@@ -31,19 +31,19 @@ namespace work.bacome.imapclient
                     var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pMailboxHandle, pFilter.UIDValidity);
 
                     // special case
-                    if (ReferenceEquals(pFilter, cFilter.None)) return new cMessageHandleList();
+                    if (ReferenceEquals(pFilter, cFilter.None)) return new cUIDList();
 
                     lBuilder.Add(await mSortExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // sort commands must be single threaded (so we can tell which result is which)
                     if (pFilter.ContainsMessageHandles) lBuilder.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
 
                     lBuilder.AddUIDValidity(lSelectedMailbox.MessageCache.UIDValidity); // if a UIDValidity change happens while the command is running, disbelieve the results
 
-                    lBuilder.Add(kSortCommandPart);
+                    lBuilder.Add(kUIDSortCommandPart);
                     lBuilder.Add(pSort);
                     lBuilder.Add(cCommandPart.Space);
                     lBuilder.Add(pFilter, lSelectedMailbox, true, mEncodingPartFactory);
 
-                    var lHook = new cSortCommandHook(lSelectedMailbox);
+                    var lHook = new cUIDSortCommandHook(lSelectedMailbox.MessageCache.UIDValidity);
                     lBuilder.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
@@ -51,34 +51,33 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("sort success");
-                        if (lHook.MessageHandles == null) throw new cUnexpectedIMAPServerActionException(lResult, "results not received on a successful sort", fIMAPCapabilities.sort, lContext);
-                        return lHook.MessageHandles;
+                        if (lHook.UIDs == null) throw new cUnexpectedIMAPServerActionException(lResult, "results not received on a successful uid sort", fIMAPCapabilities.sort, lContext);
+                        return lHook.UIDs;
                     }
 
-                    if (lHook.MessageHandles != null) lContext.TraceError("results received on a failed sort");
+                    if (lHook.UIDs != null) lContext.TraceError("results received on a failed uid sort");
 
                     if (lResult.ResultType == eIMAPCommandResultType.no) throw new cUnsuccessfulIMAPCommandException(lResult.ResponseText, fIMAPCapabilities.sort, lContext);
                     throw new cIMAPProtocolErrorException(lResult, fIMAPCapabilities.sort, lContext);
                 }
             }
 
-            private class cSortCommandHook : cCommandHookBaseSort
+            private class cUIDSortCommandHook : cCommandHookBaseSort
             {
-                private readonly cSelectedMailbox mSelectedMailbox;
+                private readonly uint mUIDValidity;
 
-                public cSortCommandHook(cSelectedMailbox pSelectedMailbox)
+                public cUIDSortCommandHook(uint pUIDValidity)
                 {
-                    mSelectedMailbox = pSelectedMailbox ?? throw new ArgumentNullException(nameof(pSelectedMailbox));
+                    mUIDValidity = pUIDValidity;
                 }
 
-                public cMessageHandleList MessageHandles { get; private set; } = null;
+                public IEnumerable<cUID> UIDs { get; private set; } = null;
 
                 public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSortCommandHook), nameof(CommandCompleted), pResult);
+                    var lContext = pParentContext.NewMethod(nameof(cUIDSortCommandHook), nameof(CommandCompleted), pResult);
                     if (pResult.ResultType != eIMAPCommandResultType.ok || mUInts == null) return;
-                    // NOTE: the collection must be rendered, IEnumerable is not safe as evaluation of it can be delayed
-                    MessageHandles = new cMessageHandleList(mUInts.Select(lMSN => mSelectedMailbox.GetHandle(lMSN)));
+                    UIDs = mUInts.Select(lUID => new cUID(mUIDValidity, lUID));
                 }
             }
         }

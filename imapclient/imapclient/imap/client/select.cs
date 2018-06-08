@@ -22,11 +22,11 @@ namespace work.bacome.imapclient
             using (var lToken = CancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
-                if (pForUpdate) await lSession.SelectAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
-                else await lSession.ExamineAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
+                if (pForUpdate) await lSession.SelectAsync(lMC, pMailboxHandle, HeaderCache, lContext).ConfigureAwait(false);
+                else await lSession.ExamineAsync(lMC, pMailboxHandle, HeaderCache, lContext).ConfigureAwait(false);
             }
 
-            ;?; // cache reconiliation
+            ZCacheIntegrationReconcile(pMailboxHandle, lContext);
         }
     }
 }

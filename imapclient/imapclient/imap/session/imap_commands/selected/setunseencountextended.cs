@@ -51,9 +51,13 @@ namespace work.bacome.imapclient
 
             private class cSetUnseenCountExtendedCommandHook : cCommandHookBaseSearchExtended
             {
+                private readonly cSelectedMailbox mSelectedMailbox;
                 private int mMessageCount;
 
-                public cSetUnseenCountExtendedCommandHook(cCommandTag pCommandTag, cSelectedMailbox pSelectedMailbox) : base(pCommandTag, pSelectedMailbox) { }
+                public cSetUnseenCountExtendedCommandHook(cCommandTag pCommandTag, cSelectedMailbox pSelectedMailbox) : base(pCommandTag)
+                {
+                    mSelectedMailbox = pSelectedMailbox;
+                }
 
                 public cMessageHandleList MessageHandles { get; private set; } = null;
 

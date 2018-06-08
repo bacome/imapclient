@@ -79,7 +79,7 @@ namespace work.bacome.imapclient
                     if (mItem != null)
                     {
                         mItem.ResetExists(lContext);
-                        if (mItem.MailboxName.Delimiter != null) mCache.ResetExists(new cMailboxPathPattern(mItem.MailboxName.GetDescendantPathPrefix(), cStrings.Empty, "*", mItem.MailboxName.Delimiter), mSequence, lContext);
+                        if (mItem.MailboxName.Delimiter != null) mCache.ResetExists(mItem.MailboxName, mSequence, lContext);
                     }
 
                     MailboxHandle = mCache.Create(mMailboxName, lContext);

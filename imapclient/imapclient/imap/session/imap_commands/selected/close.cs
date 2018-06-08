@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient;
@@ -12,7 +13,7 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kCloseCommandPart = new cTextCommandPart("CLOSE");
 
-            public async Task<cMessageHandleList> CloseAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
+            public async Task<IEnumerable<cMessageUID>> CloseAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(CloseAsync), pMC);
 
@@ -38,7 +39,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("close success");
-                        return lHook.MessagesToBeExpunged;
+                        return lHook.KnownDeletedMessageUIDs;
                     }
 
                     throw new cIMAPProtocolErrorException(lResult, 0, lContext);
@@ -54,12 +55,12 @@ namespace work.bacome.imapclient
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                 }
 
-                public cMessageHandleList MessagesToBeExpunged { get; private set; }
+                public IEnumerable<cMessageUID> KnownDeletedMessageUIDs { get; private set; } = null;
 
                 public override void CommandStarted(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCloseCommandHook), nameof(CommandStarted));
-                    MessagesToBeExpunged = mMailboxCache.GetMessagesToBeExpunged(lContext);
+                    KnownDeletedMessageUIDs = mMailboxCache.GetKnownDeletedMessageUIDs(lContext);
                 }
 
                 public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)

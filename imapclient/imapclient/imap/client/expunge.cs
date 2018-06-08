@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient;
@@ -19,21 +20,21 @@ namespace work.bacome.imapclient
 
             if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
 
-            cMessageHandleList lExpungedMessages;
+            IEnumerable<cMessageUID> lLikelyToHaveBeenExpungedMessageUIDs;
 
             using (var lToken = CancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
 
-                if (pAndUnselect) lExpungedMessages = await lSession.CloseAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
+                if (pAndUnselect) lLikelyToHaveBeenExpungedMessageUIDs = await lSession.CloseAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
                 else
                 {
                     await lSession.ExpungeAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
-                    lExpungedMessages = null;
+                    lLikelyToHaveBeenExpungedMessageUIDs = null;
                 }
             }
 
-            if (lExpungedMessages != null && lExpungedMessages.Count > 0) ZCacheIntegrationMessagesExpunged(lExpungedMessages);
+            if (lLikelyToHaveBeenExpungedMessageUIDs != null) ZCacheIntegrationMessagesExpunged(lLikelyToHaveBeenExpungedMessageUIDs, lContext);
         }
     }
 }

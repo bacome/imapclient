@@ -131,7 +131,7 @@ namespace work.bacome.imapclient
                 mSynchroniser.InvokePropertyChanged(nameof(Inbox), lContext);
             }
 
-            mSession = new cSession(mIMAPSynchroniser, ZExpunged, ZUIDValidityDiscovered, NetworkWriteConfiguration, mIgnoreCapabilities, mMailboxCacheDataItems, mFetchCacheItemsConfiguration, mFetchBodyConfiguration, mDefaultAppendFlags, mAppendBatchConfiguration, mIdleConfiguration, mEncoding, lContext);
+            mSession = new cSession(mIMAPSynchroniser, ZCacheIntegrationMessageExpunged, ZCacheIntegrationSetMailboxUIDValidity, NetworkWriteConfiguration, mIgnoreCapabilities, mMailboxCacheDataItems, mFetchCacheItemsConfiguration, mFetchBodyConfiguration, mDefaultAppendFlags, mAppendBatchConfiguration, mIdleConfiguration, mEncoding, lContext);
             var lSession = mSession;
 
             if (lSessionReplaced)
@@ -280,7 +280,8 @@ namespace work.bacome.imapclient
                                     break;
                                 }
 
-                                cMailboxPathPattern lPattern = new cMailboxPathPattern(lName.Prefix, "%", lName.Delimiter);
+                                ;?; // careful
+                                cMailboxPathPattern lPattern = new cMailboxPathPattern(lName.Prefix, , "%", lName.Delimiter);
 
                                 if (lPattern.Matches(cMailboxName.InboxString))
                                 {

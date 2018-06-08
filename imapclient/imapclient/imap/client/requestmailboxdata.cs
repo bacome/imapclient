@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient;
@@ -34,7 +35,7 @@ namespace work.bacome.imapclient
                 }
 
                 string lListMailbox = pMailboxHandle.MailboxName.Path.Replace('*', '%');
-                cMailboxPathPattern lPattern = new cMailboxPathPattern(pMailboxHandle.MailboxName.Path, string.Empty, pMailboxHandle.MailboxName.Delimiter);
+                cMailboxPathPattern lPattern = new cMailboxPathPattern(pMailboxHandle.MailboxName.Path, cStrings.Empty, string.Empty, pMailboxHandle.MailboxName.Delimiter);
 
                 var lCapabilities = lSession.Capabilities;
                 bool lList = (pDataSets & fMailboxCacheDataSets.list) != 0;
@@ -76,12 +77,10 @@ namespace work.bacome.imapclient
             }
         }
 
-        private Task ZRequestMailboxStatusDataAsync(cMethodControl pMC, cSession pSession, List<iMailboxHandle> pMailboxHandles, cTrace.cContext pParentContext)
+        private Task ZRequestMailboxStatusDataAsync(cMethodControl pMC, cSession pSession, IEnumerable<iMailboxHandle> pMailboxHandles, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZRequestMailboxStatusDataAsync), pMC);
-            List<Task> lTasks = new List<Task>();
-            foreach (var lMailboxHandle in pMailboxHandles) if (lMailboxHandle.ListFlags?.CanSelect == true) lTasks.Add(pSession.StatusAsync(pMC, lMailboxHandle, lContext));
-            return Task.WhenAll(lTasks);
+            return Task.WhenAll(from lMailboxHandle in pMailboxHandles where lMailboxHandle.ListFlags?.CanSelect == true select pSession.StatusAsync(pMC, lMailboxHandle, lContext));
         }
     }
 }

@@ -8,19 +8,19 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private abstract class cCommandHookBaseSearch : cCommandHook
+            private class cCommandHookBaseSort : cCommandHook
             {
-                private static readonly cBytes kSearch = new cBytes("SEARCH");
+                private static readonly cBytes kSort = new cBytes("SORT");
 
                 protected cUIntList mUInts = null;
 
-                public cCommandHookBaseSearch() { }
+                public cCommandHookBaseSort() { }
 
                 public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandHookBaseSearch), nameof(ProcessData));
+                    var lContext = pParentContext.NewMethod(nameof(cSortCommandHook), nameof(ProcessData));
 
-                    if (!pCursor.SkipBytes(kSearch)) return eProcessDataResult.notprocessed;
+                    if (!pCursor.SkipBytes(kSort)) return eProcessDataResult.notprocessed;
 
                     cUIntList lUInts = new cUIntList();
 
@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
 
                         if (!pCursor.GetNZNumber(out _, out var lUInt))
                         {
-                            lContext.TraceWarning("likely malformed search: not an nz-number list?");
+                            lContext.TraceWarning("likely malformed sort: not an nz-number list?");
                             return eProcessDataResult.notprocessed;
                         }
 
@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.Position.AtEnd)
                     {
-                        lContext.TraceWarning("likely malformed search: not at end?");
+                        lContext.TraceWarning("likely malformed sort: not at end?");
                         return eProcessDataResult.notprocessed;
                     }
 
