@@ -22,14 +22,14 @@ namespace work.bacome.mailclient
             mCharsetNameBytes = new cBytes(cTools.GetCharsetNameBytes(pEncoding));
         }
 
-        public cLiteralMessageDataPart Unstructured(string pFieldName, string pText)
+        public cLiteralMessageDataPart GetUnstructuredValueField(string pFieldName, string pText)
         {
             var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
             if (!lBytes.TryAdd(pText, eHeaderFieldTextContext.unstructured)) return null;
             return lBytes.GetMessageDataPart();
         }
 
-        public cLiteralMessageDataPart Phrases(string pFieldName, IEnumerable<cHeaderFieldPhraseValue> pPhrases)
+        public cLiteralMessageDataPart GetPhrasesValuedField(string pFieldName, IEnumerable<cHeaderFieldPhraseValue> pPhrases)
         {
             var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
 
@@ -42,7 +42,7 @@ namespace work.bacome.mailclient
                 if (lPhrase == null) throw new ArgumentOutOfRangeException(nameof(pPhrases), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
 
                 if (lFirst) lFirst = false;
-                else if (!lBytes.TryAdd(",", eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(Phrases));
+                else if (!lBytes.TryAdd(",", eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(GetPhrasesValuedField));
 
                 if (!ZTryAddPhrase(lPhrase, lBytes)) return null;
             }
@@ -50,7 +50,7 @@ namespace work.bacome.mailclient
             return lBytes.GetMessageDataPart();
         }
 
-        public cLiteralMessageDataPart Structured(string pFieldName, params string[] pParts)
+        public cLiteralMessageDataPart GetStructuredValueField(string pFieldName, params string[] pParts)
         {
             var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
 
@@ -65,7 +65,7 @@ namespace work.bacome.mailclient
             return lBytes.GetMessageDataPart();
         }
 
-        public cLiteralMessageDataPart Structured(string pFieldName, cHeaderFieldStructuredValue pValue)
+        public cLiteralMessageDataPart GetStructuredValueField(string pFieldName, cHeaderFieldStructuredValue pValue)
         {
             var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
 
@@ -97,28 +97,28 @@ namespace work.bacome.mailclient
 
                     default:
 
-                        throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(Structured));
+                        throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(GetStructuredValueField));
                 }
             }
 
             return lBytes.GetMessageDataPart();
         }
 
-        public cLiteralMessageDataPart DateTimeValue(string pFieldName, DateTime pDateTime)
+        public cLiteralMessageDataPart GetDateTimeValuedField(string pFieldName, DateTime pDateTime)
         {
             var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
-            if (!lBytes.TryAdd(cTools.GetRFC822DateTimeString(pDateTime), eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(DateTimeValue), 1);
+            if (!lBytes.TryAdd(cTools.GetRFC822DateTimeString(pDateTime), eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(GetDateTimeValuedField), 1);
             return lBytes.GetMessageDataPart();
         }
 
-        public cLiteralMessageDataPart DateTimeValue(string pFieldName, DateTimeOffset pDateTimeOffset)
+        public cLiteralMessageDataPart GetDateTimeValuedField(string pFieldName, DateTimeOffset pDateTimeOffset)
         {
             var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
-            if (!lBytes.TryAdd(cTools.GetRFC822DateTimeString(pDateTimeOffset), eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(DateTimeValue), 2);
+            if (!lBytes.TryAdd(cTools.GetRFC822DateTimeString(pDateTimeOffset), eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(GetDateTimeValuedField), 2);
             return lBytes.GetMessageDataPart();
         }
 
-        public cLiteralMessageDataPart Mailboxes(string pFieldName, IEnumerable<MailAddress> pAddresses)
+        public cLiteralMessageDataPart GetMailboxesValuedField(string pFieldName, IEnumerable<MailAddress> pAddresses)
         {
             if (pAddresses == null) throw new ArgumentNullException(nameof(pAddresses));
 
@@ -131,17 +131,17 @@ namespace work.bacome.mailclient
                 lAddresses.Add(lEmailAddress);
             }
 
-            return Mailboxes(pFieldName, lAddresses);
+            return GetMailboxesValuedField(pFieldName, lAddresses);
         }
 
-        public cLiteralMessageDataPart Mailboxes(string pFieldName, IEnumerable<cEmailAddress> pAddresses)
+        public cLiteralMessageDataPart GetMailboxesValuedField(string pFieldName, IEnumerable<cEmailAddress> pAddresses)
         {
             var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
             if (!ZTryAddEmailAddresses(pAddresses, lBytes)) return null;
             return lBytes.GetMessageDataPart();
         }
 
-        public cLiteralMessageDataPart Addresses(string pFieldName, IEnumerable<cAddress> pAddresses)
+        public cLiteralMessageDataPart GetAddressesValuedField(string pFieldName, IEnumerable<cAddress> pAddresses)
         {
             var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
 
@@ -154,7 +154,7 @@ namespace work.bacome.mailclient
                 if (lAddress == null) throw new ArgumentOutOfRangeException(nameof(pAddresses), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
 
                 if (lFirst) lFirst = false;
-                else if (!lBytes.TryAdd(",", eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(Addresses), 1);
+                else if (!lBytes.TryAdd(",", eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(GetAddressesValuedField), 1);
 
                 switch (lAddress)
                 {
@@ -170,16 +170,16 @@ namespace work.bacome.mailclient
 
                     default:
 
-                        throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(Addresses), 2);
+                        throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(GetAddressesValuedField), 2);
                 }
             }
 
             return lBytes.GetMessageDataPart();
         }
 
-        public cLiteralMessageDataPart MIME(string pFieldName, string pValue, params cMIMEHeaderFieldParameter[] pParameters) => MIME(pFieldName, pValue, pParameters as IEnumerable<cMIMEHeaderFieldParameter>);
+        public cLiteralMessageDataPart GetMIMEParameterisedValueField(string pFieldName, string pValue, params cMIMEHeaderFieldParameter[] pParameters) => GetMIMEParameterisedValueField(pFieldName, pValue, pParameters as IEnumerable<cMIMEHeaderFieldParameter>);
 
-        public cLiteralMessageDataPart MIME(string pFieldName, string pValue, IEnumerable<cMIMEHeaderFieldParameter> pParameters)
+        public cLiteralMessageDataPart GetMIMEParameterisedValueField(string pFieldName, string pValue, IEnumerable<cMIMEHeaderFieldParameter> pParameters)
         {
             var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
 

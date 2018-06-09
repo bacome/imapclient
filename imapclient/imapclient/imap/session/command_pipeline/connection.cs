@@ -55,7 +55,7 @@ namespace work.bacome.imapclient
                         mWriteSizer = new cBatchSizer(pWriteConfiguration);
                     }
 
-                    public async Task ConnectAsync(cMethodControl pMC, cServer pServer, cTrace.cContext pParentContext)
+                    public async Task ConnectAsync(cMethodControl pMC, cServerId pServer, cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(ConnectAsync), pMC, pServer);
 

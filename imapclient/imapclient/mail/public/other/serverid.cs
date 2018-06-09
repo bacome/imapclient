@@ -5,8 +5,7 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Represents a mail server.
     /// </summary>
-    /// <seealso cref="cIMAPClient.Server"/>
-    public class cServer : IEquatable<cServer>
+    public class cServerId : IEquatable<cServerId>
     {
         /**<summary>The host name of the server.</summary>*/
         public readonly string Host;
@@ -21,7 +20,7 @@ namespace work.bacome.mailclient
         /// <param name="pHost"></param>
         /// <param name="pPort"></param>
         /// <param name="pSSL">Indicates whether the host requires that TLS be established immediately upon connect.</param>
-        public cServer(string pHost, int pPort, bool pSSL)
+        public cServerId(string pHost, int pPort, bool pSSL)
         {
             if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));
             if (pPort < 1 || pPort > 65536) throw new ArgumentOutOfRangeException(nameof(pPort));
@@ -31,10 +30,10 @@ namespace work.bacome.mailclient
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
-        public bool Equals(cServer pObject) => this == pObject;
+        public bool Equals(cServerId pObject) => this == pObject;
 
         /// <inheritdoc />
-        public override bool Equals(object pObject) => this == pObject as cServer;
+        public override bool Equals(object pObject) => this == pObject as cServerId;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
@@ -50,10 +49,10 @@ namespace work.bacome.mailclient
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cServer)}({Host},{Port},{SSL})";
+        public override string ToString() => $"{nameof(cServerId)}({Host},{Port},{SSL})";
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
-        public static bool operator ==(cServer pA, cServer pB)
+        public static bool operator ==(cServerId pA, cServerId pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
@@ -62,6 +61,6 @@ namespace work.bacome.mailclient
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
-        public static bool operator !=(cServer pA, cServer pB) => !(pA == pB);
+        public static bool operator !=(cServerId pA, cServerId pB) => !(pA == pB);
     }
 }

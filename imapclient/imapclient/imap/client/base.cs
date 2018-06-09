@@ -206,31 +206,31 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Sets <see cref="Server"/>, defaulting the port to 143 and SSL to <see langword="false"/>. 
+        /// Sets <see cref="ServerId"/>, defaulting the port to 143 and SSL to <see langword="false"/>. 
         /// </summary>
         /// <param name="pHost"></param>
         /// <remarks>
         /// May only be called while <see cref="IsUnconnected"/>.
         /// </remarks>
-        public void SetServer(string pHost) => Server = new cServer(pHost, 143, false);
+        public void SetServerId(string pHost) => base.ServerId = new cServerId(pHost, 143, false);
 
         /// <summary>
-        /// Sets <see cref="Server"/>, defaulting the port to 143 (no SSL) or 993 otherwise.
+        /// Sets <see cref="ServerId"/>, defaulting the port to 143 (no SSL) or 993 otherwise.
         /// </summary>
         /// <param name="pHost"></param>
         /// <param name="pSSL">Indicates whether the host requires that TLS be established immediately upon connect.</param>
         /// <remarks>
         /// May only be called while <see cref="IsUnconnected"/>.
         /// </remarks>
-        public void SetServer(string pHost, bool pSSL)
+        public void SetServerId(string pHost, bool pSSL)
         {
             int lPort;
             if (pSSL) lPort = 993; else lPort = 143;
-            Server = new cServer(pHost, lPort, pSSL);
+            base.ServerId = new cServerId(pHost, lPort, pSSL);
         }
 
         /// <summary>
-        /// Sets <see cref="Server"/>.
+        /// Sets <see cref="ServerId"/>.
         /// </summary>
         /// <param name="pHost"></param>
         /// <param name="pPort"></param>
@@ -238,7 +238,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// May only be called while <see cref="IsUnconnected"/>.
         /// </remarks>
-        public void SetServer(string pHost, int pPort, bool pSSL) => Server = new cServer(pHost, pPort, pSSL);
+        public void SetServerId(string pHost, int pPort, bool pSSL) => base.ServerId = new cServerId(pHost, pPort, pSSL);
 
         /// <summary>
         /// Gets and sets the server capabilities that the instance should ignore.

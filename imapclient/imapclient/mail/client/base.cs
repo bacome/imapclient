@@ -48,7 +48,7 @@ namespace work.bacome.mailclient
 
         // property backing storage
         private int mTimeout = -1;
-        private cServer mServer = null;
+        private cServerId mServerId = null;
         private cBatchSizerConfiguration mNetworkWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private ReadOnlyCollection<cSASLAuthentication> mFailedSASLAuthentications = null;
 
@@ -198,14 +198,14 @@ namespace work.bacome.mailclient
         /// Must be set before calling <see cref="Connect"/>.
         /// May only be set while <see cref="IsUnconnected"/>.
         /// </remarks>
-        public cServer Server
+        public cServerId ServerId
         {
-            get => mServer;
+            get => mServerId;
 
             set
             {
                 if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
-                mServer = value;
+                mServerId = value;
             }
         }
 

@@ -16,7 +16,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// <para>
         /// TLS is established if possible before authentication is attempted.
-        /// TLS will be established immediately upon connect if <see cref="Server"/> indicates that the host requires this (<see cref="cServer.SSL"/>),
+        /// TLS will be established immediately upon connect if <see cref="Server"/> indicates that the host requires this (<see cref="cServerId.SSL"/>),
         /// otherwise the library will use the IMAP STARTTLS command if <see cref="cIMAPCapabilities.StartTLS"/> is in use.
         /// </para>
         /// <para>
@@ -109,7 +109,7 @@ namespace work.bacome.imapclient
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
-            cServer lServer = Server;
+            cServerId lServer = base.ServerId;
             cIMAPAuthentication lAuthentication = mAuthentication;
 
             if (lServer == null) throw new InvalidOperationException("connect requires server to be set");

@@ -163,7 +163,7 @@
     <Compile Include="imap\public\connection\capabilities.cs" />
     <Compile Include="imap\public\connection\authenticationparameters.cs" />
     <Compile Include="imap\public\connection\login.cs" />
-    <Compile Include="mail\public\other\server.cs" />
+    <Compile Include="mail\public\other\serverid.cs" />
     <Compile Include="mail\public\enums\tlsrequirement.cs" />
     <Compile Include="mail\public\enums\decodingrequired.cs" />
     <Compile Include="imap\public\enums\enableableextensions.cs" />

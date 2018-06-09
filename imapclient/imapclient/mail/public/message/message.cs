@@ -103,7 +103,7 @@ namespace work.bacome.mailclient
             get
             {
                 uint lSize = 0;
-                foreach (var lPart in ZPlainTextParts(BodyStructure)) lSize += lPart.SizeInBytes;
+                foreach (var lPart in ZGetPlainTextParts(BodyStructure)) lSize += lPart.SizeInBytes;
                 return lSize;
             }
         }
@@ -132,7 +132,7 @@ namespace work.bacome.mailclient
         public string GetPlainText()
         {
             StringBuilder lBuilder = new StringBuilder();
-            foreach (var lPart in ZPlainTextParts(BodyStructure)) lBuilder.Append(Fetch(lPart));
+            foreach (var lPart in ZGetPlainTextParts(BodyStructure)) lBuilder.Append(Fetch(lPart));
             return lBuilder.ToString();
         }
 
@@ -142,7 +142,7 @@ namespace work.bacome.mailclient
         /// <inheritdoc cref="PlainText" select="returns|remarks"/>
         public virtual async Task<string> GetPlainTextAsync()
         {
-            var lTasks = new List<Task<string>>(from lPart in ZPlainTextParts(BodyStructure) select FetchAsync(lPart));
+            var lTasks = new List<Task<string>>(from lPart in ZGetPlainTextParts(BodyStructure) select FetchAsync(lPart));
             await Task.WhenAll(lTasks).ConfigureAwait(false);
 
             StringBuilder lBuilder = new StringBuilder();
@@ -214,7 +214,7 @@ namespace work.bacome.mailclient
         /// </remarks>
         public abstract Stream GetMessageDataStream(cSection pSection, eDecodingRequired pDecoding = eDecodingRequired.none);
 
-        protected List<cSinglePartBody> YAttachmentParts(cBodyPart pPart)
+        protected List<cSinglePartBody> YGetAttachmentParts(cBodyPart pPart)
         {
             // TODO: when we know what languages the user is interested in (on implementation of languages) choose from multipart/alternative options based on language tag
 
@@ -228,7 +228,7 @@ namespace work.bacome.mailclient
             {
                 foreach (var lPart in lMultiPart.Parts)
                 {
-                    var lParts = YAttachmentParts(lPart);
+                    var lParts = YGetAttachmentParts(lPart);
                     lResult.AddRange(lParts);
                     if (lParts.Count > 0 && lMultiPart.SubTypeCode == eMultiPartBodySubTypeCode.alternative) break;
                 }
@@ -237,7 +237,7 @@ namespace work.bacome.mailclient
             return lResult;
         }
 
-        private List<cTextBodyPart> ZPlainTextParts(cBodyPart pPart)
+        private List<cTextBodyPart> ZGetPlainTextParts(cBodyPart pPart)
         {
             // TODO: when we know what languages the user is interested in (on implementation of languages) choose from multipart/alternative options based on language tag
 
@@ -253,7 +253,7 @@ namespace work.bacome.mailclient
             {
                 foreach (var lPart in lMultiPart.Parts)
                 {
-                    var lParts = ZPlainTextParts(lPart);
+                    var lParts = ZGetPlainTextParts(lPart);
                     lResult.AddRange(lParts);
                     if (lParts.Count > 0 && lMultiPart.SubTypeCode == eMultiPartBodySubTypeCode.alternative) break;
                 }

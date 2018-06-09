@@ -52,7 +52,7 @@ namespace work.bacome.imapclient
 
                 public bool Contains(cMessageCacheItems pItems) => (~mAttributes & pItems.Attributes) == 0 && HeaderFields.Contains(pItems.Names);
                 public bool ContainsNone(cMessageCacheItems pItems) => (~mAttributes & pItems.Attributes) == pItems.Attributes && HeaderFields.ContainsNone(pItems.Names);
-                public cMessageCacheItems Missing(cMessageCacheItems pItems) => new cMessageCacheItems(~mAttributes & pItems.Attributes, HeaderFields.Missing(pItems.Names));
+                public cMessageCacheItems Missing(cMessageCacheItems pItems) => new cMessageCacheItems(~mAttributes & pItems.Attributes, HeaderFields.GetMissing(pItems.Names));
 
                 public void SetExpunged() => mExpunged = true;
 

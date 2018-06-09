@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task ConnectAsync(cMethodControl pMC, cServer pServer, object pPreAuthenticatedCredentialId, cTrace.cContext pParentContext)
+            public async Task ConnectAsync(cMethodControl pMC, cServerId pServer, object pPreAuthenticatedCredentialId, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ConnectAsync), pMC, pServer, pPreAuthenticatedCredentialId);
 

@@ -330,7 +330,7 @@ namespace work.bacome.imapclient
         public override IEnumerable<cMailAttachment> GetAttachments()
         {
             ZFetch(kBodyStructure, true);
-            return from lPart in YAttachmentParts(MessageHandle.BodyStructure) select new cIMAPAttachment(Client, MessageHandle, lPart);
+            return from lPart in YGetAttachmentParts(MessageHandle.BodyStructure) select new cIMAPAttachment(Client, MessageHandle, lPart);
         }
 
         /// <summary>
@@ -344,7 +344,7 @@ namespace work.bacome.imapclient
         public IEnumerable<cIMAPAttachment> GetIMAPAttachments()
         {
             ZFetch(kBodyStructure, true);
-            return from lPart in YAttachmentParts(MessageHandle.BodyStructure) select new cIMAPAttachment(Client, MessageHandle, lPart);
+            return from lPart in YGetAttachmentParts(MessageHandle.BodyStructure) select new cIMAPAttachment(Client, MessageHandle, lPart);
         }
 
         /// <summary>

@@ -16,7 +16,7 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kGreetingAsteriskSpacePreAuthSpace = new cBytes("* PREAUTH ");
                 private static readonly cBytes kGreetingAsteriskSpaceBYESpace = new cBytes("* BYE ");
 
-                public async Task<sGreeting> ConnectAsync(cMethodControl pMC, cServer pServer, cTrace.cContext pParentContext)
+                public async Task<sGreeting> ConnectAsync(cMethodControl pMC, cServerId pServer, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ConnectAsync), pMC, pServer);
 

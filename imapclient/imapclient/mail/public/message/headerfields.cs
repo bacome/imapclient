@@ -235,7 +235,7 @@ namespace work.bacome.mailclient
         /// </summary>
         /// <param name="pNames"></param>
         /// <returns></returns>
-        public cHeaderFieldNames Missing(cHeaderFieldNames pNames)
+        public cHeaderFieldNames GetMissing(cHeaderFieldNames pNames)
         {
             if (mNot) return pNames.Intersect(mNames);
             else return pNames.Except(mNames);
@@ -249,7 +249,7 @@ namespace work.bacome.mailclient
         /// <remarks>
         /// <see langword="null"/> indicates that there are no header fields of the specified name in the collection.
         /// </remarks>
-        public cHeaderField FirstNamed(string pName)
+        public cHeaderField GetFirstNamed(string pName)
         {
             if (!Contains(pName)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotPopulatedWithData);
             return this.FirstOrDefault(f => f.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
@@ -263,7 +263,7 @@ namespace work.bacome.mailclient
         /// <remarks>
         /// An empty set will be returned if there are no header fields of the specified name in the collection.
         /// </remarks>
-        public IEnumerable<cHeaderField> AllNamed(string pName)
+        public IEnumerable<cHeaderField> GetAllNamed(string pName)
         {
             if (!Contains(pName)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotPopulatedWithData);
             return from f in this where f.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase) select f;
@@ -276,7 +276,7 @@ namespace work.bacome.mailclient
         /// Normalised message-ids have the quoting, comments and white space removed.
         /// <see langword="null"/> indicates that there is either no references header field in the collection or that the references header field could not be parsed.
         /// </remarks>
-        public cStrings References => (FirstNamed(kHeaderFieldName.References) as cHeaderFieldMsgIds)?.MessageIds;
+        public cStrings References => (GetFirstNamed(kHeaderFieldName.References) as cHeaderFieldMsgIds)?.MessageIds;
 
         /// <summary>
         /// Returns the importance value from the importance header field, or <see langword="null"/>. Throws if the collection has not been populated with the importance header field.
@@ -284,7 +284,7 @@ namespace work.bacome.mailclient
         /// <remarks>
         /// <see langword="null"/> indicates that there is either no importance header field in the collection or that the importance header field could not be parsed.
         /// </remarks>
-        public eImportance? Importance => (FirstNamed(kHeaderFieldName.Importance) as cHeaderFieldImportance)?.Importance;
+        public eImportance? Importance => (GetFirstNamed(kHeaderFieldName.Importance) as cHeaderFieldImportance)?.Importance;
 
         /// <inheritdoc />
         public override string ToString()
@@ -354,14 +354,14 @@ namespace work.bacome.mailclient
                 {
                     // pA contains all headers except some, pB contains all headers except some
                     List<cHeaderField> lFields = new List<cHeaderField>(pA);
-                    foreach (var lName in pA.mNames.Except(pB.mNames)) lFields.AddRange(pB.AllNamed(lName));
+                    foreach (var lName in pA.mNames.Except(pB.mNames)) lFields.AddRange(pB.GetAllNamed(lName));
                     return new cHeaderFields(pA.mNames.Intersect(pB.mNames), true, lFields);
                 }
                 else
                 {
                     // pA contains all headers except some, pB contains a named list 
                     List<cHeaderField> lFields = new List<cHeaderField>(pA);
-                    foreach (var lName in pA.mNames.Intersect(pB.mNames)) lFields.AddRange(pB.AllNamed(lName));
+                    foreach (var lName in pA.mNames.Intersect(pB.mNames)) lFields.AddRange(pB.GetAllNamed(lName));
                     return new cHeaderFields(pA.mNames.Except(pB.mNames), true, lFields);
                 }
             }
@@ -371,14 +371,14 @@ namespace work.bacome.mailclient
                 {
                     // pA contains a named list, pB contains all headers except some
                     List<cHeaderField> lFields = new List<cHeaderField>(pB);
-                    foreach (var lName in pA.mNames.Intersect(pB.mNames)) lFields.AddRange(pA.AllNamed(lName));
+                    foreach (var lName in pA.mNames.Intersect(pB.mNames)) lFields.AddRange(pA.GetAllNamed(lName));
                     return new cHeaderFields(pB.mNames.Except(pA.mNames), true, lFields);
                 }
                 else
                 {
                     // pA contains a subset of header values and pB does too, add them together
                     List<cHeaderField> lFields = new List<cHeaderField>(pA);
-                    foreach (var lName in pB.mNames.Except(pA.mNames)) lFields.AddRange(pB.AllNamed(lName));
+                    foreach (var lName in pB.mNames.Except(pA.mNames)) lFields.AddRange(pB.GetAllNamed(lName));
                     return new cHeaderFields(pA.mNames.Union(pB.mNames), false, lFields);
                 }
             }
@@ -426,14 +426,14 @@ namespace work.bacome.mailclient
             if (!lFields.Contains(lGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.1.5");
             if (lFields.ContainsNone(lABCDE) || lFields.ContainsNone(lDEFGH) || lFields.ContainsNone(lGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.1.6");
 
-            if (lFields.Missing(lABCDE).Count != 0 || lFields.Missing(lDEFGH).Count != 0) throw new cTestsException($"{nameof(cHeaderFields)}.1.7");
+            if (lFields.GetMissing(lABCDE).Count != 0 || lFields.GetMissing(lDEFGH).Count != 0) throw new cTestsException($"{nameof(cHeaderFields)}.1.7");
 
-            if (cTools.ASCIIBytesToString(lFields.FirstNamed("fred").Value) != "     value of fred      ") throw new cTestsException($"{nameof(cHeaderFields)}.1.8");
-            if (lFields.FirstNamed("a") != null) throw new cTestsException($"{nameof(cHeaderFields)}.1.9");
+            if (cTools.ASCIIBytesToString(lFields.GetFirstNamed("fred").Value) != "     value of fred      ") throw new cTestsException($"{nameof(cHeaderFields)}.1.8");
+            if (lFields.GetFirstNamed("a") != null) throw new cTestsException($"{nameof(cHeaderFields)}.1.9");
 
-            if (lFields.AllNamed("fred").Count() != 1) throw new cTestsException($"{nameof(cHeaderFields)}.1.10");
-            if (lFields.AllNamed("a").Count() != 0) throw new cTestsException($"{nameof(cHeaderFields)}.1.11");
-            if (lFields.AllNamed("mEsSaGe-ID").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.1.12");
+            if (lFields.GetAllNamed("fred").Count() != 1) throw new cTestsException($"{nameof(cHeaderFields)}.1.10");
+            if (lFields.GetAllNamed("a").Count() != 0) throw new cTestsException($"{nameof(cHeaderFields)}.1.11");
+            if (lFields.GetAllNamed("mEsSaGe-ID").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.1.12");
 
             //if (!lFields.All("mEsSaGe-ID").All(h => h is cHeaderFieldMsgId lMsgId && lMsgId.MsgId == "1234@local.machine.example")) throw new cTestsException($"{nameof(cHeaderFields)}.1.13");
 
@@ -447,7 +447,7 @@ namespace work.bacome.mailclient
             if (lFields.Importance != eImportance.low) throw new cTestsException($"{nameof(cHeaderFields)}.1.17");
 
 
-            if (!lFields.Contains("check") || lFields.AllNamed("check").Count() != 0) throw new cTestsException($"{nameof(cHeaderFields)}.1.18");
+            if (!lFields.Contains("check") || lFields.GetAllNamed("check").Count() != 0) throw new cTestsException($"{nameof(cHeaderFields)}.1.18");
 
 
 
@@ -489,16 +489,16 @@ namespace work.bacome.mailclient
             if (lNotABCDE.Contains("a") || lNotABCDE.Contains("e") || !lNotABCDE.Contains("f") || !lNotABCDE.Contains("g")) throw new cTestsException($"{nameof(cHeaderFields)}.2.6");
             if (lNotABCDE.Contains(lABCDE) || lNotABCDE.Contains(lDEFGH) || !lNotABCDE.Contains(lGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.2.7");
             if (!lNotABCDE.ContainsNone(lABCDE) || lNotABCDE.ContainsNone(lDEFGH) || lNotABCDE.ContainsNone(lGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.2.8");
-            if (lNotABCDE.Missing(lABCDE) != lABCDE || lNotABCDE.Missing(lDEFGH) != new cHeaderFieldNames("d", "E") || lNotABCDE.Missing(lGHIJK).Count != 0) throw new cTestsException($"{nameof(cHeaderFields)}.2.9");
+            if (lNotABCDE.GetMissing(lABCDE) != lABCDE || lNotABCDE.GetMissing(lDEFGH) != new cHeaderFieldNames("d", "E") || lNotABCDE.GetMissing(lGHIJK).Count != 0) throw new cTestsException($"{nameof(cHeaderFields)}.2.9");
 
             bool lFailed;
 
             lFailed = false;
-            try { lNotABCDE.FirstNamed("A"); }
+            try { lNotABCDE.GetFirstNamed("A"); }
             catch { lFailed = true; }
             if (!lFailed) throw new cTestsException($"{nameof(cHeaderFields)}.2.10");
 
-            if (lNotABCDE.FirstNamed(kHeaderFieldName.MessageId) == null || lNotABCDE.FirstNamed(kHeaderFieldName.InReplyTo) == null || lNotABCDE.Importance != eImportance.normal) throw new cTestsException($"{nameof(cHeaderFields)}.2.11");
+            if (lNotABCDE.GetFirstNamed(kHeaderFieldName.MessageId) == null || lNotABCDE.GetFirstNamed(kHeaderFieldName.InReplyTo) == null || lNotABCDE.Importance != eImportance.normal) throw new cTestsException($"{nameof(cHeaderFields)}.2.11");
             if (lNotDEFGH.Importance != eImportance.high) throw new cTestsException($"{nameof(cHeaderFields)}.2.12");
             if (lNotGHIJK.Importance != null) throw new cTestsException($"{nameof(cHeaderFields)}.2.13");
 
@@ -512,41 +512,41 @@ namespace work.bacome.mailclient
             if (!lNotDE.ContainsNone(new cHeaderFieldNames("d", "E"))) throw new cTestsException($"{nameof(cHeaderFields)}.2.15.1");
             if (!lNotDE.Contains(lGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.2.15.2");
             if (!lNotDE.Contains(new cHeaderFieldNames("a", "c", "f", "h"))) throw new cTestsException($"{nameof(cHeaderFields)}.2.15.3");
-            if (lNotDE.AllNamed("a").Count() != 1 || lNotDE.AllNamed("b").Count() != 0 || lNotDE.AllNamed("c").Count() != 2 || lNotDE.AllNamed("f").Count() != 0 || lNotDE.AllNamed("g").Count() != 2 || lNotDE.AllNamed("h").Count() != 0 || lNotDE.AllNamed("i").Count() != 1 || lNotDE.AllNamed("j").Count() != 0 || lNotDE.AllNamed("k").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.2.15.4");
+            if (lNotDE.GetAllNamed("a").Count() != 1 || lNotDE.GetAllNamed("b").Count() != 0 || lNotDE.GetAllNamed("c").Count() != 2 || lNotDE.GetAllNamed("f").Count() != 0 || lNotDE.GetAllNamed("g").Count() != 2 || lNotDE.GetAllNamed("h").Count() != 0 || lNotDE.GetAllNamed("i").Count() != 1 || lNotDE.GetAllNamed("j").Count() != 0 || lNotDE.GetAllNamed("k").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.2.15.4");
 
             var lAll = lNotABCDE + lNotGHIJK;
             if (!lAll.Contains(lABCDE) || !lAll.Contains(lDEFGH) || !lAll.Contains(lGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.2.16.1");
-            if (lAll.AllNamed("a").Count() != 1 || lAll.AllNamed("b").Count() != 0 || lAll.AllNamed("c").Count() != 2 || lAll.AllNamed("d").Count() != 0 || lAll.AllNamed("e").Count() != 1 || lAll.AllNamed("f").Count() != 0 || lAll.AllNamed("g").Count() != 2 || lAll.AllNamed("h").Count() != 0 || lAll.AllNamed("i").Count() != 1 || lAll.AllNamed("j").Count() != 0 || lAll.AllNamed("k").Count() != 2 ) throw new cTestsException($"{nameof(cHeaderFields)}.2.16.2");
+            if (lAll.GetAllNamed("a").Count() != 1 || lAll.GetAllNamed("b").Count() != 0 || lAll.GetAllNamed("c").Count() != 2 || lAll.GetAllNamed("d").Count() != 0 || lAll.GetAllNamed("e").Count() != 1 || lAll.GetAllNamed("f").Count() != 0 || lAll.GetAllNamed("g").Count() != 2 || lAll.GetAllNamed("h").Count() != 0 || lAll.GetAllNamed("i").Count() != 1 || lAll.GetAllNamed("j").Count() != 0 || lAll.GetAllNamed("k").Count() != 2 ) throw new cTestsException($"{nameof(cHeaderFields)}.2.16.2");
 
             var lNotABC = lNotABCDE + lFieldsDEFGH;
             if (!lNotABC.ContainsNone(new cHeaderFieldNames("a", "B", "C"))) throw new cTestsException($"{nameof(cHeaderFields)}.2.17.1");
             if (!lNotABC.Contains(new cHeaderFieldNames("d", "e", "f", "g", "h"))) throw new cTestsException($"{nameof(cHeaderFields)}.2.17.2");
-            if (lNotABC.AllNamed("d").Count() != 0 || lNotABC.AllNamed("e").Count() != 1 || lNotABC.AllNamed("f").Count() != 0 || lNotABC.AllNamed("g").Count() != 2 || lNotABC.AllNamed("h").Count() != 0 || lNotABC.AllNamed("i").Count() != 1 || lNotABC.AllNamed("j").Count() != 0 || lNotABC.AllNamed("k").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.2.16.2");
+            if (lNotABC.GetAllNamed("d").Count() != 0 || lNotABC.GetAllNamed("e").Count() != 1 || lNotABC.GetAllNamed("f").Count() != 0 || lNotABC.GetAllNamed("g").Count() != 2 || lNotABC.GetAllNamed("h").Count() != 0 || lNotABC.GetAllNamed("i").Count() != 1 || lNotABC.GetAllNamed("j").Count() != 0 || lNotABC.GetAllNamed("k").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.2.16.2");
 
             var lNotABCDE2 = lNotABCDE + lFieldsGHIJK;
             if (!lNotABCDE2.ContainsNone(lABCDE) || !lNotABCDE2.Contains(lGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.2.18.1");
-            if (lNotABCDE2.AllNamed("f").Count() != 0 || lNotABCDE2.AllNamed("g").Count() != 2 || lNotABCDE2.AllNamed("h").Count() != 0 || lNotABCDE2.AllNamed("i").Count() != 1 || lNotABCDE2.AllNamed("j").Count() != 0 || lNotABCDE2.AllNamed("k").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.2.18.2");
+            if (lNotABCDE2.GetAllNamed("f").Count() != 0 || lNotABCDE2.GetAllNamed("g").Count() != 2 || lNotABCDE2.GetAllNamed("h").Count() != 0 || lNotABCDE2.GetAllNamed("i").Count() != 1 || lNotABCDE2.GetAllNamed("j").Count() != 0 || lNotABCDE2.GetAllNamed("k").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.2.18.2");
 
             var lNotFGH = lFieldsABCDE + lNotDEFGH;
             if (!lNotFGH.ContainsNone(new cHeaderFieldNames("F","G","H")) || !lNotFGH.Contains(lABCDE)) throw new cTestsException($"{nameof(cHeaderFields)}.2.19.1");
-            if (lNotFGH.AllNamed("a").Count() != 1 || lNotFGH.AllNamed("b").Count() != 0 || lNotFGH.AllNamed("c").Count() != 2 || lNotFGH.AllNamed("d").Count() != 0 || lNotFGH.AllNamed("e").Count() != 1 || lNotFGH.AllNamed("i").Count() != 1 || lNotFGH.AllNamed("j").Count() != 0 || lNotFGH.AllNamed("k").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.2.19.2");
+            if (lNotFGH.GetAllNamed("a").Count() != 1 || lNotFGH.GetAllNamed("b").Count() != 0 || lNotFGH.GetAllNamed("c").Count() != 2 || lNotFGH.GetAllNamed("d").Count() != 0 || lNotFGH.GetAllNamed("e").Count() != 1 || lNotFGH.GetAllNamed("i").Count() != 1 || lNotFGH.GetAllNamed("j").Count() != 0 || lNotFGH.GetAllNamed("k").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.2.19.2");
 
             var lNotGHIJK2 = lFieldsABCDE + lNotGHIJK;
             if (!lNotGHIJK2.ContainsNone(lGHIJK) || !lNotGHIJK2.Contains(lABCDE)) throw new cTestsException($"{nameof(cHeaderFields)}.2.20.1");
-            if (lNotGHIJK2.AllNamed("a").Count() != 1 || lNotGHIJK2.AllNamed("b").Count() != 0 || lNotGHIJK2.AllNamed("c").Count() != 2 || lNotGHIJK2.AllNamed("d").Count() != 0 || lNotGHIJK2.AllNamed("e").Count() != 1 || lNotGHIJK2.AllNamed("f").Count() != 0) throw new cTestsException($"{nameof(cHeaderFields)}.2.20.2");
+            if (lNotGHIJK2.GetAllNamed("a").Count() != 1 || lNotGHIJK2.GetAllNamed("b").Count() != 0 || lNotGHIJK2.GetAllNamed("c").Count() != 2 || lNotGHIJK2.GetAllNamed("d").Count() != 0 || lNotGHIJK2.GetAllNamed("e").Count() != 1 || lNotGHIJK2.GetAllNamed("f").Count() != 0) throw new cTestsException($"{nameof(cHeaderFields)}.2.20.2");
 
             var lAtoH = lFieldsABCDE + lFieldsDEFGH;
             if (!lAtoH.Contains(lABCDE) || !lAtoH.Contains(lDEFGH) || !lAtoH.ContainsNone(new cHeaderFieldNames("I", "J", "K"))) throw new cTestsException($"{nameof(cHeaderFields)}.2.21.1");
-            if (lAtoH.AllNamed("a").Count() != 1 || lAtoH.AllNamed("b").Count() != 0 || lAtoH.AllNamed("c").Count() != 2 || lAtoH.AllNamed("d").Count() != 0 || lAtoH.AllNamed("e").Count() != 1 || lAtoH.AllNamed("f").Count() != 0 || lAtoH.AllNamed("g").Count() != 2 || lAtoH.AllNamed("h").Count() != 0) throw new cTestsException($"{nameof(cHeaderFields)}.2.21.2");
+            if (lAtoH.GetAllNamed("a").Count() != 1 || lAtoH.GetAllNamed("b").Count() != 0 || lAtoH.GetAllNamed("c").Count() != 2 || lAtoH.GetAllNamed("d").Count() != 0 || lAtoH.GetAllNamed("e").Count() != 1 || lAtoH.GetAllNamed("f").Count() != 0 || lAtoH.GetAllNamed("g").Count() != 2 || lAtoH.GetAllNamed("h").Count() != 0) throw new cTestsException($"{nameof(cHeaderFields)}.2.21.2");
 
             lFailed = false;
-            try { lAtoH.AllNamed("i"); }
+            try { lAtoH.GetAllNamed("i"); }
             catch { lFailed = true; }
             if (!lFailed) throw new cTestsException($"{nameof(cHeaderFields)}.2.21.3");
 
             var lNotF = lFieldsABCDE + lFieldsGHIJK;
             if (lNotF.Contains("F") || !lNotF.Contains(lABCDE) || !lNotF.Contains(lGHIJK) || lNotF.Contains(lDEFGH)) throw new cTestsException($"{nameof(cHeaderFields)}.2.22.1");
-            if (lNotF.AllNamed("a").Count() != 1 || lNotF.AllNamed("b").Count() != 0 || lNotF.AllNamed("c").Count() != 2 || lNotF.AllNamed("d").Count() != 0 || lNotF.AllNamed("e").Count() != 1  || lNotF.AllNamed("g").Count() != 1 || lNotF.AllNamed("h").Count() != 0 || lNotF.AllNamed("i").Count() != 1 || lNotF.AllNamed("j").Count() != 0 || lNotF.AllNamed("k").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.2.22.2");
+            if (lNotF.GetAllNamed("a").Count() != 1 || lNotF.GetAllNamed("b").Count() != 0 || lNotF.GetAllNamed("c").Count() != 2 || lNotF.GetAllNamed("d").Count() != 0 || lNotF.GetAllNamed("e").Count() != 1  || lNotF.GetAllNamed("g").Count() != 1 || lNotF.GetAllNamed("h").Count() != 0 || lNotF.GetAllNamed("i").Count() != 1 || lNotF.GetAllNamed("j").Count() != 0 || lNotF.GetAllNamed("k").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.2.22.2");
 
 
 
