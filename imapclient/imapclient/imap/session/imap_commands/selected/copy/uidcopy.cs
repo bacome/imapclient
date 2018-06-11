@@ -14,7 +14,7 @@ namespace work.bacome.imapclient
 
             private async Task<cCopyFeedback> ZUIDCopyAsync(cMethodControl pMC, iMailboxHandle pSourceMailboxHandle, uint pSourceUIDValidity, cUIntList pSourceUIDs, cMailboxCacheItem pDestinationItem, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZCopyAsync), pMC, pSourceMailboxHandle, pSourceUIDValidity, pSourceUIDs, pDestinationItem);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDCopyAsync), pMC, pSourceMailboxHandle, pSourceUIDValidity, pSourceUIDs, pDestinationItem);
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {

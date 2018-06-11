@@ -48,7 +48,7 @@ namespace work.bacome.mailclient
 
         // property backing storage
         private int mTimeout = -1;
-        private cServerId mServerId = null;
+        private cServiceId mServiceId = null;
         private cBatchSizerConfiguration mNetworkWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private ReadOnlyCollection<cSASLAuthentication> mFailedSASLAuthentications = null;
 
@@ -92,9 +92,6 @@ namespace work.bacome.mailclient
         /// <summary>
         /// Gets the accountid of the current (or most recent) connection. May be <see langword="null"/>.
         /// </summary>
-        /// <remarks>
-        /// Set during <see cref="Connect"/>.
-        /// </remarks>
         public abstract cAccountId ConnectedAccountId { get; }
 
         /// <summary>
@@ -192,20 +189,19 @@ namespace work.bacome.mailclient
         }
 
         /// <summary>
-        /// Gets and sets the server to connect to. 
+        /// Gets and sets the service to connect to. 
         /// </summary>
         /// <remarks>
-        /// Must be set before calling <see cref="Connect"/>.
         /// May only be set while <see cref="IsUnconnected"/>.
         /// </remarks>
-        public cServerId ServerId
+        public cServiceId ServiceId
         {
-            get => mServerId;
+            get => mServiceId;
 
             set
             {
                 if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
-                mServerId = value;
+                mServiceId = value;
             }
         }
 
@@ -250,12 +246,6 @@ namespace work.bacome.mailclient
         }
 
         public cHeaderFieldFactory GetHeaderFieldFactory(Encoding pEncoding = null) => new cHeaderFieldFactory((SupportedFormats & fMessageDataFormat.utf8headers) != 0, pEncoding ?? Encoding);
-
-        public abstract void Connect();
-        public abstract Task ConnectAsync();
-
-        public abstract void Disconnect();
-        public abstract Task DisconnectAsync();
 
         public bool IsDisposed => mDisposed;
 

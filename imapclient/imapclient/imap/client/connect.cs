@@ -9,14 +9,14 @@ namespace work.bacome.imapclient
     public partial class cIMAPClient
     {
         /// <summary>
-        /// Connects to the <see cref="Server"/> using the <see cref="Authentication"/>. 
+        /// Connects to the IMAP service identified by the <see cref="ServiceId"/> using the <see cref="Authentication"/>. 
         /// May only be called when the instance <see cref="IsUnconnected"/>.
         /// Will throw if an authenticated IMAP connection cannot be established.
         /// </summary>
         /// <remarks>
         /// <para>
         /// TLS is established if possible before authentication is attempted.
-        /// TLS will be established immediately upon connect if <see cref="Server"/> indicates that the host requires this (<see cref="cServerId.SSL"/>),
+        /// TLS will be established immediately upon connect if the <see cref="ServiceId"/> indicates that the service requires this (<see cref="cServiceId.SSL"/>),
         /// otherwise the library will use the IMAP STARTTLS command if <see cref="cIMAPCapabilities.StartTLS"/> is in use.
         /// </para>
         /// <para>
@@ -84,20 +84,20 @@ namespace work.bacome.imapclient
         /// </list>
         /// </para>
         /// </remarks>
-        public override void Connect()
+        public void Connect()
         {
             var lContext = RootContext.NewMethod(nameof(cIMAPClient), nameof(Connect));
             mSynchroniser.Wait(ZConnectAsync(lContext), lContext);
         }
 
         /// <summary>
-        /// Ansynchronously connects to the <see cref="Server"/> using the <see cref="Authentication"/>. 
+        /// Asynchronously connects to the IMAP service identified by the <see cref="ServiceId"/> using the <see cref="Authentication"/>. 
         /// May only be called when the instance <see cref="IsUnconnected"/>.
         /// Will throw if an authenticated IMAP connection cannot be established.
         /// </summary>
         /// <returns></returns>
         /// <inheritdoc cref="Connect" select="remarks"/>
-        public override Task ConnectAsync()
+        public Task ConnectAsync()
         {
             var lContext = RootContext.NewMethod(nameof(cIMAPClient), nameof(ConnectAsync));
             return ZConnectAsync(lContext);
@@ -109,10 +109,10 @@ namespace work.bacome.imapclient
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
-            cServerId lServer = base.ServerId;
+            cServiceId lServiceId = base.ServiceId;
             cIMAPAuthentication lAuthentication = mAuthentication;
 
-            if (lServer == null) throw new InvalidOperationException("connect requires server to be set");
+            if (lServiceId == null) throw new InvalidOperationException("connect requires serviceid to be set");
             if (lAuthentication == null) throw new InvalidOperationException("connect requires authentication to be set");
 
             bool lSessionReplaced;
@@ -159,7 +159,7 @@ namespace work.bacome.imapclient
 
                 try
                 {
-                    await lSession.ConnectAsync(lMC, lServer, lAuthentication.PreAuthenticatedCredentialId, lContext).ConfigureAwait(false);
+                    await lSession.ConnectAsync(lMC, lServiceId, lAuthentication.PreAuthenticatedCredentialId, lContext).ConfigureAwait(false);
 
                     if (lSession.Capabilities == null) await lSession.CapabilityAsync(lMC, lContext).ConfigureAwait(false);
 
@@ -191,7 +191,7 @@ namespace work.bacome.imapclient
                                     {
                                         lTriedCredentials = true;
 
-                                        var lAuthenticateResult = await lSession.AuthenticateAsync(lMC, lServer.Host, lSASL, lContext).ConfigureAwait(false);
+                                        var lAuthenticateResult = await lSession.AuthenticateAsync(lMC, lServiceId.Host, lSASL, lContext).ConfigureAwait(false);
 
                                         if (lAuthenticateResult != null)
                                         {
@@ -212,7 +212,7 @@ namespace work.bacome.imapclient
                             else
                             {
                                 lTriedCredentials = true;
-                                lAuthenticateException = await lSession.LoginAsync(lMC, lServer.Host, lAuthentication.Login, lContext).ConfigureAwait(false);
+                                lAuthenticateException = await lSession.LoginAsync(lMC, lServiceId.Host, lAuthentication.Login, lContext).ConfigureAwait(false);
                             }
                         }
 

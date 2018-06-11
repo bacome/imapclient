@@ -16,9 +16,9 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kGreetingAsteriskSpacePreAuthSpace = new cBytes("* PREAUTH ");
                 private static readonly cBytes kGreetingAsteriskSpaceBYESpace = new cBytes("* BYE ");
 
-                public async Task<sGreeting> ConnectAsync(cMethodControl pMC, cServerId pServer, cTrace.cContext pParentContext)
+                public async Task<sGreeting> ConnectAsync(cMethodControl pMC, cServiceId pServiceId, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ConnectAsync), pMC, pServer);
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ConnectAsync), pMC, pServiceId);
 
                     if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
 
@@ -27,7 +27,7 @@ namespace work.bacome.imapclient
 
                     try
                     {
-                        await mConnection.ConnectAsync(pMC, pServer, lContext).ConfigureAwait(false);
+                        await mConnection.ConnectAsync(pMC, pServiceId, lContext).ConfigureAwait(false);
 
                         using (var lAwaiter = new cAwaiter(pMC))
                         {

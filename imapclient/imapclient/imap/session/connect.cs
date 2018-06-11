@@ -9,9 +9,9 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task ConnectAsync(cMethodControl pMC, cServerId pServer, object pPreAuthenticatedCredentialId, cTrace.cContext pParentContext)
+            public async Task ConnectAsync(cMethodControl pMC, cServiceId pServiceId, object pPreAuthenticatedCredentialId, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ConnectAsync), pMC, pServer, pPreAuthenticatedCredentialId);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ConnectAsync), pMC, pServiceId, pPreAuthenticatedCredentialId);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
 
@@ -20,7 +20,7 @@ namespace work.bacome.imapclient
 
                 sGreeting lGreeting;
 
-                try { lGreeting = await mPipeline.ConnectAsync(pMC, pServer, lContext).ConfigureAwait(false); }
+                try { lGreeting = await mPipeline.ConnectAsync(pMC, pServiceId, lContext).ConfigureAwait(false); }
                 catch (Exception)
                 {
                     ZSetState(eIMAPConnectionState.disconnected, lContext);
@@ -47,7 +47,7 @@ namespace work.bacome.imapclient
                 ZSetHomeServerReferral(lGreeting.ResponseText, lContext);
 
                 if (pPreAuthenticatedCredentialId == null) throw new cUnexpectedPreAuthenticatedConnectionException(lContext);
-                else ZSetConnectedAccountId(new cAccountId(pServer.Host, pPreAuthenticatedCredentialId), lContext);
+                else ZSetConnectedAccountId(new cAccountId(pServiceId.Host, pPreAuthenticatedCredentialId), lContext);
             }
         } 
     }

@@ -14,7 +14,7 @@ namespace work.bacome.imapclient
 
             private async Task ZUIDStoreAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, uint pUIDValidity, cStoreFeedbackCollector pFeedbackCollector, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cUIDStoreFeedback pFeedback, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZStoreAsync), pMC, pMailboxHandle, pUIDValidity, pFeedbackCollector, pOperation, pFlags, pIfUnchangedSinceModSeq, pFeedback);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDStoreAsync), pMC, pMailboxHandle, pUIDValidity, pFeedbackCollector, pOperation, pFlags, pIfUnchangedSinceModSeq, pFeedback);
 
                 // no validation ... all the parameters have been validated already by the cSession by the time we get here
 

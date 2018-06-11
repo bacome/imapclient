@@ -10,20 +10,20 @@ using System.Runtime.InteropServices;
     "Intended for use in projects that need to deal with email presented by an IMAP server where the programmer does not want to learn the finer points of IMAP.\r\n" +
     "\r\n" +
     "* Simple high level API with the ability to get low level if/when required.\r\n" +
-    "* Complete API documentation.\r\n" +
     "* Synchronous and asynchronous APIs with timeout and cancellation.\r\n" +
     "* Automatic idle processing to keep the client in sync with the server.\r\n" +
+    "* Automatic sequence-number-safe IMAP command pipelining.\r\n" +
+    "* Optional client side caching of static message data.\r\n" +
     "* Condstore support for 'mailbox as a message queue' applications.\r\n" +
-    "* Automatic safe IMAP command pipelining.\r\n" +
     "\r\n" +
-    "As this is an alpha release all the APIs are subject to change (however most aren't likely to do so).\r\n" +
+    "As this is an alpha release all the APIs are subject to change.\r\n" +
     "\r\n" +
-    "High level documentation, API level documentation, examples and source code are available on/via the project site.\r\n" +
+    "High level documentation, API level documentation, examples and source code are available from the project site.\r\n" +
     "")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("bacome")]
 [assembly: AssemblyProduct("imapclient")]
-[assembly: AssemblyCopyright("Copyright © bacome 2017")]
+[assembly: AssemblyCopyright("Copyright © bacome 2017, 2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

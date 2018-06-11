@@ -206,39 +206,39 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Sets <see cref="ServerId"/>, defaulting the port to 143 and SSL to <see langword="false"/>. 
+        /// Sets <see cref="ServiceId"/>, defaulting the port to 143 and SSL to <see langword="false"/>. 
         /// </summary>
         /// <param name="pHost"></param>
         /// <remarks>
         /// May only be called while <see cref="IsUnconnected"/>.
         /// </remarks>
-        public void SetServerId(string pHost) => base.ServerId = new cServerId(pHost, 143, false);
+        public void SetServiceId(string pHost) => base.ServiceId = new cServiceId(pHost, 143, false);
 
         /// <summary>
-        /// Sets <see cref="ServerId"/>, defaulting the port to 143 (no SSL) or 993 otherwise.
+        /// Sets <see cref="ServiceId"/>, defaulting the port to 143 (no SSL) or 993 otherwise.
         /// </summary>
         /// <param name="pHost"></param>
-        /// <param name="pSSL">Indicates whether the host requires that TLS be established immediately upon connect.</param>
+        /// <param name="pSSL">Indicates whether the service requires that TLS be established immediately upon connect.</param>
         /// <remarks>
         /// May only be called while <see cref="IsUnconnected"/>.
         /// </remarks>
-        public void SetServerId(string pHost, bool pSSL)
+        public void SetServiceId(string pHost, bool pSSL)
         {
             int lPort;
             if (pSSL) lPort = 993; else lPort = 143;
-            base.ServerId = new cServerId(pHost, lPort, pSSL);
+            base.ServiceId = new cServiceId(pHost, lPort, pSSL);
         }
 
         /// <summary>
-        /// Sets <see cref="ServerId"/>.
+        /// Sets <see cref="ServiceId"/>.
         /// </summary>
         /// <param name="pHost"></param>
         /// <param name="pPort"></param>
-        /// <param name="pSSL">Indicates whether the host requires that TLS be established immediately upon connect.</param>
+        /// <param name="pSSL">Indicates whether the service requires that TLS be established immediately upon connect.</param>
         /// <remarks>
         /// May only be called while <see cref="IsUnconnected"/>.
         /// </remarks>
-        public void SetServerId(string pHost, int pPort, bool pSSL) => base.ServerId = new cServerId(pHost, pPort, pSSL);
+        public void SetServiceId(string pHost, int pPort, bool pSSL) => base.ServiceId = new cServiceId(pHost, pPort, pSSL);
 
         /// <summary>
         /// Gets and sets the server capabilities that the instance should ignore.

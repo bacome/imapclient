@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 
@@ -128,6 +129,35 @@ namespace work.bacome.imapclient
         /// <returns></returns>
         public static cFilter HasHeaderField(string pHeaderField) => new cFilterHeaderFieldContains(pHeaderField, string.Empty);
 
+
+
+
+
+        internal static cFilter CoveringUIDs(uint pUIDValidity, IEnumerable<uint> pUIDs, p)
+        {
+            bool lFirst = true;
+
+            uint lFrom;
+
+            foreach (var lUID in pUIDs.Distinct().OrderBy(i => i))
+            {
+                if (lFirst)
+                {
+                    lFrom = lUID;
+                    lFirst = false;
+                else if ()
+            }
+
+
+
+            return new cFilterUIDIn(pUIDValidity, );
+
+        }
+
+
+
+
+
         /// <summary>
         /// Returns a filter that is the logical AND of the two specified filters.
         /// </summary>
@@ -189,12 +219,272 @@ namespace work.bacome.imapclient
             /**<summary></summary>*/
             public uint? UIDValidity;
         }
+
+        private static List<sUIntRange> ZGetRangesCoveringUInts(IEnumerable<uint> pUInts, int pMaxNumberCount)
+        {
+            if (pUInts == null) throw new ArgumentNullException(nameof(pUInts));
+            if (pMaxNumberCount < 4) throw new ArgumentOutOfRangeException(nameof(pMaxNumberCount));
+
+            // build an initial list of ranges
+
+            var lRanges = new List<sUIntRange>();
+
+            int lNumberCount = 0;
+
+            bool lFirst = true;
+            uint lFrom = 0;
+            uint lTo = 0;
+
+            foreach (var lUInt in pUInts.Distinct().OrderBy(i => i))
+            {
+                if (lFirst)
+                {
+                    lFrom = lUInt;
+                    lTo = lUInt;
+                    lFirst = false;
+                }
+                else if (lUInt == lTo + 1) lTo = lUInt;
+                else
+                {
+                    lRanges.Add(new sUIntRange(lFrom, lTo));
+                    if (lTo == lFrom) lNumberCount++;
+                    else lNumberCount += 2;
+
+                    lFrom = lUInt;
+                    lTo = lUInt;
+                }
+            }
+
+            if (lFirst) throw new ArgumentOutOfRangeException(nameof(pUInts));
+
+            lRanges.Add(new sUIntRange(lFrom, lTo));
+            if (lTo == lFrom) lNumberCount++;
+            else lNumberCount += 2;
+
+            // built
+
+            while (lNumberCount > pMaxNumberCount)
+            {
+                // have to coalesce ranges
+
+                uint lSmallestGapSize = uint.MaxValue;
+                int lSmallestGapLargestSaving = 0;
+
+                uint lLastTo;
+                sUIntRange lSingle1;
+                sUIntRange lSingle2;
+                uint lSingle1ToSingle2GapSize;
+
+                // find the smallest gap between ranges and the largest number of numbers we can save by closing gaps of that width
+
+                lLastTo = 0;
+                lSingle1 = sUIntRange.Zero;
+                lSingle2 = sUIntRange.Zero;
+                lSingle1ToSingle2GapSize = 0;
+
+                foreach (var lRange in lRanges)
+                {
+                    uint lGapSize;
+                    if (lLastTo == 0) lGapSize = 0;
+                    else lGapSize = lRange.From - lLastTo - 1;
+                    lLastTo = lRange.To;
+
+                    if (lRange.IsSingle)
+                    {
+                        if (lSingle1.IsZero)
+                        {
+                            if (lGapSize != 0 && lGapSize < lSmallestGapSize)
+                            {
+                                lSmallestGapSize = lGapSize;
+                                lSmallestGapLargestSaving = 1;
+                            }
+
+                            lSingle1 = lRange;
+                        }
+                        else if (lSingle2.IsZero)
+                        {
+                            lSingle2 = lRange;
+                            lSingle1ToSingle2GapSize = lGapSize;
+                        }
+                        else
+                        {
+                            if (lSingle1ToSingle2GapSize + lGapSize < lSmallestGapSize)
+                            {
+                                lSmallestGapSize = lSingle1ToSingle2GapSize + lGapSize;
+                                lSmallestGapLargestSaving = 1;
+                            }
+
+                            lSingle1 = lSingle2;
+                            lSingle2 = lRange;
+                            lSingle1ToSingle2GapSize = lGapSize;
+                        }
+                    }
+                    else
+                    {
+                        if (lGapSize != 0)
+                        {
+                            if (lSingle1.IsZero && lGapSize <= lSmallestGapSize)
+                            {
+                                lSmallestGapSize = lGapSize;
+                                lSmallestGapLargestSaving = 2;
+                            }
+                            else if (lGapSize < lSmallestGapSize)
+                            {
+                                lSmallestGapSize = lGapSize;
+                                lSmallestGapLargestSaving = 1;
+                            }
+                        }
+
+                        lSingle1 = sUIntRange.Zero;
+                        lSingle2 = sUIntRange.Zero;
+                        lSingle1ToSingle2GapSize = 0;
+                    }
+                }
+
+                // close the highest yielding gaps, stopping if the number of numbers gets to the target
+
+                var lNewRanges = new List<sUIntRange>();
+
+                lLastTo = 0;
+                lSingle1 = sUIntRange.Zero;
+                lSingle2 = sUIntRange.Zero;
+                lSingle1ToSingle2GapSize = 0;
+                sUIntRange lLastRange = sUIntRange.Zero;
+
+                foreach (var lRange in lRanges)
+                {
+                    uint lGapSize;
+                    if (lLastTo == 0) lGapSize = 0;
+                    else lGapSize = lRange.From - lLastTo - 1;
+                    lLastTo = lRange.To;
+
+                    if (lRange.IsSingle)
+                    {
+                        if (lSingle1.IsZero)
+                        {
+                            if (lGapSize == 0) lSingle1 = lRange;
+                            else
+                            {
+                                if (lGapSize == lSmallestGapSize && lSmallestGapLargestSaving == 1)
+                                {
+                                    lNewRanges.Add(new sUIntRange(lLastRange.From, lRange.To));
+                                    if (--lNumberCount == pMaxNumberCount) lSmallestGapSize = 0;
+                                    lLastTo = 0;
+                                    lLastRange = sUIntRange.Zero;
+                                }
+                                else
+                                {
+                                    lNewRanges.Add(lLastRange);
+                                    lLastRange = sUIntRange.Zero;
+                                    lSingle1 = lRange;
+                                }
+                            }
+                        }
+                        else if (lSingle2.IsZero)
+                        {
+                            lSingle2 = lRange;
+                            lSingle1ToSingle2GapSize = lGapSize;
+                        }
+                        else
+                        {
+                            if (lSingle1ToSingle2GapSize + lGapSize == lSmallestGapSize && lSmallestGapLargestSaving == 1)
+                            {
+                                lNewRanges.Add(new sUIntRange(lSingle1.From, lRange.To));
+                                if (--lNumberCount == pMaxNumberCount) lSmallestGapSize = 0;
+                                lLastTo = 0;
+                                lSingle1 = sUIntRange.Zero;
+                                lSingle2 = sUIntRange.Zero;
+                                lSingle1ToSingle2GapSize = 0;
+                            }
+                            else
+                            {
+                                lNewRanges.Add(lSingle1);
+                                lSingle1 = lSingle2;
+                                lSingle2 = lRange;
+                                lSingle1ToSingle2GapSize = lGapSize;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (lGapSize == 0) lLastRange = lRange;
+                        else
+                        {
+                            if (lGapSize == lSmallestGapSize && (lSingle1.IsZero || lSmallestGapLargestSaving == 1))
+                            {
+                                if (lSingle1.IsZero)
+                                {
+                                    lNewRanges.Add(new sUIntRange(lLastRange.From, lRange.To));
+                                    lNumberCount -= 2;
+                                    if (lNumberCount <= pMaxNumberCount) lSmallestGapSize = 0;
+                                    lLastRange = sUIntRange.Zero;
+                                }
+                                else
+                                {
+                                    if (!lSingle2.IsZero)
+                                    {
+                                        lNewRanges.Add(lSingle1);
+                                        lSingle1 = lSingle2;
+                                        lSingle2 = sUIntRange.Zero;
+                                        lSingle1ToSingle2GapSize = 0;
+                                    }
+
+                                    lNewRanges.Add(new sUIntRange(lSingle1.From, lRange.To));
+                                    if (--lNumberCount == pMaxNumberCount) lSmallestGapSize = 0;
+                                    lSingle1 = sUIntRange.Zero;
+                                }
+
+                                lLastTo = 0;
+                            }
+                            else
+                            {
+                                if (!lSingle1.IsZero) lNewRanges.Add(lSingle1);
+                                if (!lSingle2.IsZero) lNewRanges.Add(lSingle2);
+                                if (!lLastRange.IsZero) lNewRanges.Add(lLastRange);
+                                lSingle1 = sUIntRange.Zero;
+                                lSingle2 = sUIntRange.Zero;
+                                lSingle1ToSingle2GapSize = 0;
+                                lLastRange = lRange;
+                            }
+                        }
+                    }
+                }
+
+                if (!lSingle1.IsZero) lNewRanges.Add(lSingle1);
+                if (!lSingle2.IsZero) lNewRanges.Add(lSingle2);
+                if (!lLastRange.IsZero) lNewRanges.Add(lLastRange);
+
+                lRanges = lNewRanges;
+            }
+
+            return lRanges;
+        }
+
+        private struct sUIntRange
+        {
+            public static readonly sUIntRange Zero = new sUIntRange();
+
+            public readonly uint From;
+            public readonly uint To;
+
+            public sUIntRange(uint pFrom, uint pTo)
+            {
+                if (pFrom == 0) throw new ArgumentOutOfRangeException(nameof(pFrom));
+                if (pTo < pFrom) throw new ArgumentOutOfRangeException(nameof(pTo));
+
+                From = pFrom;
+                To = pTo;
+            }
+
+            public bool IsSingle => To == From;
+            public bool IsZero => From == 0;
+        }
     }
 
     // suppress the warnings about not implementing == properly: here == is being used as an expression builder
-    #pragma warning disable 660
-    #pragma warning disable 661
-        
+#pragma warning disable 660
+#pragma warning disable 661
+
     /// <summary>
     /// Represents an offset from a specific message or from an end of a mailbox.
     /// </summary>

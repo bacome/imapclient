@@ -3,15 +3,15 @@
 namespace work.bacome.mailclient
 {
     /// <summary>
-    /// Represents a mail server.
+    /// Represents a mail service.
     /// </summary>
-    public class cServerId : IEquatable<cServerId>
+    public class cServiceId : IEquatable<cServiceId>
     {
         /**<summary>The host name of the server.</summary>*/
         public readonly string Host;
         /**<summary>The port number to connect to.</summary>*/
         public readonly int Port;
-        /**<summary>Indicates whether the host requires that TLS be established immediately upon connect.</summary>*/
+        /**<summary>Indicates whether the service requires that TLS be established immediately upon connect.</summary>*/
         public readonly bool SSL;
 
         /// <summary>
@@ -19,8 +19,8 @@ namespace work.bacome.mailclient
         /// </summary>
         /// <param name="pHost"></param>
         /// <param name="pPort"></param>
-        /// <param name="pSSL">Indicates whether the host requires that TLS be established immediately upon connect.</param>
-        public cServerId(string pHost, int pPort, bool pSSL)
+        /// <param name="pSSL">Indicates whether the service requires that TLS be established immediately upon connect.</param>
+        public cServiceId(string pHost, int pPort, bool pSSL)
         {
             if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));
             if (pPort < 1 || pPort > 65536) throw new ArgumentOutOfRangeException(nameof(pPort));
@@ -30,10 +30,10 @@ namespace work.bacome.mailclient
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
-        public bool Equals(cServerId pObject) => this == pObject;
+        public bool Equals(cServiceId pObject) => this == pObject;
 
         /// <inheritdoc />
-        public override bool Equals(object pObject) => this == pObject as cServerId;
+        public override bool Equals(object pObject) => this == pObject as cServiceId;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
@@ -49,10 +49,10 @@ namespace work.bacome.mailclient
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cServerId)}({Host},{Port},{SSL})";
+        public override string ToString() => $"{nameof(cServiceId)}({Host},{Port},{SSL})";
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
-        public static bool operator ==(cServerId pA, cServerId pB)
+        public static bool operator ==(cServiceId pA, cServiceId pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
@@ -61,6 +61,6 @@ namespace work.bacome.mailclient
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
-        public static bool operator !=(cServerId pA, cServerId pB) => !(pA == pB);
+        public static bool operator !=(cServiceId pA, cServiceId pB) => !(pA == pB);
     }
 }

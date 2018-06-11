@@ -823,6 +823,11 @@ namespace work.bacome.imapclient
                     if (LMessageFilterCommandPartsTestsString(cFilter.MSN <= cFilter.Last.MSNOffset(2), lSelectedMailbox, false, false, null) != "1:12") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.22", lContext);
 
 
+
+                    ;?; // tests for coalescing sequence sets ...
+
+
+
                     string LMessageFilterCommandPartsTestsString(cFilter pFilter, cSelectedMailbox pSelectedMailbox, bool pCharsetMandatory, bool pUTF8Enabled, Encoding pEncoding)
                     {
                         StringBuilder lBuilder = new StringBuilder();

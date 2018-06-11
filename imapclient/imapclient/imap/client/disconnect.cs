@@ -14,7 +14,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// The IMAP connection is closed gracefully, however any multi-part operations in progress will throw exceptions.
         /// </remarks>
-        public override void Disconnect()
+        public void Disconnect()
         {
             var lContext = RootContext.NewMethod(nameof(cIMAPClient), nameof(Disconnect));
             mSynchroniser.Wait(ZDisconnectAsync(lContext), lContext);
@@ -26,7 +26,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <returns></returns>
         /// <inheritdoc cref="Disconnect" select="remarks"/>
-        public override Task DisconnectAsync()
+        public Task DisconnectAsync()
         {
             var lContext = RootContext.NewMethod(nameof(cIMAPClient), nameof(DisconnectAsync));
             return ZDisconnectAsync(lContext);

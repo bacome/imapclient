@@ -84,19 +84,18 @@ namespace work.bacome.imapclient
                     lTo = lUInt;
                     lFirst = false;
                 }
+                else if (lUInt == lTo + 1) lTo = lUInt;
                 else
                 {
-                    if (lUInt == lTo + 1) lTo = lUInt;
-                    else
-                    {
-                        LAddItem();
-                        lFrom = lUInt;
-                        lTo = lUInt;
-                    }
+                    LAddItem();
+                    lFrom = lUInt;
+                    lTo = lUInt;
                 }
             }
 
-            if (!lFirst) LAddItem();
+            if (lFirst) throw new ArgumentOutOfRangeException(nameof(pUInts));
+
+            LAddItem();
 
             return new cSequenceSet(lItems);
 

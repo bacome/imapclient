@@ -55,16 +55,16 @@ namespace work.bacome.imapclient
                         mWriteSizer = new cBatchSizer(pWriteConfiguration);
                     }
 
-                    public async Task ConnectAsync(cMethodControl pMC, cServerId pServer, cTrace.cContext pParentContext)
+                    public async Task ConnectAsync(cMethodControl pMC, cServiceId pServiceId, cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(ConnectAsync), pMC, pServer);
+                        var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(ConnectAsync), pMC, pServiceId);
 
                         if (mState != eState.notconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyConnected);
 
-                        if (pServer == null) throw new ArgumentNullException(nameof(pServer));
+                        if (pServiceId == null) throw new ArgumentNullException(nameof(pServiceId));
 
                         mState = eState.connecting;
-                        mDNSHost = cTools.GetDNSHost(pServer.Host);
+                        mDNSHost = cTools.GetDNSHost(pServiceId.Host);
 
                         try
                         {
@@ -77,11 +77,11 @@ namespace work.bacome.imapclient
 
                             lContext.TraceVerbose("connecting tcpclient");
 
-                            await mTCPClient.ConnectAsync(mDNSHost, pServer.Port).ConfigureAwait(false);
+                            await mTCPClient.ConnectAsync(mDNSHost, pServiceId.Port).ConfigureAwait(false);
 
                             NetworkStream lStream = mTCPClient.GetStream();
 
-                            if (pServer.SSL)
+                            if (pServiceId.SSL)
                             {
                                 lContext.TraceVerbose("creating sslstream");
 
