@@ -49,6 +49,34 @@ namespace work.bacome.imapclient
             mRootContext = cMailClient.Trace.NewRoot(pInstanceName);
         }
 
+        public override HashSet<cUID> GetUIDs(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
+        {
+            var lUIDs = new HashSet<cUID>();
+
+            foreach (var lPair in mSectionIdToItem)
+            {
+                var lMessageUID = lPair.Key.MessageUID;
+                var lItem = lPair.Value;
+                if (lMessageUID.MailboxId == pMailboxId && lMessageUID.UID.UIDValidity == pUIDValidity && !lItem.Deleted && !lItem.ToBeDeleted) lUIDs.Add(lMessageUID.UID);
+            }
+
+            foreach (var lPair in mSectionHandleToItem)
+            {
+                var lMessageHandle = lPair.Key.MessageHandle;
+                var lItem = lPair.Value;
+                if (!lMessageHandle.Expunged && lMessageHandle.UID != null && lMessageHandle.MessageCache.MailboxHandle.MailboxId == pMailboxId && lMessageHandle.UID.UIDValidity == pUIDValidity && !lItem.Deleted && !lItem.ToBeDeleted) lUIDs.Add(lMessageHandle.UID); 
+            }
+
+            lock (mPendingItemsLock)
+            {
+                foreach (var lItem in mPendingIdItems)
+                    if (!lItem.Deleted && !lItem.ToBeDeleted && lItem.SectionId.MessageUID.MailboxId == pMailboxId && lItem.SectionId.MessageUID.UID.UIDValidity == pUIDValidity)
+                        lUIDs.Add(lItem.SectionId.MessageUID.UID);
+
+                foreach (var lItem in ) ... // movie night :)
+            }
+        }
+
         public override void MessageExpunged(cMessageUID pMessageUID, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(MessageExpunged), pMessageUID);

@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kSelectCommandPart = new cTextCommandPart("SELECT ");
             private static readonly cCommandPart kSelectCommandPartCondStore = new cTextCommandPart(" (CONDSTORE)");
 
-            public async Task SelectAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cHeaderCache pHeaderCache, cTrace.cContext pParentContext)
+            public async Task<cSelectResult> SelectAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cHeaderCache pHeaderCache, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SelectAsync), pMC, pMailboxHandle, pHeaderCache);
 
@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("select success");
-                        return;
+                        return lHook.result;
                     }
 
                     fIMAPCapabilities lTryIgnoring;

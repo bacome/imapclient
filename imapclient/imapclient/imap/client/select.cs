@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient;
@@ -22,11 +23,22 @@ namespace work.bacome.imapclient
             using (var lToken = CancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
-                if (pForUpdate) await lSession.SelectAsync(lMC, pMailboxHandle, HeaderCache, lContext).ConfigureAwait(false);
-                else await lSession.ExamineAsync(lMC, pMailboxHandle, HeaderCache, lContext).ConfigureAwait(false);
-            }
 
-            ZCacheIntegrationReconcile(pMailboxHandle, lContext);
+                cSelectResult lResult;
+
+                if (pForUpdate) lResult = await lSession.SelectAsync(lMC, pMailboxHandle, HeaderCache, lContext).ConfigureAwait(false);
+                else lResult = await lSession.ExamineAsync(lMC, pMailboxHandle, HeaderCache, lContext).ConfigureAwait(false);
+
+                if (lResult.UIDNotSticky || lResult.UIDValidity == 0) ZCacheIntegrationSetMailboxUIDValidity(pMailboxHandle.MailboxId, 0, lContext);
+                else
+                {
+                    var lUIDsInCache = ZCacheIntegrationGetUIDs(pMailboxHandle.MailboxId, lResult.UIDValidity, lContext);
+                    if (lUIDsInCache.Count == 0) return;
+                    var lUIDsInMailbox = await ZGetUIDsAsync(lMC, pMailboxHandle, new cFilterUIDIn(lResult.UIDValidity, cSequenceSet.FromUInts(from lUID in lUIDsInCache select lUID.UID, 50)), cSort.None, null, lContext);
+                    lUIDsInCache.ExceptWith(lUIDsInMailbox);
+                    ZCacheIntegrationMessagesExpunged(pMailboxHandle.MailboxId, lUIDsInCache, lContext);
+                }
+            }
         }
     }
 }

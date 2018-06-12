@@ -8,16 +8,16 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        private void ZCacheIntegrationMessageExpunged(cMessageUID pMessageUID, cTrace.cContext pParentContext)
+        private void ZCacheIntegrationMessageExpunged(cMailboxId pMailboxId, cUID pUID, cTrace.cContext pParentContext)
         {
-            HeaderCache?.MessageExpunged(pMessageUID, pParentContext);
-            SectionCache.MessageExpunged(pMessageUID, pParentContext);
+            HeaderCache?.MessageExpunged(pMailboxId, pUID, pParentContext);
+            SectionCache.MessageExpunged(pMailboxId, pUID, pParentContext);
         }
 
-        private void ZCacheIntegrationMessagesExpunged(IEnumerable<cMessageUID> pMessageUIDs, cTrace.cContext pParentContext)
+        private void ZCacheIntegrationMessagesExpunged(cMailboxId pMailboxId, IEnumerable<cUID> pUIDs, cTrace.cContext pParentContext)
         {
-            HeaderCache?.MessagesExpunged(pMessageUIDs, pParentContext);
-            SectionCache.MessagesExpunged(pMessageUIDs, pParentContext);
+            HeaderCache?.MessagesExpunged(pMailboxId, pUIDs, pParentContext);
+            SectionCache.MessagesExpunged(pMailboxId, pUIDs, pParentContext);
         }
 
         private void ZCacheIntegrationSetMailboxUIDValidity(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
@@ -72,25 +72,16 @@ namespace work.bacome.imapclient
             }
         }
 
-        private void ZCacheIntegrationReconcile(iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
+        private HashSet<cUID> ZCacheIntegrationGetUIDs(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZCacheIntegrationReconcile), pMailboxHandle);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZCacheIntegrationGetUIDs), pMailboxId, pUIDValidity);
 
-            if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
+            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
 
-            var lMailboxId = pMailboxHandle.MailboxId;
-            uint lUIDValidity = pMailboxHandle.MailboxStatus?.UIDValidity ?? 0;
+            HashSet<cUID> lUIDs = SectionCache.GetUIDs(pMailboxId, pUIDValidity, lContext);
+            if (HeaderCache != null) lUIDs.UnionWith(HeaderCache.GetUIDs(pMailboxId, pUIDValidity, lContext));
 
-            if (pMailboxHandle.SelectedProperties.UIDNotSticky != false || lUIDValidity == 0)
-            {
-                ZCacheIntegrationSetMailboxUIDValidity(lMailboxId, 0, lContext);
-                return;
-            }
-
-
-
-
-            ;?;
+            return lUIDs;
         }
     }
 }

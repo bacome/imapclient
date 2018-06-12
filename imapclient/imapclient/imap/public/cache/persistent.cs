@@ -9,8 +9,8 @@ namespace work.bacome.imapclient
     public abstract class cPersistentCache
     {
         public abstract HashSet<cUID> GetUIDs(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext);
-        public abstract void MessageExpunged(cMessageUID pMessageUID, cTrace.cContext pParentContext);
-        public abstract void MessagesExpunged(IEnumerable<cMessageUID> pMessageUIDs, cTrace.cContext pParentContext);
+        public abstract void MessageExpunged(cMailboxId pMailboxId, cUID pUID, cTrace.cContext pParentContext);
+        public abstract void MessagesExpunged(cMailboxId pMailboxId, IEnumerable<cUID> pUIDs, cTrace.cContext pParentContext);
         public abstract void SetMailboxUIDValidity(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext);
         public abstract void Copy(cMailboxId pSourceMailboxId, cMailboxName pDestinationMailboxName, cCopyFeedback pFeedback, cTrace.cContext pParentContext);
 
@@ -36,7 +36,7 @@ namespace work.bacome.imapclient
             }
 
             var lUIDs = GetUIDs(pMailboxId, pUIDValidity, lContext);
-            MessagesExpunged(lUIDs.Select(lUID => new cMessageUID(pMailboxId, lUID)), lContext);
+            MessagesExpunged(pMailboxId, lUIDs, lContext);
         }
 
         private void ZRenameNonInbox(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext)
@@ -106,7 +106,5 @@ namespace work.bacome.imapclient
                 }
             }
         }
-
-        ;?; // reconcile,  messages
     }
 }

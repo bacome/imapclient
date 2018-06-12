@@ -49,6 +49,7 @@
     <Compile Include="imap\client\getnotprefixedwith.cs" />
     <Compile Include="imap\client\getuids.cs" />
     <Compile Include="imap\internal\sectionreader.cs" />
+    <Compile Include="imap\internal\selectresult.cs" />
     <Compile Include="imap\public\cache\header\base.cs" />
     <Compile Include="imap\public\cache\persistent.cs" />
     <Compile Include="imap\public\cache\section\directorysectioncache.cs" />

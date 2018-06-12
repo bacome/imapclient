@@ -16,7 +16,7 @@ namespace work.bacome.imapclient
             private eIMAPConnectionState _ConnectionState = eIMAPConnectionState.notconnected;
 
             private readonly cIMAPCallbackSynchroniser mSynchroniser;
-            private readonly Action<cMessageUID, cTrace.cContext> mMessageExpunged;
+            private readonly Action<cMailboxId, cUID, cTrace.cContext> mMessageExpunged;
             private readonly Action<cMailboxId, uint, cTrace.cContext> mSetMailboxUIDValidity;
             private readonly fIMAPCapabilities mIgnoreCapabilities;
             private readonly fMailboxCacheDataItems mMailboxCacheDataItems;
@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
             // (note for when adding more: they need to be disposed)
 
             public cSession(
-                cIMAPCallbackSynchroniser pSynchroniser, Action<cMessageUID, cTrace.cContext> pMessageExpunged, Action<cMailboxId, uint, cTrace.cContext> pSetMailboxUIDValidity,
+                cIMAPCallbackSynchroniser pSynchroniser, Action<cMailboxId, cUID, cTrace.cContext> pMessageExpunged, Action<cMailboxId, uint, cTrace.cContext> pSetMailboxUIDValidity,
                 cBatchSizerConfiguration pNetworkWriteConfiguration,
                 fIMAPCapabilities pIgnoreCapabilities, fMailboxCacheDataItems pMailboxCacheDataItems,
                 cBatchSizerConfiguration pFetchCacheItemsConfiguration, cBatchSizerConfiguration pFetchBodyConfiguration,

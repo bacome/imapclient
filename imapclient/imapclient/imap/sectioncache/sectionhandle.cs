@@ -8,7 +8,6 @@ namespace work.bacome.imapclient
     {
         public readonly cIMAPClient Client;
         public readonly iMessageHandle MessageHandle;
-        public readonly cMailboxId MailboxId;
         public readonly cSection Section;
         public readonly eDecodingRequired Decoding;
 
@@ -16,22 +15,9 @@ namespace work.bacome.imapclient
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
-            MailboxId = new cMailboxId(pMessageHandle.MessageCache.MailboxHandle);
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
             Decoding = pDecoding;
         }
-
-        /* TODO: remove
-        public bool IsValidToCache
-        {
-            get
-            {
-                if (MessageHandle.Expunged) return false;
-                return ReferenceEquals(Client.SelectedMailboxDetails?.MessageCache, MessageHandle.MessageCache);
-            }
-        } */
-
-        public bool UIDNotSticky => MessageHandle.MessageCache.MailboxHandle.SelectedProperties.UIDNotSticky ?? true;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public bool Equals(cSectionHandle pObject) => this == pObject;

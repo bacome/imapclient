@@ -14,7 +14,7 @@ namespace work.bacome.imapclient
             private partial class cSelectedMailboxCache : iMessageCache
             {
                 private readonly cIMAPCallbackSynchroniser mSynchroniser;
-                private readonly Action<cMessageUID, cTrace.cContext> mMessageExpunged;
+                private readonly Action<cMailboxId, cUID, cTrace.cContext> mMessageExpunged;
                 private readonly cMailboxCacheItem mMailboxCacheItem;
                 private readonly uint mUIDValidity;
                 private readonly bool mNoModSeq;
@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
                 private ulong mHighestModSeq;
                 private ulong mPendingHighestModSeq = 0;
 
-                public cSelectedMailboxCache(cIMAPCallbackSynchroniser pSynchroniser, Action<cMessageUID, cTrace.cContext> pMessageExpunged, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, uint pHighestModSeq, cTrace.cContext pParentContext)
+                public cSelectedMailboxCache(cIMAPCallbackSynchroniser pSynchroniser, Action<cMailboxId, cUID, cTrace.cContext> pMessageExpunged, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, uint pHighestModSeq, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cSelectedMailboxCache), pMailboxCacheItem, pUIDValidity, pMessageCount, pRecentCount, pUIDNext, pHighestModSeq);
 
@@ -209,13 +209,13 @@ namespace work.bacome.imapclient
                     return lMessageHandles;
                 }
 
-                public IEnumerable<cMessageUID> GetKnownDeletedMessageUIDs(cTrace.cContext pParentContext)
+                public IEnumerable<cUID> GetKnownDeletedMessageUIDs(cTrace.cContext pParentContext)
                 {
                     // should only be called if you are sure that messages (e.g. expunges) aren't being processed
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(GetKnownDeletedMessageUIDs));
                     var lMailboxId = mMailboxCacheItem.MailboxId;
                     if (lMailboxId == null) return null; // should never happen
-                    return from lItem in mItems where lItem.UID != null && lItem.Flags != null && lItem.Flags.Contains(kMessageFlag.Deleted) select new cMessageUID(lMailboxId, lItem.UID);
+                    return from lItem in mItems where lItem.UID != null && lItem.Flags != null && lItem.Flags.Contains(kMessageFlag.Deleted) select lItem.UID;
                 }
 
                 private void ZExists(int pMessageCount, cTrace.cContext pParentContext)
@@ -268,7 +268,7 @@ namespace work.bacome.imapclient
                     }
                     else mUIDNextMessageCount--;
 
-                    if (lExpungedItem.UID != null) mMessageExpunged(new cMessageUID(mMailboxCacheItem.MailboxId, lExpungedItem.UID), lContext);
+                    if (lExpungedItem.UID != null) mMessageExpunged(mMailboxCacheItem.MailboxId, lExpungedItem.UID, lContext);
 
                     mSynchroniser.InvokeMessagePropertyChanged(lExpungedItem, nameof(cIMAPMessage.Expunged), lContext);
                     ZSetMailboxStatus(lContext);

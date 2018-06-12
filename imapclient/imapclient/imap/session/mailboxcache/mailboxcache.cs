@@ -15,7 +15,7 @@ namespace work.bacome.imapclient
             private partial class cMailboxCache : iMailboxCache
             {
                 private readonly cIMAPCallbackSynchroniser mSynchroniser;
-                private readonly Action<cMessageUID, cTrace.cContext> mMessageExpunged;
+                private readonly Action<cMailboxId, cUID, cTrace.cContext> mMessageExpunged;
                 private readonly Action<cMailboxId, uint, cTrace.cContext> mSetMailboxUIDValidity;
                 private readonly fMailboxCacheDataItems mMailboxCacheDataItems;
                 private readonly cCommandPartFactory mCommandPartFactory;
@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
                 private cHeaderCache mHeaderCache = null;
                 private cSelectedMailbox mSelectedMailbox = null;
 
-                public cMailboxCache(cIMAPCallbackSynchroniser pSynchroniser, Action<cMessageUID, cTrace.cContext> pMessageExpunged, Action<cMailboxId, uint, cTrace.cContext> pSetMailboxUIDValidity, fMailboxCacheDataItems pMailboxCacheDataItems, cCommandPartFactory pCommandPartFactory, cIMAPCapabilities pCapabilities, cAccountId pAccountId, Action<eIMAPConnectionState, cTrace.cContext> pSetState)
+                public cMailboxCache(cIMAPCallbackSynchroniser pSynchroniser, Action<cMailboxId, cUID, cTrace.cContext> pMessageExpunged, Action<cMailboxId, uint, cTrace.cContext> pSetMailboxUIDValidity, fMailboxCacheDataItems pMailboxCacheDataItems, cCommandPartFactory pCommandPartFactory, cIMAPCapabilities pCapabilities, cAccountId pAccountId, Action<eIMAPConnectionState, cTrace.cContext> pSetState)
                 {
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                     mMessageExpunged = pMessageExpunged ?? throw new ArgumentNullException(nameof(pMessageExpunged));
@@ -253,7 +253,7 @@ namespace work.bacome.imapclient
                     return false;
                 }
 
-                public IEnumerable<cMessageUID> GetKnownDeletedMessageUIDs(cTrace.cContext pParentContext)
+                public IEnumerable<cUID> GetKnownDeletedMessageUIDs(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(GetKnownDeletedMessageUIDs));
                     if (mSelectedMailbox == null) return null;

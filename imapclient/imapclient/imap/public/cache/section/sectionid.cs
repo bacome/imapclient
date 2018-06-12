@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
         internal bool Equals(cSectionHandle pObject)
         {
             if (pObject == null || pObject.MessageHandle.UID == null) return false;
-            return MessageUID.MailboxId == pObject.MailboxId && MessageUID.UID == pObject.MessageHandle.UID && Section == pObject.Section && Decoding == pObject.Decoding;
+            return MessageUID.MailboxId == pObject.MessageHandle.MessageCache.MailboxHandle.MailboxId && MessageUID.UID == pObject.MessageHandle.UID && Section == pObject.Section && Decoding == pObject.Decoding;
         }
 
         /// <inheritdoc />

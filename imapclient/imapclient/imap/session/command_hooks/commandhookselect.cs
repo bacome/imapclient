@@ -40,6 +40,8 @@ namespace work.bacome.imapclient
                     mHeaderCache = pHeaderCache;
                 }
 
+                public cSelectResult Result => new cSelectResult(mUIDValidity, mUIDNotSticky);
+
                 public override void CommandStarted(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(CommandStarted));

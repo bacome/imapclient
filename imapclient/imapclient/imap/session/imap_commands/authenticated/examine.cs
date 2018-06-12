@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kExamineCommandPart = new cTextCommandPart("EXAMINE ");
             private static readonly cCommandPart kExamineCommandPartCondStore = new cTextCommandPart(" (CONDSTORE)");
 
-            public async Task ExamineAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cHeaderCache pHeaderCache, cTrace.cContext pParentContext)
+            public async Task<cSelectResult> ExamineAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cHeaderCache pHeaderCache, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ExamineAsync), pMC, pMailboxHandle, pHeaderCache);
 
@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("examine success");
-                        return;
+                        return lHook.result;
                     }
 
                     fIMAPCapabilities lTryIgnoring;

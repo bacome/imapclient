@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kCloseCommandPart = new cTextCommandPart("CLOSE");
 
-            public async Task<IEnumerable<cMessageUID>> CloseAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
+            public async Task<IEnumerable<cUID>> CloseAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(CloseAsync), pMC);
 
@@ -55,7 +55,7 @@ namespace work.bacome.imapclient
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                 }
 
-                public IEnumerable<cMessageUID> KnownDeletedMessageUIDs { get; private set; } = null;
+                public IEnumerable<cUID> KnownDeletedMessageUIDs { get; private set; } = null;
 
                 public override void CommandStarted(cTrace.cContext pParentContext)
                 {
