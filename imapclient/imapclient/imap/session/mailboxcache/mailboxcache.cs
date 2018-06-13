@@ -16,7 +16,7 @@ namespace work.bacome.imapclient
             {
                 private readonly cIMAPCallbackSynchroniser mSynchroniser;
                 private readonly Action<cMailboxId, cUID, cTrace.cContext> mMessageExpunged;
-                private readonly Action<cMailboxId, uint, cTrace.cContext> mSetMailboxUIDValidity;
+                private readonly Action<cMailboxId, long, cTrace.cContext> mSetMailboxUIDValidity;
                 private readonly fMailboxCacheDataItems mMailboxCacheDataItems;
                 private readonly cCommandPartFactory mCommandPartFactory;
                 private readonly cIMAPCapabilities mCapabilities;
@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
                 private cHeaderCache mHeaderCache = null;
                 private cSelectedMailbox mSelectedMailbox = null;
 
-                public cMailboxCache(cIMAPCallbackSynchroniser pSynchroniser, Action<cMailboxId, cUID, cTrace.cContext> pMessageExpunged, Action<cMailboxId, uint, cTrace.cContext> pSetMailboxUIDValidity, fMailboxCacheDataItems pMailboxCacheDataItems, cCommandPartFactory pCommandPartFactory, cIMAPCapabilities pCapabilities, cAccountId pAccountId, Action<eIMAPConnectionState, cTrace.cContext> pSetState)
+                public cMailboxCache(cIMAPCallbackSynchroniser pSynchroniser, Action<cMailboxId, cUID, cTrace.cContext> pMessageExpunged, Action<cMailboxId, long, cTrace.cContext> pSetMailboxUIDValidity, fMailboxCacheDataItems pMailboxCacheDataItems, cCommandPartFactory pCommandPartFactory, cIMAPCapabilities pCapabilities, cAccountId pAccountId, Action<eIMAPConnectionState, cTrace.cContext> pSetState)
                 {
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                     mMessageExpunged = pMessageExpunged ?? throw new ArgumentNullException(nameof(pMessageExpunged));

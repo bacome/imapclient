@@ -19,13 +19,6 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public bool Equals(cSectionId pObject) => this == pObject;
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
-        internal bool Equals(cSectionHandle pObject)
-        {
-            if (pObject == null || pObject.MessageHandle.UID == null) return false;
-            return MessageUID.MailboxId == pObject.MessageHandle.MessageCache.MailboxHandle.MailboxId && MessageUID.UID == pObject.MessageHandle.UID && Section == pObject.Section && Decoding == pObject.Decoding;
-        }
-
         /// <inheritdoc />
         public override bool Equals(object pObject) => this == pObject as cSectionId;
 

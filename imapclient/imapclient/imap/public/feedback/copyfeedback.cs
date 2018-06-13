@@ -7,59 +7,66 @@ using work.bacome.mailclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Contains feedback on one message in a copy operation, based on the RFC 4315 UIDCOPY response.
-    /// </summary>
-    /// <seealso cref="cCopyFeedback"/>
-    public class cCopyFeedbackItem
-    {
-        /**<summary>The UID of the source message.</summary>*/
-        public readonly cUID SourceMessageUID;
-        /**<summary>The UID of the newly created message.</summary>*/
-        public readonly cUID CreatedMessageUID;
-
-        internal cCopyFeedbackItem(cUID pSourceMessageUID, cUID pCreatedMessageUID)
-        {
-            SourceMessageUID = pSourceMessageUID;
-            CreatedMessageUID = pCreatedMessageUID;
-        }
-
-        /// <inheritdoc/>
-        public override string ToString() => $"{nameof(cCopyFeedbackItem)}({SourceMessageUID},{CreatedMessageUID})";
-    }
-
-    /// <summary>
     /// Contains feedback on a copy operation, based on the RFC 4315 UIDCOPY response.
     /// </summary>
-    /// <seealso cref="cMailbox.Copy(IEnumerable{cIMAPMessage})"/>
-    /// <seealso cref="cMailbox.UIDCopy(IEnumerable{cUID}, cMailbox)"/>
-    public class cCopyFeedback : IReadOnlyList<cCopyFeedbackItem>
+    /// <remarks>
+    /// Provides a mapping from source UIDs to the UIDs created.
+    /// </remarks>
+    public class cCopyFeedback : IReadOnlyDictionary<cUID, cUID>
     {
-        private List<cCopyFeedbackItem> mItems = new List<cCopyFeedbackItem>();
+        private Dictionary<cUID, cUID> mDictionary = new Dictionary<cUID, cUID>();
 
         internal cCopyFeedback(uint pSourceUIDValidity, cUIntList pSourceUIDs, uint pDestinationUIDValidity, cUIntList pCreatedUIDs)
         {
-            for (int i = 0; i < pSourceUIDs.Count; i++)
-                mItems.Add(
-                    new cCopyFeedbackItem(
-                        new cUID(pSourceUIDValidity, pSourceUIDs[i]),
-                        new cUID(pDestinationUIDValidity, pCreatedUIDs[i])));
+            if (pSourceUIDValidity == 0) throw new ArgumentOutOfRangeException(nameof(pSourceUIDValidity));
+            if (pSourceUIDs == null) throw new ArgumentNullException(nameof(pSourceUIDs));
+            if (pSourceUIDs.Count == 0) throw new ArgumentOutOfRangeException(nameof(pSourceUIDs));
+            if (pDestinationUIDValidity == 0) throw new ArgumentOutOfRangeException(nameof(pDestinationUIDValidity));
+            if (pCreatedUIDs == null) throw new ArgumentNullException(nameof(pCreatedUIDs));
+            if (pCreatedUIDs.Count != pSourceUIDs.Count) throw new ArgumentOutOfRangeException(nameof(pCreatedUIDs));
+
+            for (int i = 0; i < pSourceUIDs.Count; i++) mDictionary[new cUID(pSourceUIDValidity, pSourceUIDs[i])] = new cUID(pDestinationUIDValidity, pCreatedUIDs[i]);
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Indexer(int)"/>
-        public cCopyFeedbackItem this[int i] => mItems[i];
-
         /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
-        public int Count => mItems.Count;
+        public int Count => mDictionary.Count;
+
+        /**<summary>Gets the UIDs that were created.</summary>*/
+        public IEnumerable<cUID> Values => mDictionary.Values;
+        /**<summary>Gets the source UIDs.</summary>*/
+        public IEnumerable<cUID> Keys => mDictionary.Keys;
+
+        /// <summary>
+        /// Determines whether the specified UID was a source.
+        /// </summary>
+        /// <param name="pSourceUID"></param>
+        /// <returns></returns>
+        public bool ContainsKey(cUID pSourceUID) => mDictionary.ContainsKey(pSourceUID);
+
+        /// <summary>
+        /// Gets the created UID for the specified source UID.
+        /// </summary>
+        /// <param name="pSourceUID"></param>
+        /// <param name="rCreatedUID"></param>
+        /// <returns></returns>
+        public bool TryGetValue(cUID pSourceUID, out cUID rCreatedUID) => mDictionary.TryGetValue(pSourceUID, out rCreatedUID);
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetEnumerator"/>
-        public IEnumerator<cCopyFeedbackItem> GetEnumerator() => mItems.GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => mItems.GetEnumerator();
+        public IEnumerator<KeyValuePair<cUID, cUID>> GetEnumerator() => mDictionary.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => mDictionary.GetEnumerator();
+
+        /// <summary>
+        /// Gets the created UID for the specified source UID.
+        /// </summary>
+        /// <param name="pKey"></param>
+        /// <returns></returns>
+        public cUID this[cUID pSourceUID] => mDictionary[pSourceUID];
 
         /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cCopyFeedback));
-            foreach (var lItem in mItems) lBuilder.Append($"{lItem.SourceMessageUID}->{lItem.CreatedMessageUID}");
+            foreach (var lPair in mDictionary) lBuilder.Append($"{lPair.Key}->{lPair.Value}");
             return lBuilder.ToString();
         }
     }

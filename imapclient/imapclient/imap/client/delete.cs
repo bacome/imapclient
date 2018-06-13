@@ -25,7 +25,7 @@ namespace work.bacome.imapclient
                 await lSession.DeleteAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
             }
 
-            ZCacheIntegrationSetMailboxUIDValidity(pMailboxHandle.MailboxId, 0, lContext);
+            ZCacheIntegrationSetMailboxUIDValidity(pMailboxHandle.MailboxId, -1, lContext);
         }
     }
 }

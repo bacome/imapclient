@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
                 if (pForUpdate) lResult = await lSession.SelectAsync(lMC, pMailboxHandle, HeaderCache, lContext).ConfigureAwait(false);
                 else lResult = await lSession.ExamineAsync(lMC, pMailboxHandle, HeaderCache, lContext).ConfigureAwait(false);
 
-                if (lResult.UIDNotSticky || lResult.UIDValidity == 0) ZCacheIntegrationSetMailboxUIDValidity(pMailboxHandle.MailboxId, 0, lContext);
+                if (lResult.UIDNotSticky || lResult.UIDValidity == 0) ZCacheIntegrationSetMailboxUIDValidity(pMailboxHandle.MailboxId, -1, lContext);
                 else
                 {
                     var lUIDsInCache = ZCacheIntegrationGetUIDs(pMailboxHandle.MailboxId, lResult.UIDValidity, lContext);

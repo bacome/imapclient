@@ -10,26 +10,46 @@ namespace work.bacome.imapclient
     {
         private void ZCacheIntegrationMessageExpunged(cMailboxId pMailboxId, cUID pUID, cTrace.cContext pParentContext)
         {
-            HeaderCache?.MessageExpunged(pMailboxId, pUID, pParentContext);
-            SectionCache.MessageExpunged(pMailboxId, pUID, pParentContext);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZCacheIntegrationMessageExpunged), pMailboxId, pUID);
+
+            try { HeaderCache?.MessageExpunged(pMailboxId, pUID, pParentContext); }
+            catch (Exception e) { lContext.TraceException("header cache threw", e); }
+
+            try { SectionCache.MessageExpunged(pMailboxId, pUID, pParentContext); }
+            catch (Exception e) { lContext.TraceException("section cache threw", e); }
         }
 
         private void ZCacheIntegrationMessagesExpunged(cMailboxId pMailboxId, IEnumerable<cUID> pUIDs, cTrace.cContext pParentContext)
         {
-            HeaderCache?.MessagesExpunged(pMailboxId, pUIDs, pParentContext);
-            SectionCache.MessagesExpunged(pMailboxId, pUIDs, pParentContext);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZCacheIntegrationMessagesExpunged), pMailboxId);
+            
+            try { HeaderCache?.MessagesExpunged(pMailboxId, pUIDs, pParentContext); }
+            catch (Exception e) { lContext.TraceException("header cache threw", e); }
+
+            try { SectionCache.MessagesExpunged(pMailboxId, pUIDs, pParentContext); }
+            catch (Exception e) { lContext.TraceException("section cache threw", e); }
         }
 
-        private void ZCacheIntegrationSetMailboxUIDValidity(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
+        private void ZCacheIntegrationSetMailboxUIDValidity(cMailboxId pMailboxId, long pUIDValidity, cTrace.cContext pParentContext)
         {
-            HeaderCache?.SetMailboxUIDValidity(pMailboxId, pUIDValidity, pParentContext);
-            SectionCache.SetMailboxUIDValidity(pMailboxId, pUIDValidity, pParentContext);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZCacheIntegrationSetMailboxUIDValidity), pMailboxId, pUIDValidity);
+
+            try { HeaderCache?.SetMailboxUIDValidity(pMailboxId, pUIDValidity, pParentContext); }
+            catch (Exception e) { lContext.TraceException("header cache threw", e); }
+
+            try { SectionCache.SetMailboxUIDValidity(pMailboxId, pUIDValidity, pParentContext); }
+            catch (Exception e) { lContext.TraceException("section cache threw", e); }
         }
 
         private void ZCacheIntegrationCopy(cMailboxId pSourceMailboxId, cMailboxName pDestinationMailboxName, cCopyFeedback pFeedback, cTrace.cContext pParentContext)
         {
-            HeaderCache?.Copy(pSourceMailboxId, pDestinationMailboxName, pFeedback, pParentContext);
-            SectionCache.Copy(pSourceMailboxId, pDestinationMailboxName, pFeedback, pParentContext);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZCacheIntegrationCopy), pSourceMailboxId, pDestinationMailboxName, pFeedback);
+            
+            try { HeaderCache?.Copy(pSourceMailboxId, pDestinationMailboxName, pFeedback, pParentContext); }
+            catch (Exception e) { lContext.TraceException("header cache threw", e); }
+
+            try { SectionCache.Copy(pSourceMailboxId, pDestinationMailboxName, pFeedback, pParentContext); }
+            catch (Exception e) { lContext.TraceException("section cache threw", e); }
         }
 
         private void ZCacheIntegrationRename(cMailboxId pMailboxId, uint pUIDValidity, cMailboxName pMailboxName, cTrace.cContext pParentContext)
@@ -78,8 +98,16 @@ namespace work.bacome.imapclient
 
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
 
-            HashSet<cUID> lUIDs = SectionCache.GetUIDs(pMailboxId, pUIDValidity, lContext);
-            if (HeaderCache != null) lUIDs.UnionWith(HeaderCache.GetUIDs(pMailboxId, pUIDValidity, lContext));
+            var lUIDs = new HashSet<cUID>();
+
+            try { lUIDs.UnionWith(SectionCache.GetUIDs(pMailboxId, pUIDValidity, lContext)); }
+            catch (Exception e) { lContext.TraceException(nameof(SectionCache), e); }
+
+            if (HeaderCache != null)
+            {
+                try { lUIDs.UnionWith(HeaderCache.GetUIDs(pMailboxId, pUIDValidity, lContext)); }
+                catch (Exception e) { lContext.TraceException(nameof(HeaderCache), e); }
+            }
 
             return lUIDs;
         }
