@@ -8,6 +8,9 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
+        ;?; // get new section item: try in the user settable ones with catch, then the default one without catch
+        ;?; // this should be used in the message data stream, NOT a direct call to getnewitem
+
         private void ZCacheIntegrationMessageExpunged(cMailboxId pMailboxId, cUID pUID, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZCacheIntegrationMessageExpunged), pMailboxId, pUID);

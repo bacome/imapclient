@@ -58,6 +58,7 @@
     <Compile Include="imap\public\message\messageuid.cs" />
     <Compile Include="imap\sectioncache\defaultsectioncache.cs" />
     <Compile Include="imap\public\cache\section\tempfilesectioncache.cs" />
+    <Compile Include="imap\public\cache\section\persiststate.cs" />
     <Compile Include="imap\sectioncache\sectionhandle.cs" />
     <Compile Include="imap\sectioncache\itemreaderwriter.cs" />
     <Compile Include="imap\sectioncache\itemreader.cs" />

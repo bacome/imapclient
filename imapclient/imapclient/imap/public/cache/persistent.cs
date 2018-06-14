@@ -11,12 +11,18 @@ namespace work.bacome.imapclient
         public abstract void MessageExpunged(cMailboxId pMailboxId, cUID pUID, cTrace.cContext pParentContext);
         public abstract void MessagesExpunged(cMailboxId pMailboxId, IEnumerable<cUID> pUIDs, cTrace.cContext pParentContext);
         public abstract void SetMailboxUIDValidity(cMailboxId pMailboxId, long pUIDValidity, cTrace.cContext pParentContext);
-        public abstract void Copy(cMailboxId pSourceMailboxId, cMailboxName pDestinationMailboxName, cCopyFeedback pFeedback, cTrace.cContext pParentContext);
+
+        public virtual void Copy(cMailboxId pSourceMailboxId, cMailboxName pDestinationMailboxName, cCopyFeedback pFeedback, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(Copy), pSourceMailboxId, pDestinationMailboxName, pFeedback);
+        }
 
         protected abstract HashSet<cMailboxName> YGetMailboxNames(cAccountId pAccountId, cTrace.cContext pParentContext);
-        protected abstract void YRename(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext);
 
-        protected virtual bool YCanRename => false;
+        protected virtual void YRename(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(YRename), pMailboxId, pMailboxName);
+        }
 
         internal void Rename(cMailboxId pMailboxId, uint pUIDValidity, cMailboxName pMailboxName, cTrace.cContext pParentContext)
         {
@@ -54,8 +60,6 @@ namespace work.bacome.imapclient
         private void ZRenameNonInbox(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(ZRenameNonInbox), pMailboxId, pMailboxName);
-
-            if (!YCanRename) return;
 
             HashSet<cMailboxName> lMailboxNames;
 
@@ -97,19 +101,34 @@ namespace work.bacome.imapclient
             if (pAllExistentChildMailboxNames == null) throw new ArgumentNullException(nameof(pAllExistentChildMailboxNames));
             if (pAllSelectableChildMailboxNames == null) throw new ArgumentNullException(nameof(pAllSelectableChildMailboxNames));
 
-            ;?;
-            foreach (var lMailboxName in YGetMailboxNames(pMailboxId.AccountId, lContext))
+            HashSet<cMailboxName> lMailboxNames;
+
+            try { lMailboxNames = YGetMailboxNames(pMailboxId.AccountId, lContext); }
+            catch (Exception e)
+            {
+                lContext.TraceException(nameof(YGetMailboxNames), e);
+                return;
+            }
+
+            foreach (var lMailboxName in lMailboxNames)
             {
                 if (lMailboxName.IsChildOf(pMailboxId.MailboxName))
                 {
-                    ;?;
-                    if (!pAllSelectableChildMailboxNames.Contains(lMailboxName)) SetMailboxUIDValidity(new cMailboxId(pMailboxId.AccountId, lMailboxName), -1, lContext);
+                    if (!pAllSelectableChildMailboxNames.Contains(lMailboxName))
+                    {
+                        try { SetMailboxUIDValidity(new cMailboxId(pMailboxId.AccountId, lMailboxName), -1, lContext); }
+                        catch (Exception e) { lContext.TraceException(nameof(SetMailboxUIDValidity), e); }
+                    }
                 }
                 else if (lMailboxName.IsDescendantOf(pMailboxId.MailboxName))
                 {
                     var lChildMailboxName = lMailboxName.GetLineageMemberThatIsChildOf(pMailboxId.MailboxName);
-                    ;?;
-                    if (!pAllExistentChildMailboxNames.Contains(lChildMailboxName)) SetMailboxUIDValidity(new cMailboxId(pMailboxId.AccountId, lMailboxName), -1, lContext);
+                    
+                    if (!pAllExistentChildMailboxNames.Contains(lChildMailboxName))
+                    {
+                        try { SetMailboxUIDValidity(new cMailboxId(pMailboxId.AccountId, lMailboxName), -1, lContext); }
+                        catch (Exception e) { lContext.TraceException(nameof(SetMailboxUIDValidity), e); }
+                    }
                 }
             }
         }
@@ -124,19 +143,34 @@ namespace work.bacome.imapclient
             if (pAllExistentChildMailboxNames == null) throw new ArgumentNullException(nameof(pAllExistentChildMailboxNames));
             if (pAllSelectableChildMailboxNames == null) throw new ArgumentNullException(nameof(pAllSelectableChildMailboxNames));
 
-            ;?;
-            foreach (var lMailboxName in YGetMailboxNames(pAccountId, lContext))
+            HashSet<cMailboxName> lMailboxNames;
+
+            try { lMailboxNames = YGetMailboxNames(pAccountId, lContext); }
+            catch (Exception e)
+            {
+                lContext.TraceException(nameof(YGetMailboxNames), e);
+                return;
+            }
+
+            foreach (var lMailboxName in lMailboxNames)
             {
                 if (lMailboxName.IsFirstLineageMemberPrefixedWith(pPrefix, pNotPrefixedWith))
                 {
-                    ;?;
-                    if (!pAllSelectableChildMailboxNames.Contains(lMailboxName)) SetMailboxUIDValidity(new cMailboxId(pAccountId, lMailboxName), -1, lContext);
+                    if (!pAllSelectableChildMailboxNames.Contains(lMailboxName))
+                    {
+                        try { SetMailboxUIDValidity(new cMailboxId(pAccountId, lMailboxName), -1, lContext); }
+                        catch (Exception e) { lContext.TraceException(nameof(SetMailboxUIDValidity), e); }
+                    }
                 }
                 else if (lMailboxName.IsPrefixedWith(pPrefix, pNotPrefixedWith))
                 {
                     var lFirstMailboxName = lMailboxName.GetFirstLineageMemberPrefixedWith(pPrefix);
-                    ;?;
-                    if (!pAllExistentChildMailboxNames.Contains(lFirstMailboxName)) SetMailboxUIDValidity(new cMailboxId(pAccountId, lMailboxName), -1, lContext);
+                    
+                    if (!pAllExistentChildMailboxNames.Contains(lFirstMailboxName))
+                    {
+                        try { SetMailboxUIDValidity(new cMailboxId(pAccountId, lMailboxName), -1, lContext); }
+                        catch (Exception e) { lContext.TraceException(nameof(SetMailboxUIDValidity), e); }
+                    }
                 }
             }
         }

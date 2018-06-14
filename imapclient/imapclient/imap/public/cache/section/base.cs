@@ -12,6 +12,7 @@ namespace work.bacome.imapclient
 {
     public abstract class cSectionCache : cPersistentCache, IDisposable
     {
+
         private static readonly TimeSpan kPlusOneHour = TimeSpan.FromHours(1);
         private static readonly TimeSpan kMinusOneHour = TimeSpan.FromHours(-1);
 
@@ -23,18 +24,19 @@ namespace work.bacome.imapclient
 
         protected readonly cTrace.cContext mRootContext;
 
-        private readonly ConcurrentDictionary<cSectionId, cSectionCacheItem> mSectionIdToItem = new ConcurrentDictionary<cSectionId, cSectionCacheItem>();
-        private readonly ConcurrentDictionary<cSectionHandle, cSectionCacheItem> mSectionHandleToItem = new ConcurrentDictionary<cSectionHandle, cSectionCacheItem>();
-
         // lock and collections for recording data used in maintenance to delete items
         private readonly object mExpiredLock = new object();
         private HashSet<cMessageUID> mExpungedMessages = new HashSet<cMessageUID>();
         private Dictionary<cMailboxId, long> mMailboxToUIDValidity = new Dictionary<cMailboxId, long>();
 
-        // pending items: new items that haven't been added to the cache yet (items are in these collections from when getnewitem is called until additem is called)
+        // collections for storing cache items
+        private readonly ConcurrentDictionary<cSectionHandle, cSectionCacheItem> mSectionHandleToItem = new ConcurrentDictionary<cSectionHandle, cSectionCacheItem>();
+        private readonly ConcurrentDictionary<cSectionId, cSectionCacheItem> mSectionIdToItem = new ConcurrentDictionary<cSectionId, cSectionCacheItem>();
+
+        // pending items: new items that haven't been added to the cache yet (items are in this collection from when getnewitem is called until additem is called)
+        //  [they are here so we can mark them for delete if there is an expunge or uidvalidity change (etc)]
         private readonly object mPendingItemsLock = new object();
-        private readonly HashSet<cSectionCacheItem> mPendingSectionIdItems = new HashSet<cSectionCacheItem>();
-        private readonly HashSet<cSectionCacheItem> mPendingSectionHandleItems = new HashSet<cSectionCacheItem>();
+        private readonly HashSet<cSectionCacheItem> mPendingItems = new HashSet<cSectionCacheItem>();
 
         // source for numbering cache items
         private int mItemSequence = 7;
@@ -52,15 +54,13 @@ namespace work.bacome.imapclient
             mRootContext = cMailClient.Trace.NewRoot(pInstanceName);
         }
 
-        ;?; // TODO: check context set, parameters validated, maintenance started
-
         public override HashSet<cUID> GetUIDs(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetUIDs), pMailboxId, pUIDValidity);
 
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
 
-            YMaintenanceStart(lContext);
+            YObjectStateCheck(lContext);
 
             var lUIDs = new HashSet<cUID>();
 
@@ -68,8 +68,11 @@ namespace work.bacome.imapclient
 
             lock (mPendingItemsLock)
             {
-                foreach (var lItem in mPendingSectionIdItems) LAddFromUID(lItem.SectionId.MessageUID, lItem);
-                foreach (var lItem in mPendingSectionHandleItems) LAddFromHandle(lItem.SectionHandle.MessageHandle, lItem);
+                foreach (var lItem in mPendingItems)
+                {
+                    if (lItem.SectionHandle == null) LAddFromUID(lItem.SectionId.MessageUID, lItem);
+                    else LAddFromHandle(lItem.SectionHandle.MessageHandle, lItem);
+                }
             }
 
             foreach (var lPair in mSectionHandleToItem) LAddFromHandle(lPair.Key.MessageHandle, lPair.Value);
@@ -95,7 +98,7 @@ namespace work.bacome.imapclient
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
             if (pUID == null) throw new ArgumentNullException(nameof(pUID));
 
-            YMaintenanceStart(lContext);
+            YObjectStateCheck(lContext);
 
             var lMessageUID = new cMessageUID(pMailboxId, pUID);
 
@@ -109,7 +112,7 @@ namespace work.bacome.imapclient
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
             if (pUIDs == null) throw new ArgumentNullException(nameof(pUIDs));
 
-            YMaintenanceStart(lContext);
+            YObjectStateCheck(lContext);
 
             var lMessageUIDs = new List<cMessageUID>(from lUID in pUIDs select new cMessageUID(pMailboxId, lUID));
 
@@ -120,52 +123,66 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(SetMailboxUIDValidity), pMailboxId, pUIDValidity);
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
-            YMaintenanceStart(lContext);
+            YObjectStateCheck(lContext);
             lock (mExpiredLock) { mMailboxToUIDValidity[pMailboxId] = pUIDValidity; }
         }
 
-        public sealed override void Copy(cMailboxId pSourceMailboxId, cMailboxName pDestinationMailboxName, cCopyFeedback pFeedback, cTrace.cContext pParentContext)
+        public override void Copy(cMailboxId pSourceMailboxId, cMailboxName pDestinationMailboxName, cCopyFeedback pFeedback, cTrace.cContext pParentContext)
         {
+            // the sub-class should call this before doing its copy (in case maintenance is assigning keys while this is running)
+            // the sub-class must defend against duplicates being created by any copies it does (due to assigning keys being done and due to another client querying the item)
+            //
+            //  this routine has to defend against indexing running at the same time as it (an item may be seen in the pass through mSectionHandleToItem AND the pass through mSectionIdToItem)
+            //   AND
+            //  this routine has to defend against the copied item already being in cache (due to another client querying it) [in this case delete the item]
+
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(Copy), pSourceMailboxId, pDestinationMailboxName, pFeedback);
 
             if (pSourceMailboxId == null) throw new ArgumentNullException(nameof(pSourceMailboxId));
             if (pDestinationMailboxName == null) throw new ArgumentNullException(nameof(pDestinationMailboxName));
             if (pFeedback == null) throw new ArgumentNullException(nameof(pFeedback));
 
+            YObjectStateCheck(lContext);
+
             if (!YCanCopy) return;
 
-            YMaintenanceStart(lContext);
-
-            var lSectionIdToItemId = new Dictionary<cSectionId, object>();
-
             var lDestinationMailboxId = new cMailboxId(pSourceMailboxId.AccountId, pDestinationMailboxName);
+
+            var lCopiedSectionIds = new HashSet<cSectionId>();
+            var lNewItems = new List<cSectionCacheItem>();
 
             foreach (var lPair in mSectionHandleToItem)
             {
                 var lMessageHandle = lPair.Key.MessageHandle;
                 var lItem = lPair.Value;
 
-                if (!lItem.Indexed && !lItem.Deleted && !lItem.ToBeDeleted && !lMessageHandle.Expunged && lMessageHandle.UID != null && lMessageHandle.MessageCache.MailboxHandle.MailboxId == pSourceMailboxId && pFeedback.TryGetValue(lMessageHandle.UID, out var lCreatedUID))
+                if (!lItem.Indexed && !lItem.Deleted && !lItem.ToBeDeleted && lItem.PersistState != eSectionCachePersistState.persisted && !lMessageHandle.Expunged && lMessageHandle.UID != null && lMessageHandle.MessageCache.MailboxHandle.MailboxId == pSourceMailboxId && pFeedback.TryGetValue(lMessageHandle.UID, out var lCreatedUID))
                 {
                     var lSectionId = new cSectionId(new cMessageUID(lDestinationMailboxId, lCreatedUID), lPair.Key.Section, lPair.Key.Decoding);
-                    lSectionIdToItemId[lSectionId] = lItem.ItemId;
+
+                    if (lItem.TryCopy(lSectionId, out var lNewItem, lContext))
+                    {
+                        lCopiedSectionIds.Add(lItem.SectionId);
+                        lNewItems.Add(lNewItem);
+                    }
                 }
             }
 
             foreach (var lPair in mSectionIdToItem)
             {
+                if (lCopiedSectionIds.Contains(lPair.Key)) continue;
+
                 var lMessageUID = lPair.Key.MessageUID;
                 var lItem = lPair.Value;
 
-                if (!lItem.CameFromCache && !lItem.Deleted && !lItem.ToBeDeleted && lMessageUID.MailboxId == pSourceMailboxId && pFeedback.TryGetValue(lMessageUID.UID, out var lCreatedUID))
+                if (!lItem.Deleted && !lItem.ToBeDeleted && lItem.PersistState != eSectionCachePersistState.persisted && lMessageUID.MailboxId == pSourceMailboxId && pFeedback.TryGetValue(lMessageUID.UID, out var lCreatedUID))
                 {
                     var lSectionId = new cSectionId(new cMessageUID(lDestinationMailboxId, lCreatedUID), lPair.Key.Section, lPair.Key.Decoding);
-                    lSectionIdToItemId[lSectionId] = lItem.ItemId;
+                    if (lItem.TryCopy(lSectionId, out var lNewItem, lContext)) lNewItems.Add(lNewItem);
                 }
             }
 
-            ;?; // trycatch
-            YCopy(pSourceMailboxId, lDestinationMailboxId, pFeedback, lSectionIdToItemId, lContext);
+            foreach (var lItem in lNewItems) if (!mSectionIdToItem.TryAdd(lItem.SectionId, lItem)) lItem.TryDelete(-2, lContext);
         }
 
         protected override HashSet<cMailboxName> YGetMailboxNames(cAccountId pAccountId, cTrace.cContext pParentContext)
@@ -174,7 +191,7 @@ namespace work.bacome.imapclient
 
             if (pAccountId == null) throw new ArgumentNullException(nameof(pAccountId));
 
-            YMaintenanceStart(lContext);
+            YObjectStateCheck(lContext);
 
             var lMailboxNames = new HashSet<cMailboxName>();
 
@@ -182,8 +199,11 @@ namespace work.bacome.imapclient
 
             lock (mPendingItemsLock)
             {
-                foreach (var lItem in mPendingSectionIdItems) LAddFromUID(lItem.SectionId.MessageUID.MailboxId, lItem);
-                foreach (var lItem in mPendingSectionHandleItems) LAddFromHandle(lItem.SectionHandle.MessageHandle, lItem);
+                foreach (var lItem in mPendingItems)
+                {
+                    if (lItem.SectionHandle == null) LAddFromUID(lItem.SectionId.MessageUID.MailboxId, lItem);
+                    else LAddFromHandle(lItem.SectionHandle.MessageHandle, lItem);
+                }
             }
 
             foreach (var lPair in mSectionHandleToItem) LAddFromHandle(lPair.Key.MessageHandle, lPair.Value);
@@ -204,28 +224,31 @@ namespace work.bacome.imapclient
             }
         }
 
-        protected sealed override void YRename(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext)
+        protected override void YRename(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext)
         {
+            // the sub-class should call this before doing its rename (in case maintenance is assigning keys while this is running)
+            // the sub-class must defend against duplicates being created by any renames it does (due to another client querying the item or due to a duplicate entry (one persisted and one in handles: a rename of the handle one and a maintenance run persisting it)
+
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(YRename), pMailboxId, pMailboxName);
 
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
             if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
 
-            YMaintenanceStart(lContext);
+            YObjectStateCheck(lContext);
 
-            var lSectionIdToItemId = new Dictionary<cSectionId, object>();
+            var lDestinationMailboxId = new cMailboxId(pMailboxId.AccountId, pMailboxName);
 
-            var pDestinationMailboxId = new cMailboxId(pMailboxId.AccountId, pMailboxName);
+            var lRenamedItems = new List<cSectionCacheItem>();
 
             foreach (var lPair in mSectionHandleToItem)
             {
                 var lMessageHandle = lPair.Key.MessageHandle;
                 var lItem = lPair.Value;
 
-                if (!lItem.Indexed && !lItem.Deleted && !lItem.ToBeDeleted && !lMessageHandle.Expunged && lMessageHandle.UID != null && lMessageHandle.MessageCache.MailboxHandle.MailboxId == pMailboxId)
+                if (!lItem.Indexed && !lItem.Deleted && !lItem.ToBeDeleted && lItem.PersistState != eSectionCachePersistState.persisted && !lMessageHandle.Expunged && lMessageHandle.UID != null && lMessageHandle.MessageCache.MailboxHandle.MailboxId == pMailboxId)
                 {
-                    var lSectionId = new cSectionId(new cMessageUID(pDestinationMailboxId, lMessageHandle.UID), lPair.Key.Section, lPair.Key.Decoding);
-                    lSectionIdToItemId[lSectionId] = lItem.ItemId;
+                    var lSectionId = new cSectionId(new cMessageUID(lDestinationMailboxId, lMessageHandle.UID), lPair.Key.Section, lPair.Key.Decoding);
+                    if (lItem.TryRename(lSectionId, lContext)) lRenamedItems.Add(lItem);
                 }
             }
 
@@ -234,17 +257,15 @@ namespace work.bacome.imapclient
                 var lMessageUID = lPair.Key.MessageUID;
                 var lItem = lPair.Value;
 
-                if (!lItem.CameFromCache && !lItem.Deleted && !lItem.ToBeDeleted && lMessageUID.MailboxId == pMailboxId)
+                if (!lItem.Deleted && !lItem.ToBeDeleted && lItem.PersistState != eSectionCachePersistState.persisted && lMessageUID.MailboxId == pMailboxId)
                 {
-                    var lSectionId = new cSectionId(new cMessageUID(pDestinationMailboxId, lMessageUID.UID), lPair.Key.Section, lPair.Key.Decoding);
-                    lSectionIdToItemId[lSectionId] = lItem.ItemId;
+                    var lSectionId = new cSectionId(new cMessageUID(lDestinationMailboxId, lMessageUID.UID), lPair.Key.Section, lPair.Key.Decoding);
+                    if (lItem.TryRename(lSectionId, lContext)) lRenamedItems.Add(lItem);
                 }
             }
 
-            ;?;
-            YRename(pMailboxId, pDestinationMailboxId, lSectionIdToItemId, lContext);
+            foreach (var lItem in lRenamedItems) if (!mSectionIdToItem.TryAdd(lItem.SectionId, lItem)) lItem.TryDelete(-2, lContext);
         }
-
 
         // asks the cache to create a new item
         //
@@ -252,29 +273,16 @@ namespace work.bacome.imapclient
 
         public bool IsDisposed => mDisposed || mDisposing;
 
-        // asks the cache to return and item for the section if it has one, this default implementation never returns an item 
+        protected virtual bool YCanCopy => false;
+        protected virtual bool YCanPersist => false;
+
+        // asks the cache to return an item for the section if it has one, this default implementation never returns an item 
         //
         protected virtual bool YTryGetExistingItem(cSectionId pSectionId, out cSectionCacheItem rItem, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(YTryGetExistingItem), pSectionId);
             rItem = null;
             return false;
-        }
-
-        protected virtual bool YCanCopy => false;
-
-        // asks the cache to copy items if it can, this default implementation does nothing
-        //
-        protected virtual void YCopy(cMailboxId pSourceMailboxId, cMailboxId pDestinationMailboxId, cCopyFeedback pFeedback, Dictionary<cSectionId, object> pForNewItemsTheNewSectionIdToTheItemIdToCopy, cTrace.cContext pParentContext)
-        {
-            ;?;
-        }
-
-        // asks the cache to rename items if it can, this default implementation does nothing
-        //
-        protected virtual void YRename(cMailboxId pSourceMailboxId, cMailboxId pDestinationMailboxId, Dictionary<cSectionId, object> pForNewItemsTheNewSectionIdToTheItemIdToRename, cTrace.cContext pParentContext)
-        {
-            ;?;
         }
 
         // gives the cache a chance to do time consuming maintenance
@@ -284,11 +292,15 @@ namespace work.bacome.imapclient
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(YMaintenance), pFinal, pData);
         }
 
-        // makes sure that the maintenance task is running
-        //
-        protected void YMaintenanceStart(cTrace.cContext pParentContext)
+        protected void YObjectStateCheck(cTrace.cContext pParentContext)
         {
-            if (mMaintenanceTask != null) return;
+            if (mDisposed || mDisposing) throw new ObjectDisposedException(nameof(cSectionCache));
+
+            if (mMaintenanceTask != null)
+            {
+                if (mMaintenanceTask.IsCompleted) throw new cSectionCacheException("the maintenance task has stopped", mMaintenanceTask.Exception, pParentContext);
+                return;
+            }
 
             lock (mMaintenanceStartLock)
             {
@@ -306,92 +318,118 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemLength), pSectionId);
 
-            if (IsDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
-            if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext, 1);
-            if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
-
             if (pSectionId == null) throw new ArgumentNullException(nameof(pSectionId));
 
-            if (mSectionIdToItem.TryGetValue(pSectionId, out var lItem))
+            YObjectStateCheck(lContext);
+
+            cSectionCacheItem lItem;
+
+            if (mSectionIdToItem.TryGetValue(pSectionId, out lItem))
             {
                 rLength = lItem.Length;
                 return true;
             }
 
-            ;?; // try/catch
-            if (TryGetExistingItem(pSectionId, out var lExistingItem, lContext))
+            try
             {
-                if (lExistingItem == null || !lExistingItem.Cached) throw new cUnexpectedSectionCacheActionException(lContext, 2);
-
-                mSectionIdToItem.TryAdd(pSectionId, lExistingItem);
-                rLength = lExistingItem.Length;
-                return true;
+                if (!YTryGetExistingItem(pSectionId, out lItem, lContext))
+                {
+                    rLength = -1;
+                    return false;
+                }
+            }
+            catch (Exception e)
+            {
+                lContext.TraceException(nameof(YTryGetExistingItem), e);
+                rLength = -1;
+                return false;
             }
 
-            rLength = -1;
-            return false;
+            if (lItem == null || lItem.Cache != this || !lItem.Cached || lItem.PersistState != eSectionCachePersistState.persisted) throw new cUnexpectedSectionCacheActionException(lContext);
+
+            mSectionIdToItem.TryAdd(pSectionId, lItem);
+
+            rLength = lItem.Length;
+            return true;
         }
 
         internal bool TryGetItemReader(cSectionId pSectionId, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemReader), pSectionId);
 
-            if (IsDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
-            if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext, 1);
-            if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
+            if (pSectionId == null) throw new ArgumentNullException(nameof(pSectionId));
 
-            if (pKey == null) throw new ArgumentNullException(nameof(pKey));
+            YObjectStateCheck(lContext);
 
             while (true)
             {
-                cSectionCacheItem lPKItem = null;
+                if (mSectionIdToItem.TryGetValue(pSectionId, out var lMyItem)) if (lMyItem.TryGetReader(out rReader, lContext)) return true;
 
-                if (mPersistentKeyItems.TryGetValue(pKey, out lPKItem)) if (lPKItem.TryGetReader(out rReader, lContext)) return true;
+                cSectionCacheItem lExistingItem;
 
-                ;?;// try/catch
-                if (!TryGetExistingItem(pKey, out var lExistingItem, lContext))
+                try
+                {
+                    if (!YTryGetExistingItem(pSectionId, out lExistingItem, lContext))
+                    {
+                        rReader = null;
+                        return false;
+                    }
+                }
+                catch (Exception e)
+                {
+                    lContext.TraceException(nameof(YTryGetExistingItem), e);
+                    rReader = null;
+                    return false;
+                }
+
+                if (lExistingItem == null || lExistingItem.Cache != this || !lExistingItem.Cached || lExistingItem.PersistState != eSectionCachePersistState.persisted) throw new cUnexpectedSectionCacheActionException(lContext);
+
+                if (lExistingItem.ItemId.Equals(lMyItem.ItemId))
                 {
                     rReader = null;
                     return false;
                 }
 
-                if (lExistingItem == null || !lExistingItem.Cached) throw new cUnexpectedSectionCacheActionException(lContext, 2);
-
-                if (lExistingItem.ItemId == lPKItem.ItemId)
-                {
-                    rReader = null;
-                    return false;
-                }
-
-                if (lPKItem == null) mPersistentKeyItems.TryAdd(pKey, lExistingItem);
-                else mPersistentKeyItems.TryUpdate(pKey, lExistingItem, lPKItem);
+                if (lMyItem == null) mSectionIdToItem.TryAdd(pSectionId, lExistingItem);
+                else mSectionIdToItem.TryUpdate(pSectionId, lExistingItem, lMyItem);
             }
         }
 
-        internal cSectionCacheItem GetNewItem(cSectionId pKey, cTrace.cContext pParentContext)
+        internal bool TryGetNewItem(cSectionId pSectionId, bool pUIDNotSticky, out cSectionCacheItem rNewItem, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetNewItem), pKey);
-            if (IsDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
-            if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext);
-            if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
-            var lItem = YGetNewItem(pKey.MessageId.MailboxId, lContext);
-            if (lItem == null || !lItem.CanGetReaderWriter) throw new cUnexpectedSectionCacheActionException(lContext);
-            lItem.SetKey(pKey);
-            lock (mPendingItemsLock) { mPendingPersistentKeyItems.Add(lItem); }
-            return lItem;
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetNewItem), pSectionId, pUIDNotSticky);
+
+            if (pSectionId == null) throw new ArgumentNullException(nameof(pSectionId));
+
+            YObjectStateCheck(lContext);
+
+            try { rNewItem = YGetNewItem(pSectionId.MessageUID.MailboxId, pSectionId.MessageUID.UID.UIDValidity, pUIDNotSticky, lContext); }
+            catch (Exception e)
+            {
+                lContext.TraceException(e);
+                rNewItem = null;
+                return false;
+            }
+
+            if (rNewItem == null || rNewItem.Cache != this || !rNewItem.CanGetReaderWriter) throw new cUnexpectedSectionCacheActionException(lContext);
+
+            rNewItem.SetSectionId(pSectionId, lContext);
+
+            lock (mPendingItemsLock) { mPendingItems.Add(rNewItem); }
+
+            return true;
         }
 
-        internal bool TryGetItemLength(cSectionHandle pKey, out long rLength, cTrace.cContext pParentContext)
+        internal bool TryGetItemLength(cSectionHandle pSectionHandle, out long rLength, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemLength), pKey);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemLength), pSectionHandle);
 
-            if (IsDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
-            if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext);
-            if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
+            if (pSectionHandle == null) throw new ArgumentNullException(nameof(pSectionHandle));
+            if (pSectionHandle.MessageHandle.Expunged) throw new cMessageExpungedException(pSectionHandle.MessageHandle);
 
-            if (pKey == null) throw new ArgumentNullException(nameof(pKey));
+            YObjectStateCheck(lContext);
 
-            if (mNonPersistentKeyItems.TryGetValue(pKey, out var lItem))
+            if (mSectionHandleToItem.TryGetValue(pSectionHandle, out var lItem))
             {
                 rLength = lItem.Length;
                 return true;
@@ -401,82 +439,92 @@ namespace work.bacome.imapclient
             return false;
         }
 
-        internal bool TryGetItemReader(cSectionHandle pKey, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
+        internal bool TryGetItemReader(cSectionHandle pSectionHandle, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemReader), pKey);
-            if (IsDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
-            if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext);
-            if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
-            if (pKey == null) throw new ArgumentNullException(nameof(pKey));
-            if (mNonPersistentKeyItems.TryGetValue(pKey, out var lItem)) return lItem.TryGetReader(out rReader, lContext);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemReader), pSectionHandle);
+
+            if (pSectionHandle == null) throw new ArgumentNullException(nameof(pSectionHandle));
+            if (pSectionHandle.MessageHandle.Expunged) throw new cMessageExpungedException(pSectionHandle.MessageHandle);
+
+            YObjectStateCheck(lContext);
+
+            if (mSectionHandleToItem.TryGetValue(pSectionHandle, out var lItem)) return lItem.TryGetReader(out rReader, lContext);
+
             rReader = null;
             return false;
         }
 
-        internal cSectionCacheItem GetNewItem(cSectionHandle pKey, cTrace.cContext pParentContext)
+        internal bool TryGetNewItem(cSectionHandle pSectionHandle, out cSectionCacheItem rNewItem, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetNewItem), pKey);
-            if (IsDisposed) throw new ObjectDisposedException(nameof(cSectionCache));
-            if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext);
-            if (mBackgroundTask.IsCompleted) throw new cSectionCacheException("background task has stopped", mBackgroundTask.Exception, lContext);
-            var lItem = YGetNewItem(pKey.MailboxId, lContext);
-            if (lItem == null || !lItem.CanGetReaderWriter) throw new cUnexpectedSectionCacheActionException(lContext);
-            lItem.SetKey(pKey);
-            lock (mPendingItemsLock) { mPendingNonPersistentKeyItems.Add(lItem); }
-            return lItem;
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetNewItem), pSectionHandle);
+
+            if (pSectionHandle == null) throw new ArgumentNullException(nameof(pSectionHandle));
+            if (pSectionHandle.MessageHandle.Expunged) throw new cMessageExpungedException(pSectionHandle.MessageHandle);
+
+            YObjectStateCheck(lContext);
+
+            var lMailboxHandle = pSectionHandle.MessageHandle.MessageCache.MailboxHandle;
+
+            try { rNewItem = YGetNewItem(lMailboxHandle.MailboxId, lMailboxHandle.MailboxStatus?.UIDValidity ?? 0, lMailboxHandle.SelectedProperties.UIDNotSticky ?? true, lContext); }
+            catch (Exception e)
+            {
+                lContext.TraceException(e);
+                rNewItem = null;
+                return false;
+            }
+
+            if (rNewItem == null || rNewItem.Cache != this || !rNewItem.CanGetReaderWriter) throw new cUnexpectedSectionCacheActionException(lContext);
+
+            rNewItem.SetSectionHandle(pSectionHandle, lContext);
+
+            lock (mPendingItemsLock) { mPendingItems.Add(rNewItem); }
+
+            return true;
         }
 
-        internal void AddItem(cSectionCacheItem pItem, cTrace.cContext pParentContext)
+        internal void TryAddItem(cSectionCacheItem pItem, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(AddItem), pItem);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryAddItem), pItem);
 
             if (pItem == null) throw new ArgumentNullException(nameof(pItem));
-            if (pItem.Cache != this || pItem.Cached || (pItem.PersistentKey == null && pItem.NonPersistentKey == null)) throw new ArgumentOutOfRangeException(nameof(pItem));
+            if (!mPendingItems.Contains(pItem)) throw new ArgumentOutOfRangeException(nameof(pItem));
 
-            if (IsDisposed) return;
-            if (mBackgroundTask == null) throw new cUnexpectedSectionCacheActionException(lContext);
-            if (mBackgroundTask.IsCompleted) return;
+            YObjectStateCheck(lContext);
 
-            ;?; // note that the remove has to be done: NO RETURNS!
+            bool lTryAddItem = !pItem.Deleted && !pItem.ToBeDeleted;
 
-            if (!pItem.Deleted && !pItem.ToBeDeleted) // these will be set by maintenance if it discovers that the item has been expunged or the UIDValidity has changed
+            if (lTryAddItem && pItem.SectionHandle != null)
             {
-                if (pItem.NonPersistentKey != null)
+                var lMessageHandle = pItem.SectionHandle.MessageHandle;
+
+                if (lMessageHandle.Expunged) lTryAddItem = false;
+                else if (lMessageHandle.UID == null && !ReferenceEquals(pItem.SectionHandle.Client.SelectedMailboxDetails?.MessageCache, lMessageHandle.MessageCache)) lTryAddItem = false;
+            }
+
+            if (lTryAddItem)
+            { 
+                var lSectionId = pItem.SectionId;
+
+                if (lSectionId == null)
                 {
-                    pItem.TrySetPersistentKey();
-
-                    var lMessageHandle = pItem.NonPersistentKey.MessageHandle;
-                    if (lMessageHandle.Expunged) return; ;?; // NONONONO
-
-                    if (pItem.PersistentKey == null)
+                    if (mSectionHandleToItem.TryGetValue(pItem.SectionHandle, out var lItem))
                     {
-                        var lClient = pItem.NonPersistentKey.Client;
-                        if (!ReferenceEquals(lMessageHandle.MessageCache, lClient.SelectedMailboxDetails?.MessageCache)) return;
+                        if (!lItem.TryTouch(lContext) && mSectionHandleToItem.TryUpdate(pItem.SectionHandle, pItem, lItem)) pItem.SetCached(lContext);
                     }
-                }
-
-                if (pItem.PersistentKey == null)
-                {
-                    if (mNonPersistentKeyItems.TryGetValue(pItem.NonPersistentKey, out var lNPKItem))
-                    {
-                        if (!lNPKItem.TryTouch(lContext) && mNonPersistentKeyItems.TryUpdate(pItem.NonPersistentKey, pItem, lNPKItem)) pItem.SetCached(lContext);
-                    }
-                    else if (mNonPersistentKeyItems.TryAdd(pItem.NonPersistentKey, pItem)) pItem.SetCached(lContext);
+                    else if (mSectionHandleToItem.TryAdd(pItem.SectionHandle, pItem)) pItem.SetCached(lContext);
                 }
                 else
                 {
-                    if (mPersistentKeyItems.TryGetValue(pItem.PersistentKey, out var lPKItem))
+                    if (mSectionIdToItem.TryGetValue(lSectionId, out var lItem))
                     {
-                        if (!lPKItem.TryTouch(lContext) && mPersistentKeyItems.TryUpdate(pItem.PersistentKey, pItem, lPKItem)) pItem.SetCached(lContext);
+                        if (!lItem.TryTouch(lContext) && mSectionIdToItem.TryUpdate(lSectionId, pItem, lItem)) pItem.SetCached(lContext);
                     }
-                    else if (mPersistentKeyItems.TryAdd(pItem.PersistentKey, pItem)) pItem.SetCached(lContext);
+                    else if (mSectionIdToItem.TryAdd(lSectionId, pItem)) pItem.SetCached(lContext);
                 }
             }
 
-            ;?; // remove from the right one;?;
-            lock (mPendingLock) { mPendingNewItems.Remove(pItem); }
+            mPendingItems.Remove(pItem);
         }
-
 
         private async Task ZMaintenanceAsync(cTrace.cContext pParentContext)
         {
@@ -498,45 +546,101 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewRootMethod(nameof(cSectionCache), nameof(ZMaintenance));
 
-            // take a copy and replace the sets that tell us about expired items
+            var lItemsToDelete = new HashSet<cSectionCacheItem>();
 
-            HashSet<iMessageHandle> lExpungedMessageHandles;
-            Dictionary<cMailboxId, long> lUIDValiditiesDiscovered;
+            HashSet<cMessageUID> lExpungedMessages;
+            Dictionary<cMailboxId, long> lMailboxToUIDValidity;
 
             lock (mExpiredLock)
             {
-                lExpungedMessageHandles = mExpunged;
-                mExpunged = new HashSet<iMessageHandle>();
-                lUIDValiditiesDiscovered = mUIDValiditiesDiscovered;
-                mUIDValiditiesDiscovered = new Dictionary<cMailboxId, uint>();
+                lExpungedMessages = mExpungedMessages;
+                mExpungedMessages = new HashSet<cMessageUID>();
+                lMailboxToUIDValidity = mMailboxToUIDValidity;
+                mMailboxToUIDValidity = new Dictionary<cMailboxId, long>();
             }
-
-            HashSet<cMessageUID> lExpungedMessageUIDs = new HashSet<cMessageUID>();
-            foreach (var lMessageHandle in mExpungedMessageHandles) if (lMessageHandle.UID != null) lExpungedMessageUIDs.Add(new cMessageUID(lMessageHandle.MessageCache.MailboxHandle.MailboxId, lMessageHandle.UID));
-
-            // check if any pending items should be canned
-
-            HashSet<cSectionCacheItem> lPendingPersistentKeyItems;
-            HashSet<cSectionCacheItem> lPendingNonPersistentKeyItems;
 
             lock (mPendingItemsLock)
             {
-                lPendingPersistentKeyItems = new HashSet<cSectionCacheItem>(mPendingPersistentKeyItems);
-                lPendingNonPersistentKeyItems = new HashSet<cSectionCacheItem>(mPendingNonPersistentKeyItems);
+                foreach (var lItem in mPendingItems)
+                {
+                    if (lItem.Deleted || lItem.ToBeDeleted) continue;
+
+                    if (lItem.SectionId != null)
+                    {
+                        var lMessageUID = lItem.SectionId.MessageUID;
+                        if (lExpungedMessages.Contains(lMessageUID)) lItemsToDelete.Add(lItem);
+                        else if (lMailboxToUIDValidity.TryGetValue(lMessageUID.MailboxId, out var lUIDValidity) && lMessageUID.UID.UIDValidity != lUIDValidity) lItemsToDelete.Add(lItem);
+                    }
+                }
             }
 
-            foreach (var lItem in lPendingPersistentKeyItems)
+            foreach (var lPair in mSectionHandleToItem)
             {
-                var lMessageId = lItem.PersistentKey.MessageId;
-                if (lExpungedMessageIds.Contains(lMessageId) || (lUIDValiditiesDiscovered.TryGetValue(lMessageId.MailboxId, out var lUIDValidity) && lMessageId.UID.UIDValidity != lUIDValidity)) lItem.TryDelete(-2, lContext);
-            }
+                var lItem = lPair.Value;
 
-            foreach (var lItem in lPendingNonPersistentKeyItems)
-            {
+                if (lItem.Deleted || lItem.ToBeDeleted) continue;
+
+                var lMessageHandle = lPair.Key.MessageHandle;
+
+                if (lMessageHandle.Expunged)
+                {
+                    lItemsToDelete.Add(lItem);
+                    continue;
+                }
+
+                if (lItem.Indexed) continue;
+
+                if (lMessageHandle.UID == null) 
+                {
+                    if (!ReferenceEquals(lItem.SectionHandle.Client.SelectedMailboxDetails?.MessageCache, lMessageHandle.MessageCache))
+                    {
+                        lItemsToDelete.Add(lItem);
+                        continue;
+                    }
+
+                    ;?;
+                }
+                else
+                {
+                    // check for uidvalidity and uid
+
+                    // if it is a duplicate, delete it
+
+                    // index it
+                }
+
                 ;?;
-                var lMessageHandle = lItem.NonPersistentKey.MessageHandle;
-                if (lExpungedMessageHandles.Contains(lMessageHandle) || (lUIDValiditiesDiscovered.TryGetValue(lMessageId.MailboxId, out var lUIDValidity) && lMessageId.UID.UIDValidity != lUIDValidity)) lItem.TryDelete(-2, lContext);
             }
+
+            // collect duplicate items for deletion
+
+            ;?;
+
+            // delete
+
+            ;?;
+
+            // index items
+
+            ;?;
+
+            // trypersist
+
+            ;?;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             ;?; // build the maintenance info that we are going to use this time from the synchronised queues
 
@@ -584,6 +688,7 @@ namespace work.bacome.imapclient
 
                 if (mPersistentKeyItems.TryGetValue(lNPKItem.GetPersistentKey(), out var lPKItem))
                 {
+                    ;?; // equals
                     if (lPKItem.ItemId == lNPKItem.ItemId) lNPKItem.SetIndexed(lContext);
                     else
                     {

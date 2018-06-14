@@ -7,7 +7,6 @@ namespace work.bacome.imapclient
     public abstract class cSectionCacheItem
     {
         protected enum eItemState { deleted, exists }
-        protected internal enum eSectionIdRecordState { notrecorded, cannotberecorded, recorded }
 
         private readonly object mLock = new object();
 
@@ -18,7 +17,7 @@ namespace work.bacome.imapclient
         private long mLength;
         private bool mCanGetReaderWriter;
         private bool mCached;
-        private eSectionIdRecordState mSectionIdRecordState;
+        private eSectionCachePersistState mPersistState;
 
         // incremented when something significant changes about the cache item that should stop it from being deleted if the change wasn't taken into account by the decision to delete
         private int mChangeSequence = 0;
@@ -42,7 +41,7 @@ namespace work.bacome.imapclient
             mLength = pLength;
             mCanGetReaderWriter = false;
             mCached = true;
-            mSectionIdRecordState = eSectionIdRecordState.recorded;
+            mPersistState = eSectionCachePersistState.persisted;
         }
 
         public cSectionCacheItem(cSectionCache pCache, object pItemId, Stream pReadWriteStream, uint pUIDValidity, bool pUIDNotSticky)
@@ -56,8 +55,22 @@ namespace work.bacome.imapclient
             mCanGetReaderWriter = true;
             mCached = false;
 
-            if (pUIDValidity == 0 || pUIDNotSticky) mSectionIdRecordState = eSectionIdRecordState.cannotberecorded;
-            else mSectionIdRecordState = eSectionIdRecordState.notrecorded;
+            if (pUIDValidity == 0 || pUIDNotSticky) mPersistState = eSectionCachePersistState.cannotbepersisted;
+            else mPersistState = eSectionCachePersistState.notpersisted;
+        }
+
+        public cSectionCacheItem(cSectionCacheItem pItemToCopy, object pItemId)
+        {
+            if (pItemToCopy == null) throw new ArgumentNullException(nameof(pItemToCopy));
+            if (pItemToCopy.PersistState == eSectionCachePersistState.persisted) throw new ArgumentOutOfRangeException(nameof(pItemToCopy));
+            Cache = pItemToCopy.Cache;
+            ItemSequence = pItemToCopy.Cache.GetItemSequence();
+            ItemId = pItemId ?? throw new ArgumentNullException(nameof(pItemId));
+            mReadWriteStream = null;
+            mLength = pItemToCopy.Length;
+            mCanGetReaderWriter = false;
+            mCached = true;
+            mPersistState = pItemToCopy.mPersistState;
         }
 
         internal void SetSectionId(cSectionId pSectionId, cTrace.cContext pParentContext)
@@ -85,10 +98,16 @@ namespace work.bacome.imapclient
             return eItemState.exists;
         }
 
-        protected virtual eSectionIdRecordState YTryRecordSectionId(bool pItemClosed, cSectionId pSectionId, cTrace.cContext pParentContext)
+        protected virtual eSectionCachePersistState YTryPersist(bool pItemClosed, cSectionId pSectionId, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(YTryRecordSectionId), pItemClosed, pSectionId);
-            return eSectionIdRecordState.cannotberecorded;
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(YTryPersist), pItemClosed, pSectionId);
+            return eSectionCachePersistState.cannotbepersisted;
+        }
+
+        protected virtual cSectionCacheItem YCopy(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(YCopy));
+            return null;
         }
 
         protected internal bool TryDelete(int pChangeSequence, cTrace.cContext pParentContext)
@@ -148,14 +167,60 @@ namespace work.bacome.imapclient
         internal long Length => mLength;
         internal bool CanGetReaderWriter => mCanGetReaderWriter;
         internal bool Cached => mCached;
-        internal eSectionIdRecordState SectionIdRecordState => mSectionIdRecordState;
+        internal eSectionCachePersistState PersistState => mPersistState;
         internal bool Deleted => mDeleted;
         internal bool ToBeDeleted => mToBeDeleted;
         internal bool Indexed => mIndexed;
-        internal cSectionId SectionId => mSectionId;
+
+        internal cSectionId SectionId
+        {
+            get
+            {
+                if (mSectionId != null) return mSectionId;
+                if (mSectionHandle == null || mSectionHandle.MessageHandle.UID == null) return null;
+                mSectionId = new cSectionId(new cMessageUID(mSectionHandle.MessageHandle.MessageCache.MailboxHandle.MailboxId, mSectionHandle.MessageHandle.UID), mSectionHandle.Section, mSectionHandle.Decoding);
+                return mSectionId;
+            }
+        }
+
         internal cSectionHandle SectionHandle => mSectionHandle;
 
-        internal bool CameFromCache => mReadWriteStream == null;
+        internal bool TryCopy(cSectionId pSectionId, out cSectionCacheItem rNewItem, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(TryCopy));
+
+            lock (mLock)
+            {
+                if (!mCached) throw new InvalidOperationException();
+                if (mPersistState == eSectionCachePersistState.persisted) { rNewItem = null; return false; }
+
+                try { rNewItem = YCopy(lContext); }
+                catch (Exception e)
+                {
+                    lContext.TraceException(e);
+                    rNewItem = null;
+                    return false;
+                }
+
+                if (rNewItem == null || rNewItem.Cache != Cache || rNewItem.mReadWriteStream != null || rNewItem.mLength != mLength || !rNewItem.mCached || rNewItem.mPersistState != mPersistState) throw new cUnexpectedSectionCacheActionException(lContext);
+                rNewItem.mSectionId = pSectionId;
+
+                return true;
+            }
+        }
+
+        internal bool TryRename(cSectionId pSectionId, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(TryRename), pSectionId);
+
+            lock (mLock)
+            {
+                if (!mCached) throw new InvalidOperationException();
+                if (mPersistState == eSectionCachePersistState.persisted) return false;
+                mSectionId = pSectionId;
+                return true;
+            }
+        }
 
         internal cSectionCacheItemReaderWriter GetReaderWriter(cTrace.cContext pParentContext)
         {
@@ -187,18 +252,18 @@ namespace work.bacome.imapclient
                 mLength = mReadWriteStream.Length;
                 mCached = true;
 
-                ZTryRecordSectionId(lContext);
+                ZTryPersist(lContext);
             }
         }
 
-        internal void TryRecordSectionId(cTrace.cContext pParentContext)
+        internal void TryPersist(cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(TryRecordSectionId));
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(TryPersist));
 
             lock (mLock)
             {
                 if (!mCached) throw new InvalidOperationException();
-                ZTryRecordSectionId(lContext);
+                ZTryPersist(lContext);
             }
         }
 
@@ -279,7 +344,7 @@ namespace work.bacome.imapclient
             {
                 if (mDeleted || --mOpenStreamCount != 0) return;
 
-                if (!mCached || mToBeDeleted || (Cache.IsDisposed && mSectionIdRecordState != eSectionIdRecordState.recorded))
+                if (!mCached || mToBeDeleted || (Cache.IsDisposed && mPersistState != eSectionCachePersistState.persisted))
                 {
                     lContext.TraceVerbose("item closed but either; not cached or, marked as to-be-deleted or, cache is disposed and sectionid hasn't been recorded");
 
@@ -298,23 +363,23 @@ namespace work.bacome.imapclient
                     return;
                 }
 
-                ZTryRecordSectionId(lContext);
+                ZTryPersist(lContext);
                 ZTryTouch(lContext);
             }
         }
 
-        private void ZTryRecordSectionId(cTrace.cContext pParentContext)
+        private void ZTryPersist(cTrace.cContext pParentContext)
         {
             // must be called inside the lock
 
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(ZTryRecordSectionId));
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(ZTryPersist));
 
-            if (mDeleted || mToBeDeleted || mSectionIdRecordState != eSectionIdRecordState.notrecorded) return;
+            if (mDeleted || mToBeDeleted || mPersistState != eSectionCachePersistState.notpersisted) return;
 
             if (mSectionHandle != null && mSectionHandle.MessageHandle.Expunged)
             {
                 lContext.TraceVerbose("marking as cannotberecorded because it is expunged");
-                mSectionIdRecordState = eSectionIdRecordState.cannotberecorded;
+                mPersistState = eSectionCachePersistState.cannotbepersisted;
                 return;
             }
 
@@ -327,13 +392,13 @@ namespace work.bacome.imapclient
 
             try
             {
-                mSectionIdRecordState = YTryRecordSectionId(mOpenStreamCount == 0, SectionId, lContext);
-                if (mSectionIdRecordState == eSectionIdRecordState.recorded) mChangeSequence++;
+                mPersistState = YTryPersist(mOpenStreamCount == 0, SectionId, lContext);
+                if (mPersistState == eSectionCachePersistState.persisted) mChangeSequence++;
             }
             catch (Exception e)
             {
                 lContext.TraceException("marking as cannotberecorded because of tryrecordsectionid failure", e);
-                mSectionIdRecordState = eSectionIdRecordState.cannotberecorded;
+                mPersistState = eSectionCachePersistState.cannotbepersisted;
             }
         }
 
