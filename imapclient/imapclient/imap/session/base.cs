@@ -163,7 +163,6 @@ namespace work.bacome.imapclient
                 {
                     if (pConnectionState == _ConnectionState) return;
                     if (_ConnectionState == eIMAPConnectionState.disconnected) return;
-                    if (_ConnectionState == eIMAPConnectionState.selected) mMailboxCache.Unselect(lContext);
 
                     lIsUnconnected = IsUnconnected;
                     lIsConnected = IsConnected;
@@ -246,6 +245,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(Disconnect));
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 mPipeline.RequestStop(lContext);
+                if (mMailboxCache != null) mMailboxCache.Unselect(lContext);
                 ZSetState(eIMAPConnectionState.disconnected, lContext);
             }
 
@@ -254,6 +254,7 @@ namespace work.bacome.imapclient
                 // called by the command pipeline when the background task exits
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZDisconnected));
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                if (mMailboxCache != null) mMailboxCache.Unselect(lContext);
                 ZSetState(eIMAPConnectionState.disconnected, lContext);
             }
 

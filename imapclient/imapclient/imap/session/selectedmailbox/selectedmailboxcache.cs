@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
                 private ulong mHighestModSeq;
                 private ulong mPendingHighestModSeq = 0;
 
-                public cSelectedMailboxCache(cIMAPCallbackSynchroniser pSynchroniser, Action<cMailboxId, cUID, cTrace.cContext> pMessageExpunged, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, uint pHighestModSeq, cTrace.cContext pParentContext)
+                public cSelectedMailboxCache(cIMAPCallbackSynchroniser pSynchroniser, Action<cMailboxId, cUID, cTrace.cContext> pMessageExpunged, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, ulong pHighestModSeq, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cSelectedMailboxCache), pMailboxCacheItem, pUIDValidity, pMessageCount, pRecentCount, pUIDNext, pHighestModSeq);
 
@@ -348,7 +348,7 @@ namespace work.bacome.imapclient
                     ZSetMailboxStatus(lContext);
                 }
 
-                private void ZHighestModSeq(uint pHighestModSeq, cTrace.cContext pParentContext)
+                private void ZHighestModSeq(ulong pHighestModSeq, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ZHighestModSeq), pHighestModSeq);
                     mPendingHighestModSeq = pHighestModSeq;

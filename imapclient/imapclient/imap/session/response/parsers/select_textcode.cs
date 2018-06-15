@@ -93,7 +93,7 @@ namespace work.bacome.imapclient
                             {
                                 cBytesCursor lCursor = new cBytesCursor(pArguments);
 
-                                if (lCursor.GetNZNumber(out _, out var lNumber) && lCursor.Position.AtEnd)
+                                if (lCursor.GetNumber(out var lNumber) && lNumber > 0 && lCursor.Position.AtEnd)
                                 {
                                     rResponseData = new cResponseDataHighestModSeq(lNumber);
                                     return true;

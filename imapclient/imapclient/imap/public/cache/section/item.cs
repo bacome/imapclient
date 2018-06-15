@@ -202,7 +202,7 @@ namespace work.bacome.imapclient
                     return false;
                 }
 
-                if (rNewItem == null || rNewItem.Cache != Cache || rNewItem.mReadWriteStream != null || rNewItem.mLength != mLength || !rNewItem.mCached || rNewItem.mPersistState != mPersistState) throw new cUnexpectedSectionCacheActionException(lContext);
+                if (rNewItem == null || rNewItem.Cache != Cache || rNewItem.mReadWriteStream != null || rNewItem.mLength != mLength || !rNewItem.mCached || rNewItem.mPersistState != mPersistState || rNewItem.Deleted || rNewItem.ToBeDeleted) throw new cUnexpectedSectionCacheActionException(lContext);
                 rNewItem.mSectionId = pSectionId;
 
                 return true;

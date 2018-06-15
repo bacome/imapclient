@@ -25,7 +25,6 @@ namespace work.bacome.imapclient
                 private readonly ConcurrentDictionary<string, cMailboxCacheItem> mDictionary = new ConcurrentDictionary<string, cMailboxCacheItem>();
 
                 private int mSequence = 7;
-                private cHeaderCache mHeaderCache = null;
                 private cSelectedMailbox mSelectedMailbox = null;
 
                 public cMailboxCache(cIMAPCallbackSynchroniser pSynchroniser, Action<cMailboxId, cUID, cTrace.cContext> pMessageExpunged, Action<cMailboxId, long, cTrace.cContext> pSetMailboxUIDValidity, fMailboxCacheDataItems pMailboxCacheDataItems, cCommandPartFactory pCommandPartFactory, cIMAPCapabilities pCapabilities, cAccountId pAccountId, Action<eIMAPConnectionState, cTrace.cContext> pSetState)
@@ -178,10 +177,8 @@ namespace work.bacome.imapclient
 
                     if (mSelectedMailbox == null) return;
 
-                    if (mHeaderCache != null)
-                    {
-                        // TODO: get the data from the selected mailbox merged with the original data (if there is/was any) and give it to the headercache
-                    }
+                    // this is where the cacheintegration goes for qresync
+                    //  assemble a package of data: uidvalidity, highestmodseq and all messagehandles with a uid and pass it to the cacheintegration layer
 
                     var lMailboxHandle = mSelectedMailbox.MailboxHandle;
 
@@ -189,7 +186,6 @@ namespace work.bacome.imapclient
                     if (mSelectedMailbox.SelectedForUpdate) lProperties |= fMailboxProperties.isselectedforupdate;
                     if (mSelectedMailbox.AccessReadOnly) lProperties |= fMailboxProperties.isaccessreadonly;
 
-                    mHeaderCache = null;
                     mSelectedMailbox = null;
 
                     mSetState(eIMAPConnectionState.notselected, lContext);
@@ -197,9 +193,9 @@ namespace work.bacome.imapclient
                     mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.SelectedMailbox), lContext);
                 }
 
-                public void Select(iMailboxHandle pMailboxHandle, bool pForUpdate, cHeaderCache pHeaderCache, bool pAccessReadOnly, bool pUIDNotSticky, cFetchableFlags pFlags, cPermanentFlags pPermanentFlags, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
+                public void Select(iMailboxHandle pMailboxHandle, bool pForUpdate, bool pAccessReadOnly, bool pUIDNotSticky, cFetchableFlags pFlags, cPermanentFlags pPermanentFlags, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, ulong pHighestModSeq, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Select), pMailboxHandle, pForUpdate, pHeaderCache, pAccessReadOnly, pUIDNotSticky, pFlags, pPermanentFlags, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Select), pMailboxHandle, pForUpdate, pAccessReadOnly, pUIDNotSticky, pFlags, pPermanentFlags, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq);
 
                     if (mSelectedMailbox != null) throw new InvalidOperationException();
 
@@ -210,20 +206,6 @@ namespace work.bacome.imapclient
 
                     if (pExists < 0) throw new ArgumentOutOfRangeException(nameof(pExists));
                     if (pRecent < 0) throw new ArgumentOutOfRangeException(nameof(pRecent));
-
-                    if (pHeaderCache != null && !pUIDNotSticky && pUIDValidity != 0)
-                    {
-                        mHeaderCache = pHeaderCache;
-
-                        // TODO
-                        // this is where the call to the headercache would go to get the cached headerdata
-                        //  and the data would be passed to the selectedmailbox
-                        //   this data [in the form of a dictionary (uint -> messagedata)] would be passed to the messagecache and used there when a uid was discovered for a message
-                        //    when the cache was reconstructed (due to uidvalidity change) the dictionary would be null in the new cache
-                        
-                        // this will require the de/serialization of bodystructure, envelope etc
-                    }
-                    else mHeaderCache = null;
 
                     mSelectedMailbox = new cSelectedMailbox(mSynchroniser, mMessageExpunged, lItem, pForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq, lContext);
 

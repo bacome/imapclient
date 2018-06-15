@@ -18,7 +18,7 @@ namespace work.bacome.imapclient
                 private bool mAccessReadOnly;
                 private cSelectedMailboxCache mCache;
 
-                public cSelectedMailbox(cIMAPCallbackSynchroniser pSynchroniser, Action<cMailboxId, cUID, cTrace.cContext> pMessageExpunged, cMailboxCacheItem pMailboxCacheItem, bool pSelectedForUpdate, bool pAccessReadOnly, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
+                public cSelectedMailbox(cIMAPCallbackSynchroniser pSynchroniser, Action<cMailboxId, cUID, cTrace.cContext> pMessageExpunged, cMailboxCacheItem pMailboxCacheItem, bool pSelectedForUpdate, bool pAccessReadOnly, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, ulong pHighestModSeq, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cSelectedMailbox), pMailboxCacheItem, pSelectedForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq);
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));

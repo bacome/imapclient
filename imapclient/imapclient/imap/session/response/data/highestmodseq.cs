@@ -8,8 +8,8 @@ namespace work.bacome.imapclient
         {
             private class cResponseDataHighestModSeq : cResponseData
             {
-                public readonly uint HighestModSeq;
-                public cResponseDataHighestModSeq(uint pHighestModSeq) { HighestModSeq = pHighestModSeq; }
+                public readonly ulong HighestModSeq;
+                public cResponseDataHighestModSeq(ulong pHighestModSeq) { HighestModSeq = pHighestModSeq; }
                 public override string ToString() => $"{nameof(cResponseDataHighestModSeq)}({HighestModSeq})";
             }
         }

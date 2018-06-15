@@ -19,7 +19,6 @@ namespace work.bacome.imapclient
                 private readonly cIMAPCapabilities mCapabilities;
                 private readonly iMailboxHandle mMailboxHandle;
                 private readonly bool mForUpdate;
-                private readonly cHeaderCache mHeaderCache;
 
                 private cFetchableFlags mFlags = null;
                 private int mExists = 0;
@@ -27,20 +26,19 @@ namespace work.bacome.imapclient
                 private cPermanentFlags mPermanentFlags = null;
                 private uint mUIDNext = 0;
                 private uint mUIDValidity = 0;
-                private uint mHighestModSeq = 0;
+                private ulong mHighestModSeq = 0; 
                 private bool mUIDNotSticky = false;
                 private bool mAccessReadOnly = false;
 
-                public cCommandHookSelect(cMailboxCache pMailboxCache, cIMAPCapabilities pCapabilities, iMailboxHandle pMailboxHandle, bool pForUpdate, cHeaderCache pHeaderCache)
+                public cCommandHookSelect(cMailboxCache pMailboxCache, cIMAPCapabilities pCapabilities, iMailboxHandle pMailboxHandle, bool pForUpdate)
                 {
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                     mCapabilities = pCapabilities ?? throw new ArgumentNullException(nameof(pCapabilities));
                     mMailboxHandle = pMailboxHandle ?? throw new ArgumentNullException(nameof(pMailboxHandle));
                     mForUpdate = pForUpdate;
-                    mHeaderCache = pHeaderCache;
                 }
 
-                public cSelectResult Result => new cSelectResult(mUIDValidity, mUIDNotSticky);
+                public cSelectResult Result => new cSelectResult(mUIDValidity, mHighestModSeq, mUIDNotSticky);
 
                 public override void CommandStarted(cTrace.cContext pParentContext)
                 {
@@ -129,7 +127,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(CommandCompleted), pResult);
                     if (pResult.ResultType != eIMAPCommandResultType.ok) return;
-                    mMailboxCache.Select(mMailboxHandle, mForUpdate, mHeaderCache, mAccessReadOnly, mUIDNotSticky, mFlags, mPermanentFlags, mExists, mRecent, mUIDNext, mUIDValidity, mHighestModSeq, lContext);
+                    mMailboxCache.Select(mMailboxHandle, mForUpdate, mAccessReadOnly, mUIDNotSticky, mFlags, mPermanentFlags, mExists, mRecent, mUIDNext, mUIDValidity, mHighestModSeq, lContext);
                 }
             }
         }

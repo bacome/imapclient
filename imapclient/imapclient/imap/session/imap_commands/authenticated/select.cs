@@ -13,9 +13,9 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kSelectCommandPart = new cTextCommandPart("SELECT ");
             private static readonly cCommandPart kSelectCommandPartCondStore = new cTextCommandPart(" (CONDSTORE)");
 
-            public async Task<cSelectResult> SelectAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cHeaderCache pHeaderCache, cTrace.cContext pParentContext)
+            public async Task<cSelectResult> SelectAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SelectAsync), pMC, pMailboxHandle, pHeaderCache);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SelectAsync), pMC, pMailboxHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eIMAPConnectionState.notselected && _ConnectionState != eIMAPConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
                     lBuilder.Add(kSelectCommandPart, lItem.MailboxNameCommandPart);
                     if (_Capabilities.CondStore) lBuilder.Add(kSelectCommandPartCondStore);
 
-                    var lHook = new cCommandHookSelect(mMailboxCache, _Capabilities, pMailboxHandle, true, pHeaderCache);
+                    var lHook = new cCommandHookSelect(mMailboxCache, _Capabilities, pMailboxHandle, true);
                     lBuilder.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("select success");
-                        return lHook.result;
+                        return lHook.Result;
                     }
 
                     fIMAPCapabilities lTryIgnoring;

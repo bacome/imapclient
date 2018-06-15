@@ -13,9 +13,9 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kExamineCommandPart = new cTextCommandPart("EXAMINE ");
             private static readonly cCommandPart kExamineCommandPartCondStore = new cTextCommandPart(" (CONDSTORE)");
 
-            public async Task<cSelectResult> ExamineAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cHeaderCache pHeaderCache, cTrace.cContext pParentContext)
+            public async Task<cSelectResult> ExamineAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ExamineAsync), pMC, pMailboxHandle, pHeaderCache);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ExamineAsync), pMC, pMailboxHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eIMAPConnectionState.notselected && _ConnectionState != eIMAPConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
                     lBuilder.Add(kExamineCommandPart, lItem.MailboxNameCommandPart);
                     if (_Capabilities.CondStore) lBuilder.Add(kExamineCommandPartCondStore);
 
-                    var lHook = new cCommandHookSelect(mMailboxCache, _Capabilities, pMailboxHandle, false, pHeaderCache);
+                    var lHook = new cCommandHookSelect(mMailboxCache, _Capabilities, pMailboxHandle, false);
                     lBuilder.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
