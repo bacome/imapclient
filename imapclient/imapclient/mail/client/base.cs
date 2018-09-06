@@ -10,6 +10,8 @@ namespace work.bacome.mailclient
 {
     public abstract partial class cMailClient : IDisposable
     {
+        ;?; // add back connect and dsconnect: connect is required to get the supported formats in SMTP
+
         // ......................................................................................................................... when changing the version here also change it in the assemblyinfo
         //  the convention for this is that it match the AssemblyInformationalVersion in the assemblyinfo.cs , with 
         //   revision matching the pre-release version: -alpha (1) -beta (2) -rc (3) 

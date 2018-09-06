@@ -6,7 +6,7 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    internal sealed class cSectionCacheItemReader : iSectionReader, IDisposable
+    internal sealed class cSectionCacheItemReader : Stream, iSectionReader
     {
         private bool mDisposed = false;
         private readonly Stream mStream;
@@ -22,7 +22,45 @@ namespace work.bacome.imapclient
             mContextToUseWhenDisposing = pContextToUseWhenDisposing;
         }
 
-        public long Length => mStream.Length;
+        // stream
+
+        public override bool CanRead => true;
+
+        public override bool CanSeek => true;
+
+        public override bool CanTimeout => mStream.CanTimeout;
+
+        public override bool CanWrite => false;
+
+        public override long Length => mStream.Length;
+
+        public override long Position
+        {
+            get => mStream.Position;
+            set => mStream.Position = value;
+        }
+
+        public override int ReadTimeout
+        {
+            get => mStream.ReadTimeout;
+            set => mStream.ReadTimeout = value;
+        }
+
+        public override void Flush() => mStream.Flush();
+
+        public override long Seek(long offset, SeekOrigin origin) => mStream.Seek(offset, origin);
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override int Read(byte[] pBuffer, int pOffset, int pCount) => mStream.Read(pBuffer, pOffset, pCount);
+
+        public override Task<int> ReadAsync(byte[] pBuffer, int pOffset, int pCount, CancellationToken pCancellationToken) => mStream.ReadAsync(pBuffer, pOffset, pCount, pCancellationToken);
+
+        public override int ReadByte() => mStream.ReadByte();
+
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        // isectionreader
 
         public long ReadPosition
         {
@@ -46,21 +84,26 @@ namespace work.bacome.imapclient
             return mStream.ReadAsync(pBuffer, pOffset, pCount, pCancellationToken);
         }
 
-        public int ReadByte() => mStream.ReadByte();
+        // dispose (Stream)
 
-        public void Dispose()
+        protected override void Dispose(bool pDisposing)
         {
             if (mDisposed) return;
 
-            if (mStream != null)
+            if (pDisposing)
             {
-                try { mStream.Dispose(); }
-                catch { }
+                if (mStream != null)
+                {
+                    try { mStream.Dispose(); }
+                    catch { }
+                }
+
+                if (Interlocked.Decrement(ref mCount) == 0) mDecrementOpenStreamCount(mContextToUseWhenDisposing);
             }
 
-            if (Interlocked.Decrement(ref mCount) == 0) mDecrementOpenStreamCount(mContextToUseWhenDisposing);
-
             mDisposed = true;
+
+            base.Dispose(pDisposing);
         }
     }
 }

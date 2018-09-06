@@ -16,6 +16,8 @@ namespace work.bacome.imapclient
 
         private readonly ConcurrentDictionary<string, cItem> mItems = new ConcurrentDictionary<string, cItem>();
 
+        ;?; // make instance name and maint freq default
+
         public cTempFileSectionCache(string pInstanceName, int pMaintenanceFrequency, long pByteCountBudget, int pFileCountBudget, ?) : base(pInstanceName, pMaintenanceFrequency)
         {
             if (pByteCountBudget < 0) throw new ArgumentOutOfRangeException(nameof(pByteCountBudget));

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
@@ -27,7 +28,7 @@ namespace work.bacome.imapclient
         private readonly ConcurrentDictionary<cMessageUID, byte> mExpungedMessages = new ConcurrentDictionary<cMessageUID, byte>();
         private readonly ConcurrentDictionary<cMailboxId, long> mMailboxIdToUIDValidity = new ConcurrentDictionary<cMailboxId, long>();
 
-        // collections for storing cache items; note that the values here may be null (maintenance will remove entries with null values, but values can be set to null by rename)
+        // collections for storing cache items; note that the values here may be null (maintenance will remove entries with null values, values can be set to null by rename)
         private readonly ConcurrentDictionary<cSectionHandle, cSectionCacheItem> mSectionHandleToItem = new ConcurrentDictionary<cSectionHandle, cSectionCacheItem>();
         private readonly ConcurrentDictionary<cSectionId, cSectionCacheItem> mSectionIdToItem = new ConcurrentDictionary<cSectionId, cSectionCacheItem>();
 
@@ -287,11 +288,33 @@ namespace work.bacome.imapclient
             }
         }
 
+        public bool TryGetItemLength(cSectionId pSectionId, out long rLength)
+        {
+            var lContext = mRootContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemLength), pSectionId);
+            return TryGetItemLength(pSectionId, out rLength, lContext);
+        }
+
+        public bool TryGetItemStream(cSectionId pSectionId, out Stream rStream)
+        {
+            var lContext = mRootContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemStream), pSectionId);
+
+            if (TryGetItemReader(pSectionId, out var lReader, lContext))
+            {
+                rStream = lReader;
+                return true;
+            }
+            else
+            {
+                rStream = null;
+                return false;
+            }
+        }
+
+        public bool IsDisposed => mDisposed || mDisposing;
+
         // asks the cache to create a new item
         //
         protected abstract cSectionCacheItem YGetNewItem(cMailboxId pMailboxId, uint pUIDValidity, bool pUIDNotSticky, cTrace.cContext pParentContext);
-
-        public bool IsDisposed => mDisposed || mDisposing;
 
         protected virtual bool YCanCopy => false;
         protected virtual bool YCanPersist => false;

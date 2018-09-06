@@ -51,6 +51,8 @@ namespace work.bacome.imapclient
         private List<string> mItemIdsWithInfoButNoDataFile = new List<string>();
         private List<string> mItemIdsWithDataButNoInfoFile = new List<string>();
 
+        ;?; // make instance name and maint freq default
+
         public cDirectorySectionCache(string pInstanceName, int pMaintenanceFrequency, string pDirectory, long pByteCountBudget, int pFileCountBudget, x, TimeSpan pRecentFileAge) : base(pInstanceName, pMaintenanceFrequency)
         {
             if (pDirectory == null) throw new ArgumentNullException(nameof(pDirectory));
