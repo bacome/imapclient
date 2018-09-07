@@ -5,7 +5,7 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    public abstract class cPersistentCache
+    public abstract class cPersistentCacheComponent
     {
         public abstract HashSet<cUID> GetUIDs(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext);
         public abstract void MessageExpunged(cMailboxId pMailboxId, cUID pUID, cTrace.cContext pParentContext);
@@ -14,14 +14,14 @@ namespace work.bacome.imapclient
 
         public virtual void Copy(cMailboxId pSourceMailboxId, cMailboxName pDestinationMailboxName, cCopyFeedback pFeedback, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(Copy), pSourceMailboxId, pDestinationMailboxName, pFeedback);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCacheComponent), nameof(Copy), pSourceMailboxId, pDestinationMailboxName, pFeedback);
         }
 
         protected abstract HashSet<cMailboxName> YGetMailboxNames(cAccountId pAccountId, cTrace.cContext pParentContext);
 
         protected virtual void YRename(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(YRename), pMailboxId, pMailboxName);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCacheComponent), nameof(YRename), pMailboxId, pMailboxName);
         }
 
         internal void Rename(cMailboxId pMailboxId, uint pUIDValidity, cMailboxName pMailboxName, cTrace.cContext pParentContext)
@@ -34,7 +34,7 @@ namespace work.bacome.imapclient
 
         private void ZRenameInbox(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(ZRenameInbox), pMailboxId, pUIDValidity);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCacheComponent), nameof(ZRenameInbox), pMailboxId, pUIDValidity);
 
             if (pUIDValidity == 0)
             {
@@ -59,7 +59,7 @@ namespace work.bacome.imapclient
 
         private void ZRenameNonInbox(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(ZRenameNonInbox), pMailboxId, pMailboxName);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCacheComponent), nameof(ZRenameNonInbox), pMailboxId, pMailboxName);
 
             HashSet<cMailboxName> lMailboxNames;
 
@@ -95,7 +95,7 @@ namespace work.bacome.imapclient
 
         public void Reconcile(cMailboxId pMailboxId, HashSet<cMailboxName> pAllExistentChildMailboxNames, HashSet<cMailboxName> pAllSelectableChildMailboxNames, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(Reconcile), pMailboxId);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCacheComponent), nameof(Reconcile), pMailboxId);
 
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
             if (pAllExistentChildMailboxNames == null) throw new ArgumentNullException(nameof(pAllExistentChildMailboxNames));
@@ -135,7 +135,7 @@ namespace work.bacome.imapclient
 
         public void Reconcile(cAccountId pAccountId, string pPrefix, cStrings pNotPrefixedWith, HashSet<cMailboxName> pAllExistentChildMailboxNames, HashSet<cMailboxName> pAllSelectableChildMailboxNames, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(Reconcile), pAccountId, pPrefix, pNotPrefixedWith);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCacheComponent), nameof(Reconcile), pAccountId, pPrefix, pNotPrefixedWith);
 
             if (pAccountId == null) throw new ArgumentNullException(nameof(pAccountId));
             if (pPrefix == null) throw new ArgumentNullException(nameof(pPrefix));

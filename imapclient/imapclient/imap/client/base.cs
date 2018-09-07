@@ -81,10 +81,8 @@ namespace work.bacome.imapclient
         //    or there are errors (like duplicate headers)
         //   so at this stage the MDNSent features are commented out as they aren't useful by themselves
 
-
-        private static cHeaderCache GlobalHeaderCache { get; set; } = null; // will be public when implemented
-        private static cSectionCache mDefaultSectionCache = new cDefaultSectionCache();
-        public static cSectionCache GlobalSectionCache { get; set; } = null;
+        private static cPersistentCache mDefaultPersistentCache = new cPersistentCache();
+        public static cPersistentCache GlobalPersistentCache { get; set; } = null;
 
         // mechanics
         private readonly cIMAPCallbackSynchroniser mIMAPSynchroniser;
@@ -96,8 +94,7 @@ namespace work.bacome.imapclient
         private bool mMailboxReferrals = false;
         private fMailboxCacheDataItems mMailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.uidnext | fMailboxCacheDataItems.uidvalidity | fMailboxCacheDataItems.unseencount;
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
-        private cHeaderCache _HeaderCache = null;
-        private cSectionCache _SectionCache = null;
+        private cPersistentCache _PersistentCache = null;
         private cBatchSizerConfiguration mFetchCacheItemsConfiguration = new cBatchSizerConfiguration(1, 1000, 10000, 1);
         private cBatchSizerConfiguration mFetchBodyConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cBatchSizerConfiguration mAppendBatchConfiguration = new cBatchSizerConfiguration(1000, int.MaxValue, 10000, 1000);
@@ -367,16 +364,16 @@ namespace work.bacome.imapclient
             }
         }
 
-        private cHeaderCache HeaderCache // will be public when implemented
+        public cPersistentCache PersistentCache
         {
-            get => _HeaderCache ?? GlobalHeaderCache;
-            set => _HeaderCache = value;
-        }
+            get => _PersistentCache ?? GlobalPersistentCache ?? mDefaultPersistentCache;
 
-        public cSectionCache SectionCache
-        {
-            get => _SectionCache ?? GlobalSectionCache ?? mDefaultSectionCache;
-            set => _SectionCache = value;
+            set
+            {
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
+                _PersistentCache = value;
+            }
         }
 
         /// <summary>
@@ -518,6 +515,9 @@ namespace work.bacome.imapclient
         /// Set during <see cref="Connect"/>.
         /// </remarks>
         public cIMAPId ServerId => mSession?.ServerId;
+
+
+
 
         /// <summary>
         /// Gets an object that represents the currently selected mailbox, or <see langword="null"/> if there is no mailbox currently selected.

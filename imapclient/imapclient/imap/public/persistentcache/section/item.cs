@@ -110,9 +110,9 @@ namespace work.bacome.imapclient
             return null;
         }
 
-        protected internal bool TryDelete(int pChangeSequence, cTrace.cContext pParentContext)
+        protected internal bool DeleteIfNotOpen(cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(TryDelete), pChangeSequence);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(DeleteIfNotOpen));
 
             if (mCanGetReaderWriter) throw new InvalidOperationException();
 
@@ -130,9 +130,9 @@ namespace work.bacome.imapclient
                     return true;
                 }
 
-                if (mOpenStreamCount != 0)
+                if (mOpenStreamCount != 0) 
                 {
-                    if (pChangeSequence == -2)
+                    if (pMarkForDeleteIfOpen)
                     {
                         lContext.TraceVerbose("open, marking as todelete");
                         mToBeDeleted = true;
@@ -142,7 +142,91 @@ namespace work.bacome.imapclient
                     return false;
                 }
 
-                if (pChangeSequence >= 0 && pChangeSequence != mChangeSequence)
+                try
+                {
+                    YDelete(lContext);
+                    lContext.TraceVerbose("deleted");
+                }
+                catch (Exception e)
+                {
+                    lContext.TraceException("delete failure, marked as deleted", e);
+                }
+
+                mDeleted = true;
+            }
+
+            return true;
+        }
+
+        protected internal void Delete(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(Delete));
+
+            if (mCanGetReaderWriter) throw new InvalidOperationException();
+
+            lock (mLock)
+            {
+                if (mDeleted)
+                {
+                    lContext.TraceVerbose("already deleted");
+                    return;
+                }
+
+                if (mToBeDeleted)
+                {
+                    lContext.TraceVerbose("already scheduled for deletion");
+                    return;
+                }
+
+                if (mOpenStreamCount != 0)
+                {
+                    lContext.TraceVerbose("open, marking as todelete");
+                    mToBeDeleted = true;
+                    return;
+                }
+
+                try
+                {
+                    YDelete(lContext);
+                    lContext.TraceVerbose("deleted");
+                }
+                catch (Exception e)
+                {
+                    lContext.TraceException("delete failure, marked as deleted", e);
+                }
+
+                mDeleted = true;
+            }
+        }
+
+        protected internal bool TryDelete(int pChangeSequence, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItem), nameof(TryDelete), pChangeSequence);
+
+            if (mCanGetReaderWriter) throw new InvalidOperationException();
+            if (pChangeSequence < 0) throw new ArgumentOutOfRangeException(nameof(pChangeSequence));
+
+            lock (mLock)
+            {
+                if (mDeleted)
+                {
+                    lContext.TraceVerbose("already deleted");
+                    return true;
+                }
+
+                if (mToBeDeleted)
+                {
+                    lContext.TraceVerbose("already scheduled for deletion");
+                    return true;
+                }
+
+                if (mOpenStreamCount != 0)
+                {
+                    lContext.TraceVerbose("open, not deleting");
+                    return false;
+                }
+
+                if (pChangeSequence != mChangeSequence)
                 {
                     lContext.TraceVerbose("modified, not deleting");
                     return false;

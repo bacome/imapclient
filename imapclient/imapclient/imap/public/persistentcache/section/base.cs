@@ -11,7 +11,7 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    public abstract class cSectionCache : cPersistentCache, IDisposable
+    public abstract class cSectionCache : cPersistentCacheComponent, IDisposable
     {
         private static readonly TimeSpan kPlusOneHour = TimeSpan.FromHours(1);
         private static readonly TimeSpan kMinusOneHour = TimeSpan.FromHours(-1);
@@ -66,7 +66,7 @@ namespace work.bacome.imapclient
 
             var lUIDs = new HashSet<cUID>();
 
-            // the order of these loops is important to ensure that we don't miss a message when it is being moved from pending to the dictionaries
+            // the order of these loops is important to ensure that we don't miss a message when it is being moved from pending to added
 
             foreach (var lPair in mPendingItems)
             {
@@ -113,7 +113,7 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(SetMailboxUIDValidity), pMailboxId, pUIDValidity);
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
-            if (pUIDValidity < -1) throw new ArgumentOutOfRangeException(nameof(pUIDValidity)); // -1 means delete all, < -1 means "has no current value" (set by maintenance only)
+            if (pUIDValidity < -1) throw new ArgumentOutOfRangeException(nameof(pUIDValidity)); // -1 means that the mailbox has been deleted
             YObjectStateCheck(lContext);
             mMailboxIdToUIDValidity[pMailboxId] = pUIDValidity;
         }
@@ -160,7 +160,7 @@ namespace work.bacome.imapclient
                     if (lItem.TryCopy(lNewSectionId, out var lNewItem, lContext))
                     {
                         lCopiedSectionIds.Add(lItem.SectionId);
-                        if (!mSectionIdToItem.TryAdd(lNewSectionId, lNewItem)) lNewItem.TryDelete(-2, lContext);
+                        if (!mSectionIdToItem.TryAdd(lNewSectionId, lNewItem)) lNewItem.Delete(lContext);
                     }
                 }
             }
@@ -461,29 +461,20 @@ namespace work.bacome.imapclient
             }
         }
 
-        internal bool TryGetNewItem(cSectionId pSectionId, bool pUIDNotSticky, out cSectionCacheItem rNewItem, cTrace.cContext pParentContext)
+        internal cSectionCacheItem GetNewItem(cSectionId pSectionId, bool pUIDNotSticky, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetNewItem), pSectionId, pUIDNotSticky);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetNewItem), pSectionId, pUIDNotSticky);
 
             if (pSectionId == null) throw new ArgumentNullException(nameof(pSectionId));
-
             YObjectStateCheck(lContext);
 
-            try { rNewItem = YGetNewItem(pSectionId.MessageUID.MailboxId, pSectionId.MessageUID.UID.UIDValidity, pUIDNotSticky, lContext); }
-            catch (Exception e)
-            {
-                lContext.TraceException(e);
-                rNewItem = null;
-                return false;
-            }
+            var lNewItem = YGetNewItem(pSectionId.MessageUID.MailboxId, pSectionId.MessageUID.UID.UIDValidity, pUIDNotSticky, lContext);
+            ZNewItemCheck(lNewItem, lContext);
+            lNewItem.SetSectionId(pSectionId, lContext);
 
-            ZNewItemCheck(rNewItem, lContext);
+            if (!mPendingItems.TryAdd(lNewItem, cASCII.NUL)) throw new cUnexpectedSectionCacheActionException(lContext);
 
-            rNewItem.SetSectionId(pSectionId, lContext);
-
-            if (!mPendingItems.TryAdd(rNewItem, cASCII.NUL)) throw new cUnexpectedSectionCacheActionException(lContext);
-
-            return true;
+            return lNewItem;
         }
 
         internal bool TryGetItemLength(cSectionHandle pSectionHandle, out long rLength, cTrace.cContext pParentContext)
@@ -520,9 +511,9 @@ namespace work.bacome.imapclient
             return false;
         }
 
-        internal bool TryGetNewItem(cSectionHandle pSectionHandle, out cSectionCacheItem rNewItem, cTrace.cContext pParentContext)
+        internal cSectionCacheItem GetNewItem(cSectionHandle pSectionHandle, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetNewItem), pSectionHandle);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetNewItem), pSectionHandle);
 
             if (pSectionHandle == null) throw new ArgumentNullException(nameof(pSectionHandle));
             if (pSectionHandle.MessageHandle.Expunged) throw new cMessageExpungedException(pSectionHandle.MessageHandle);
@@ -531,21 +522,13 @@ namespace work.bacome.imapclient
 
             var lMailboxHandle = pSectionHandle.MessageHandle.MessageCache.MailboxHandle;
 
-            try { rNewItem = YGetNewItem(lMailboxHandle.MailboxId, lMailboxHandle.MailboxStatus?.UIDValidity ?? 0, lMailboxHandle.SelectedProperties.UIDNotSticky ?? true, lContext); }
-            catch (Exception e)
-            {
-                lContext.TraceException(e);
-                rNewItem = null;
-                return false;
-            }
+            var lNewItem = YGetNewItem(lMailboxHandle.MailboxId, lMailboxHandle.MailboxStatus?.UIDValidity ?? 0, lMailboxHandle.SelectedProperties.UIDNotSticky ?? true, lContext);
+            ZNewItemCheck(lNewItem, lContext);
+            lNewItem.SetSectionHandle(pSectionHandle, lContext);
 
-            ZNewItemCheck(rNewItem, lContext);
+            if (!mPendingItems.TryAdd(lNewItem, cASCII.NUL)) throw new cUnexpectedSectionCacheActionException(lContext);
 
-            rNewItem.SetSectionHandle(pSectionHandle, lContext);
-
-            if (!mPendingItems.TryAdd(rNewItem, cASCII.NUL)) throw new cUnexpectedSectionCacheActionException(lContext);
-
-            return true;
+            return lNewItem;
         }
 
         internal void TryAddItem(cSectionCacheItem pItem, cTrace.cContext pParentContext)
@@ -605,7 +588,7 @@ namespace work.bacome.imapclient
         private bool ZMessageIsToBeDeleted(cMessageUID pMessageUID)
         {
             if (mExpungedMessages.ContainsKey(pMessageUID)) return true;
-            if (mMailboxIdToUIDValidity.TryGetValue(pMessageUID.MailboxId, out var lUIDValidity) && lUIDValidity > -2 && pMessageUID.UID.UIDValidity != lUIDValidity) return true;
+            if (mMailboxIdToUIDValidity.TryGetValue(pMessageUID.MailboxId, out var lUIDValidity) && pMessageUID.UID.UIDValidity != lUIDValidity) return true;
             return false;
         }
 
@@ -635,7 +618,6 @@ namespace work.bacome.imapclient
             var lExpungedMessages = new List<cMessageUID>();
             foreach (var lPair in mExpungedMessages) lExpungedMessages.Add(lPair.Key);
 
-            ;?; // only the ones that aren't -2
             var lMailboxIdToUIDValidity = new Dictionary<cMailboxId, long>(mMailboxIdToUIDValidity);
 
             // processing
@@ -643,48 +625,46 @@ namespace work.bacome.imapclient
             foreach (var lPair in mPendingItems)
             {
                 var lItem = lPair.Key;
-                if (!lItem.Deleted && !lItem.ToBeDeleted && lItem.SectionId != null) if (ZMessageIsToBeDeleted(lItem.SectionId.MessageUID)) lItem.TryDelete(-2, lContext);
+                if (!lItem.Deleted && !lItem.ToBeDeleted && lItem.SectionId != null) if (ZMessageIsToBeDeleted(lItem.SectionId.MessageUID)) lItem.Delete(lContext);
             }
 
             ;?; // NOTE: physically delete from the collections: expunged handles, expired handles, deleted UIDs, old UIDValidities and null valued entries (they aren't in any danger of coming back to life)
 
+            var lSectionHandlesToRemove = new List<cSectionHandle>();
+
             foreach (var lPair in mSectionHandleToItem)
             {
+                var lSectionHandle = lPair.Key;
+                var lMessageHandle = lSectionHandle.MessageHandle;
                 var lItem = lPair.Value;
-
-                if (lItem.Deleted || lItem.ToBeDeleted) continue;
-
-                var lMessageHandle = lPair.Key.MessageHandle;
 
                 if (lMessageHandle.Expunged)
                 {
-                    lItemsToDelete.Add(lItem);
+                    lItem.Delete(lContext);
+                    lSectionHandlesToRemove.Add(lSectionHandle);
                     continue;
                 }
 
-                if (lItem.Indexed) continue;
-
-                if (lMessageHandle.UID == null) 
+                if (lMessageHandle.UID != null && !lItem.Indexed && !lItem.Deleted && !lItem.ToBeDeleted)
                 {
-                    if (!ReferenceEquals(lItem.SectionHandle.Client.SelectedMailboxDetails?.MessageCache, lMessageHandle.MessageCache))
-                    {
-                        lItemsToDelete.Add(lItem);
-                        continue;
-                    }
+                    ;?; // set the id
+                    if (ZMessageIsToBeDeleted(lMessageHandle.UID))
 
-                    ;?;
-                }
-                else
-                {
-                    // check for uidvalidity and uid
-
-                    // if it is a duplicate, delete it
-
-                    // index it
+                        ;?; // check that the uid isn't to delete
+                    ;?; // check it isn't a duplicate (if so delete it)
+                    ;?; // indexer it
                 }
 
-                ;?;
+                if (!ReferenceEquals(lItem.SectionHandle.Client.SelectedMailboxDetails?.MessageCache, lMessageHandle.MessageCache))
+                {
+                    if (lMessageHandle.UID == null) lItem.Delete(lContext); // if we don't have a UID then no point to keep the cached data
+                    lSectionHandlesToRemove.Add(lSectionHandle); // we will never need the entry in the dictionary again as the message handle is invalid
+                    continue;
+                }
+
             }
+
+            foreach (var lSectionHandle in lSectionHandlesToRemove) mSectionHandleToItem.TryRemove(lSectionHandle, out _);
 
             // collect duplicate items for deletion
 
