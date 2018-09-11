@@ -68,6 +68,9 @@ namespace work.bacome.imapclient
                         pAppendDefaultFlags, pAppendBatchConfiguration,
                         pIdleConfiguration);
 
+                ;?; // cache is a parameter and an immutable property
+                ;?; // check if message expunged is still requied
+
                 mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                 mMessageExpunged = pMessageExpunged ?? throw new ArgumentNullException(nameof(pMessageExpunged));
                 mSetMailboxUIDValidity = pSetMailboxUIDValidity ?? throw new ArgumentNullException(nameof(pSetMailboxUIDValidity));

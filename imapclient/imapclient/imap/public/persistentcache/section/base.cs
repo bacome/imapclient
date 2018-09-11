@@ -11,11 +11,12 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    public abstract class cSectionCache : cPersistentCacheComponent, IDisposable
+    public abstract partial class cSectionCache : cPersistentCacheComponent, IDisposable
     {
         private static readonly TimeSpan kPlusOneHour = TimeSpan.FromHours(1);
         private static readonly TimeSpan kMinusOneHour = TimeSpan.FromHours(-1);
 
+        ;?; // rmeove disposable
         private bool mDisposed = false;
         private bool mDisposing = false;
 
@@ -23,10 +24,6 @@ namespace work.bacome.imapclient
         public readonly int MaintenanceFrequency;
 
         protected readonly cTrace.cContext mRootContext;
-
-        // collections for recording data about to-be-deleted items
-        private readonly ConcurrentDictionary<cMessageUID, byte> mExpungedMessages = new ConcurrentDictionary<cMessageUID, byte>();
-        private readonly ConcurrentDictionary<cMailboxId, long> mMailboxIdToUIDValidity = new ConcurrentDictionary<cMailboxId, long>();
 
         // collections for storing cache items; note that the values here may be null (maintenance will remove entries with null values, values can be set to null by rename)
         private readonly ConcurrentDictionary<cSectionHandle, cSectionCacheItem> mSectionHandleToItem = new ConcurrentDictionary<cSectionHandle, cSectionCacheItem>();
@@ -87,7 +84,7 @@ namespace work.bacome.imapclient
 
             void LAddFromHandle(iMessageHandle pMessageHandle, cSectionCacheItem pItem)
             {
-                if (!pMessageHandle.Expunged && pMessageHandle.UID != null && pMessageHandle.MessageCache.MailboxHandle.MailboxId == pMailboxId && pMessageHandle.UID.UIDValidity == pUIDValidity && pItem != null && !pItem.Indexed && !pItem.Deleted && !pItem.ToBeDeleted) lUIDs.Add(pMessageHandle.UID);
+                if (!pMessageHandle.Expunged && pMessageHandle.UID != null && pMessageHandle.MessageCache.MailboxHandle.MailboxId == pMailboxId && pMessageHandle.UID.UIDValidity == pUIDValidity && pItem != null && pItem.IndexedBySectionId == eSectionCacheIndexedBySectionId.notindexed && !pItem.Deleted && !pItem.ToBeDeleted) lUIDs.Add(pMessageHandle.UID);
             }
         }
 
@@ -151,7 +148,7 @@ namespace work.bacome.imapclient
                 var lMessageHandle = lPair.Key.MessageHandle;
                 var lItem = lPair.Value;
 
-                if (lItem != null && !lItem.Indexed && !lItem.Deleted && !lItem.ToBeDeleted && lItem.PersistState != eSectionCachePersistState.persisted && !lMessageHandle.Expunged && lMessageHandle.UID != null && lMessageHandle.MessageCache.MailboxHandle.MailboxId == pSourceMailboxId && pFeedback.TryGetValue(lMessageHandle.UID, out var lCreatedUID))
+                if (lItem != null && lItem.IndexedBySectionId == eSectionCacheIndexedBySectionId.notindexed && !lItem.Deleted && !lItem.ToBeDeleted && lItem.PersistState != eSectionCachePersistState.persisted && !lMessageHandle.Expunged && lMessageHandle.UID != null && lMessageHandle.MessageCache.MailboxHandle.MailboxId == pSourceMailboxId && pFeedback.TryGetValue(lMessageHandle.UID, out var lCreatedUID))
                 {
                     if (lCopiedSectionIds.Contains(lItem.SectionId)) continue; // could happen if there was a duplicate
 
@@ -178,7 +175,7 @@ namespace work.bacome.imapclient
 
                     if (lItem.TryCopy(lNewSectionId, out var lNewItem, lContext))
                     {
-                        if (!mSectionIdToItem.TryAdd(lNewSectionId, lNewItem)) lNewItem.TryDelete(-2, lContext);
+                        if (!mSectionIdToItem.TryAdd(lNewSectionId, lNewItem)) lNewItem.Delete(lContext);
                     }
                 }
             }
@@ -221,7 +218,7 @@ namespace work.bacome.imapclient
             {
                 if (pMessageHandle.Expunged) return;
                 var lMailboxId = pMessageHandle.MessageCache.MailboxHandle.MailboxId;
-                if (lMailboxId.AccountId == pAccountId && pItem != null && !pItem.Indexed && !pItem.Deleted && !pItem.ToBeDeleted) lMailboxNames.Add(lMailboxId.MailboxName);
+                if (lMailboxId.AccountId == pAccountId && pItem != null && pItem.IndexedBySectionId == eSectionCacheIndexedBySectionId.notindexed && !pItem.Deleted && !pItem.ToBeDeleted) lMailboxNames.Add(lMailboxId.MailboxName);
             }
         }
 
@@ -232,7 +229,7 @@ namespace work.bacome.imapclient
 
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(YRename), pMailboxId, pMailboxName);
 
-            // note that this may rename UIDs that we know are pending delete (aother client could have sent us the delete)
+            // note that this may rename UIDs that we know are pending delete (another client could have sent us the delete)
             //  I could filter them out, but how would the override in the derived class do it?
             //   so for consistency, I don't do it
             //    [this means that the item may not be deleted until the next time a reconciliation is done]
@@ -251,7 +248,7 @@ namespace work.bacome.imapclient
                 var lMessageHandle = lPair.Key.MessageHandle;
                 var lItem = lPair.Value;
 
-                if (lItem != null && !lItem.Indexed && !lItem.Deleted && !lItem.ToBeDeleted && lItem.PersistState != eSectionCachePersistState.persisted && !lMessageHandle.Expunged && lMessageHandle.UID != null && lMessageHandle.MessageCache.MailboxHandle.MailboxId == pMailboxId)
+                if (lItem != null && lItem.IndexedBySectionId == eSectionCacheIndexedBySectionId.notindexed && !lItem.Deleted && !lItem.ToBeDeleted && lItem.PersistState != eSectionCachePersistState.persisted && !lMessageHandle.Expunged && lMessageHandle.UID != null && lMessageHandle.MessageCache.MailboxHandle.MailboxId == pMailboxId)
                 {
                     if (!mSectionHandleToItem.TryUpdate(lPair.Key, null, lItem)) continue; // the value has been changed, probably by a messagedatastream completing and the item having been deleted in the mean time (i.e. next to impossible)
                     if (lRenamedSectionIds.Contains(lItem.SectionId)) continue; // could happen if there was a duplicate
@@ -262,7 +259,7 @@ namespace work.bacome.imapclient
                     if (lItem.TryRename(lNewSectionId, lContext))
                     {
                         lRenamedSectionIds.Add(lOldSectionId);
-                        if (!mSectionIdToItem.TryAdd(lNewSectionId, lItem)) lItem.TryDelete(-2, lContext);
+                        if (!mSectionIdToItem.TryAdd(lNewSectionId, lItem)) lItem.Delete(lContext);
                     }                    
                 }
             }
@@ -282,7 +279,7 @@ namespace work.bacome.imapclient
 
                     if (lItem.TryRename(lNewSectionId, lContext))
                     {
-                        if (!mSectionIdToItem.TryAdd(lNewSectionId, lItem)) lItem.TryDelete(-2, lContext);
+                        if (!mSectionIdToItem.TryAdd(lNewSectionId, lItem)) lItem.Delete(lContext);
                     }
                 }
             }
@@ -556,19 +553,25 @@ namespace work.bacome.imapclient
 
                 if (lSectionId == null)
                 {
+                    pItem.SetNotIndexedBySectionId(lContext);
+
                     if (mSectionHandleToItem.TryGetValue(pItem.SectionHandle, out var lItem))
                     {
-                        if (lItem != null && !lItem.TryTouch(lContext) && mSectionHandleToItem.TryUpdate(pItem.SectionHandle, pItem, lItem)) pItem.SetCached(lContext);
+                        if (lItem == null || !lItem.TryTouch(lContext))
+                            if (mSectionHandleToItem.TryUpdate(pItem.SectionHandle, pItem, lItem)) pItem.SetNoLongerPending(lContext);
                     }
-                    else if (mSectionHandleToItem.TryAdd(pItem.SectionHandle, pItem)) pItem.SetCached(lContext);
+                    else if (mSectionHandleToItem.TryAdd(pItem.SectionHandle, pItem)) pItem.SetNoLongerPending(lContext);
                 }
                 else
                 {
+                    ;?;
+
                     if (mSectionIdToItem.TryGetValue(lSectionId, out var lItem))
                     {
-                        if (lItem != null && !lItem.TryTouch(lContext) && mSectionIdToItem.TryUpdate(lSectionId, pItem, lItem)) pItem.SetCached(lContext);
+                        if (lItem == null || !lItem.TryTouch(lContext))
+                            if (mSectionIdToItem.TryUpdate(lSectionId, pItem, lItem)) pItem.SetNoLongerPending(lContext);
                     }
-                    else if (mSectionIdToItem.TryAdd(lSectionId, pItem)) pItem.SetCached(lContext);
+                    else if (mSectionIdToItem.TryAdd(lSectionId, pItem)) pItem.SetNoLongerPending(lContext);
                 }
             }
 
@@ -577,19 +580,12 @@ namespace work.bacome.imapclient
 
         private void ZExistingItemCheck(cSectionCacheItem pItem, cTrace.cContext pParentContext)
         {
-            if (pItem == null || pItem.Cache != this || !pItem.Cached || pItem.PersistState != eSectionCachePersistState.persisted || pItem.Deleted || pItem.ToBeDeleted) throw new cUnexpectedSectionCacheActionException(pParentContext);
+            if (pItem == null || pItem.Cache != this || pItem.Pending || pItem.PersistState != eSectionCachePersistState.persisted || pItem.Deleted || pItem.ToBeDeleted) throw new cUnexpectedSectionCacheActionException(pParentContext);
         }
 
         private void ZNewItemCheck(cSectionCacheItem pItem, cTrace.cContext pParentContext)
         {
             if (pItem == null || pItem.Cache != this || !pItem.CanGetReaderWriter) throw new cUnexpectedSectionCacheActionException(pParentContext);
-        }
-
-        private bool ZMessageIsToBeDeleted(cMessageUID pMessageUID)
-        {
-            if (mExpungedMessages.ContainsKey(pMessageUID)) return true;
-            if (mMailboxIdToUIDValidity.TryGetValue(pMessageUID.MailboxId, out var lUIDValidity) && pMessageUID.UID.UIDValidity != lUIDValidity) return true;
-            return false;
         }
 
         private async Task ZMaintenanceAsync(cTrace.cContext pParentContext)
@@ -600,185 +596,12 @@ namespace work.bacome.imapclient
             {
                 while (true)
                 {
-                    ZMaintenance(false, lContext);
+                    ZMaintenance(lContext);
                     lContext.TraceVerbose("waiting: {0}", MaintenanceFrequency);
                     await Task.Delay(MaintenanceFrequency, mMaintenanceCTS.Token).ConfigureAwait(false);
                 }
             }
             catch (Exception e) when (!mMaintenanceCTS.IsCancellationRequested && lContext.TraceException("the background task is stopping due to an unexpected error", e)) { }
-        }
-
-        private void ZMaintenance(bool pFinal, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewRootMethod(nameof(cSectionCache), nameof(ZMaintenance));
-
-            // take a copy of the collections so they can be updated at the end
-            //  (and these are the ones passed to the sub-class's maintenance)
-
-            var lExpungedMessages = new List<cMessageUID>();
-            foreach (var lPair in mExpungedMessages) lExpungedMessages.Add(lPair.Key);
-
-            var lMailboxIdToUIDValidity = new Dictionary<cMailboxId, long>(mMailboxIdToUIDValidity);
-
-            // processing
-            
-            foreach (var lPair in mPendingItems)
-            {
-                var lItem = lPair.Key;
-                if (!lItem.Deleted && !lItem.ToBeDeleted && lItem.SectionId != null) if (ZMessageIsToBeDeleted(lItem.SectionId.MessageUID)) lItem.Delete(lContext);
-            }
-
-            ;?; // NOTE: physically delete from the collections: expunged handles, expired handles, deleted UIDs, old UIDValidities and null valued entries (they aren't in any danger of coming back to life)
-
-            var lSectionHandlesToRemove = new List<cSectionHandle>();
-
-            foreach (var lPair in mSectionHandleToItem)
-            {
-                var lSectionHandle = lPair.Key;
-                var lMessageHandle = lSectionHandle.MessageHandle;
-                var lItem = lPair.Value;
-
-                if (lMessageHandle.Expunged)
-                {
-                    lItem.Delete(lContext);
-                    lSectionHandlesToRemove.Add(lSectionHandle);
-                    continue;
-                }
-
-                if (lMessageHandle.UID != null && !lItem.Indexed && !lItem.Deleted && !lItem.ToBeDeleted)
-                {
-                    ;?; // set the id
-                    if (ZMessageIsToBeDeleted(lMessageHandle.UID))
-
-                        ;?; // check that the uid isn't to delete
-                    ;?; // check it isn't a duplicate (if so delete it)
-                    ;?; // indexer it
-                }
-
-                if (!ReferenceEquals(lItem.SectionHandle.Client.SelectedMailboxDetails?.MessageCache, lMessageHandle.MessageCache))
-                {
-                    if (lMessageHandle.UID == null) lItem.Delete(lContext); // if we don't have a UID then no point to keep the cached data
-                    lSectionHandlesToRemove.Add(lSectionHandle); // we will never need the entry in the dictionary again as the message handle is invalid
-                    continue;
-                }
-
-            }
-
-            foreach (var lSectionHandle in lSectionHandlesToRemove) mSectionHandleToItem.TryRemove(lSectionHandle, out _);
-
-            // collect duplicate items for deletion
-
-            ;?;
-
-            // delete
-
-            ;?;
-
-            // index items
-
-            ;?;
-
-            // trypersist
-
-            ;?;
-
-
-            // TODO: internalerror numbers check
-            foreach (var lMessageUID in lExpungedMessages) if (!mExpungedMessages.TryRemove(lMessageUID, out _)) throw new cInternalErrorException(lContext, 1);
-            foreach (var lPair in lMailboxIdToUIDValidity) mMailboxIdToUIDValidity.TryUpdate(lPair.Key, -2, lPair.Value);
-
-
-
-
-
-
-
-
-
-
-            ;?; // build the maintenance info that we are going to use this time from the synchronised queues
-
-            // delete duplicates and invalids, index items that can be indexed
-
-            foreach (var lPair in mNonPersistentKeyItems)
-            {
-                var lNPKItem = lPair.Value;
-
-                if (lNPKItem.Deleted || lNPKItem.ToBeDeleted || lNPKItem.Indexed) continue;
-
-                ;?; // if it is expunged, try delete
-                ;?; // if there is no UID and the message cache has changed, trydelete
-                ;?; // if there is no UID continue [note that the API GetPerstentkey should be changed to SET persistent key and should only be allowed on npk items]
-                ;?; // check for uidvalidity change: trydelete
-
-
-                if ()
-
-                if (!lNPKItem.IsValidToCache)
-                {
-                    ;?; // try delete
-                    lNPKItem.SetIndexed(lContext);
-                    continue;
-                }
-
-                ;?;
-
-                if (!lNPKItem.IsValidToCache || lNPKItem.Indexed) continue;
-
-                ;?; // check if it is on the deleted list and delete
-                ;?; // check if the UIDvalidity is wrong and dekete
-
-
-                if (lNPKItem.GetPersistentKey() == null)
-                {
-                    if (mDisposing || !lPair.Key.IsValidToCache)
-                    {
-                        lNPKItem.TryDelete(-2, lContext);
-                        if (pCancellationToken.IsCancellationRequested) return;
-                    }
-
-                    continue;
-                }
-
-                if (mPersistentKeyItems.TryGetValue(lNPKItem.GetPersistentKey(), out var lPKItem))
-                {
-                    ;?; // equals
-                    if (lPKItem.ItemId == lNPKItem.ItemId) lNPKItem.SetIndexed(lContext);
-                    else
-                    {
-                        if (lPKItem.TryTouch(lContext)) lNPKItem.TryDelete(-2, lContext);
-                        else if (mPersistentKeyItems.TryUpdate(lNPKItem.GetPersistentKey(), lNPKItem, lPKItem)) lNPKItem.SetIndexed(lContext);
-                        if (pCancellationToken.IsCancellationRequested) return;
-                    }
-                }
-                else if (mPersistentKeyItems.TryAdd(lNPKItem.GetPersistentKey(), lNPKItem)) lNPKItem.SetIndexed(lContext);
-            }
-
-            if (pCancellationToken.IsCancellationRequested) return;
-
-            // assign pks
-
-            foreach (var lPair in mPersistentKeyItems)
-            {
-                var lPKItem = lPair.Value;
-
-                if (!lPKItem.IsValidToCache) continue;
-
-                ;?; // check if it is on the deleted list and delete
-                ;?; // check if the UIDvalidity is wrong and dekete
-
-                if (lPKItem.PersistentKeyAssigned) continue;
-
-                lPKItem.TryAssignPersistentKey(lContext);
-                if (!lPKItem.PersistentKeyAssigned && mDisposing) lPKItem.TryDelete(-2, lContext);
-                if (pCancellationToken.IsCancellationRequested) return;
-            }
-
-            if (pCancellationToken.IsCancellationRequested) return;
-
-            // cache specific maintenance
-
-            Maintenance(pCancellationToken, lContext);
         }
 
         public override string ToString() => $"{nameof(cSectionCache)}({InstanceName})";

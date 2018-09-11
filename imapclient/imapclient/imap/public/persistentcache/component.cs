@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
@@ -7,12 +8,22 @@ namespace work.bacome.imapclient
 {
     public abstract class cPersistentCacheComponent
     {
-        public abstract HashSet<cUID> GetUIDs(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext);
-        public abstract void MessageExpunged(cMailboxId pMailboxId, cUID pUID, cTrace.cContext pParentContext);
-        public abstract void MessagesExpunged(cMailboxId pMailboxId, IEnumerable<cUID> pUIDs, cTrace.cContext pParentContext);
-        public abstract void SetMailboxUIDValidity(cMailboxId pMailboxId, long pUIDValidity, cTrace.cContext pParentContext);
+        protected internal abstract HashSet<cUID> GetUIDs(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext);
 
-        public virtual void Copy(cMailboxId pSourceMailboxId, cMailboxName pDestinationMailboxName, cCopyFeedback pFeedback, cTrace.cContext pParentContext)
+        protected internal abstract void MessageExpunged(cMailboxId pMailboxId, cUID pUID, cTrace.cContext pParentContext);
+        protected internal abstract void MessagesExpunged(cMailboxId pMailboxId, IEnumerable<cUID> pUIDs, cTrace.cContext pParentContext);
+        protected internal abstract void SetMailboxUIDValidity(cMailboxId pMailboxId, long pUIDValidity, cTrace.cContext pParentContext);
+
+        protected internal virtual void DiscoveredUID(iMessageHandle pMessageHandle, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCacheComponent), nameof(DiscoveredUID), pMessageHandle);
+            // in the section cache this may cause the persisting of items (or the deleting of them if they are duplicates)
+            // in the header and flag cache this may cause the update of the data in the handle from the cache
+            //  (the handle will get API extensions for this)
+            // note that this is only called if the mailbox supports persistent UIDs. Additionally the flag update API must defend against condstore being off and updates that wind back the modseq.
+        }
+
+        protected internal virtual void Copy(cMailboxId pSourceMailboxId, cMailboxName pDestinationMailboxName, cCopyFeedback pFeedback, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCacheComponent), nameof(Copy), pSourceMailboxId, pDestinationMailboxName, pFeedback);
         }
@@ -39,7 +50,7 @@ namespace work.bacome.imapclient
             if (pUIDValidity == 0)
             {
                 try { SetMailboxUIDValidity(pMailboxId, -1, lContext); }
-                catch (Exception e) { lContext.TraceException(nameof(SetMailboxUIDValidity), e); }
+                catch (Exception e) { lContext.TraceException(e); }
             }
             else
             {
@@ -48,12 +59,15 @@ namespace work.bacome.imapclient
                 try { lUIDs = GetUIDs(pMailboxId, pUIDValidity, lContext); }
                 catch (Exception e)
                 {
-                    lContext.TraceException(nameof(GetUIDs), e);
+                    lContext.TraceException(e);
                     return;
                 }
 
-                try { MessagesExpunged(pMailboxId, lUIDs, lContext); }
-                catch (Exception e) { lContext.TraceException(nameof(MessageExpunged), e); }
+                foreach (var lUID in lUIDs) 
+                {
+                    try { MessageExpunged(pMailboxId, lUID, lContext); }
+                    catch (Exception e) { lContext.TraceException(e); }
+                }
             }
         }
 
@@ -74,7 +88,7 @@ namespace work.bacome.imapclient
             catch (Exception e) { lContext.TraceException($"{nameof(YRename)}({pMailboxId})", e); }
 
             try { SetMailboxUIDValidity(pMailboxId, -1, lContext); }
-            catch (Exception e) { lContext.TraceException($"{nameof(SetMailboxUIDValidity)}({pMailboxId})", e); }
+            catch (Exception e) { lContext.TraceException(e); }
 
             int lStartIndex = pMailboxId.MailboxName.GetDescendantPathPrefix().Length;
 
@@ -89,11 +103,11 @@ namespace work.bacome.imapclient
                 catch (Exception e) { lContext.TraceException($"{nameof(YRename)}({lOldMailboxId})", e); }
 
                 try { SetMailboxUIDValidity(lOldMailboxId, -1, lContext); }
-                catch (Exception e) { lContext.TraceException($"{nameof(SetMailboxUIDValidity)}({lOldMailboxId})", e); }
+                catch (Exception e) { lContext.TraceException(e); }
             }
         }
 
-        public void Reconcile(cMailboxId pMailboxId, HashSet<cMailboxName> pAllExistentChildMailboxNames, HashSet<cMailboxName> pAllSelectableChildMailboxNames, cTrace.cContext pParentContext)
+        internal void Reconcile(cMailboxId pMailboxId, HashSet<cMailboxName> pAllExistentChildMailboxNames, HashSet<cMailboxName> pAllSelectableChildMailboxNames, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCacheComponent), nameof(Reconcile), pMailboxId);
 
@@ -117,23 +131,23 @@ namespace work.bacome.imapclient
                     if (!pAllSelectableChildMailboxNames.Contains(lMailboxName))
                     {
                         try { SetMailboxUIDValidity(new cMailboxId(pMailboxId.AccountId, lMailboxName), -1, lContext); }
-                        catch (Exception e) { lContext.TraceException(nameof(SetMailboxUIDValidity), e); }
+                        catch (Exception e) { lContext.TraceException(e); }
                     }
                 }
                 else if (lMailboxName.IsDescendantOf(pMailboxId.MailboxName))
                 {
                     var lChildMailboxName = lMailboxName.GetLineageMemberThatIsChildOf(pMailboxId.MailboxName);
-                    
+
                     if (!pAllExistentChildMailboxNames.Contains(lChildMailboxName))
                     {
                         try { SetMailboxUIDValidity(new cMailboxId(pMailboxId.AccountId, lMailboxName), -1, lContext); }
-                        catch (Exception e) { lContext.TraceException(nameof(SetMailboxUIDValidity), e); }
+                        catch (Exception e) { lContext.TraceException(e); }
                     }
                 }
             }
         }
 
-        public void Reconcile(cAccountId pAccountId, string pPrefix, cStrings pNotPrefixedWith, HashSet<cMailboxName> pAllExistentChildMailboxNames, HashSet<cMailboxName> pAllSelectableChildMailboxNames, cTrace.cContext pParentContext)
+        internal void Reconcile(cAccountId pAccountId, string pPrefix, cStrings pNotPrefixedWith, HashSet<cMailboxName> pAllExistentChildMailboxNames, HashSet<cMailboxName> pAllSelectableChildMailboxNames, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCacheComponent), nameof(Reconcile), pAccountId, pPrefix, pNotPrefixedWith);
 
@@ -159,17 +173,17 @@ namespace work.bacome.imapclient
                     if (!pAllSelectableChildMailboxNames.Contains(lMailboxName))
                     {
                         try { SetMailboxUIDValidity(new cMailboxId(pAccountId, lMailboxName), -1, lContext); }
-                        catch (Exception e) { lContext.TraceException(nameof(SetMailboxUIDValidity), e); }
+                        catch (Exception e) { lContext.TraceException(e); }
                     }
                 }
                 else if (lMailboxName.IsPrefixedWith(pPrefix, pNotPrefixedWith))
                 {
                     var lFirstMailboxName = lMailboxName.GetFirstLineageMemberPrefixedWith(pPrefix);
-                    
+
                     if (!pAllExistentChildMailboxNames.Contains(lFirstMailboxName))
                     {
                         try { SetMailboxUIDValidity(new cMailboxId(pAccountId, lMailboxName), -1, lContext); }
-                        catch (Exception e) { lContext.TraceException(nameof(SetMailboxUIDValidity), e); }
+                        catch (Exception e) { lContext.TraceException(e); }
                     }
                 }
             }

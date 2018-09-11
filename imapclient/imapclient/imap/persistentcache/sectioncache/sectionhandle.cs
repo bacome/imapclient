@@ -22,13 +22,6 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public bool Equals(cSectionHandle pObject) => this == pObject;
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
-        public bool Equals(cSectionId pObject)
-        {
-            if (pObject == null) return false;
-            return pObject.Equals(this);
-        }
-
         /// <inheritdoc />
         public override bool Equals(object pObject) => this == pObject as cSectionHandle;
 
