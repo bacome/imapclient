@@ -37,6 +37,8 @@ namespace work.bacome.imapclient
                 if (pForUpdate) lResult = await lSession.SelectAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
                 else lResult = await lSession.ExamineAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
 
+                ;?; // note that the result should include the callback for turning on the sethighestmodseq
+
                 if (lResult.UIDNotSticky || lResult.UIDValidity == 0) lSession.PersistentCache.ClearCachedItems(pMailboxHandle.MailboxId, lContext);
                 else if (!lUsedQResync || lResult.HighestModSeq == 0) // if I didn't try using QResync OR the server doesn't store modseqs for this mailbox
                 { 
@@ -57,7 +59,7 @@ namespace work.bacome.imapclient
                         // changedsince query is required: UID FETCH 1:*(FLAGS)(CHANGEDSINCE xxx)
 
                         // turn on highestmodseq tracking to the cache
-                        pMailboxHandle.setcallsethighestmodseq(lContext);
+                        lResult.setcallsethighestmodseq(lContext);
                     }
                 }
             }
