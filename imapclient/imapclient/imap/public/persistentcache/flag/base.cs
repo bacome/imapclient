@@ -1,9 +1,21 @@
 ﻿using System;
+using work.bacome.imapclient.support;
+using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    // will be public when implemented
-    internal abstract class cFlagCache : cPersistentCacheComponent
+    public abstract class cFlagCache : cPersistentCacheComponent
     {
+        public readonly string InstanceName;
+        protected readonly cTrace.cContext mRootContext;
+
+        protected cFlagCache(string pInstanceName)
+        {
+            InstanceName = pInstanceName ?? throw new ArgumentNullException(nameof(pInstanceName));
+            mRootContext = cMailClient.Trace.NewRoot(pInstanceName);
+        }
+
+        public abstract cFlagCacheItemData Update(iMessageHandle pMessageHandle);
     }
 }

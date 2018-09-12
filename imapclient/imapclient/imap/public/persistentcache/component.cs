@@ -8,20 +8,35 @@ namespace work.bacome.imapclient
 {
     public abstract class cPersistentCacheComponent
     {
+        protected internal abstract uint GetUIDValidity(cMailboxId pMailboxId, cTrace.cContext pParentContext);
+        protected internal abstract ulong GetHighestModSeq(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext);
         protected internal abstract HashSet<cUID> GetUIDs(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext);
 
-        protected internal abstract void MessageExpunged(cMailboxId pMailboxId, cUID pUID, cTrace.cContext pParentContext);
         protected internal abstract void MessagesExpunged(cMailboxId pMailboxId, IEnumerable<cUID> pUIDs, cTrace.cContext pParentContext);
-        protected internal abstract void SetMailboxUIDValidity(cMailboxId pMailboxId, long pUIDValidity, cTrace.cContext pParentContext);
 
-        protected internal virtual void DiscoveredUID(iMessageHandle pMessageHandle, cTrace.cContext pParentContext)
+        protected internal abstract void SetUIDValidity(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext);
+        protected internal abstract void SetHighestModSeq(cMailboxId pMailboxId, ulong pHighestModSeq, cTrace.cContext pParentContext);
+        protected internal abstract void ClearCachedItems(cMailboxId pMailboxId, cTrace.cContext pParentContext);
+
+
+
+
+
+        /* these are just for the section cache
+        protected internal abstract void MessageExpunged(iMessageHandle pMessageHandle, cTrace.cContext pParentContext);
+        protected internal abstract void UIDSet(iMessageHandle pMessageHandle, cTrace.cContext pParentContext);
+        protected internal abstract void MessageCacheChange
+        */
+
+        /*
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCacheComponent), nameof(DiscoveredUID), pMessageHandle);
             // in the section cache this may cause the persisting of items (or the deleting of them if they are duplicates)
             // in the header and flag cache this may cause the update of the data in the handle from the cache
             //  (the handle will get API extensions for this)
-            // note that this is only called if the mailbox supports persistent UIDs. Additionally the flag update API must defend against condstore being off and updates that wind back the modseq.
-        }
+            // note that this is only called if the mailbox supports persistent UIDs. 
+            //  Additionally the flag update API must defend against condstore being off (highestmodseq not set or set to zero) and updates that wind back the modseq.
+        } */
 
         protected internal virtual void Copy(cMailboxId pSourceMailboxId, cMailboxName pDestinationMailboxName, cCopyFeedback pFeedback, cTrace.cContext pParentContext)
         {
@@ -63,6 +78,7 @@ namespace work.bacome.imapclient
                     return;
                 }
 
+                ;?; // use messages expunged
                 foreach (var lUID in lUIDs) 
                 {
                     try { MessageExpunged(pMailboxId, lUID, lContext); }

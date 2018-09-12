@@ -15,9 +15,9 @@ namespace work.bacome.imapclient
             private object mConnectionStateLock = new object();
             private eIMAPConnectionState _ConnectionState = eIMAPConnectionState.notconnected;
 
+            public readonly cPersistentCache PersistentCache;
+
             private readonly cIMAPCallbackSynchroniser mSynchroniser;
-            private readonly Action<cMailboxId, cUID, cTrace.cContext> mMessageExpunged;
-            private readonly Action<cMailboxId, long, cTrace.cContext> mSetMailboxUIDValidity;
             private readonly fIMAPCapabilities mIgnoreCapabilities;
             private readonly fMailboxCacheDataItems mMailboxCacheDataItems;
             private readonly cBatchSizer mFetchCacheItemsSizer;
@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
             // (note for when adding more: they need to be disposed)
 
             public cSession(
-                cIMAPCallbackSynchroniser pSynchroniser, Action<cMailboxId, cUID, cTrace.cContext> pMessageExpunged, Action<cMailboxId, long, cTrace.cContext> pSetMailboxUIDValidity,
+                cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, 
                 cBatchSizerConfiguration pNetworkWriteConfiguration,
                 fIMAPCapabilities pIgnoreCapabilities, fMailboxCacheDataItems pMailboxCacheDataItems,
                 cBatchSizerConfiguration pFetchCacheItemsConfiguration, cBatchSizerConfiguration pFetchBodyConfiguration,
@@ -68,12 +68,8 @@ namespace work.bacome.imapclient
                         pAppendDefaultFlags, pAppendBatchConfiguration,
                         pIdleConfiguration);
 
-                ;?; // cache is a parameter and an immutable property
-                ;?; // check if message expunged is still requied
-
+                PersistentCache = pPersistentCache ?? throw new ArgumentNullException(nameof(pPersistentCache));
                 mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
-                mMessageExpunged = pMessageExpunged ?? throw new ArgumentNullException(nameof(pMessageExpunged));
-                mSetMailboxUIDValidity = pSetMailboxUIDValidity ?? throw new ArgumentNullException(nameof(pSetMailboxUIDValidity));
                 mIgnoreCapabilities = pIgnoreCapabilities;
                 mMailboxCacheDataItems = pMailboxCacheDataItems;
                 mFetchCacheItemsSizer = new cBatchSizer(pFetchCacheItemsConfiguration);

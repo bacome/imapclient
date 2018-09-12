@@ -13,8 +13,8 @@ namespace work.bacome.imapclient
         {
             private partial class cSelectedMailboxCache : iMessageCache
             {
+                private readonly cPersistentCache mPersistentCache;
                 private readonly cIMAPCallbackSynchroniser mSynchroniser;
-                private readonly Action<cMailboxId, cUID, cTrace.cContext> mMessageExpunged;
                 private readonly cMailboxCacheItem mMailboxCacheItem;
                 private readonly uint mUIDValidity;
                 private readonly bool mNoModSeq;
@@ -34,13 +34,29 @@ namespace work.bacome.imapclient
 
                 private ulong mHighestModSeq;
                 private ulong mPendingHighestModSeq = 0;
+                private bool mCallSetHighestModSeq;
 
-                public cSelectedMailboxCache(cIMAPCallbackSynchroniser pSynchroniser, Action<cMailboxId, cUID, cTrace.cContext> pMessageExpunged, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, ulong pHighestModSeq, cTrace.cContext pParentContext)
+                /*
+                 * design for qresync
+                 * 
+                 *  pass in IList<cQResyncItem> pQResyncItems which collect the data from the fetches send as part of the select
+                 *  the items in the mItems list are initialised from these values
+                 *  the cQResyncItem has an update method similar to the cItem class: but no events are sent
+                 *  
+                 *  if pQResyncItems is passed in then the cache can immediately start calling sethighestmodseq
+                 * 
+                 * Note that the header and flag caches do not need to be called with updates to values in the initialisation: that should have been done already
+                 *  (the cQResyncItem calls the cache coord routines as is done here)
+                 * 
+                 * 
+                 * */
+
+                public cSelectedMailboxCache(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, ulong pHighestModSeq, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cSelectedMailboxCache), pMailboxCacheItem, pUIDValidity, pMessageCount, pRecentCount, pUIDNext, pHighestModSeq);
 
+                    mPersistentCache = pPersistentCache ?? throw new ArgumentNullException(nameof(pPersistentCache));
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
-                    mMessageExpunged = pMessageExpunged ?? throw new ArgumentNullException(nameof(pMessageExpunged));
                     mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
                     mUIDValidity = pUIDValidity;
                     mNoModSeq = pHighestModSeq == 0;
@@ -67,6 +83,7 @@ namespace work.bacome.imapclient
                     mUnseenUnknownCount = pMessageCount;
 
                     mHighestModSeq = pHighestModSeq;
+                    mCallSetHighestModSeq = false; // note: if we qresync'd this should be set to true
 
                     ZSetMailboxStatus(lContext);
                 }
@@ -76,7 +93,7 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewObject(nameof(cSelectedMailboxCache), pOldCache, pUIDValidity);
 
                     mSynchroniser = pOldCache.mSynchroniser;
-                    mMessageExpunged = pOldCache.mMessageExpunged;
+                    mPersistentCache = pOldCache.mPersistentCache;
                     mMailboxCacheItem = pOldCache.mMailboxCacheItem;
                     mUIDValidity = pUIDValidity;
                     mNoModSeq = pOldCache.mNoModSeq;
@@ -96,8 +113,19 @@ namespace work.bacome.imapclient
                     mUnseenUnknownCount = lMessageCount;
 
                     mHighestModSeq = 0;
+                    mCallSetHighestModSeq = !mNoModSeq; // this constructor is for a uidvalidity change, so we can start calling sethighestmodseq straight away
 
                     ZSetMailboxStatus(lContext);
+                }
+
+                public void SetCallSetHighestModSeq(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(SetCallSetHighestModSeq));
+
+                    if (mCallSetHighestModSeq) throw new InvalidOperationException();
+
+                    mCallSetHighestModSeq = true;
+                    mPersistentCache.SetHighestModSeq(mMailboxCacheItem.MailboxId, mHighestModSeq, lContext);
                 }
 
                 public int Count => mItems.Count;
@@ -130,6 +158,7 @@ namespace work.bacome.imapclient
                     if (mPendingHighestModSeq > mHighestModSeq)
                     {
                         mHighestModSeq = mPendingHighestModSeq;
+                        if (mCallSetHighestModSeq) mPersistentCache.SetHighestModSeq(mMailboxCacheItem.MailboxId, mHighestModSeq, lContext);
                         ZSetMailboxStatus(lContext);
                     }
 
@@ -268,7 +297,7 @@ namespace work.bacome.imapclient
                     }
                     else mUIDNextMessageCount--;
 
-                    if (lExpungedItem.UID != null) mMessageExpunged(mMailboxCacheItem.MailboxId, lExpungedItem.UID, lContext);
+                    mPersistentCache.MessageExpunged(lExpungedItem, lContext);
 
                     mSynchroniser.InvokeMessagePropertyChanged(lExpungedItem, nameof(cIMAPMessage.Expunged), lContext);
                     ZSetMailboxStatus(lContext);
@@ -329,6 +358,8 @@ namespace work.bacome.imapclient
                             if (lFetchedItem.UID.UID + 1 > mUIDNext) mUIDNext = lFetchedItem.UID.UID + 1;
                             lSetMailboxStatus = true;
                         }
+
+                        mPersistentCache.MessageHandleUIDSet(lFetchedItem, lContext);
                     }
 
                     if (lFetchedItem.ModSeq > mPendingHighestModSeq) mPendingHighestModSeq = lFetchedItem.ModSeq.Value;

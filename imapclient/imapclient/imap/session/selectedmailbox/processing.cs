@@ -37,7 +37,8 @@ namespace work.bacome.imapclient
                             return;
 
                         case cResponseDataUIDValidity lUIDValidity:
-
+                            
+                            mPersistentCache.MessageCacheDeactivated(mCache, lContext);
                             mCache = new cSelectedMailboxCache(mCache, lUIDValidity.UIDValidity, lContext);
                             return;
 

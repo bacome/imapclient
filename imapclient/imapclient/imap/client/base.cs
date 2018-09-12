@@ -81,7 +81,7 @@ namespace work.bacome.imapclient
         //    or there are errors (like duplicate headers)
         //   so at this stage the MDNSent features are commented out as they aren't useful by themselves
 
-        private static cPersistentCache mDefaultPersistentCache = new cPersistentCache();
+        private static readonly cPersistentCache kDefaultPersistentCache = new cPersistentCache();
         public static cPersistentCache GlobalPersistentCache { get; set; } = null;
 
         // mechanics
@@ -366,7 +366,12 @@ namespace work.bacome.imapclient
 
         public cPersistentCache PersistentCache
         {
-            get => _PersistentCache ?? GlobalPersistentCache ?? mDefaultPersistentCache;
+            get
+            {
+                var lSession = mSession;
+                if (lSession == null || lSession.IsUnconnected) return _PersistentCache ?? GlobalPersistentCache ?? kDefaultPersistentCache;
+                return lSession.PersistentCache;
+            }
 
             set
             {

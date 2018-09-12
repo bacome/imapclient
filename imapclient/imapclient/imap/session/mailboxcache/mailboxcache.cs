@@ -14,9 +14,8 @@ namespace work.bacome.imapclient
         {
             private partial class cMailboxCache : iMailboxCache
             {
+                private readonly cPersistentCache mPersistentCache;
                 private readonly cIMAPCallbackSynchroniser mSynchroniser;
-                private readonly Action<cMailboxId, cUID, cTrace.cContext> mMessageExpunged;
-                private readonly Action<cMailboxId, long, cTrace.cContext> mSetMailboxUIDValidity;
                 private readonly fMailboxCacheDataItems mMailboxCacheDataItems;
                 private readonly cCommandPartFactory mCommandPartFactory;
                 private readonly cIMAPCapabilities mCapabilities;
@@ -27,11 +26,10 @@ namespace work.bacome.imapclient
                 private int mSequence = 7;
                 private cSelectedMailbox mSelectedMailbox = null;
 
-                public cMailboxCache(cIMAPCallbackSynchroniser pSynchroniser, Action<cMailboxId, cUID, cTrace.cContext> pMessageExpunged, Action<cMailboxId, long, cTrace.cContext> pSetMailboxUIDValidity, fMailboxCacheDataItems pMailboxCacheDataItems, cCommandPartFactory pCommandPartFactory, cIMAPCapabilities pCapabilities, cAccountId pAccountId, Action<eIMAPConnectionState, cTrace.cContext> pSetState)
+                public cMailboxCache(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, fMailboxCacheDataItems pMailboxCacheDataItems, cCommandPartFactory pCommandPartFactory, cIMAPCapabilities pCapabilities, cAccountId pAccountId, Action<eIMAPConnectionState, cTrace.cContext> pSetState)
                 {
+                    mPersistentCache = pPersistentCache ?? throw new ArgumentNullException(nameof(pPersistentCache));
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
-                    mMessageExpunged = pMessageExpunged ?? throw new ArgumentNullException(nameof(pMessageExpunged));
-                    mSetMailboxUIDValidity = pSetMailboxUIDValidity ?? throw new ArgumentNullException(nameof(pSetMailboxUIDValidity));
                     mMailboxCacheDataItems = pMailboxCacheDataItems;
                     mCommandPartFactory = pCommandPartFactory ?? throw new ArgumentNullException(nameof(pCommandPartFactory));
                     mCapabilities = pCapabilities ?? throw new ArgumentNullException(nameof(pCapabilities));
@@ -177,8 +175,7 @@ namespace work.bacome.imapclient
 
                     if (mSelectedMailbox == null) return;
 
-                    // this is where the cacheintegration goes for qresync
-                    //  assemble a package of data: uidvalidity, highestmodseq and all messagehandles with a uid and pass it to the cacheintegration layer
+                    mPersistentCache.MessageCacheDeactivated(mSelectedMailbox.MessageCache, lContext);
 
                     var lMailboxHandle = mSelectedMailbox.MailboxHandle;
 
@@ -207,7 +204,7 @@ namespace work.bacome.imapclient
                     if (pExists < 0) throw new ArgumentOutOfRangeException(nameof(pExists));
                     if (pRecent < 0) throw new ArgumentOutOfRangeException(nameof(pRecent));
 
-                    mSelectedMailbox = new cSelectedMailbox(mSynchroniser, mMessageExpunged, lItem, pForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq, lContext);
+                    mSelectedMailbox = new cSelectedMailbox(mPersistentCache, mSynchroniser, lItem, pForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq, lContext);
 
                     lItem.SetSelectedProperties(pUIDNotSticky, pFlags, pForUpdate, pPermanentFlags, lContext);
 
@@ -242,13 +239,13 @@ namespace work.bacome.imapclient
                     return mSelectedMailbox.GetKnownDeletedMessageUIDs(lContext);
                 }
 
-                private cMailboxCacheItem ZItem(string pEncodedMailboxPath) => mDictionary.GetOrAdd(pEncodedMailboxPath, new cMailboxCacheItem(mSynchroniser, mSetMailboxUIDValidity, this, pEncodedMailboxPath));
+                private cMailboxCacheItem ZItem(string pEncodedMailboxPath) => mDictionary.GetOrAdd(pEncodedMailboxPath, new cMailboxCacheItem(mSynchroniser, mPersistentCache, this, pEncodedMailboxPath));
 
                 private cMailboxCacheItem ZItem(cMailboxName pMailboxName)
                 {
                     if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
                     if (!mCommandPartFactory.TryAsMailbox(pMailboxName.Path, pMailboxName.Delimiter, out var lCommandPart, out var lEncodedMailboxPath)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
-                    var lItem = mDictionary.GetOrAdd(lEncodedMailboxPath, new cMailboxCacheItem(mSynchroniser, mSetMailboxUIDValidity, this, lEncodedMailboxPath));
+                    var lItem = mDictionary.GetOrAdd(lEncodedMailboxPath, new cMailboxCacheItem(mSynchroniser, mPersistentCache, this, lEncodedMailboxPath));
                     lItem.MailboxName = pMailboxName;
                     lItem.MailboxNameCommandPart = lCommandPart;
                     return lItem;

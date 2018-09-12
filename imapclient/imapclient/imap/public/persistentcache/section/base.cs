@@ -16,13 +16,14 @@ namespace work.bacome.imapclient
         private static readonly TimeSpan kPlusOneHour = TimeSpan.FromHours(1);
         private static readonly TimeSpan kMinusOneHour = TimeSpan.FromHours(-1);
 
+        ;?; // null entries => no: remove them
+
+
         ;?; // rmeove disposable
         private bool mDisposed = false;
         private bool mDisposing = false;
 
         public readonly string InstanceName;
-        public readonly int MaintenanceFrequency;
-
         protected readonly cTrace.cContext mRootContext;
 
         // collections for storing cache items; note that the values here may be null (maintenance will remove entries with null values, values can be set to null by rename)
@@ -30,26 +31,18 @@ namespace work.bacome.imapclient
         private readonly ConcurrentDictionary<cSectionId, cSectionCacheItem> mSectionIdToItem = new ConcurrentDictionary<cSectionId, cSectionCacheItem>();
 
         // pending items: new items that haven't been added to the cache yet (items are in this collection from when getnewitem is called until additem is called)
-        //  [they are here so we can mark them for delete if there is an expunge or uidvalidity change (etc)]
         private readonly ConcurrentDictionary<cSectionCacheItem, byte> mPendingItems = new ConcurrentDictionary<cSectionCacheItem, byte>();
 
         // source for numbering cache items
         private int mItemSequence = 7;
 
-        // maintenance background task
-        private readonly object mMaintenanceStartLock = new object();
-        private CancellationTokenSource mMaintenanceCTS;
-        private Task mMaintenanceTask = null;
-
-        protected cSectionCache(string pInstanceName, int pMaintenanceFrequency)
+        protected cSectionCache(string pInstanceName)
         {
             InstanceName = pInstanceName ?? throw new ArgumentNullException(nameof(pInstanceName));
-            if (MaintenanceFrequency < 1000) throw new ArgumentOutOfRangeException(nameof(pMaintenanceFrequency));
-            MaintenanceFrequency = pMaintenanceFrequency;
             mRootContext = cMailClient.Trace.NewRoot(pInstanceName);
         }
 
-        public override HashSet<cUID> GetUIDs(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
+        protected internal override HashSet<cUID> GetUIDs(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetUIDs), pMailboxId, pUIDValidity);
 
