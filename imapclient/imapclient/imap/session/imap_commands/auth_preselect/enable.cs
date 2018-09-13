@@ -14,7 +14,9 @@ namespace work.bacome.imapclient
 
             private static readonly cCommandPart kEnableCommandPartEnable = new cTextCommandPart("ENABLE");
             private static readonly cBytes kEnableExtensionUTF8 = new cBytes("UTF8=ACCEPT");
+            private static readonly cBytes kEnableExtensionQRESYNC = new cBytes("QRESYNC");
             private static readonly cCommandPart kEnableCommandPartUTF8 = new cTextCommandPart(kEnableExtensionUTF8);
+            private static readonly cCommandPart kEnableCommandPartQRESYNC = new cTextCommandPart(kEnableExtensionQRESYNC);
 
             public async Task EnableAsync(cMethodControl pMC, fEnableableExtensions pExtensions, cTrace.cContext pParentContext)
             {
@@ -30,6 +32,7 @@ namespace work.bacome.imapclient
                     lBuilder.BeginList(eListBracketing.none);
                     lBuilder.Add(kEnableCommandPartEnable);
                     if ((pExtensions & fEnableableExtensions.utf8) != 0) lBuilder.Add(kEnableCommandPartUTF8);
+                    if ((pExtensions & fEnableableExtensions.qresync) != 0) lBuilder.Add(kEnableCommandPartQRESYNC);
                     // more here as required
                     lBuilder.EndList();
 
@@ -86,6 +89,7 @@ namespace work.bacome.imapclient
                         lContext.TraceVerbose("got an enabled for {0}", lAtom);
 
                         if (cASCII.Compare(lAtom, kEnableExtensionUTF8, false)) lEnabledExtensions = lEnabledExtensions | fEnableableExtensions.utf8;
+                        if (cASCII.Compare(lAtom, kEnableExtensionQRESYNC, false)) lEnabledExtensions = lEnabledExtensions | fEnableableExtensions.qresync;
                         // more here as required
                         else lContext.TraceError("unknown extension enabled: {0}", lAtom);
                     }

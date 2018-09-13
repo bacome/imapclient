@@ -332,7 +332,6 @@
     <Compile Include="imap\session\imap_commands\selected\check.cs" />
     <Compile Include="imap\session\imap_commands\selected\close.cs" />
     <Compile Include="imap\session\imap_commands\auth_preselect\enable.cs" />
-    <Compile Include="imap\session\imap_commands\authenticated\examine.cs" />
     <Compile Include="imap\session\imap_commands\selected\fetch\body.cs" />
     <Compile Include="imap\session\imap_commands\selected\fetch\attributes.cs" />
     <Compile Include="imap\session\imap_commands\selected\fetch\constants.cs" />

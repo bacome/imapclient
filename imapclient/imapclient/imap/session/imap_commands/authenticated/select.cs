@@ -10,12 +10,15 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kSelectCommandPart = new cTextCommandPart("SELECT ");
+            private static readonly cCommandPart kSelectForUpdateCommandPart = new cTextCommandPart("SELECT ");
+            private static readonly cCommandPart kSelectReadOnlyCommandPart = new cTextCommandPart("EXAMINE ");
+            private static readonly cCommandPart kSelectCommandPartCondStore = new cTextCommandPart(" (CONDSTORE)");
             private static readonly cCommandPart kSelectCommandPartCondStore = new cTextCommandPart(" (CONDSTORE)");
 
-            public async Task<cSelectResult> SelectAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
+
+            public async Task<cSelectResult> SelectExamineAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, bool pForUpdate, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SelectAsync), pMC, pMailboxHandle);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SelectAsync), pMC, pMailboxHandle, pForUpdate);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eIMAPConnectionState.notselected && _ConnectionState != eIMAPConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
@@ -28,10 +31,22 @@ namespace work.bacome.imapclient
                     lBuilder.Add(await mSelectExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // get exclusive access to the selected mailbox
                     lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
-                    lBuilder.Add(kSelectCommandPart, lItem.MailboxNameCommandPart);
+                    if (pForUpdate) lBuilder.Add(kSelectForUpdateCommandPart);
+                    else lBuilder.Add(kSelectReadOnlyCommandPart);
+
+                    lBuilder.Add(lItem.MailboxNameCommandPart);
+
+                    bool lUsingQResync;
+
+                    if ((EnabledExtensions & fEnableableExtensions.qresync) != 0)
+                    {
+                        lBuilder.a;
+                    }
+                    else lUsingQResync = false;
+
                     if (_Capabilities.CondStore) lBuilder.Add(kSelectCommandPartCondStore);
 
-                    var lHook = new cCommandHookSelect(mMailboxCache, _Capabilities, pMailboxHandle, true);
+                    var lHook = new cCommandHookSelect(mMailboxCache, _Capabilities, pMailboxHandle, true, lusingqresync);
                     lBuilder.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);

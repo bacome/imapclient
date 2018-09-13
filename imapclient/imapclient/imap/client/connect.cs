@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
         /// <para>
         /// After authentication, depending on what the <see cref="Capabilities"/> allow;
         /// <list type="bullet">
-        /// <item><see cref="fEnableableExtensions.utf8"/> is enabled (see <see cref="cIMAPCapabilities.UTF8Accept"/> and <see cref="cIMAPCapabilities.UTF8Only"/>); this sets <see cref="EnabledExtensions"/>.</item>
+        /// <item><see cref="fEnableableExtensions.utf8"/> and <see cref="fEnableableExtensions.qresync"/> are enabled (see <see cref="cIMAPCapabilities.UTF8Accept"/>, <see cref="cIMAPCapabilities.UTF8Only"/> and <see cref="cIMAPCapabilities.QResync"/>); this sets <see cref="EnabledExtensions"/>.</item>
         /// <item>ID (RFC 2971) information is exchanged with the server; this sends <see cref="ClientId"/> (or <see cref="ClientIdUTF8"/>) and sets <see cref="ServerId"/>.</item>
         /// <item>Namespace (RFC 2342) information is retrieved from the server; this sets <see cref="Namespaces"/>.</item>
         /// <item>A special syntax IMAP LIST command is used to discover the hierarchy delimiter and one personal namespace may be generated using it; this sets <see cref="Namespaces"/>.</item>
@@ -243,6 +243,7 @@ namespace work.bacome.imapclient
                     {
                         fEnableableExtensions lExtensions = fEnableableExtensions.none;
                         if (lCurrentCapabilities.UTF8Accept || lCurrentCapabilities.UTF8Only) lExtensions = lExtensions | fEnableableExtensions.utf8;
+                        if (lCurrentCapabilities.QResync) lExtensions = lExtensions | fEnableableExtensions.qresync;
                         if (lExtensions != fEnableableExtensions.none) await lSession.EnableAsync(lMC, lExtensions, lContext).ConfigureAwait(false);
                     }
 

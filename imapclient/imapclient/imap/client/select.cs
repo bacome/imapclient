@@ -24,24 +24,44 @@ namespace work.bacome.imapclient
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
 
-                // get the parameters for qresync [if it is in use]
-                //   pass this pair to select/examine along with the set of uids in cache (this minimises the number of fetches sent)
-                //   (note that if we dont have parameters (either the UIDVal or highestmodseq is zero), then don't use qresync)
-                //   (note that is there is nothing in cache, then don't use qresync)
-                //
-                //   (if qressync is on and gets used then by the time the select returns the persistent cache is synchronised)
-
-                bool lUsedQResync = false;
                 cSelectResult lResult;
 
                 if (pForUpdate) lResult = await lSession.SelectAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
                 else lResult = await lSession.ExamineAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
 
-                ;?; // note that the result should include the callback for turning on the sethighestmodseq
+                ;?; // note that the result includes whether qresync was requested or not
+                ;?; // note that the result should include the callback for turning on the sethighestmodseq IF it needs turning on
 
                 if (lResult.UIDNotSticky || lResult.UIDValidity == 0) lSession.PersistentCache.ClearCachedItems(pMailboxHandle.MailboxId, lContext);
-                else if (!lUsedQResync || lResult.HighestModSeq == 0) // if I didn't try using QResync OR the server doesn't store modseqs for this mailbox
-                { 
+
+                if (lResult.ManuallySynchroniseExpunged)
+                {
+                    var lUIDsInCache = lSession.PersistentCache.GetUIDs(pMailboxHandle.MailboxId, lResult.UIDValidity, lResult.ManuallySynchroniseExpungedIncludeFlagCache, lContext);
+
+                    if (lUIDsInCache.Count > 0)
+                    {
+                        var lUIDsInMailbox = await ZGetUIDsAsync(lMC, pMailboxHandle, new cFilterUIDIn(lResult.UIDValidity, cSequenceSet.FromUInts(from lUID in lUIDsInCache select lUID.UID, 50)), cSort.None, null, lContext);
+                        lUIDsInCache.ExceptWith(lUIDsInMailbox);
+                        lSession.PersistentCache.MessagesExpunged(pMailboxHandle.MailboxId, lUIDsInCache, lContext);
+                    }
+                }
+
+                if (lResult.manuallysynchroniseflags)
+                {
+                    // changedsince query is required: UID FETCH 1:*(FLAGS)(CHANGEDSINCE xxx)
+
+                    // turn on highestmodseq tracking to the cache
+                    lResult.setcallsethighestmodseq(lContext);
+                }
+
+
+
+
+
+                xxelse if (!lUsedQResync || lResult.HighestModSeq == 0) // if I didn't try using QResync OR the server doesn't store modseqs for this mailbox
+                {
+                    ;?; // if no modseq, don't include the flag cache
+
                     var lUIDsInCache = lSession.PersistentCache.GetUIDs(pMailboxHandle.MailboxId, lResult.UIDValidity, lContext);
                     if (lUIDsInCache.Count == 0) return;
 
@@ -56,10 +76,6 @@ namespace work.bacome.imapclient
                     //
                     if (lResult.HighestModSeq != 0)
                     {
-                        // changedsince query is required: UID FETCH 1:*(FLAGS)(CHANGEDSINCE xxx)
-
-                        // turn on highestmodseq tracking to the cache
-                        lResult.setcallsethighestmodseq(lContext);
                     }
                 }
             }

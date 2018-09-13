@@ -43,7 +43,13 @@ namespace work.bacome.imapclient
                     }
 
                     // build command
-                    lBuilder.Add(kFetchCommandPartFetchSpace, new cTextCommandPart(lMSN), kFetchCommandPartSpaceBinarySizeLBracket, lPart, cCommandPart.RBracket);
+
+                    var lRequestUIDAsWell = (EnabledExtensions & fEnableableExtensions.qresync) != 0 && pMessageHandle.UID == null;
+
+                    lBuilder.Add(kFetchCommandPartFetchSpace, new cTextCommandPart(lMSN));
+                    if (lRequestUIDAsWell) lBuilder.Add(kFetchCommandPartSpaceLParenUID);
+                    lBuilder.Add(lPart, cCommandPart.RBracket);
+                    if (lRequestUIDAsWell) lBuilder.Add(cCommandPart.RParen);
 
                     // go
 

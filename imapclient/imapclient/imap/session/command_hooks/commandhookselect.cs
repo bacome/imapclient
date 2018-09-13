@@ -19,6 +19,7 @@ namespace work.bacome.imapclient
                 private readonly cIMAPCapabilities mCapabilities;
                 private readonly iMailboxHandle mMailboxHandle;
                 private readonly bool mForUpdate;
+                private readonly bool mUsingQResync;
 
                 private cFetchableFlags mFlags = null;
                 private int mExists = 0;
@@ -30,12 +31,13 @@ namespace work.bacome.imapclient
                 private bool mUIDNotSticky = false;
                 private bool mAccessReadOnly = false;
 
-                public cCommandHookSelect(cMailboxCache pMailboxCache, cIMAPCapabilities pCapabilities, iMailboxHandle pMailboxHandle, bool pForUpdate)
+                public cCommandHookSelect(cMailboxCache pMailboxCache, cIMAPCapabilities pCapabilities, iMailboxHandle pMailboxHandle, bool pForUpdate, bool pUsingQResync)
                 {
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                     mCapabilities = pCapabilities ?? throw new ArgumentNullException(nameof(pCapabilities));
                     mMailboxHandle = pMailboxHandle ?? throw new ArgumentNullException(nameof(pMailboxHandle));
                     mForUpdate = pForUpdate;
+                    mUsingQResync = pUsingQResync;
                 }
 
                 public cSelectResult Result => new cSelectResult(mUIDValidity, mHighestModSeq, mUIDNotSticky);
@@ -51,6 +53,8 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessData));
 
                     if (mMailboxCache.SelectedMailboxDetails != null) return eProcessDataResult.notprocessed;
+
+                    // qresync: process vanished (accumulate UIDs) and fetches (accumulate MSN->data) here
 
                     switch (pData)
                     {
@@ -127,6 +131,13 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(CommandCompleted), pResult);
                     if (pResult.ResultType != eIMAPCommandResultType.ok) return;
+
+                    ;?; // return the callback for turning on highetmodseq IF qresync was off AND 
+
+
+
+                    // qresync: send the accumulated fetch data to the mailboxcache here and the accumulated expunged uids to the cache
+
                     mMailboxCache.Select(mMailboxHandle, mForUpdate, mAccessReadOnly, mUIDNotSticky, mFlags, mPermanentFlags, mExists, mRecent, mUIDNext, mUIDValidity, mHighestModSeq, lContext);
                 }
             }
