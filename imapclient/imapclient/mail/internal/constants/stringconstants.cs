@@ -45,4 +45,18 @@ namespace work.bacome.mailclient
         public const string StreamNotSeekable = "stream not seekable";
         public const string MessageDataStreamUnknownFormatAndLength = "message data stream unknown format and length";
     }
+
+    ;?;
+    internal static class kUnexpectedIMAPServerActionMessage
+    {
+
+
+        public const string CountShouldOnlyGoUp = "count should only go up";
+        public const string QResyncWithModSeqAndNoUIDValidity = "qresync with modseq and no uidvalidity";
+        public const string UnexpectedContinuationRequest = "unexpected continuation request";
+        public const string OKAndError = "ok status response combined with error response code";
+        public const string IdleCompletedBeforeDoneSent = "idle completed before done sent";
+        public const string ResultsNotReceived = "results not received";
+        public const string ByeNotReceived = "bye not received";
+    }
 }

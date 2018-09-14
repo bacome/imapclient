@@ -47,7 +47,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("extended search success");
-                        if (lHook.UIDs == null) throw new cUnexpectedIMAPServerActionException(lResult, "results not received on a successful extended uid search", fIMAPCapabilities.esearch, lContext);
+                        if (lHook.UIDs == null) throw new cUnexpectedIMAPServerActionException(lResult, kUnexpectedIMAPServerActionMessage.ResultsNotReceived, fIMAPCapabilities.esearch, lContext);
                         return lHook.UIDs;
                     }
 

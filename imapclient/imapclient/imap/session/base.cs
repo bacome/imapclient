@@ -103,7 +103,9 @@ namespace work.bacome.imapclient
                 mStatusAttributes = mMailboxCacheDataItems & fMailboxCacheDataItems.allstatus;
                 if (!_Capabilities.CondStore) mStatusAttributes &= ~fMailboxCacheDataItems.highestmodseq;
 
-                mMailboxCache = new cMailboxCache(mSynchroniser, mMessageExpunged, mSetMailboxUIDValidity, mMailboxCacheDataItems, mCommandPartFactory, _Capabilities, _ConnectedAccountId, ZSetState);
+                mMailboxCache = new cMailboxCache(PersistentCache, mSynchroniser, mMailboxCacheDataItems, mCommandPartFactory, _Capabilities, _ConnectedAccountId, ZSetState);
+
+                ;?; // if qresync enabled install the vanished response processor
 
                 mPipeline.Install(new cResponseTextCodeParserSelect(_Capabilities));
                 mPipeline.Install(new cResponseDataParserSelect());
@@ -111,6 +113,7 @@ namespace work.bacome.imapclient
                 mPipeline.Install(new cResponseDataParserList(lUTF8Enabled));
                 mPipeline.Install(new cResponseDataParserLSub(lUTF8Enabled));
                 if (_Capabilities.ESearch || _Capabilities.ESort) mPipeline.Install(new cResponseDataParserESearch());
+                if ((EnabledExtensions & fEnableableExtensions.qresync) != 0) mPipeline.Install(new cResponseDataParserVanished());
 
                 mPipeline.Enable(mMailboxCache, _Capabilities, lContext);
 

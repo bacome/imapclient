@@ -41,7 +41,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("setunseencount success");
-                        if (lHook.MessageHandles == null) throw new cUnexpectedIMAPServerActionException(lResult, "results not received on a successful setunseencount", 0, lContext);
+                        if (lHook.MessageHandles == null) throw new cUnexpectedIMAPServerActionException(lResult, kUnexpectedIMAPServerActionMessage.ResultsNotReceived, 0, lContext);
                         return lHook.MessageHandles;
                     }
 

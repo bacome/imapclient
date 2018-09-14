@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using work.bacome.imapclient.support;
+using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
@@ -251,7 +252,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ZExists), pMessageCount);
 
-                    if (pMessageCount < mItems.Count) throw new cUnexpectedIMAPServerActionException(null, "count should only go up", 0, lContext);
+                    if (pMessageCount < mItems.Count) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.CountShouldOnlyGoUp, 0, lContext);
 
                     int lToAdd = pMessageCount - mItems.Count;
 

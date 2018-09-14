@@ -138,7 +138,7 @@ namespace work.bacome.imapclient
                     {
                         lock (mPipelineLock)
                         {
-                            if (mCurrentCommand == null || !mCurrentCommand.AwaitingContinuation) throw new cUnexpectedIMAPServerActionException(null, "unexpected continuation request", 0, lContext);
+                            if (mCurrentCommand == null || !mCurrentCommand.AwaitingContinuation) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.UnexpectedContinuationRequest, 0, lContext);
 
                             if (!mCurrentCommand.IsAuthentication) 
                             {
@@ -211,7 +211,7 @@ namespace work.bacome.imapclient
                         //
                         if (lResult.ResponseText.CodeIsAlwaysAnError)
                         {
-                            pCommand.SetException(new cUnexpectedIMAPServerActionException(lResult, "ok status response combined with error response code", 0, lContext), lContext);
+                            pCommand.SetException(new cUnexpectedIMAPServerActionException(lResult, kUnexpectedIMAPServerActionMessage.OKAndError, 0, lContext), lContext);
                             return true;
                         }
                     }

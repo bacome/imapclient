@@ -9,7 +9,7 @@ namespace work.bacome.mailclient
 {
     internal partial class cBytesCursor
     {
-        public bool GetSequenceSet(out cSequenceSet rSequenceSet)
+        public bool GetSequenceSet(bool pAsteriskAllowed, out cSequenceSet rSequenceSet)
         {
             var lBookmark = Position;
 
@@ -17,7 +17,7 @@ namespace work.bacome.mailclient
 
             while (true)
             {
-                if (!ZGetSequenceSetItem(out var lItem))
+                if (!ZGetSequenceSetItem(pAsteriskAllowed, out var lItem))
                 {
                     Position = lBookmark;
                     rSequenceSet = null;
@@ -34,12 +34,12 @@ namespace work.bacome.mailclient
             }
         }
 
-        private bool ZGetSequenceSetItem(out cSequenceSetItem rItem)
+        private bool ZGetSequenceSetItem(bool pAsteriskAllowed, out cSequenceSetItem rItem)
         {
             uint lNumber;
             cSequenceSetRangePart lItem;
 
-            if (SkipByte(cASCII.ASTERISK)) lItem = cSequenceSetItem.Asterisk;
+            if (pAsteriskAllowed && SkipByte(cASCII.ASTERISK)) lItem = cSequenceSetItem.Asterisk;
             else
             {
                 if (!GetNZNumber(out _, out lNumber)) { rItem = null; return false; }
@@ -54,7 +54,7 @@ namespace work.bacome.mailclient
                 return true;
             }
 
-            if (SkipByte(cASCII.ASTERISK))
+            if (pAsteriskAllowed && SkipByte(cASCII.ASTERISK))
             {
                 rItem = new cSequenceSetRange(lItem, cSequenceSetItem.Asterisk);
                 return true;

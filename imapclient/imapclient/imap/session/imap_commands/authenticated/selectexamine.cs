@@ -13,8 +13,7 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kSelectForUpdateCommandPart = new cTextCommandPart("SELECT ");
             private static readonly cCommandPart kSelectReadOnlyCommandPart = new cTextCommandPart("EXAMINE ");
             private static readonly cCommandPart kSelectCommandPartCondStore = new cTextCommandPart(" (CONDSTORE)");
-            private static readonly cCommandPart kSelectCommandPartCondStore = new cTextCommandPart(" (CONDSTORE)");
-
+            private static readonly cCommandPart kSelectCommandPartQResync = new cTextCommandPart(;
 
             public async Task<cSelectResult> SelectExamineAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, bool pForUpdate, cTrace.cContext pParentContext)
             {
@@ -40,11 +39,58 @@ namespace work.bacome.imapclient
 
                     if ((EnabledExtensions & fEnableableExtensions.qresync) != 0)
                     {
+                        var lUIDValidity = PersistentCache.GetUIDValidity(pMailboxHandle.MailboxId, lContext);
+
+                        if (lUIDValidity != 0)
+                        {
+                            var lHighestModSeq = PersistentCache.GetHighestModSeq(pMailboxHandle.MailboxId, lUIDValidity, lContext);
+
+                            if (lHighestModSeq != 0)
+                            {
+                                ;/; // the dnager is that someone else adds things to the cache after I do this
+                                //  that means that for those items added I could be out of sync after selecting (because I didn't ask 
+                                //  for those items to be synched.
+                                //
+                                // => after the select and before enabling setting the highestmodseq I should check the cache again for UIDs
+                                //  if there are new ones I should manually sync flags for those ones
+                                //  => the output is 
+                                //   the set of UIDs for which qresync has been done (may be none if qresync is off)
+                                //
+                                var lUIDs = PersistentCache.GetUIDs(pMailboxHandle.MailboxId, lUIDValidity, lContext);
+
+                                if (lUIDs.Count == 0)
+                                {
+
+                                }
+                                else
+                                {
+                                    // use qresync
+                                }
+                            }
+                        }
+
+
+                        ;?; // only use qresync if we have a uidvalidity, a highest mod seq, and some uids cached
+                        ;?; //  otherwise behave as if condstore is on and synchronise manually
+                        ;?; //  NOTE: if there are no UIDs then DONT manually sync (no need to)
+                        ;?; //
+
+
+
                         lBuilder.a;
                     }
-                    else lUsingQResync = false;
+                    else
+                    {
+                        lUsingQResync = false;
 
-                    if (_Capabilities.CondStore) lBuilder.Add(kSelectCommandPartCondStore);
+                        ;?; // set manually sync expunged
+
+                        if (_Capabilities.CondStore)
+                        {
+                            lBuilder.Add(kSelectCommandPartCondStore);
+                            // and 
+                        }
+                    }
 
                     var lHook = new cCommandHookSelect(mMailboxCache, _Capabilities, pMailboxHandle, true, lusingqresync);
                     lBuilder.Add(lHook);

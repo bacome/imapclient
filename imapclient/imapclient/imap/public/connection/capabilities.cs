@@ -127,11 +127,14 @@ namespace work.bacome.imapclient
             //if (pCapabilities.Contains("Thread=OrderedSubject", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.threadorderedsubject;
             //if (pCapabilities.Contains("Thread=References", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.threadreferences;
             if (pCapabilities.Contains("CondStore", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.condstore;
-            if (pCapabilities.Contains("QResync", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.qresync | fIMAPCapabilities.condstore;
+            if (pCapabilities.Contains("QResync", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.qresync;
             if (pCapabilities.Contains("MultiAppend", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.multiappend;
             if (pCapabilities.Contains("Catenate", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.catenate;
 
             EffectiveCapabilities = lCapabilities & ~pIgnoreCapabilities;
+
+            // if qresync is on then condstore must be on
+            if ((EffectiveCapabilities & fIMAPCapabilities.qresync) != 0) EffectiveCapabilities |= fIMAPCapabilities.condstore;
         }
 
         /**<summary>Indicates whether IMAP LOGIN is in use.</summary>*/

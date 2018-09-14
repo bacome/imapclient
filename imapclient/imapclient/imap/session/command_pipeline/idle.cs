@@ -60,11 +60,11 @@ namespace work.bacome.imapclient
                             mSynchroniser.InvokeNetworkSend(mIdleBuffer, lContext);
                             await mConnection.WriteAsync(mIdleBuffer.ToArray(), mBackgroundCancellationTokenSource.Token, lContext).ConfigureAwait(false);
 
-                            if (await ZIdleProcessResponsesAsync(false, false, null, lTag, true, lContext).ConfigureAwait(false) != eIdleProcessResponsesTerminatedBy.continuerequest) throw new cUnexpectedIMAPServerActionException(null, "idle completed before done sent", fIMAPCapabilities.idle, lContext);
+                            if (await ZIdleProcessResponsesAsync(false, false, null, lTag, true, lContext).ConfigureAwait(false) != eIdleProcessResponsesTerminatedBy.continuerequest) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.IdleCompletedBeforeDoneSent, fIMAPCapabilities.idle, lContext);
 
                             var lProcessResponsesTerminatedBy = await ZIdleProcessResponsesAsync(true, true, lCountdownTimer.GetAwaitCountdownTask(), lTag, false, lContext).ConfigureAwait(false);
 
-                            if (lProcessResponsesTerminatedBy == eIdleProcessResponsesTerminatedBy.commandcompletion) throw new cUnexpectedIMAPServerActionException(null, "idle completed before done sent", fIMAPCapabilities.idle, lContext);
+                            if (lProcessResponsesTerminatedBy == eIdleProcessResponsesTerminatedBy.commandcompletion) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.IdleCompletedBeforeDoneSent, fIMAPCapabilities.idle, lContext);
 
                             mIdleBuffer.Clear();
 
@@ -174,7 +174,7 @@ namespace work.bacome.imapclient
 
                         if (lCursor.SkipBytes(kPlusSpace))
                         {
-                            if (!pExpectContinueRequest) throw new cUnexpectedIMAPServerActionException(null, "unexpected continuation request", fIMAPCapabilities.idle, lContext);
+                            if (!pExpectContinueRequest) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.UnexpectedContinuationRequest, fIMAPCapabilities.idle, lContext);
                             mResponseTextProcessor.Process(eIMAPResponseTextContext.continuerequest, lCursor, null, lContext);
                             return eIdleProcessResponsesTerminatedBy.continuerequest;
                         }

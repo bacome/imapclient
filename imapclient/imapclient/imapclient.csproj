@@ -51,10 +51,10 @@
     <Compile Include="imap\internal\selectresult.cs" />
     <Compile Include="imap\public\persistentcache\base.cs" />
     <Compile Include="imap\public\persistentcache\flag\base.cs" />
-    <Compile Include="imap\public\persistentcache\flag\itemdata.cs" />
+    <Compile Include="imap\public\persistentcache\flag\item.cs" />
     <Compile Include="imap\public\persistentcache\header\base.cs" />
     <Compile Include="imap\public\persistentcache\component.cs" />
-    <Compile Include="imap\public\persistentcache\header\itemdata.cs" />
+    <Compile Include="imap\public\persistentcache\header\item.cs" />
     <Compile Include="imap\public\persistentcache\section\directorysectioncache.cs" />
     <Compile Include="imap\public\mailbox\mailboxid.cs" />
     <Compile Include="imap\public\persistentcache\section\maintenance.cs" />
@@ -79,6 +79,8 @@
     <Compile Include="imap\session\imap_commands\selected\uidsearchextended.cs" />
     <Compile Include="imap\session\imap_commands\selected\uidsort.cs" />
     <Compile Include="imap\session\imap_commands\selected\uidsortextended.cs" />
+    <Compile Include="imap\session\response\data\vanished.cs" />
+    <Compile Include="imap\session\response\parsers\vanished.cs" />
     <Compile Include="imap\support\mailboxcache.cs" />
     <Compile Include="mail\convertmailmessage\base.cs" />
     <Compile Include="imap\client\getdecodedsizeinbytes.cs" />
@@ -347,7 +349,7 @@
     <Compile Include="imap\session\imap_commands\authenticated\rlsub.cs" />
     <Compile Include="imap\session\imap_commands\selected\search.cs" />
     <Compile Include="imap\session\imap_commands\selected\searchextended.cs" />
-    <Compile Include="imap\session\imap_commands\authenticated\select.cs" />
+    <Compile Include="imap\session\imap_commands\authenticated\selectexamine.cs" />
     <Compile Include="imap\session\imap_commands\selected\sort.cs" />
     <Compile Include="imap\session\imap_commands\selected\sortextended.cs" />
     <Compile Include="imap\session\imap_commands\authenticated\status.cs" />

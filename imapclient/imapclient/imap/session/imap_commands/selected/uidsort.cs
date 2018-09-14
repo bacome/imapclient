@@ -53,7 +53,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("sort success");
-                        if (lHook.UIDs == null) throw new cUnexpectedIMAPServerActionException(lResult, "results not received on a successful uid sort", fIMAPCapabilities.sort, lContext);
+                        if (lHook.UIDs == null) throw new cUnexpectedIMAPServerActionException(lResult, kUnexpectedIMAPServerActionMessage.ResultsNotReceived, fIMAPCapabilities.sort, lContext);
                         return lHook.UIDs;
                     }
 

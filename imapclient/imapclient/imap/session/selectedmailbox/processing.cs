@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
@@ -14,10 +15,24 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(ProcessData));
 
-                    if (pData is cResponseDataFlags lFlags)
+                    switch (pData)
                     {
-                        mMailboxCacheItem.SetMessageFlags(lFlags.Flags, lContext);
-                        return eProcessDataResult.processed;
+                        case cResponseDataFlags lFlags:
+                    
+                            mMailboxCacheItem.SetMessageFlags(lFlags.Flags, lContext);
+                            return eProcessDataResult.processed;
+
+                        case cResponseDataVanished lVanished:
+
+                            // note that during select these have to be saved up
+
+                            if (lVanished.Earlier && cUIntList.TryConstruct(lVanished.KnownUIDs, -1, true, out var lUIDs))
+                            {
+                                mPersistentCache.MessagesExpunged(mMailboxCacheItem.MailboxId, from lUID in lUIDs select new cUID(mCache.UIDValidity, lUID), lContext);
+                                return eProcessDataResult.processed;
+                            }
+
+                            break;
                     }
 
                     return mCache.ProcessData(pData, lContext);
@@ -37,8 +52,12 @@ namespace work.bacome.imapclient
                             return;
 
                         case cResponseDataUIDValidity lUIDValidity:
-                            
+
                             mPersistentCache.MessageCacheDeactivated(mCache, lContext);
+
+                            // need UIDs to be able to process VANISHED
+                            if (mQResyncEnabled && !mCache.NoModSeq && lUIDValidity.UIDValidity == 0) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.QResyncWithModSeqAndNoUIDValidity, fIMAPCapabilities.qresync, lContext);
+
                             mCache = new cSelectedMailboxCache(mCache, lUIDValidity.UIDValidity, lContext);
                             return;
 
@@ -81,6 +100,13 @@ namespace work.bacome.imapclient
 
                             ZRecent(lRecent.Recent, lContext);
                             return eProcessDataResult.processed;
+
+                        case cResponseDataVanished lVanished:
+
+                            if (lVanished.Earlier) break;
+
+                            ;?;
+
                     }
 
                     return eProcessDataResult.notprocessed;
@@ -96,6 +122,8 @@ namespace work.bacome.imapclient
                         ZExpunge((int)lNumber, lContext);
                         return eProcessDataResult.processed;
                     }
+
+                    ;?; // vanished <seq> (NOT earlier)
 
                     return eProcessDataResult.notprocessed;
                 }
