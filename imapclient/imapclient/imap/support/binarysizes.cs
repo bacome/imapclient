@@ -8,11 +8,6 @@ namespace work.bacome.imapclient.support
     /// <summary>
     /// An immutable mapping from a message body-part that can be fetched using the BINARY (RFC 3516) command to the decoded size in bytes of that body-part.
     /// </summary>
-    /// <seealso cref="cIMAPAttachment.FetchSizeInBytes"/>
-    /// <seealso cref="cIMAPAttachment.DecodedSizeInBytes"/>
-    /// <seealso cref="cIMAPMessage.FetchSizeInBytes(cSinglePartBody)"/>
-    /// <seealso cref="cIMAPMessage.DecodedSizeInBytes(cSinglePartBody)"/>
-    /// <seealso cref="iMessageHandle.BinarySizes"/>
     public class cBinarySizes : ReadOnlyDictionary<string, uint>
     {
         internal static readonly cBinarySizes Empty = new cBinarySizes(new Dictionary<string, uint>());

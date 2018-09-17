@@ -16,6 +16,7 @@ namespace work.bacome.imapclient
             {
                 private readonly cPersistentCache mPersistentCache;
                 private readonly cIMAPCallbackSynchroniser mSynchroniser;
+                private readonly bool mQResyncEnabled;
                 private readonly cMailboxCacheItem mMailboxCacheItem;
                 private readonly uint mUIDValidity;
                 private readonly bool mNoModSeq;
@@ -37,22 +38,7 @@ namespace work.bacome.imapclient
                 private ulong mPendingHighestModSeq = 0;
                 private bool mCallSetHighestModSeq;
 
-                /*
-                 * design for qresync
-                 * 
-                 *  pass in IList<cQResyncItem> pQResyncItems which collect the data from the fetches send as part of the select
-                 *  the items in the mItems list are initialised from these values
-                 *  the cQResyncItem has an update method similar to the cItem class: but no events are sent
-                 *  
-                 *  if pQResyncItems is passed in then the cache can immediately start calling sethighestmodseq
-                 * 
-                 * Note that the header and flag caches do not need to be called with updates to values in the initialisation: that should have been done already
-                 *  (the cQResyncItem calls the cache coord routines as is done here)
-                 * 
-                 * 
-                 * */
-
-                public cSelectedMailboxCache(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, ulong pHighestModSeq, cTrace.cContext pParentContext)
+                public cSelectedMailboxCache(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, ulong pHighestModSeq, IEnumerable<cResponseDataFetch> pFetch, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cSelectedMailboxCache), pMailboxCacheItem, pUIDValidity, pMessageCount, pRecentCount, pUIDNext, pHighestModSeq);
 
@@ -84,7 +70,10 @@ namespace work.bacome.imapclient
                     mUnseenUnknownCount = pMessageCount;
 
                     mHighestModSeq = pHighestModSeq;
-                    mCallSetHighestModSeq = false; // note: if we qresync'd this should be set to true
+                    mCallSetHighestModSeq = false;
+
+                    // qresync data
+                    foreach (var lFetch in pFetch) ZFetch(lFetch, true, lContext);
 
                     ZSetMailboxStatus(lContext);
                 }
@@ -304,15 +293,64 @@ namespace work.bacome.imapclient
                     ZSetMailboxStatus(lContext);
                 }
 
-                private void ZFetch(cResponseDataFetch pFetch, cTrace.cContext pParentContext)
+                private void ZFetch(cResponseDataFetch pFetch, bool pQResync, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ZFetch));
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ZFetch), pQResync);
 
                     var lFetchedItem = mItems[(int)pFetch.MSN - 1];
+
+                    fMessageCacheAttributes lNewAttributes = ~lFetchedItem.Attributes & pFetch.Attributes;
+
+                    if ((lNewAttributes & fMessageCacheAttributes.uid) != 0 && mUIDValidity != 0)
+                    {
+                        var lUID = new cUID(mUIDValidity, pFetch.UID.Value);
+
+                        mPersistentCache.getheadercacheitem(mMailboxCacheItem.MailboxId, luid);
+                    }
+
+
+
+
+
+
+
+
 
                     lFetchedItem.Update(pFetch, out var lAttributesSet, out var lPropertiesChanged);
 
                     bool lSetMailboxStatus = false;
+
+                    if (lFetchedItem.UID != null)
+                    {
+                        if ((lAttributesSet & fMessageCacheAttributes.uid) != 0)
+                        {
+                            mUIDIndex.Add(lFetchedItem.UID, lFetchedItem);
+
+                            if (pFetch.MSN > mUIDNextMessageCount)
+                            {
+                                mUIDNextUnknownCount--;
+                                if (lFetchedItem.UID.UID + 1 > mUIDNext) mUIDNext = lFetchedItem.UID.UID + 1;
+                                lSetMailboxStatus = true;
+                            }
+
+                            ;?; // this needs to return the values for the flags and header data and I need to apply the returned values
+                            mPersistentCache.MessageHandleUIDSet(lFetchedItem, out v, lContext);
+                        }
+                        else
+                        {
+                            ;?;
+                            // this is where we send info to the persistentcache [including the headerfield and binarysize changes]
+                        }
+                    }
+
+
+
+
+
+
+
+
+
 
                     if ((lAttributesSet & fMessageCacheAttributes.flags) != 0)
                     {
@@ -349,24 +387,14 @@ namespace work.bacome.imapclient
                         }
                     }
 
-                    if ((lAttributesSet & fMessageCacheAttributes.uid) != 0 && lFetchedItem.UID != null)
+
+
+                    if (!pQResync)
                     {
-                        mUIDIndex.Add(lFetchedItem.UID, lFetchedItem);
-
-                        if (pFetch.MSN > mUIDNextMessageCount)
-                        {
-                            mUIDNextUnknownCount--;
-                            if (lFetchedItem.UID.UID + 1 > mUIDNext) mUIDNext = lFetchedItem.UID.UID + 1;
-                            lSetMailboxStatus = true;
-                        }
-
-                        mPersistentCache.MessageHandleUIDSet(lFetchedItem, lContext);
+                        if (lFetchedItem.ModSeq > mPendingHighestModSeq) mPendingHighestModSeq = lFetchedItem.ModSeq.Value;
+                        mSynchroniser.InvokeMessagePropertiesChanged(lFetchedItem, lPropertiesChanged, lContext);
+                        if (lSetMailboxStatus) ZSetMailboxStatus(lContext);
                     }
-
-                    if (lFetchedItem.ModSeq > mPendingHighestModSeq) mPendingHighestModSeq = lFetchedItem.ModSeq.Value;
-
-                    mSynchroniser.InvokeMessagePropertiesChanged(lFetchedItem, lPropertiesChanged, lContext);
-                    if (lSetMailboxStatus) ZSetMailboxStatus(lContext);
                 }
 
                 private void ZUIDNext(uint pUIDNext, cTrace.cContext pParentContext)
@@ -393,19 +421,6 @@ namespace work.bacome.imapclient
                 }
 
                 public override string ToString() => $"{nameof(cSelectedMailboxCache)}({mMailboxCacheItem},{mUIDValidity})";
-                
-                private class cItem : cMessageCacheItem, IComparable<cItem> // icomparable is implemented for binary search => no need for iequatable
-                {
-                    public bool? Unseen = null; // is this message unseen (null = don't know)
-
-                    public cItem(cSelectedMailboxCache pCache, int pCacheSequence) : base(pCache, pCacheSequence) { }
-
-                    public int CompareTo(cItem pOther)
-                    {
-                        if (pOther == null) return 1;
-                        return CacheSequence.CompareTo(pOther.CacheSequence);
-                    }
-                }
             }
         }
     }

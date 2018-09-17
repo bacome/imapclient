@@ -31,6 +31,6 @@ namespace work.bacome.imapclient
         /**<summary>The IMAP ALL macro (equivalent to: <see cref="flags"/>, <see cref="received"/>, <see cref="size"/> and <see cref="envelope"/>).</summary>*/
         macroall = flags | envelope | received | size,
         /**<summary>The IMAP FULL macro (equivalent to: <see cref="flags"/>, <see cref="received"/>, <see cref="size"/>, <see cref="envelope"/> and <see cref="body"/>).</summary>*/
-        macrofull = flags | envelope | received | size | body
+        macrofull = flags | envelope | received | size | body,
     }
 }

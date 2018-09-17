@@ -48,7 +48,8 @@ namespace work.bacome.imapclient
                     //  if qresync is off
                     //
                     //   manully sync for delete
-                    //   if condsotre is on, manulyl synch for changedsince
+                    //   if condsotre is on, manulyl synch flags for changedsince
+                    //   else re-retrieve all the flags in the flag cache
                     //
 
 

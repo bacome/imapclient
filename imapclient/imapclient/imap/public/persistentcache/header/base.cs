@@ -16,7 +16,6 @@ namespace work.bacome.imapclient
             mRootContext = cMailClient.Trace.NewRoot(pInstanceName);
         }
 
-        public abstract void Touch(iMessageHandle pMessageHandle); // called when there is a 'get' of the header data and the UID is known
-        public abstract cHeaderCacheItem Update(iMessageHandle pMessageHandle); // called when there is a 'set' of the header data and the UID is known, or when there is a 'set' of the UID, should return what the cache currently understands are the values
+        public abstract iHeaderCacheItem GetHeaderCacheItem(cMessageUID pMessageUID);
     }
 }

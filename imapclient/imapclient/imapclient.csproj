@@ -81,6 +81,7 @@
     <Compile Include="imap\session\imap_commands\selected\uidsortextended.cs" />
     <Compile Include="imap\session\response\data\vanished.cs" />
     <Compile Include="imap\session\response\parsers\vanished.cs" />
+    <Compile Include="imap\session\selectedmailbox\selectedmailboxcacheitem.cs" />
     <Compile Include="imap\support\mailboxcache.cs" />
     <Compile Include="mail\convertmailmessage\base.cs" />
     <Compile Include="imap\client\getdecodedsizeinbytes.cs" />
@@ -323,7 +324,6 @@
     <Compile Include="imap\internal\namespacenames.cs" />
     <Compile Include="mail\internal\async\cancellationmanager.cs" />
     <Compile Include="imap\session\command_hooks\commandhooksearchextended.cs" />
-    <Compile Include="imap\session\command_hooks\commandhookselect.cs" />
     <Compile Include="imap\session\command_pipeline\commandpipeline.cs" />
     <Compile Include="imap\session\command_pipeline\activecommands.cs" />
     <Compile Include="imap\session\command_pipeline\connection.cs" />
@@ -366,7 +366,6 @@
     <Compile Include="imap\session\command\commanddetailsbuilder.cs" />
     <Compile Include="imap\session\command\commandtag.cs" />
     <Compile Include="mail\internal\other\batchsizer.cs" />
-    <Compile Include="imap\session\support\messagecacheitem.cs" />
     <Compile Include="imap\session\support\processors.cs" />
     <Compile Include="imap\session\command_pipeline\responsetextprocessor.cs" />
     <Compile Include="imap\internal\status.cs" />

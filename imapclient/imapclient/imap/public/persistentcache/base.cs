@@ -321,15 +321,20 @@ namespace work.bacome.imapclient
 
         internal void MessageHandleUIDSet(iMessageHandle pMessageHandle, cTrace.cContext pParentContext)
         {
-            kDefaultSectionCache.MessageHandleUIDSet(pMessageHandle, pParentContext);
-            mSectionCache?.MessageHandleUIDSet(pMessageHandle, pParentContext);
+            kDefaultSectionCache.MessageHandleUIDSet(pMessageHandle, pParentContext); // this is to let the cache know what the UID is for the handle
+            mSectionCache?.MessageHandleUIDSet(pMessageHandle, pParentContext); // this is to let the cache know what the UID is for the handle
         }
 
         internal void MessageCacheDeactivated(iMessageCache pMessageCache, cTrace.cContext pParentContext)
         {
-            kDefaultSectionCache.MessageCacheDeactivated(pMessageCache, pParentContext);
-            mSectionCache?.MessageCacheDeactivated(pMessageCache, pParentContext);
+            kDefaultSectionCache.MessageCacheDeactivated(pMessageCache, pParentContext); // this is so data against the handle can be trashed
+            mHeaderCache?.MessageCacheDeactivated(pMessageCache.MailboxHandle.MailboxId, pParentContext); // this is so data for the mailbox can be persisted
+            mFlagCache?.MessageCacheDeactivated(pMessageCache.MailboxHandle.MailboxId, pParentContext); // this is so data for the mailbox can be persisted
+            mSectionCache?.MessageCacheDeactivated(pMessageCache, pParentContext); // this is so data against the handle can be trashed
         }
+
+        internal iHeaderCacheItem GetHeaderCacheItem(cMessageUID pMessageUID) => mHeaderCache?.GetHeaderCacheItem(pMessageUID);
+        internal iFlagCacheItem GetFlagCacheItem(cMessageUID pMessageUID) => mFlagCache?.GetFlagCacheItem(pMessageUID);
 
         internal bool TryGetSectionCacheItemLength(cSectionId pSectionId, out long rLength, cTrace.cContext pParentContext)
         {

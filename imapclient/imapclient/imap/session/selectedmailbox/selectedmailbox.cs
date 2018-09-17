@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient.support;
 
@@ -20,7 +21,7 @@ namespace work.bacome.imapclient
                 private bool mAccessReadOnly;
                 private cSelectedMailboxCache mCache;
 
-                public cSelectedMailbox(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, bool pQResyncEnabled, cMailboxCacheItem pMailboxCacheItem, bool pSelectedForUpdate, bool pAccessReadOnly, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, ulong pHighestModSeq, cTrace.cContext pParentContext)
+                public cSelectedMailbox(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, bool pQResyncEnabled, cMailboxCacheItem pMailboxCacheItem, bool pSelectedForUpdate, bool pAccessReadOnly, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, ulong pHighestModSeq, IEnumerable<cResponseDataFetch> pFetch, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cSelectedMailbox), pMailboxCacheItem, pSelectedForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq);
                     mPersistentCache = pPersistentCache ?? throw new ArgumentNullException(nameof(pPersistentCache));
@@ -29,7 +30,8 @@ namespace work.bacome.imapclient
                     mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
                     mSelectedForUpdate = pSelectedForUpdate;
                     mAccessReadOnly = pAccessReadOnly;
-                    mCache = new cSelectedMailboxCache(pPersistentCache, pSynchroniser, pQResyncEnabled, pMailboxCacheItem, pUIDValidity, pExists, pRecent, pUIDNext, pHighestModSeq, lContext);
+
+                    mCache = new cSelectedMailboxCache(pPersistentCache, pSynchroniser, pMailboxCacheItem, pUIDValidity, pExists, pRecent, pUIDNext, pHighestModSeq, pFetch, lContext);
                 }
 
                 public iMailboxHandle MailboxHandle => mMailboxCacheItem;

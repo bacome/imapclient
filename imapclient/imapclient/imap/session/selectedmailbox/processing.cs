@@ -24,14 +24,7 @@ namespace work.bacome.imapclient
 
                         case cResponseDataVanished lVanished:
 
-                            // note that during select these have to be saved up
-
-                            if (lVanished.Earlier && cUIntList.TryConstruct(lVanished.KnownUIDs, -1, true, out var lUIDs))
-                            {
-                                mPersistentCache.MessagesExpunged(mMailboxCacheItem.MailboxId, from lUID in lUIDs select new cUID(mCache.UIDValidity, lUID), lContext);
-                                return eProcessDataResult.processed;
-                            }
-
+                            if (lVanished.Earlier && ZVanishedEarlier(lVanished, lContext)) return eProcessDataResult.processed;
                             break;
                     }
 
