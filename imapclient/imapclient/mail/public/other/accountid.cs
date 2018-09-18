@@ -1,6 +1,4 @@
 ﻿using System;
-using work.bacome.imapclient;
-
 
 namespace work.bacome.mailclient
 {

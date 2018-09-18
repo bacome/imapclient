@@ -49,9 +49,10 @@
     <Compile Include="imap\client\getuids.cs" />
     <Compile Include="imap\internal\sectionreader.cs" />
     <Compile Include="imap\internal\selectresult.cs" />
+    <Compile Include="imap\public\mailbox\mailboxuid.cs" />
+    <Compile Include="imap\public\other\modseqflags.cs" />
     <Compile Include="imap\public\persistentcache\base.cs" />
     <Compile Include="imap\public\persistentcache\flag\base.cs" />
-    <Compile Include="imap\public\persistentcache\flag\item.cs" />
     <Compile Include="imap\public\persistentcache\header\base.cs" />
     <Compile Include="imap\public\persistentcache\component.cs" />
     <Compile Include="imap\public\persistentcache\header\item.cs" />

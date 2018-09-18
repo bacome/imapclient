@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
@@ -8,15 +7,15 @@ namespace work.bacome.imapclient
 {
     public abstract class cPersistentCacheComponent
     {
-        protected internal abstract uint GetUIDValidity(cMailboxId pMailboxId, cTrace.cContext pParentContext);
-        protected internal abstract ulong GetHighestModSeq(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext);
-        protected internal abstract HashSet<cUID> GetUIDs(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext);
+        public abstract uint GetUIDValidity(cMailboxId pMailboxId, cTrace.cContext pParentContext);
+        public abstract ulong GetHighestModSeq(cMailboxUID pMailboxUID, cTrace.cContext pParentContext);
+        public abstract HashSet<cUID> GetUIDs(cMailboxUID pMailboxUID, cTrace.cContext pParentContext);
 
         protected internal abstract void MessagesExpunged(cMailboxId pMailboxId, IEnumerable<cUID> pUIDs, cTrace.cContext pParentContext);
 
         protected internal abstract void SetUIDValidity(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext);
-        protected internal abstract void SetHighestModSeq(cMailboxId pMailboxId, ulong pHighestModSeq, cTrace.cContext pParentContext);
-        protected internal abstract void ClearCachedItems(cMailboxId pMailboxId, cTrace.cContext pParentContext);
+        protected internal abstract void SetHighestModSeq(cMailboxUID pMailboxUID, ulong pHighestModSeq, cTrace.cContext pParentContext);
+        protected internal abstract void ClearCachedItems(cMailboxId pMailboxId, cTrace.cContext pParentContext); // including the UIDValidity and HighestModSeq
 
 
 
@@ -50,76 +49,36 @@ namespace work.bacome.imapclient
             var lContext = pParentContext.NewMethod(nameof(cPersistentCacheComponent), nameof(YRename), pMailboxId, pMailboxName);
         }
 
-        internal void Rename(cMailboxId pMailboxId, uint pUIDValidity, cMailboxName pMailboxName, cTrace.cContext pParentContext)
+        internal void Rename(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext)
         {
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCacheComponent), nameof(Rename), pMailboxId, pMailboxName);
+
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
             if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
-            if (pMailboxId.MailboxName.IsInbox) ZRenameInbox(pMailboxId, pUIDValidity, pParentContext);
-            else ZRenameNonInbox(pMailboxId, pMailboxName, pParentContext);
-        }
 
-        private void ZRenameInbox(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCacheComponent), nameof(ZRenameInbox), pMailboxId, pUIDValidity);
-
-            if (pUIDValidity == 0)
+            if (pMailboxId.MailboxName.IsInbox)
             {
-                try { SetMailboxUIDValidity(pMailboxId, -1, lContext); }
-                catch (Exception e) { lContext.TraceException(e); }
-            }
-            else
-            {
-                HashSet<cUID> lUIDs;
-
-                try { lUIDs = GetUIDs(pMailboxId, pUIDValidity, lContext); }
-                catch (Exception e)
-                {
-                    lContext.TraceException(e);
-                    return;
-                }
-
-                ;?; // use messages expunged
-                foreach (var lUID in lUIDs) 
-                {
-                    try { MessageExpunged(pMailboxId, lUID, lContext); }
-                    catch (Exception e) { lContext.TraceException(e); }
-                }
-            }
-        }
-
-        private void ZRenameNonInbox(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCacheComponent), nameof(ZRenameNonInbox), pMailboxId, pMailboxName);
-
-            HashSet<cMailboxName> lMailboxNames;
-
-            try { lMailboxNames = YGetMailboxNames(pMailboxId.AccountId, lContext); }
-            catch (Exception e) 
-            {
-                lContext.TraceException(nameof(YGetMailboxNames), e);
+                ClearCachedItems(pMailboxId, lContext);
                 return;
             }
 
-            try { YRename(pMailboxId, pMailboxName, lContext); }
-            catch (Exception e) { lContext.TraceException($"{nameof(YRename)}({pMailboxId})", e); }
+            YRename(pMailboxId, pMailboxName, lContext);
+            ClearCachedItems(pMailboxId, lContext);
 
-            try { SetMailboxUIDValidity(pMailboxId, -1, lContext); }
-            catch (Exception e) { lContext.TraceException(e); }
+            var lMailboxNames = YGetMailboxNames(pMailboxId.AccountId, lContext);
 
             int lStartIndex = pMailboxId.MailboxName.GetDescendantPathPrefix().Length;
 
             foreach (var lMailboxName in lMailboxNames)
             {
                 if (!lMailboxName.IsDescendantOf(pMailboxId.MailboxName)) continue;
+
                 var lNewPath = pMailboxName.GetDescendantPathPrefix() + lMailboxName.Path.Substring(lStartIndex);
                 var lNewMailboxName = new cMailboxName(lNewPath, pMailboxName.Delimiter);
                 var lOldMailboxId = new cMailboxId(pMailboxId.AccountId, lMailboxName);
 
-                try { YRename(lOldMailboxId, lNewMailboxName, lContext); }
-                catch (Exception e) { lContext.TraceException($"{nameof(YRename)}({lOldMailboxId})", e); }
-
-                try { SetMailboxUIDValidity(lOldMailboxId, -1, lContext); }
-                catch (Exception e) { lContext.TraceException(e); }
+                YRename(lOldMailboxId, lNewMailboxName, lContext);
+                ClearCachedItems(lOldMailboxId, lContext);
             }
         }
 
@@ -131,34 +90,18 @@ namespace work.bacome.imapclient
             if (pAllExistentChildMailboxNames == null) throw new ArgumentNullException(nameof(pAllExistentChildMailboxNames));
             if (pAllSelectableChildMailboxNames == null) throw new ArgumentNullException(nameof(pAllSelectableChildMailboxNames));
 
-            HashSet<cMailboxName> lMailboxNames;
-
-            try { lMailboxNames = YGetMailboxNames(pMailboxId.AccountId, lContext); }
-            catch (Exception e)
-            {
-                lContext.TraceException(nameof(YGetMailboxNames), e);
-                return;
-            }
+            var lMailboxNames = YGetMailboxNames(pMailboxId.AccountId, lContext);
 
             foreach (var lMailboxName in lMailboxNames)
             {
                 if (lMailboxName.IsChildOf(pMailboxId.MailboxName))
                 {
-                    if (!pAllSelectableChildMailboxNames.Contains(lMailboxName))
-                    {
-                        try { SetMailboxUIDValidity(new cMailboxId(pMailboxId.AccountId, lMailboxName), -1, lContext); }
-                        catch (Exception e) { lContext.TraceException(e); }
-                    }
+                    if (!pAllSelectableChildMailboxNames.Contains(lMailboxName)) ClearCachedItems(new cMailboxId(pMailboxId.AccountId, lMailboxName), lContext); 
                 }
                 else if (lMailboxName.IsDescendantOf(pMailboxId.MailboxName))
                 {
                     var lChildMailboxName = lMailboxName.GetLineageMemberThatIsChildOf(pMailboxId.MailboxName);
-
-                    if (!pAllExistentChildMailboxNames.Contains(lChildMailboxName))
-                    {
-                        try { SetMailboxUIDValidity(new cMailboxId(pMailboxId.AccountId, lMailboxName), -1, lContext); }
-                        catch (Exception e) { lContext.TraceException(e); }
-                    }
+                    if (!pAllExistentChildMailboxNames.Contains(lChildMailboxName)) ClearCachedItems(new cMailboxId(pMailboxId.AccountId, lMailboxName), lContext);
                 }
             }
         }
@@ -173,34 +116,18 @@ namespace work.bacome.imapclient
             if (pAllExistentChildMailboxNames == null) throw new ArgumentNullException(nameof(pAllExistentChildMailboxNames));
             if (pAllSelectableChildMailboxNames == null) throw new ArgumentNullException(nameof(pAllSelectableChildMailboxNames));
 
-            HashSet<cMailboxName> lMailboxNames;
-
-            try { lMailboxNames = YGetMailboxNames(pAccountId, lContext); }
-            catch (Exception e)
-            {
-                lContext.TraceException(nameof(YGetMailboxNames), e);
-                return;
-            }
+            var lMailboxNames = YGetMailboxNames(pAccountId, lContext);
 
             foreach (var lMailboxName in lMailboxNames)
             {
                 if (lMailboxName.IsFirstLineageMemberPrefixedWith(pPrefix, pNotPrefixedWith))
                 {
-                    if (!pAllSelectableChildMailboxNames.Contains(lMailboxName))
-                    {
-                        try { SetMailboxUIDValidity(new cMailboxId(pAccountId, lMailboxName), -1, lContext); }
-                        catch (Exception e) { lContext.TraceException(e); }
-                    }
+                    if (!pAllSelectableChildMailboxNames.Contains(lMailboxName)) ClearCachedItems(new cMailboxId(pAccountId, lMailboxName), lContext);
                 }
                 else if (lMailboxName.IsPrefixedWith(pPrefix, pNotPrefixedWith))
                 {
                     var lFirstMailboxName = lMailboxName.GetFirstLineageMemberPrefixedWith(pPrefix);
-
-                    if (!pAllExistentChildMailboxNames.Contains(lFirstMailboxName))
-                    {
-                        try { SetMailboxUIDValidity(new cMailboxId(pAccountId, lMailboxName), -1, lContext); }
-                        catch (Exception e) { lContext.TraceException(e); }
-                    }
+                    if (!pAllExistentChildMailboxNames.Contains(lFirstMailboxName)) ClearCachedItems(new cMailboxId(pAccountId, lMailboxName), lContext);
                 }
             }
         }

@@ -2,22 +2,23 @@
 
 namespace work.bacome.imapclient
 {
-    public class cMessageUID : IEquatable<cMessageUID>
+    public class cMailboxUID : IEquatable<cMailboxUID>
     {
         public readonly cMailboxId MailboxId;
-        public readonly cUID UID;
+        public readonly uint UIDValidity;
 
-        public cMessageUID(cMailboxId pMailboxId, cUID pUID)
+        public cMailboxUID(cMailboxId pMailboxId, uint pUIDValidity)
         {
             MailboxId = pMailboxId ?? throw new ArgumentOutOfRangeException(nameof(pMailboxId));
-            UID = pUID ?? throw new ArgumentOutOfRangeException(nameof(pUID));
+            if (UIDValidity < 1) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
+            UIDValidity = pUIDValidity;
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
-        public bool Equals(cMessageUID pObject) => this == pObject;
+        public bool Equals(cMailboxUID pObject) => this == pObject;
 
         /// <inheritdoc />
-        public override bool Equals(object pObject) => this == pObject as cMessageUID;
+        public override bool Equals(object pObject) => this == pObject as cMailboxUID;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
@@ -27,25 +28,25 @@ namespace work.bacome.imapclient
                 int lHash = 17;
 
                 lHash = lHash * 23 + MailboxId.GetHashCode();
-                lHash = lHash * 23 + UID.GetHashCode();
+                lHash = lHash * 23 + UIDValidity.GetHashCode();
 
                 return lHash;
             }
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cMessageUID)}({MailboxId},{UID})";
+        public override string ToString() => $"{nameof(cMailboxUID)}({MailboxId},{UIDValidity})";
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
-        public static bool operator ==(cMessageUID pA, cMessageUID pB)
+        public static bool operator ==(cMailboxUID pA, cMailboxUID pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
             if (ReferenceEquals(pB, null)) return false;
-            return pA.MailboxId == pB.MailboxId && pA.UID == pB.UID;
+            return pA.MailboxId == pB.MailboxId && pA.UIDValidity == pB.UIDValidity;
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
-        public static bool operator !=(cMessageUID pA, cMessageUID pB) => !(pA == pB);
+        public static bool operator !=(cMailboxUID pA, cMailboxUID pB) => !(pA == pB);
     }
 }

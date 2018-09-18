@@ -81,7 +81,7 @@ namespace work.bacome.imapclient
         //    or there are errors (like duplicate headers)
         //   so at this stage the MDNSent features are commented out as they aren't useful by themselves
 
-        private static readonly cPersistentCache kDefaultPersistentCache = new cPersistentCache();
+        private static readonly cPersistentCache kDefaultPersistentCache = new cPersistentCache("default persistent cache", null, null, null);
         public static cPersistentCache GlobalPersistentCache { get; set; } = null;
 
         // mechanics

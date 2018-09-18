@@ -253,7 +253,7 @@ namespace work.bacome.imapclient
                     {
                         lRenamedSectionIds.Add(lOldSectionId);
                         if (!mSectionIdToItem.TryAdd(lNewSectionId, lItem)) lItem.Delete(lContext);
-                    }                    
+                    }
                 }
             }
 
@@ -278,26 +278,18 @@ namespace work.bacome.imapclient
             }
         }
 
-        public bool TryGetItemLength(cSectionId pSectionId, out long rLength)
-        {
-            var lContext = mRootContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemLength), pSectionId);
-            return TryGetItemLength(pSectionId, out rLength, lContext);
-        }
+        public bool TryGetSectionLength(cSectionId pSectionId, out long rLength) => TryGetSectionLength(pSectionId, out rLength, mRootContext);
 
-        public bool TryGetItemStream(cSectionId pSectionId, out Stream rStream)
+        public bool TryGetSectionReader(cSectionId pSectionId, out Stream rStream)
         {
-            var lContext = mRootContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemStream), pSectionId);
-
-            if (TryGetItemReader(pSectionId, out var lReader, lContext))
+            if (TryGetSectionReader(pSectionId, out var lReader, mRootContext))
             {
                 rStream = lReader;
                 return true;
             }
-            else
-            {
-                rStream = null;
-                return false;
-            }
+
+            rStream = null;
+            return false;
         }
 
         public bool IsDisposed => mDisposed || mDisposing;
@@ -347,7 +339,7 @@ namespace work.bacome.imapclient
 
         protected internal int GetItemSequence() => Interlocked.Increment(ref mItemSequence);
 
-        internal bool TryGetItemLength(cSectionId pSectionId, out long rLength, cTrace.cContext pParentContext)
+        internal bool TryGetSectionLength(cSectionId pSectionId, out long rLength, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemLength), pSectionId);
 
@@ -401,7 +393,7 @@ namespace work.bacome.imapclient
             return true;
         }
 
-        internal bool TryGetItemReader(cSectionId pSectionId, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
+        internal bool TryGetSectionReader(cSectionId pSectionId, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemReader), pSectionId);
 
@@ -467,7 +459,7 @@ namespace work.bacome.imapclient
             return lNewItem;
         }
 
-        internal bool TryGetItemLength(cSectionHandle pSectionHandle, out long rLength, cTrace.cContext pParentContext)
+        internal bool TryGetSectionLength(cSectionHandle pSectionHandle, out long rLength, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemLength), pSectionHandle);
 
@@ -486,7 +478,7 @@ namespace work.bacome.imapclient
             return false;
         }
 
-        internal bool TryGetItemReader(cSectionHandle pSectionHandle, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
+        internal bool TryGetSectionReader(cSectionHandle pSectionHandle, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetItemReader), pSectionHandle);
 

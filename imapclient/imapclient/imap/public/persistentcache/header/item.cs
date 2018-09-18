@@ -4,18 +4,18 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    public interface iHeaderCacheItem
+    public abstract class cHeaderCacheItem
     {
-        cEnvelope Envelope { get; set; } // nullable, but can't be set to null
-        DateTimeOffset? ReceivedDateTimeOffset { get; } // nullable, but can't be set to null, and must be set in a pair with the following
-        DateTime? ReceivedDateTime { get; } // nullable, but can't be set to null
-        void SetReceivedDateTime(DateTimeOffset pOffset, DateTime pDateTime);
-        uint? Size { get; set; } // nullable, but can't be set to null
-        cBodyPart Body { get; set; } // nullable, but can't be set to null
-        cBodyPart BodyStructure { get; set; } // nullable, but can't be set to null
-        cHeaderFields HeaderFields { get; } // note that this is dynamic AND updates to it must be synchronised in the persistent cache
-        cBinarySizes BinarySizes { get; } // note that this is dynamic AND updates to it must be synchronised in the persistent cache
-        void AddHeaderFields(cHeaderFields pHeaderFields); // merge while locked
-        void AddBinarySizes(cBinarySizes pBinarySizes); // merge while locked
+        public abstract cEnvelope Envelope { get; protected internal set; } // nullable, but can't be set to null
+        public abstract DateTimeOffset? ReceivedDateTimeOffset { get; } // nullable, but can't be set to null, and must be set in a pair with the following
+        public abstract DateTime? ReceivedDateTime { get; } // nullable, but can't be set to null
+        protected internal abstract void SetReceivedDateTime(DateTimeOffset pOffset, DateTime pDateTime);
+        public abstract uint? Size { get; protected internal set; } // nullable, but can't be set to null
+        public abstract cBodyPart Body { get; protected internal set; } // nullable, but can't be set to null
+        public abstract cBodyPart BodyStructure { get; protected internal set; } // nullable, but can't be set to null
+        public abstract cHeaderFields HeaderFields { get; } // note that this is dynamic AND updates to it must be synchronised in the persistent cache
+        public abstract cBinarySizes BinarySizes { get; } // note that this is dynamic AND updates to it must be synchronised in the persistent cache
+        protected internal abstract void AddHeaderFields(cHeaderFields pHeaderFields); // merge while locked
+        protected internal abstract void AddBinarySizes(cBinarySizes pBinarySizes); // merge while locked
     }
 }

@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
 
                     private cUID mUID = null;
                     private iHeaderCacheItem mHeaderCacheItem = new cHeaderCacheItem();
-                    private iFlagCacheItem mFlagCacheItem = new cFlagCacheItem;
+                    private cModSeqFlags mModSeqFlags = null;
 
                     private bool mExpunged = false;
                     private fMessageCacheAttributes mAttributes;
@@ -41,7 +41,7 @@ namespace work.bacome.imapclient
                     public bool Expunged => mExpunged;
                     public fMessageCacheAttributes Attributes => mAttributes;
 
-                    public cFetchableFlags Flags => mFlagCacheItem.Flags;
+                    public cFetchableFlags Flags => mModSeqFlags?.Flags;
                     public cEnvelope Envelope => mHeaderCacheItem.Envelope;
                     public DateTimeOffset? ReceivedDateTimeOffset => mHeaderCacheItem.ReceivedDateTimeOffset;
                     public DateTime? ReceivedDateTime => mHeaderCacheItem.ReceivedDateTime;
@@ -55,7 +55,7 @@ namespace work.bacome.imapclient
                         get
                         {
                             if (mSelectedMailboxCache.mNoModSeq) return 0;
-                            return mFlagCacheItem.ModSeq;
+                            return mModSeqFlags?.ModSeq;
                         }
                     }
 
@@ -74,7 +74,7 @@ namespace work.bacome.imapclient
 
                         if (((mAttributes & fMessageCacheAttributes.uid) == 0) && mSelectedMailboxCache.mUIDValidity != 0 && ((pFetch.Attributes & fMessageCacheAttributes.uid) != 0))
                         {
-                            // if we discover the UID
+                            // this is the first time that we know the UID for this item
 
                             mUID = new cUID(mSelectedMailboxCache.mUIDValidity, pFetch.UID.Value);
 
@@ -124,6 +124,10 @@ namespace work.bacome.imapclient
 
                             if (lFlagCacheItem != null)
                             {
+                                ;?; // if the modseq is missing or zero and the highestmdseq is non-zero then set the highestmodseq in the persistent cache to zero
+                                //  the cache will remember that one of the attched clients is not updating it correctly, so will not retain the highestmodseq
+
+
                                 ;?; // the flags and modseq should be considered together
                                 if (lFlagCacheItem.Flags == null)
                                 {

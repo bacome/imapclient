@@ -8,7 +8,7 @@ namespace work.bacome.imapclient
         public readonly cAccountId AccountId;
         public readonly cMailboxName MailboxName;
 
-        internal cMailboxId(cAccountId pAccountId, cMailboxName pMailboxName)
+        public cMailboxId(cAccountId pAccountId, cMailboxName pMailboxName)
         {
             AccountId = pAccountId ?? throw new ArgumentNullException(nameof(pAccountId));
             MailboxName = pMailboxName ?? throw new ArgumentNullException(nameof(pMailboxName));

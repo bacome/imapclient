@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
@@ -8,27 +9,43 @@ namespace work.bacome.imapclient
 {
     public class cPersistentCache
     {
+        private static readonly cHeaderCache kDefaultHeaderCache = new cDefaultHeaderCache();
+        private static readonly cFlagCache kDefaultFlagCache = new cDefaultFlagCache();
         private static readonly cSectionCache kDefaultSectionCache = new cDefaultSectionCache();
 
-        private readonly cHeaderCache mHeaderCache; 
+        public readonly string InstanceName;
+        private readonly cTrace.cContext mRootContext;
+        private readonly cHeaderCache mHeaderCache;
+        private readonly cFlagCache mFlagCache;
         private readonly cSectionCache mSectionCache;
-        private readonly cFlagCache mFlagCache; 
 
-        internal cPersistentCache()
+        public cPersistentCache(string pInstanceName, cHeaderCache pHeaderCache, cFlagCache pFlagCache, cSectionCache pSectionCache)
         {
-            mHeaderCache = null;
-            mSectionCache = null;
-            mFlagCache = null;
-        }
-
-        public cPersistentCache(cHeaderCache pHeaderCache, cSectionCache pSectionCache, cFlagCache pFlagCache)
-        {
+            InstanceName = pInstanceName ?? throw new ArgumentNullException(nameof(pInstanceName));
+            mRootContext = cMailClient.Trace.NewRoot(pInstanceName);
             mHeaderCache = pHeaderCache;
-            mSectionCache = pSectionCache;
             mFlagCache = pFlagCache;
+            mSectionCache = pSectionCache;
         }
 
-        // TODO: add a constructor for a directory cache that sets each item to the directory
+        public uint GetUIDValidity(cMailboxId pMailboxId) => GetUIDValidity(pMailboxId, mRootContext);
+        public ulong GetHighestModSeq(cMailboxUID pMailboxUID) => GetHighestModSeq(pMailboxUID, mRootContext);
+        public HashSet<cUID> GetUIDs(cMailboxUID pMailboxUID) => GetUIDs(pMailboxUID, mRootContext);
+        public bool TryGetHeaderCacheItem(cMessageUID pMessageUID, out cHeaderCacheItem rHeaderCacheItem) => TryGetHeaderCacheItem(pMessageUID, out rHeaderCacheItem, mRootContext);
+        public bool TryGetModSeqFlags(cMessageUID pMessageUID, out cModSeqFlags rModSeqFlags) => TryGetModSeqFlags(pMessageUID, out rModSeqFlags, mRootContext);
+        public bool TryGetSectionLength(cSectionId pSectionId, out long rLength) => TryGetSectionLength(pSectionId, out rLength, mRootContext);
+
+        public bool TryGetSectionReader(cSectionId pSectionId, out Stream rStream)
+        {
+            if (TryGetSectionReader(pSectionId, out var lReader, mRootContext))
+            {
+                rStream = lReader;
+                return true;
+            }
+
+            rStream = null;
+            return false;
+        }
 
         internal uint GetUIDValidity(cMailboxId pMailboxId, cTrace.cContext pParentContext)
         {
@@ -39,109 +56,87 @@ namespace work.bacome.imapclient
             uint lResult = 0;
             uint lTemp;
 
-            try { if ((lTemp = kDefaultSectionCache.GetUIDValidity(pMailboxId, lContext)) > lResult) lResult = lTemp; }
-            catch (Exception e) { lContext.TraceException("default section cache threw", e); }
+            if ((lTemp = kDefaultHeaderCache.GetUIDValidity(pMailboxId, lContext)) > lResult) lResult = lTemp;
+            if ((lTemp = kDefaultFlagCache.GetUIDValidity(pMailboxId, lContext)) > lResult) lResult = lTemp;
+            if ((lTemp = kDefaultSectionCache.GetUIDValidity(pMailboxId, lContext)) > lResult) lResult = lTemp;
 
-            if (mHeaderCache != null)
-            {
-                try { if ((lTemp = mHeaderCache.GetUIDValidity(pMailboxId, lContext)) > lResult) lResult = lTemp; }
-                catch (Exception e) { lContext.TraceException("header cache threw", e); }
-            }
-
-            if (mSectionCache != null)
-            {
-                try { if ((lTemp = mSectionCache.GetUIDValidity(pMailboxId, lContext)) > lResult) lResult = lTemp; }
-                catch (Exception e) { lContext.TraceException("section cache threw", e); }
-            }
-
-            if (mFlagCache != null)
-            {
-                try { if ((lTemp = mFlagCache.GetUIDValidity(pMailboxId, lContext)) > lResult) lResult = lTemp; }
-                catch (Exception e) { lContext.TraceException("flag cache threw", e); }
-            }
+            if (mHeaderCache != null && (lTemp = mHeaderCache.GetUIDValidity(pMailboxId, lContext)) > lResult) lResult = lTemp; 
+            if (mFlagCache != null && (lTemp = mFlagCache.GetUIDValidity(pMailboxId, lContext)) > lResult) lResult = lTemp;
+            if (mSectionCache != null && (lTemp = mSectionCache.GetUIDValidity(pMailboxId, lContext)) > lResult) lResult = lTemp; 
 
             return lResult;
         }
 
-        internal ulong GetHighestModSeq(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
+        internal ulong GetHighestModSeq(cMailboxUID pMailboxUID, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(GetHighestModSeq), pMailboxId, pUIDValidity);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(GetHighestModSeq), pMailboxUID);
 
-            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
-            if (pUIDValidity < 1) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
+            if (pMailboxUID == null) throw new ArgumentNullException(nameof(pMailboxUID));
 
             ulong lResult = 0;
 
-            try { ZGetHighestModSeq(kDefaultSectionCache, pMailboxId, pUIDValidity, ref lResult, lContext); }
-            catch (Exception e) { lContext.TraceException("default section cache threw", e); }
+            ZGetHighestModSeq(kDefaultHeaderCache, pMailboxUID, ref lResult, lContext);
+            ZGetHighestModSeq(kDefaultFlagCache, pMailboxUID, ref lResult, lContext);
+            ZGetHighestModSeq(kDefaultSectionCache, pMailboxUID, ref lResult, lContext);
 
-            if (mHeaderCache != null)
-            {
-                try { ZGetHighestModSeq(mHeaderCache, pMailboxId, pUIDValidity, ref lResult, lContext); }
-                catch (Exception e) { lContext.TraceException("header cache threw", e); }
-            }
-
-            if (mSectionCache != null)
-            {
-                try { ZGetHighestModSeq(mSectionCache, pMailboxId, pUIDValidity, ref lResult, lContext); }
-                catch (Exception e) { lContext.TraceException("section cache threw", e); }
-            }
-
-            if (mFlagCache != null)
-            {
-                try { ZGetHighestModSeq(mFlagCache, pMailboxId, pUIDValidity, ref lResult, lContext); }
-                catch (Exception e) { lContext.TraceException("flag cache threw", e); }
-            }
+            if (mHeaderCache != null) ZGetHighestModSeq(mHeaderCache, pMailboxUID, ref lResult, lContext);
+            if (mFlagCache != null) ZGetHighestModSeq(mFlagCache, pMailboxUID, ref lResult, lContext);
+            if (mSectionCache != null) ZGetHighestModSeq(mSectionCache, pMailboxUID, ref lResult, lContext);
 
             return lResult;
         }
 
-        private void ZGetHighestModSeq(cPersistentCacheComponent pComponent, cMailboxId pMailboxId, uint pUIDValidity, ref ulong pHighestModSeq, cTrace.cContext pParentContext)
+        private void ZGetHighestModSeq(cPersistentCacheComponent pComponent, cMailboxUID pMailboxUID, ref ulong rHighestModSeq, cTrace.cContext pParentContext)
         {
-            var lHighestModSeq = pComponent.GetHighestModSeq(pMailboxId, pUIDValidity, pParentContext);
+            var lHighestModSeq = pComponent.GetHighestModSeq(pMailboxUID, pParentContext);
 
-            if (lHighestModSeq == 0) return;
+            if (lHighestModSeq == 0 && pComponent.GetUIDs(pMailboxUID, pParentContext).Count == 0) return;
 
-            if (pHighestModSeq == 0)
+            if (rHighestModSeq == 0)
             {
-                pHighestModSeq = lHighestModSeq;
+                rHighestModSeq = lHighestModSeq;
                 return;
             }
 
-            if (lHighestModSeq < pHighestModSeq) pHighestModSeq = lHighestModSeq;
+            if (lHighestModSeq < rHighestModSeq) rHighestModSeq = lHighestModSeq;
         }
 
-        internal HashSet<cUID> GetUIDs(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
+        internal HashSet<cUID> GetUIDs(cMailboxUID pMailboxUID, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(GetUIDs), pMailboxId, pUIDValidity);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(GetUIDs), pMailboxUID);
 
-            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
-            if (pUIDValidity < 1) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
+            if (pMailboxUID == null) throw new ArgumentNullException(nameof(pMailboxUID));
 
-            var lUIDs = new HashSet<cUID>();
+            var lUIDs = kDefaultHeaderCache.GetUIDs(pMailboxUID, lContext);
+            lUIDs.UnionWith(kDefaultFlagCache.GetUIDs(pMailboxUID, lContext));
+            lUIDs.UnionWith(kDefaultSectionCache.GetUIDs(pMailboxUID, lContext));
 
-            try { lUIDs.UnionWith(kDefaultSectionCache.GetUIDs(pMailboxId, pUIDValidity, lContext)); }
-            catch (Exception e) { lContext.TraceException(nameof(kDefaultSectionCache), e); }
-
-            if (mHeaderCache != null)
-            {
-                try { lUIDs.UnionWith(mHeaderCache.GetUIDs(pMailboxId, pUIDValidity, lContext)); }
-                catch (Exception e) { lContext.TraceException(nameof(mHeaderCache), e); }
-            }
-
-            if (mSectionCache != null)
-            {
-                try { lUIDs.UnionWith(mSectionCache.GetUIDs(pMailboxId, pUIDValidity, lContext)); }
-                catch (Exception e) { lContext.TraceException(nameof(mSectionCache), e); }
-            }
-
-            if (mFlagCache != null)
-            {
-                try { lUIDs.UnionWith(mFlagCache.GetUIDs(pMailboxId, pUIDValidity, lContext)); }
-                catch (Exception e) { lContext.TraceException(nameof(mFlagCache), e); }
-            }
+            if (mHeaderCache != null) lUIDs.UnionWith(mHeaderCache.GetUIDs(pMailboxUID, lContext));
+            if (mFlagCache != null) lUIDs.UnionWith(mFlagCache.GetUIDs(pMailboxUID, lContext));
+            if (mSectionCache != null)  lUIDs.UnionWith(mSectionCache.GetUIDs(pMailboxUID, lContext));
 
             return lUIDs;
+        }
+
+        internal void MessageExpunged(iMessageHandle pMessageHandle, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(MessageExpunged), pMessageHandle);
+
+            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
+
+            if (pMessageHandle.UID != null)
+            {
+                cUID[] lUIDs = new cUID[] { pMessageHandle.UID };
+
+                kDefaultHeaderCache.MessagesExpunged(pMessageHandle.MessageCache.MailboxHandle.MailboxId, lUIDs, lContext);
+                kDefaultFlagCache.MessagesExpunged(pMessageHandle.MessageCache.MailboxHandle.MailboxId, lUIDs, lContext);
+
+                mHeaderCache?.MessagesExpunged(pMessageHandle.MessageCache.MailboxHandle.MailboxId, lUIDs, lContext);
+                mFlagCache?.MessagesExpunged(pMessageHandle.MessageCache.MailboxHandle.MailboxId, lUIDs, lContext);
+            }
+
+            kDefaultSectionCache.MessageExpunged(pMessageHandle, lContext);
+            mSectionCache?.MessageExpunged(pMessageHandle, lContext);
         }
 
         internal void MessagesExpunged(cMailboxId pMailboxId, IEnumerable<cUID> pUIDs, cTrace.cContext pParentContext)
@@ -151,17 +146,13 @@ namespace work.bacome.imapclient
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
             if (pUIDs == null) throw new ArgumentNullException(nameof(pUIDs));
 
-            try { kDefaultSectionCache.MessagesExpunged(pMailboxId, pUIDs, lContext); }
-            catch (Exception e) { lContext.TraceException("default section cache threw", e); }
+            kDefaultHeaderCache.MessagesExpunged(pMailboxId, pUIDs, lContext);
+            kDefaultFlagCache.MessagesExpunged(pMailboxId, pUIDs, lContext);
+            kDefaultSectionCache.MessagesExpunged(pMailboxId, pUIDs, lContext);
 
-            try { mHeaderCache?.MessagesExpunged(pMailboxId, pUIDs, lContext); }
-            catch (Exception e) { lContext.TraceException("header cache threw", e); }
-
-            try { mSectionCache?.MessagesExpunged(pMailboxId, pUIDs, lContext); }
-            catch (Exception e) { lContext.TraceException("section cache threw", e); }
-
-            try { mFlagCache?.MessagesExpunged(pMailboxId, pUIDs, lContext); }
-            catch (Exception e) { lContext.TraceException("flag cache threw", e); }
+            mHeaderCache?.MessagesExpunged(pMailboxId, pUIDs, lContext);
+            mFlagCache?.MessagesExpunged(pMailboxId, pUIDs, lContext);
+            mSectionCache?.MessagesExpunged(pMailboxId, pUIDs, lContext);
         }
 
         internal void SetUIDValidity(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
@@ -171,37 +162,29 @@ namespace work.bacome.imapclient
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
             if (pUIDValidity < 1) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
 
-            try { kDefaultSectionCache.SetUIDValidity(pMailboxId, pUIDValidity, lContext); }
-            catch (Exception e) { lContext.TraceException("default section cache threw", e); }
+            kDefaultHeaderCache.SetUIDValidity(pMailboxId, pUIDValidity, lContext);
+            kDefaultFlagCache.SetUIDValidity(pMailboxId, pUIDValidity, lContext);
+            kDefaultSectionCache.SetUIDValidity(pMailboxId, pUIDValidity, lContext);
 
-            try { mHeaderCache?.SetUIDValidity(pMailboxId, pUIDValidity, lContext); }
-            catch (Exception e) { lContext.TraceException("header cache threw", e); }
-
-            try { mSectionCache?.SetUIDValidity(pMailboxId, pUIDValidity, lContext); }
-            catch (Exception e) { lContext.TraceException("section cache threw", e); }
-
-            try { mFlagCache?.SetUIDValidity(pMailboxId, pUIDValidity, lContext); }
-            catch (Exception e) { lContext.TraceException("flag cache threw", e); }
+            mHeaderCache?.SetUIDValidity(pMailboxId, pUIDValidity, lContext);
+            mFlagCache?.SetUIDValidity(pMailboxId, pUIDValidity, lContext);
+            mSectionCache?.SetUIDValidity(pMailboxId, pUIDValidity, lContext);
         }
 
-        internal void SetHighestModSeq(cMailboxId pMailboxId, ulong pHighestModSeq, cTrace.cContext pParentContext)
+        internal void SetHighestModSeq(cMailboxUID pMailboxUID, ulong pHighestModSeq, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(SetHighestModSeq), pMailboxId, pHighestModSeq);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(SetHighestModSeq), pMailboxUID, pHighestModSeq);
 
-            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
+            if (pMailboxUID == null) throw new ArgumentNullException(nameof(pMailboxUID));
             if (pHighestModSeq < 1) throw new ArgumentOutOfRangeException(nameof(pHighestModSeq));
 
-            try { kDefaultSectionCache.SetHighestModSeq(pMailboxId, pHighestModSeq, lContext); }
-            catch (Exception e) { lContext.TraceException("default section cache threw", e); }
+            kDefaultHeaderCache.SetHighestModSeq(pMailboxUID, pHighestModSeq, lContext);
+            kDefaultFlagCache.SetHighestModSeq(pMailboxUID, pHighestModSeq, lContext);
+            kDefaultSectionCache.SetHighestModSeq(pMailboxUID, pHighestModSeq, lContext);
 
-            try { mHeaderCache?.SetHighestModSeq(pMailboxId, pHighestModSeq, lContext); }
-            catch (Exception e) { lContext.TraceException("header cache threw", e); }
-
-            try { mSectionCache?.SetHighestModSeq(pMailboxId, pHighestModSeq, lContext); }
-            catch (Exception e) { lContext.TraceException("section cache threw", e); }
-
-            try { mFlagCache?.SetHighestModSeq(pMailboxId, pHighestModSeq, lContext); }
-            catch (Exception e) { lContext.TraceException("flag cache threw", e); }
+            mHeaderCache?.SetHighestModSeq(pMailboxUID, pHighestModSeq, lContext);
+            mFlagCache?.SetHighestModSeq(pMailboxUID, pHighestModSeq, lContext);
+            mSectionCache?.SetHighestModSeq(pMailboxUID, pHighestModSeq, lContext);
         }
 
         internal void ClearCachedItems(cMailboxId pMailboxId, cTrace.cContext pParentContext)
@@ -210,39 +193,13 @@ namespace work.bacome.imapclient
 
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
 
-            try { kDefaultSectionCache.ClearCachedItems(pMailboxId, lContext); }
-            catch (Exception e) { lContext.TraceException("default section cache threw", e); }
+            kDefaultHeaderCache.ClearCachedItems(pMailboxId, lContext);
+            kDefaultFlagCache.ClearCachedItems(pMailboxId, lContext);
+            kDefaultSectionCache.ClearCachedItems(pMailboxId, lContext);
 
-            try { mHeaderCache?.ClearCachedItems(pMailboxId, lContext); }
-            catch (Exception e) { lContext.TraceException("header cache threw", e); }
-
-            try { mSectionCache?.ClearCachedItems(pMailboxId, lContext); }
-            catch (Exception e) { lContext.TraceException("section cache threw", e); }
-
-            try { mFlagCache?.ClearCachedItems(pMailboxId, lContext); }
-            catch (Exception e) { lContext.TraceException("flag cache threw", e); }
-        }
-
-        internal void MessageExpunged(iMessageHandle pMessageHandle, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(MessageExpunged), pMessageHandle);
-
-            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
-
-            try { kDefaultSectionCache.MessageExpunged(pMessageHandle, lContext); }
-            catch (Exception e) { lContext.TraceException("default section cache threw", e); }
-
-            try { mSectionCache?.MessageExpunged(pMessageHandle, lContext); }
-            catch (Exception e) { lContext.TraceException("section cache threw", e); }
-
-            if (pMessageHandle.UID != null)
-            {
-                try { mHeaderCache?.MessageExpunged(pMessageHandle.MessageCache.MailboxHandle.MailboxId, pMessageHandle.UID, lContext); }
-                catch (Exception e) { lContext.TraceException("header cache threw", e); }
-
-                try { mFlagCache?.MessageExpunged(pMessageHandle.MessageCache.MailboxHandle.MailboxId, pMessageHandle.UID, lContext); }
-                catch (Exception e) { lContext.TraceException("flag cache threw", e); }
-            }
+            mHeaderCache?.ClearCachedItems(pMailboxId, lContext);
+            mFlagCache?.ClearCachedItems(pMailboxId, lContext);
+            mSectionCache?.ClearCachedItems(pMailboxId, lContext); 
         }
 
         internal void Copy(cMailboxId pSourceMailboxId, cMailboxName pDestinationMailboxName, cCopyFeedback pFeedback, cTrace.cContext pParentContext)
@@ -251,31 +208,29 @@ namespace work.bacome.imapclient
 
             if (pSourceMailboxId == null) throw new ArgumentNullException(nameof(pSourceMailboxId));
             if (pDestinationMailboxName == null) throw new ArgumentNullException(nameof(pDestinationMailboxName));
-            if (pFeedback == null) throw new ArgumentNullException(nameof(pFeedback));        
+            if (pFeedback == null) throw new ArgumentNullException(nameof(pFeedback));
 
-            try { kDefaultSectionCache.Copy(pSourceMailboxId, pDestinationMailboxName, pFeedback, lContext); }
-            catch (Exception e) { lContext.TraceException("default section cache threw", e); }
+            kDefaultHeaderCache.Copy(pSourceMailboxId, pDestinationMailboxName, pFeedback, lContext);
+            kDefaultFlagCache.Copy(pSourceMailboxId, pDestinationMailboxName, pFeedback, lContext);
+            kDefaultSectionCache.Copy(pSourceMailboxId, pDestinationMailboxName, pFeedback, lContext);
 
-            try { mHeaderCache?.Copy(pSourceMailboxId, pDestinationMailboxName, pFeedback, lContext); }
-            catch (Exception e) { lContext.TraceException("header cache threw", e); }
-
-            try { mSectionCache?.Copy(pSourceMailboxId, pDestinationMailboxName, pFeedback, lContext); }
-            catch (Exception e) { lContext.TraceException("section cache threw", e); }
-
-            try { mFlagCache?.Copy(pSourceMailboxId, pDestinationMailboxName, pFeedback, lContext); }
-            catch (Exception e) { lContext.TraceException("header cache threw", e); }
+            mHeaderCache?.Copy(pSourceMailboxId, pDestinationMailboxName, pFeedback, lContext);
+            mFlagCache?.Copy(pSourceMailboxId, pDestinationMailboxName, pFeedback, lContext);
+            mSectionCache?.Copy(pSourceMailboxId, pDestinationMailboxName, pFeedback, lContext);
         }
 
-        internal void Rename(cMailboxId pMailboxId, uint pUIDValidity, cMailboxName pMailboxName, cTrace.cContext pParentContext)
+        internal void Rename(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext)
         {
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
-            if (pUIDValidity < 1) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
             if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
 
-            kDefaultSectionCache.Rename(pMailboxId, pUIDValidity, pMailboxName, pParentContext);
-            mHeaderCache?.Rename(pMailboxId, pUIDValidity, pMailboxName, pParentContext);
-            mSectionCache?.Rename(pMailboxId, pUIDValidity, pMailboxName, pParentContext);
-            mFlagCache?.Rename(pMailboxId, pUIDValidity, pMailboxName, pParentContext);
+            kDefaultHeaderCache.Rename(pMailboxId, pMailboxName, pParentContext);
+            kDefaultFlagCache.Rename(pMailboxId, pMailboxName, pParentContext);
+            kDefaultSectionCache.Rename(pMailboxId, pMailboxName, pParentContext);
+
+            mHeaderCache?.Rename(pMailboxId, pMailboxName, pParentContext);
+            mFlagCache?.Rename(pMailboxId, pMailboxName, pParentContext);
+            mSectionCache?.Rename(pMailboxId, pMailboxName, pParentContext);
         }
 
         internal void Reconcile(cMailboxId pMailboxId, IEnumerable<iMailboxHandle> pAllChildMailboxHandles, cTrace.cContext pParentContext)
@@ -285,10 +240,12 @@ namespace work.bacome.imapclient
 
             ZReconcile(pAllChildMailboxHandles, out var lExistentChildMailboxNames, out var lSelectableChildMailboxNames);
 
+            kDefaultHeaderCache.Reconcile(pMailboxId, lExistentChildMailboxNames, lSelectableChildMailboxNames, pParentContext);
+            kDefaultFlagCache.Reconcile(pMailboxId, lExistentChildMailboxNames, lSelectableChildMailboxNames, pParentContext);
             kDefaultSectionCache.Reconcile(pMailboxId, lExistentChildMailboxNames, lSelectableChildMailboxNames, pParentContext);
             mHeaderCache?.Reconcile(pMailboxId, lExistentChildMailboxNames, lSelectableChildMailboxNames, pParentContext);
-            mSectionCache?.Reconcile(pMailboxId, lExistentChildMailboxNames, lSelectableChildMailboxNames, pParentContext);
             mFlagCache?.Reconcile(pMailboxId, lExistentChildMailboxNames, lSelectableChildMailboxNames, pParentContext);
+            mSectionCache?.Reconcile(pMailboxId, lExistentChildMailboxNames, lSelectableChildMailboxNames, pParentContext);
         }
 
         internal void Reconcile(cAccountId pAccountId, string pPrefix, cStrings pNotPrefixedWith, IEnumerable<iMailboxHandle> pAllChildMailboxHandles, cTrace.cContext pParentContext)
@@ -297,12 +254,15 @@ namespace work.bacome.imapclient
             if (pPrefix == null) throw new ArgumentNullException(nameof(pPrefix));
             if (pNotPrefixedWith == null) throw new ArgumentNullException(nameof(pNotPrefixedWith));
             if (pAllChildMailboxHandles == null) throw new ArgumentNullException(nameof(pAllChildMailboxHandles));
+
             ZReconcile(pAllChildMailboxHandles, out var lExistentChildMailboxNames, out var lSelectableChildMailboxNames);
 
+            kDefaultHeaderCache.Reconcile(pAccountId, pPrefix, pNotPrefixedWith, lExistentChildMailboxNames, lSelectableChildMailboxNames, pParentContext);
+            kDefaultFlagCache.Reconcile(pAccountId, pPrefix, pNotPrefixedWith, lExistentChildMailboxNames, lSelectableChildMailboxNames, pParentContext);
             kDefaultSectionCache.Reconcile(pAccountId, pPrefix, pNotPrefixedWith, lExistentChildMailboxNames, lSelectableChildMailboxNames, pParentContext);
             mHeaderCache?.Reconcile(pAccountId, pPrefix, pNotPrefixedWith, lExistentChildMailboxNames, lSelectableChildMailboxNames, pParentContext);
-            mSectionCache?.Reconcile(pAccountId, pPrefix, pNotPrefixedWith, lExistentChildMailboxNames, lSelectableChildMailboxNames, pParentContext);
             mFlagCache?.Reconcile(pAccountId, pPrefix, pNotPrefixedWith, lExistentChildMailboxNames, lSelectableChildMailboxNames, pParentContext);
+            mSectionCache?.Reconcile(pAccountId, pPrefix, pNotPrefixedWith, lExistentChildMailboxNames, lSelectableChildMailboxNames, pParentContext);
         }
 
         private void ZReconcile(IEnumerable<iMailboxHandle> pMailboxHandles, out HashSet<cMailboxName> rExistentMailboxNames, out HashSet<cMailboxName> rSelectableMailboxNames)
@@ -321,63 +281,71 @@ namespace work.bacome.imapclient
 
         internal void MessageHandleUIDSet(iMessageHandle pMessageHandle, cTrace.cContext pParentContext)
         {
-            kDefaultSectionCache.MessageHandleUIDSet(pMessageHandle, pParentContext); // this is to let the cache know what the UID is for the handle
-            mSectionCache?.MessageHandleUIDSet(pMessageHandle, pParentContext); // this is to let the cache know what the UID is for the handle
+            // this is to let the section cache know what the UID is for the handle - we may have been filing things under the handle so this gives a chance for those things to be moved to be filed under the UID
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(MessageHandleUIDSet), pMessageHandle);
+            kDefaultSectionCache.MessageHandleUIDSet(pMessageHandle, lContext);
+            mSectionCache?.MessageHandleUIDSet(pMessageHandle, lContext);
         }
 
         internal void MessageCacheDeactivated(iMessageCache pMessageCache, cTrace.cContext pParentContext)
         {
-            kDefaultSectionCache.MessageCacheDeactivated(pMessageCache, pParentContext); // this is so data against the handle can be trashed
-            mHeaderCache?.MessageCacheDeactivated(pMessageCache.MailboxHandle.MailboxId, pParentContext); // this is so data for the mailbox can be persisted
-            mFlagCache?.MessageCacheDeactivated(pMessageCache.MailboxHandle.MailboxId, pParentContext); // this is so data for the mailbox can be persisted
-            mSectionCache?.MessageCacheDeactivated(pMessageCache, pParentContext); // this is so data against the handle can be trashed
+            // this is to let the section cache know that any data stored against handles in the cache can be trashed
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(MessageCacheDeactivated), pMessageCache);
+            kDefaultSectionCache.MessageCacheDeactivated(pMessageCache, lContext);
+            mSectionCache?.MessageCacheDeactivated(pMessageCache, lContext);
         }
 
-        internal iHeaderCacheItem GetHeaderCacheItem(cMessageUID pMessageUID) => mHeaderCache?.GetHeaderCacheItem(pMessageUID);
-        internal iFlagCacheItem GetFlagCacheItem(cMessageUID pMessageUID) => mFlagCache?.GetFlagCacheItem(pMessageUID);
+        internal bool TryGetHeaderCacheItem(cMessageUID pMessageUID, out cHeaderCacheItem rHeaderCacheItem, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(TryGetHeaderCacheItem), pMessageUID);
+            if (pMessageUID == null) throw new ArgumentNullException(nameof(pMessageUID));
+            if (mHeaderCache == null) return kDefaultHeaderCache.TryGetHeaderCacheItem(pMessageUID, out rHeaderCacheItem, lContext);
+            return mHeaderCache.TryGetHeaderCacheItem(pMessageUID, out rHeaderCacheItem, lContext);
+        }
 
-        internal bool TryGetSectionCacheItemLength(cSectionId pSectionId, out long rLength, cTrace.cContext pParentContext)
+        internal bool TryGetModSeqFlags(cMessageUID pMessageUID, out cModSeqFlags rModSeqFlags, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(TryGetModSeqFlags), pMessageUID);
+            if (pMessageUID == null) throw new ArgumentNullException(nameof(pMessageUID));
+            if (mFlagCache == null) return kDefaultFlagCache.TryGetModSeqFlags(pMessageUID, out rModSeqFlags, lContext);
+            return mFlagCache.TryGetModSeqFlags(pMessageUID, out rModSeqFlags, lContext);
+        }
+
+        internal void SetModSeqFlags(cMessageUID pMessageUID, cModSeqFlags pModSeqFlags, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(SetModSeqFlags), pMessageUID, pModSeqFlags);
+            if (pMessageUID == null) throw new ArgumentNullException(nameof(pMessageUID));
+            if (pModSeqFlags == null) throw new ArgumentNullException(nameof(pModSeqFlags));
+            if (mFlagCache == null) kDefaultFlagCache.SetModSeqFlags(pMessageUID, pModSeqFlags, lContext);
+            else mFlagCache.SetModSeqFlags(pMessageUID, pModSeqFlags, lContext);
+        }
+
+        internal bool TryGetSectionLength(cSectionId pSectionId, out long rLength, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(TryGetSectionCacheItemLength), pSectionId);
-
             if (pSectionId == null) throw new ArgumentNullException(nameof(pSectionId));
-
-            if (mSectionCache != null && mSectionCache.TryGetItemLength(pSectionId, out rLength, lContext)) return true;
-            if (kDefaultSectionCache.TryGetItemLength(pSectionId, out rLength, lContext)) return true;
-
-            rLength = -1;
-            return false;
+            if (mSectionCache == null) return kDefaultSectionCache.TryGetSectionLength(pSectionId, out rLength, lContext);
+            return  mSectionCache.TryGetSectionLength(pSectionId, out rLength, lContext);
         }
 
-        internal bool TryGetSectionCacheItemReader(cSectionId pSectionId, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
+        internal bool TryGetSectionReader(cSectionId pSectionId, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(TryGetSectionCacheItemReader), pSectionId);
-
             if (pSectionId == null) throw new ArgumentNullException(nameof(pSectionId));
-
-            if (mSectionCache != null && mSectionCache.TryGetItemReader(pSectionId, out rReader, lContext)) return true;
-            if (kDefaultSectionCache.TryGetItemReader(pSectionId, out rReader, lContext)) return true;
-
-            rReader = null;
-            return false;
+            if (mSectionCache == null) return kDefaultSectionCache.TryGetSectionReader(pSectionId, out rReader, lContext);
+            return mSectionCache.TryGetSectionReader(pSectionId, out rReader, lContext);
         }
 
         internal cSectionCacheItem GetNewSectionCacheItem(cSectionId pSectionId, bool pUIDNotSticky, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(GetNewSectionCacheItem), pSectionId, pUIDNotSticky);
-
             if (pSectionId == null) throw new ArgumentNullException(nameof(pSectionId));
 
-            if (mSectionCache != null)
-            {
-                try { return mSectionCache.GetNewItem(pSectionId, pUIDNotSticky, lContext); }
-                catch (Exception e) { lContext.TraceException("section cache threw", e); }
-            }
-
-            return kDefaultSectionCache.GetNewItem(pSectionId, pUIDNotSticky, lContext);
+            if (mSectionCache == null) return kDefaultSectionCache.GetNewItem(pSectionId, pUIDNotSticky, lContext);
+            return mSectionCache.GetNewItem(pSectionId, pUIDNotSticky, lContext); }
         }
 
-        internal bool TryGetSectionCacheItemLength(cSectionHandle pSectionHandle, out long rLength, cTrace.cContext pParentContext)
+        internal bool TryGetSectionLength(cSectionHandle pSectionHandle, out long rLength, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetSectionCacheItemLength), pSectionHandle);
 

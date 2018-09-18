@@ -94,6 +94,10 @@ namespace work.bacome.imapclient
                         }
                     }
 
+
+                    ;?; // somewhere here: if the highestmodseq sent back is LOWER than the one I start with (and the uidvalidity is the same), then trash the cache
+                    ;?;  // in the command hook
+
                     var lHook = new cCommandHookSelectExamine(mMailboxCache, _Capabilities, lQResyncEnabled, pMailboxHandle, true, lUsingQResync);
                     lBuilder.Add(lHook);
 

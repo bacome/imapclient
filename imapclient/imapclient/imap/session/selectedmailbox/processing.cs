@@ -46,6 +46,7 @@ namespace work.bacome.imapclient
 
                         case cResponseDataUIDValidity lUIDValidity:
 
+                            ;?;
                             mPersistentCache.MessageCacheDeactivated(mCache, lContext);
 
                             // need UIDs to be able to process VANISHED
