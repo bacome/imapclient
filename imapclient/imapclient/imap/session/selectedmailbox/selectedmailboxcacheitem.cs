@@ -20,11 +20,14 @@ namespace work.bacome.imapclient
                     private readonly int mCacheSequence;
 
                     private cUID mUID = null;
-                    private iHeaderCacheItem mHeaderCacheItem = new cHeaderCacheItem();
+                    private cMessageUID mMessageUID = null;
+                    private cHeaderCacheItem mHeaderCacheItem = new cDefaultHeaderCacheItem();
+                    private bool? mSeen = null; // is this message seen (null = don't know)
                     private cModSeqFlags mModSeqFlags = null;
 
                     private bool mExpunged = false;
-                    private fMessageCacheAttributes mAttributes;
+                    ;?;
+                    private fMessageCacheAttributes mAttributes; // contains flags, uid, modseq only
                     public bool? Unseen = null; // is this message unseen (null = don't know)
 
                     public cItem(cSelectedMailboxCache pSelectedMailboxCache, int pCacheSequence)
@@ -39,10 +42,30 @@ namespace work.bacome.imapclient
                     public iMessageCache MessageCache => mSelectedMailboxCache;
                     public int CacheSequence => mCacheSequence;
                     public bool Expunged => mExpunged;
-                    public fMessageCacheAttributes Attributes => mAttributes;
 
-                    public cFetchableFlags Flags => mModSeqFlags?.Flags;
-                    public cEnvelope Envelope => mHeaderCacheItem.Envelope;
+                    public fMessageCacheAttributes Attributes => mAttributes | mHeaderCacheItem.Attributes;
+
+                    public cFetchableFlags Flags
+                    {
+                        get
+                        {
+                            if (mModSeqFlags == null) return null;
+                            if (mMessageUID != null) mSelectedMailboxCache.mPersistentCache.RecordModSeqFlagsAccess(mMessageUID);
+                            return mModSeqFlags.Flags;
+                        }
+                    }
+
+                    public cEnvelope Envelope
+                    {
+                        get
+                        {
+                            if (mHeaderCacheItem.Envelope == null) return null;
+                            mHeaderCacheItem.RecordAccess();
+                            return mHeaderCacheItem.Envelope;
+                        }
+                    }
+
+                    ;?; // more property changes here
                     public DateTimeOffset? ReceivedDateTimeOffset => mHeaderCacheItem.ReceivedDateTimeOffset;
                     public DateTime? ReceivedDateTime => mHeaderCacheItem.ReceivedDateTime;
                     public uint? Size => mHeaderCacheItem.Size;
@@ -66,24 +89,31 @@ namespace work.bacome.imapclient
                     public bool ContainsNone(cMessageCacheItems pItems) => (~mAttributes & pItems.Attributes) == pItems.Attributes && mHeaderCacheItem.HeaderFields.ContainsNone(pItems.Names);
                     public cMessageCacheItems Missing(cMessageCacheItems pItems) => new cMessageCacheItems(~mAttributes & pItems.Attributes, mHeaderCacheItem.HeaderFields.GetMissing(pItems.Names));
 
+                    public bool? Seen => mSeen;
+
                     public void SetExpunged() => mExpunged = true;
 
-                    public void Update(cResponseDataFetch pFetch, out bool rUIDWasSet, out bool rFlagsWereSet, out fIMAPMessageProperties rPropertiesChanged)
+                    public void Update(cResponseDataFetch pFetch, out bool rUIDWasSet, out fIMAPMessageProperties rModSeqFlagPropertiesChanged, cTrace.cContext pParentContext)
                     {
-                        rFlagsWereSet = false;
+                        var lContext = pParentContext.NewMethod(nameof(cItem), nameof(Update), pFetch);
 
-                        if (((mAttributes & fMessageCacheAttributes.uid) == 0) && mSelectedMailboxCache.mUIDValidity != 0 && ((pFetch.Attributes & fMessageCacheAttributes.uid) != 0))
+                        // uid
+
+                        rUIDWasSet = false; // to indicate that the item should be indexed by uid
+
+                        if (((mAttributes & fMessageCacheAttributes.uid) == 0) && mSelectedMailboxCache.mUIDValidity != 0 && pFetch.UID != null)
                         {
                             // this is the first time that we know the UID for this item
 
+                            rUIDWasSet = true;
+
                             mUID = new cUID(mSelectedMailboxCache.mUIDValidity, pFetch.UID.Value);
+                            mMessageUID = new cMessageUID(mSelectedMailboxCache.MailboxHandle.MailboxId, mUID);
 
-                            var lMessageUID = new cMessageUID(mSelectedMailboxCache.MailboxHandle.MailboxId, mUID);
-
-                            var lHeaderCacheItem = mSelectedMailboxCache.mPersistentCache.GetHeaderCacheItem(lMessageUID);
-
-                            if (lHeaderCacheItem != null)
+                            ;?; // is this optional to return (NO) and the get should touch it
+                            if (mSelectedMailboxCache.mPersistentCache.TryGetHeaderCacheItem(mMessageUID, out var lHeaderCacheItem, lContext))
                             {
+                                ;?; // don't use the getters here as they set the touched
                                 if (lHeaderCacheItem.Envelope == null)
                                 {
                                     if (mHeaderCacheItem.Envelope != null) lHeaderCacheItem.Envelope = mHeaderCacheItem.Envelope;
@@ -120,84 +150,76 @@ namespace work.bacome.imapclient
                                 mHeaderCacheItem = lHeaderCacheItem;
                             }
 
-                            var lFlagCacheItem = mSelectedMailboxCache.mPersistentCache.GetFlagCacheItem(lMessageUID);
-
-                            if (lFlagCacheItem != null)
+                            if (mModSeqFlags == null)
                             {
-                                ;?; // if the modseq is missing or zero and the highestmdseq is non-zero then set the highestmodseq in the persistent cache to zero
-                                //  the cache will remember that one of the attched clients is not updating it correctly, so will not retain the highestmodseq
-
-
-                                ;?; // the flags and modseq should be considered together
-                                if (lFlagCacheItem.Flags == null)
+                                if (mSelectedMailboxCache.mPersistentCache.TryGetModSeqFlags(mMessageUID, out var lModSeqFlags, lContext))
                                 {
-                                    if (mFlagCacheItem.Flags != null) lFlagCacheItem.Update(mFlagCacheItem.Flags, mFlagCacheItem.ModSeq ?? 0);
-                                }
-                                else
-                                {
-                                    if (mFlagCacheItem.Flags != lFlagCacheItem.Flags) rFlagsWereSet = true;
-                                    mAttributes |= fMessageCacheAttributes.flags;
-                                }
+                                    mSeen = lModSeqFlags.Flags.Contains(kMessageFlag.Seen);
 
-                                ;?;
-                                if (lFlagCacheItem.ModSeq == null)
-                                {
-                                    ;?; // this is an odd situation
-                                    if (mFlagCacheItem.ModSeq != null) lFlagCacheItem.ModSeq = mFlagCacheItem.ModSeq;
-                                }
-                                else mAttributes |= fMessageCacheAttributes.modseq;
+                                    if (mSelectedMailboxCache.mNoModSeq && lModSeqFlags.ModSeq != 0) mModSeqFlags = new cModSeqFlags(lModSeqFlags.Flags, 0);
+                                    else mModSeqFlags = lModSeqFlags;
 
-                                mFlagCacheItem = lFlagCacheItem;
+                                    mAttributes |= fMessageCacheAttributes.flags | fMessageCacheAttributes.modseq;
+                                }
                             }
+                            else mSelectedMailboxCache.mPersistentCache.SetModSeqFlags(mMessageUID, mModSeqFlags, lContext);
                         }
 
-                        var lAttributesSet = ~mAttributes & pFetch.Attributes;
-                        rPropertiesChanged = 0;
+                        // modseq and flags
 
-                        if ((lAttributesSet & fMessageCacheAttributes.flags) != 0)
-                        {
-                            mFlagCacheItem.Flags = pFetch.Flags;
-                            rFlagsWereSet = true;
-                        }
-                        else if (pFetch.Flags != null)
-                        {
-                            bool lFlagsWereSet = false;
+                        rModSeqFlagPropertiesChanged = 0;
 
-                            foreach (var lFlag in mFlagCacheItem.Flags.SymmetricDifference(pFetch.Flags))
+                        if (pFetch.Flags != null) // note that we ignore fetches with just a modseq
+                        {
+                            ulong lModSeq;
+
+                            if (mSelectedMailboxCache.mNoModSeq || pFetch.ModSeq == null) lModSeq = 0;
+                            else lModSeq = pFetch.ModSeq.Value;
+
+                            if (mModSeqFlags == null)
                             {
-                                rFlagsWereSet = true;
-                                rPropertiesChanged |= fIMAPMessageProperties.flags | LMessageProperty(lFlag);
+                                mSeen = pFetch.Flags.Contains(kMessageFlag.Seen);
+                                mModSeqFlags = new cModSeqFlags(pFetch.Flags, lModSeq);
+                                if (mMessageUID != null) mSelectedMailboxCache.mPersistentCache.SetModSeqFlags(mMessageUID, mModSeqFlags, lContext);
+                            }
+                            else
+                            {
+                                foreach (var lFlag in mModSeqFlags.Flags.SymmetricDifference(pFetch.Flags)) rModSeqFlagPropertiesChanged |= fIMAPMessageProperties.flags | LMessageProperty(lFlag);
+
+                                if (rModSeqFlagPropertiesChanged != 0) mSeen = pFetch.Flags.Contains(kMessageFlag.Seen);
+
+                                if (mModSeqFlags.ModSeq != lModSeq) rModSeqFlagPropertiesChanged |= fIMAPMessageProperties.modseq;
+
+                                if (rModSeqFlagPropertiesChanged != 0)
+                                {
+                                    mModSeqFlags = new cModSeqFlags(pFetch.Flags, lModSeq);
+                                    if (mMessageUID != null) mSelectedMailboxCache.mPersistentCache.SetModSeqFlags(mMessageUID, mModSeqFlags, lContext);
+                                }
                             }
 
-                            if (lFlagsWereSet)
-
-                                mFlagCacheItem.Flags = pFetch.Flags;
+                            mAttributes |= fMessageCacheAttributes.flags | fMessageCacheAttributes.modseq;
                         }
 
+                        // the static attibutes
 
-                        ;?;
-                        if ((rAttributesSet & fMessageCacheAttributes.envelope) != 0) mHeaderCacheItem.Envelope = lFetch.Envelope;
-                        if ((rAttributesSet & fMessageCacheAttributes.received) != 0) mHeaderCacheItem.SetReceivedDateTime(lFetch.ReceivedDateTimeOffset.Value, lFetch.ReceivedDateTime.Value);
-                        if ((rAttributesSet & fMessageCacheAttributes.size) != 0) mHeaderCacheItem.Size = lFetch.Size;
-                        if ((rAttributesSet & fMessageCacheAttributes.body) != 0) mHeaderCacheItem.Body = lFetch.Body;
-                        if ((rAttributesSet & fMessageCacheAttributes.bodystructure) != 0) mHeaderCacheItem.BodyStructure = lFetch.BodyStructure;
+                        var lStaticAttributesToSet = ~mAttributes & pFetch.Attributes & fMessageCacheAttributes.staticattributes;
 
-                        if (!mMessageCache.NoModSeq)
-                        {
-                            if ((rAttributesSet & fMessageCacheAttributes.modseq) != 0) mModSeq = lFetch.ModSeq;
-                            else if (lFetch.ModSeq != null && lFetch.ModSeq != mModSeq)
-                            {
-                                rAttributesSet |= fMessageCacheAttributes.modseq;
-                                rPropertiesChanged |= fIMAPMessageProperties.modseq;
-                                mModSeq = lFetch.ModSeq;
-                            }
-                        }
+                        if ((lStaticAttributesToSet & fMessageCacheAttributes.envelope) != 0) mHeaderCacheItem.Envelope = pFetch.Envelope;
+                        if ((lStaticAttributesToSet & fMessageCacheAttributes.received) != 0) mHeaderCacheItem.SetReceivedDateTime(pFetch.ReceivedDateTimeOffset.Value, pFetch.ReceivedDateTime.Value);
+                        if ((lStaticAttributesToSet & fMessageCacheAttributes.size) != 0) mHeaderCacheItem.Size = pFetch.Size;
+                        if ((lStaticAttributesToSet & fMessageCacheAttributes.body) != 0) mHeaderCacheItem.Body = pFetch.Body;
+                        if ((lStaticAttributesToSet & fMessageCacheAttributes.bodystructure) != 0) mHeaderCacheItem.BodyStructure = pFetch.BodyStructure;
+                        
+                        // the uid was set above, but this is where we record the fact that the uid was sent to us
+                        mAttributes |= lStaticAttributesToSet;
 
-                        HeaderFields += lFetch.HeaderFields;
-                        BinarySizes += lFetch.BinarySizes;
+                        // the header and binary sizes
 
-                        ;?; // use the lattset
-                        mAttributes |= lFetch.Attributes;
+                        if (pFetch.HeaderFields != null) mHeaderCacheItem.AddHeaderFields(pFetch.HeaderFields);
+                        if (pFetch.BinarySizes != null) mHeaderCacheItem.AddBinarySizes(pFetch.BinarySizes);
+
+                        // done
+                        return;
 
                         fIMAPMessageProperties LMessageProperty(string pFlag)
                         {

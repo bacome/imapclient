@@ -11,21 +11,17 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    public abstract partial class cSectionCache : cPersistentCacheComponent, IDisposable
+    public abstract partial class cSectionCache : cPersistentCacheComponent
     {
         private static readonly TimeSpan kPlusOneHour = TimeSpan.FromHours(1);
         private static readonly TimeSpan kMinusOneHour = TimeSpan.FromHours(-1);
 
-        ;?; // null entries => no: remove them
 
-
-        ;?; // rmeove disposable
-        private bool mDisposed = false;
-        private bool mDisposing = false;
 
         public readonly string InstanceName;
         protected readonly cTrace.cContext mRootContext;
 
+        ;?; // null entries => no: remove them
         // collections for storing cache items; note that the values here may be null (maintenance will remove entries with null values, values can be set to null by rename)
         private readonly ConcurrentDictionary<cSectionHandle, cSectionCacheItem> mSectionHandleToItem = new ConcurrentDictionary<cSectionHandle, cSectionCacheItem>();
         private readonly ConcurrentDictionary<cSectionId, cSectionCacheItem> mSectionIdToItem = new ConcurrentDictionary<cSectionId, cSectionCacheItem>();
@@ -42,17 +38,11 @@ namespace work.bacome.imapclient
             mRootContext = cMailClient.Trace.NewRoot(pInstanceName);
         }
 
-        protected internal override HashSet<cUID> GetUIDs(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
+        public override HashSet<cUID> GetUIDs(cMailboxUID pMailboxUID, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetUIDs), pMailboxId, pUIDValidity);
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetUIDs), pMailboxUID);
 
-            // note that this may return UIDs that we know are pending delete
-            //  I could filter them out, but how would the override in the derived class do it?
-            //   so for consistency, I don't do it
-
-            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
-
-            YObjectStateCheck(lContext);
+            if (pMailboxUID == null) throw new ArgumentNullException(nameof(pMailboxUID));
 
             var lUIDs = new HashSet<cUID>();
 
@@ -72,7 +62,7 @@ namespace work.bacome.imapclient
 
             void LAddFromUID(cMessageUID pMessageUID, cSectionCacheItem pItem)
             {
-                if (pMessageUID.MailboxId == pMailboxId && pMessageUID.UID.UIDValidity == pUIDValidity && pItem != null && !pItem.Deleted && !pItem.ToBeDeleted) lUIDs.Add(pMessageUID.UID);
+                if (pMessageUID.MailboxId == pMailboxUID.MailboxId && pMessageUID.UID.UIDValidity == pMailboxUID.UIDValidity && pItem != null && !pItem.Deleted && !pItem.ToBeDeleted) lUIDs.Add(pMessageUID.UID);
             }
 
             void LAddFromHandle(iMessageHandle pMessageHandle, cSectionCacheItem pItem)
@@ -217,20 +207,11 @@ namespace work.bacome.imapclient
 
         protected override void YRename(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext)
         {
-            // the sub-class should call this before doing its rename (in case maintenance is assigning keys while this is running)
-            // the sub-class must defend against duplicates being created by any renames it does (due to another client querying the item or due to a duplicate entry (one persisted and one in handles: a rename of the handle one and a maintenance run persisting it)
-
+            ;?; // altering this ;?;
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(YRename), pMailboxId, pMailboxName);
-
-            // note that this may rename UIDs that we know are pending delete (another client could have sent us the delete)
-            //  I could filter them out, but how would the override in the derived class do it?
-            //   so for consistency, I don't do it
-            //    [this means that the item may not be deleted until the next time a reconciliation is done]
 
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
             if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
-
-            YObjectStateCheck(lContext);
 
             var lDestinationMailboxId = new cMailboxId(pMailboxId.AccountId, pMailboxName);
 
@@ -243,7 +224,7 @@ namespace work.bacome.imapclient
 
                 if (lItem != null && lItem.IndexedBySectionId == eSectionCacheIndexedBySectionId.notindexed && !lItem.Deleted && !lItem.ToBeDeleted && lItem.PersistState != eSectionCachePersistState.persisted && !lMessageHandle.Expunged && lMessageHandle.UID != null && lMessageHandle.MessageCache.MailboxHandle.MailboxId == pMailboxId)
                 {
-                    if (!mSectionHandleToItem.TryUpdate(lPair.Key, null, lItem)) continue; // the value has been changed, probably by a messagedatastream completing and the item having been deleted in the mean time (i.e. next to impossible)
+                    if (!mSectionHandleToItem.TryRemove(lPair.Key, _)) continue; // the value has been changed, probably by a messagedatastream completing and the item having been deleted in the mean time (i.e. next to impossible)
                     if (lRenamedSectionIds.Contains(lItem.SectionId)) continue; // could happen if there was a duplicate
 
                     var lOldSectionId = lItem.SectionId;
@@ -278,6 +259,8 @@ namespace work.bacome.imapclient
             }
         }
 
+        /* these to comment back in later (commented out to stop me using the wrong ones)
+
         public bool TryGetSectionLength(cSectionId pSectionId, out long rLength) => TryGetSectionLength(pSectionId, out rLength, mRootContext);
 
         public bool TryGetSectionReader(cSectionId pSectionId, out Stream rStream)
@@ -290,7 +273,7 @@ namespace work.bacome.imapclient
 
             rStream = null;
             return false;
-        }
+        } */
 
         public bool IsDisposed => mDisposed || mDisposing;
 
@@ -315,26 +298,6 @@ namespace work.bacome.imapclient
         protected virtual void YMaintenance(bool pFinal, cSectionCacheMaintenanceData pData, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(YMaintenance), pFinal, pData);
-        }
-
-        protected void YObjectStateCheck(cTrace.cContext pParentContext)
-        {
-            if (mDisposed || mDisposing) throw new ObjectDisposedException(nameof(cSectionCache));
-
-            if (mMaintenanceTask != null)
-            {
-                if (mMaintenanceTask.IsCompleted) throw new cSectionCacheException("the maintenance task has stopped", mMaintenanceTask.Exception, pParentContext);
-                return;
-            }
-
-            lock (mMaintenanceStartLock)
-            {
-                if (mMaintenanceTask == null)
-                {
-                    mMaintenanceCTS = new CancellationTokenSource();
-                    mMaintenanceTask = ZMaintenanceAsync(pParentContext);
-                }
-            }
         }
 
         protected internal int GetItemSequence() => Interlocked.Increment(ref mItemSequence);
@@ -591,54 +554,6 @@ namespace work.bacome.imapclient
 
         public override string ToString() => $"{nameof(cSectionCache)}({InstanceName})";
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool pDisposing)
-        {
-            if (mDisposed) return;
-
-            if (pDisposing)
-            {
-                mDisposing = true;
-
-                if (mMaintenanceCTS != null && !mMaintenanceCTS.IsCancellationRequested)
-                {
-                    try { mMaintenanceCTS.Cancel(); }
-                    catch { }
-                }
-
-                if (mMaintenanceTask != null)
-                {
-                    // wait for the task to exit before disposing it
-                    try { mMaintenanceTask.Wait(); }
-                    catch { }
-
-                    try { mMaintenanceTask.Dispose(); }
-                    catch { }
-                }
-
-                if (mMaintenanceCTS != null)
-                {
-                    try { mMaintenanceCTS.Dispose(); }
-                    catch { }
-                }
-
-                try
-                {
-                    var lContext = mRootContext.NewMethod(nameof(cSectionCache), nameof(Dispose));
-                    try { ZMaintenance(true, lContext); }
-                    catch (Exception e) { lContext.TraceException(e); }
-                }
-                catch { }
-            }
-
-            mDisposed = true;
-        }
-
         internal static bool FileTimesAreTheSame(DateTime pA, DateTime pB)
         {
             // daylight saving time can cause issues
@@ -647,3 +562,4 @@ namespace work.bacome.imapclient
         }
     }
 }
+ 

@@ -53,6 +53,7 @@
     <Compile Include="imap\public\other\modseqflags.cs" />
     <Compile Include="imap\public\persistentcache\base.cs" />
     <Compile Include="imap\public\persistentcache\flag\base.cs" />
+    <Compile Include="imap\public\persistentcache\flag\item.cs" />
     <Compile Include="imap\public\persistentcache\header\base.cs" />
     <Compile Include="imap\public\persistentcache\component.cs" />
     <Compile Include="imap\public\persistentcache\header\item.cs" />
@@ -62,6 +63,7 @@
     <Compile Include="imap\public\persistentcache\section\maintenanceinfo.cs" />
     <Compile Include="imap\public\message\messageuid.cs" />
     <Compile Include="imap\persistentcache\sectioncache\defaultsectioncache.cs" />
+    <Compile Include="imap\public\persistentcache\section\oldbase.cs" />
     <Compile Include="imap\public\persistentcache\section\tempfilesectioncache.cs" />
     <Compile Include="imap\public\persistentcache\section\persiststate.cs" />
     <Compile Include="imap\persistentcache\sectioncache\indexedbysectionid.cs" />

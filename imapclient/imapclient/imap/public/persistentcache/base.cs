@@ -15,6 +15,7 @@ namespace work.bacome.imapclient
 
         public readonly string InstanceName;
         private readonly cTrace.cContext mRootContext;
+
         private readonly cHeaderCache mHeaderCache;
         private readonly cFlagCache mFlagCache;
         private readonly cSectionCache mSectionCache;
@@ -23,11 +24,13 @@ namespace work.bacome.imapclient
         {
             InstanceName = pInstanceName ?? throw new ArgumentNullException(nameof(pInstanceName));
             mRootContext = cMailClient.Trace.NewRoot(pInstanceName);
+
             mHeaderCache = pHeaderCache;
             mFlagCache = pFlagCache;
             mSectionCache = pSectionCache;
         }
 
+        /* these to comment back in later (commented out to stop me using the wrong ones)
         public uint GetUIDValidity(cMailboxId pMailboxId) => GetUIDValidity(pMailboxId, mRootContext);
         public ulong GetHighestModSeq(cMailboxUID pMailboxUID) => GetHighestModSeq(pMailboxUID, mRootContext);
         public HashSet<cUID> GetUIDs(cMailboxUID pMailboxUID) => GetUIDs(pMailboxUID, mRootContext);
@@ -45,7 +48,7 @@ namespace work.bacome.imapclient
 
             rStream = null;
             return false;
-        }
+        } */
 
         internal uint GetUIDValidity(cMailboxId pMailboxId, cTrace.cContext pParentContext)
         {
@@ -295,9 +298,9 @@ namespace work.bacome.imapclient
             mSectionCache?.MessageCacheDeactivated(pMessageCache, lContext);
         }
 
-        internal bool TryGetHeaderCacheItem(cMessageUID pMessageUID, out cHeaderCacheItem rHeaderCacheItem, cTrace.cContext pParentContext)
+        internal cHeaderCacheItem GetHeaderCacheItem(cMessageUID pMessageUID, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(TryGetHeaderCacheItem), pMessageUID);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(GetHeaderCacheItem), pMessageUID);
             if (pMessageUID == null) throw new ArgumentNullException(nameof(pMessageUID));
             if (mHeaderCache == null) return kDefaultHeaderCache.TryGetHeaderCacheItem(pMessageUID, out rHeaderCacheItem, lContext);
             return mHeaderCache.TryGetHeaderCacheItem(pMessageUID, out rHeaderCacheItem, lContext);
@@ -322,7 +325,7 @@ namespace work.bacome.imapclient
 
         internal bool TryGetSectionLength(cSectionId pSectionId, out long rLength, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(TryGetSectionCacheItemLength), pSectionId);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(TryGetSectionLength), pSectionId);
             if (pSectionId == null) throw new ArgumentNullException(nameof(pSectionId));
             if (mSectionCache == null) return kDefaultSectionCache.TryGetSectionLength(pSectionId, out rLength, lContext);
             return  mSectionCache.TryGetSectionLength(pSectionId, out rLength, lContext);
@@ -330,7 +333,7 @@ namespace work.bacome.imapclient
 
         internal bool TryGetSectionReader(cSectionId pSectionId, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(TryGetSectionCacheItemReader), pSectionId);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(TryGetSectionReader), pSectionId);
             if (pSectionId == null) throw new ArgumentNullException(nameof(pSectionId));
             if (mSectionCache == null) return kDefaultSectionCache.TryGetSectionReader(pSectionId, out rReader, lContext);
             return mSectionCache.TryGetSectionReader(pSectionId, out rReader, lContext);
@@ -340,64 +343,43 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(GetNewSectionCacheItem), pSectionId, pUIDNotSticky);
             if (pSectionId == null) throw new ArgumentNullException(nameof(pSectionId));
-
             if (mSectionCache == null) return kDefaultSectionCache.GetNewItem(pSectionId, pUIDNotSticky, lContext);
-            return mSectionCache.GetNewItem(pSectionId, pUIDNotSticky, lContext); }
+            return mSectionCache.GetNewItem(pSectionId, pUIDNotSticky, lContext); 
         }
 
         internal bool TryGetSectionLength(cSectionHandle pSectionHandle, out long rLength, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetSectionCacheItemLength), pSectionHandle);
-
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetSectionLength), pSectionHandle);
             if (pSectionHandle == null) throw new ArgumentNullException(nameof(pSectionHandle));
             if (pSectionHandle.MessageHandle.Expunged) throw new cMessageExpungedException(pSectionHandle.MessageHandle);
-
-            if (mSectionCache != null && mSectionCache.TryGetItemLength(pSectionHandle, out rLength, lContext)) return true;
-            if (kDefaultSectionCache.TryGetItemLength(pSectionHandle, out rLength, lContext)) return true;
-
-            rLength = -1;
-            return false;
+            if (mSectionCache == null) return kDefaultSectionCache.TryGetSectionLength(pSectionHandle, out rLength, lContext);
+            return mSectionCache.TryGetSectionLength(pSectionHandle, out rLength, lContext);
         }
 
-        internal bool TryGetSectionCacheItemReader(cSectionHandle pSectionHandle, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
+        internal bool TryGetSectionReader(cSectionHandle pSectionHandle, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetSectionCacheItemReader), pSectionHandle);
-
+            var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryGetSectionReader), pSectionHandle);
             if (pSectionHandle == null) throw new ArgumentNullException(nameof(pSectionHandle));
             if (pSectionHandle.MessageHandle.Expunged) throw new cMessageExpungedException(pSectionHandle.MessageHandle);
-
-            if (mSectionCache != null && mSectionCache.TryGetItemReader(pSectionHandle, out rReader, lContext)) return true;
-            if (kDefaultSectionCache.TryGetItemReader(pSectionHandle, out rReader, lContext)) return true;
-
-            rReader = null;
-            return false;
+            if (mSectionCache == null) return kDefaultSectionCache.TryGetSectionReader(pSectionHandle, out rReader, lContext);
+            return mSectionCache.TryGetSectionReader(pSectionHandle, out rReader, lContext);
         }
 
         internal cSectionCacheItem GetNewSectionCacheItem(cSectionHandle pSectionHandle, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetNewSectionCacheItem), pSectionHandle);
-
             if (pSectionHandle == null) throw new ArgumentNullException(nameof(pSectionHandle));
             if (pSectionHandle.MessageHandle.Expunged) throw new cMessageExpungedException(pSectionHandle.MessageHandle);
-
-            if (mSectionCache != null)
-            {
-                try { return mSectionCache.GetNewItem(pSectionHandle, lContext); }
-                catch (Exception e) { lContext.TraceException("section cache threw", e); }
-            }
-
-            return kDefaultSectionCache.GetNewItem(pSectionHandle, lContext);
+            if (mSectionCache == null) return kDefaultSectionCache.GetNewItem(pSectionHandle, lContext);
+            return mSectionCache.GetNewItem(pSectionHandle, lContext);
         }
 
         internal void TryAddSectionCacheItem(cSectionCacheItem pItem, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(TryAddSectionCacheItem), pItem);
-
             if (pItem == null) throw new ArgumentNullException(nameof(pItem));
-
-            if (ReferenceEquals(pItem.Cache, mSectionCache)) mSectionCache.TryAddItem(pItem, lContext);
-            else if (ReferenceEquals(pItem.Cache, kDefaultSectionCache)) kDefaultSectionCache.TryAddItem(pItem, lContext);
-            else throw new ArgumentOutOfRangeException(nameof(pItem));
+            if (mSectionCache == null) kDefaultSectionCache.TryAddItem(pItem, lContext);
+            else mSectionCache.TryAddItem(pItem, lContext);
         }
 
         public override string ToString() => $"{nameof(cPersistentCache)}({mHeaderCache},{mSectionCache},{mFlagCache})";

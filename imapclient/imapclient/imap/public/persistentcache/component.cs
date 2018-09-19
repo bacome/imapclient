@@ -7,6 +7,8 @@ namespace work.bacome.imapclient
 {
     public abstract class cPersistentCacheComponent
     {
+        ;?;
+        // implement a component to implement these
         public abstract uint GetUIDValidity(cMailboxId pMailboxId, cTrace.cContext pParentContext);
         public abstract ulong GetHighestModSeq(cMailboxUID pMailboxUID, cTrace.cContext pParentContext);
         public abstract HashSet<cUID> GetUIDs(cMailboxUID pMailboxUID, cTrace.cContext pParentContext);
@@ -47,6 +49,7 @@ namespace work.bacome.imapclient
         protected virtual void YRename(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCacheComponent), nameof(YRename), pMailboxId, pMailboxName);
+            // overrides must take account of the fact that duplicates could be created by any rename done
         }
 
         internal void Rename(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext)

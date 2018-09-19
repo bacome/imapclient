@@ -15,7 +15,7 @@ namespace work.bacome.imapclient
             mRootContext = cMailClient.Trace.NewRoot(pInstanceName);
         }
 
-        public bool TryGetHeaderCacheItem(cMessageUID pMessageUID, out cHeaderCacheItem rHeaderCacheItem) => TryGetHeaderCacheItem(pMessageUID, out rHeaderCacheItem, mRootContext);
+        // comment back in later(commented out to stop me using the wrong ones)  public bool TryGetHeaderCacheItem(cMessageUID pMessageUID, out cHeaderCacheItem rHeaderCacheItem) => TryGetHeaderCacheItem(pMessageUID, out rHeaderCacheItem, mRootContext);
 
         protected internal abstract bool TryGetHeaderCacheItem(cMessageUID pMessageUID, out cHeaderCacheItem rHeaderCacheItem, cTrace.cContext pParentContext);
     }

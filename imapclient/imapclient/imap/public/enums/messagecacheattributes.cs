@@ -7,7 +7,7 @@ namespace work.bacome.imapclient
     /// Represents a set of IMAP message attributes that can be cached.
     /// </summary>
     [Flags]
-    public enum fMessageCacheAttributes
+    public enum fMessageCacheAttributes : int
     {
         /**<summary>The flags that are set for the message.</summary>*/
         flags = 1 << 0,
@@ -32,5 +32,8 @@ namespace work.bacome.imapclient
         macroall = flags | envelope | received | size,
         /**<summary>The IMAP FULL macro (equivalent to: <see cref="flags"/>, <see cref="received"/>, <see cref="size"/>, <see cref="envelope"/> and <see cref="body"/>).</summary>*/
         macrofull = flags | envelope | received | size | body,
+
+        staticattributes = envelope | received | size | body | bodystructure | uid,
+        dynamicattributes= flags | modseq
     }
 }

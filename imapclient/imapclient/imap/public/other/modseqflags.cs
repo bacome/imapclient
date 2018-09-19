@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
 
         internal cModSeqFlags(cFetchableFlags pFlags, ulong pModSeq)
         {
-            Flags = pFlags;
+            Flags = pFlags ?? throw new ArgumentNullException(nameof(pFlags));
             ModSeq = pModSeq;
         }
 

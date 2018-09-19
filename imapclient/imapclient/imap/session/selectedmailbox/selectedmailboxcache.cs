@@ -295,104 +295,62 @@ namespace work.bacome.imapclient
 
                 private void ZFetch(cResponseDataFetch pFetch, bool pQResync, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ZFetch), pQResync);
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ZFetch), pFetch, pQResync);
 
                     var lFetchedItem = mItems[(int)pFetch.MSN - 1];
 
-                    fMessageCacheAttributes lNewAttributes = ~lFetchedItem.Attributes & pFetch.Attributes;
-
-                    if ((lNewAttributes & fMessageCacheAttributes.uid) != 0 && mUIDValidity != 0)
-                    {
-                        var lUID = new cUID(mUIDValidity, pFetch.UID.Value);
-
-                        mPersistentCache.getheadercacheitem(mMailboxCacheItem.MailboxId, luid);
-                    }
-
-
-
-
-
-
-
-
-
-                    lFetchedItem.Update(pFetch, out var lAttributesSet, out var lPropertiesChanged);
+                    lFetchedItem.Update(pFetch, out var lUIDWasSet, out var lModSeqFlagPropertiesChanged, lContext);
 
                     bool lSetMailboxStatus = false;
 
-                    if (lFetchedItem.UID != null)
+                    if (lUIDWasSet)
                     {
-                        if ((lAttributesSet & fMessageCacheAttributes.uid) != 0)
-                        {
-                            mUIDIndex.Add(lFetchedItem.UID, lFetchedItem);
+                        mUIDIndex.Add(lFetchedItem.UID, lFetchedItem);
 
-                            if (pFetch.MSN > mUIDNextMessageCount)
-                            {
-                                mUIDNextUnknownCount--;
-                                if (lFetchedItem.UID.UID + 1 > mUIDNext) mUIDNext = lFetchedItem.UID.UID + 1;
-                                lSetMailboxStatus = true;
-                            }
-
-                            ;?; // this needs to return the values for the flags and header data and I need to apply the returned values
-                            mPersistentCache.MessageHandleUIDSet(lFetchedItem, out v, lContext);
-                        }
-                        else
+                        if (pFetch.MSN > mUIDNextMessageCount)
                         {
-                            ;?;
-                            // this is where we send info to the persistentcache [including the headerfield and binarysize changes]
+                            mUIDNextUnknownCount--;
+                            if (lFetchedItem.UID.UID + 1 > mUIDNext) mUIDNext = lFetchedItem.UID.UID + 1;
+                            lSetMailboxStatus = true;
                         }
                     }
 
-
-
-
-
-
-
-
-
-
-                    if ((lAttributesSet & fMessageCacheAttributes.flags) != 0)
+                    if (lFetchedItem.Seen == true)
                     {
-                        if (pFetch.Flags.Contains(kMessageFlag.Seen))
+                        if (lFetchedItem.Unseen == null)
                         {
-                            if (lFetchedItem.Unseen == null)
-                            {
-                                lFetchedItem.Unseen = false;
-                                mUnseenUnknownCount--;
-                                lSetMailboxStatus = true;
-                            }
-                            else if (lFetchedItem.Unseen.Value)
-                            {
-                                lFetchedItem.Unseen = false;
-                                mUnseenCount--;
-                                lSetMailboxStatus = true;
-                            }
+                            lFetchedItem.Unseen = false;
+                            mUnseenUnknownCount--;
+                            lSetMailboxStatus = true;
                         }
-                        else
+                        else if (lFetchedItem.Unseen == true)
                         {
-                            if (lFetchedItem.Unseen == null)
-                            {
-                                lFetchedItem.Unseen = true;
-                                mUnseenUnknownCount--;
-                                mUnseenCount++;
-                                lSetMailboxStatus = true;
-                            }
-                            else if (!lFetchedItem.Unseen.Value)
-                            {
-                                lFetchedItem.Unseen = true;
-                                mUnseenCount++;
-                                lSetMailboxStatus = true;
-                            }
+                            lFetchedItem.Unseen = false;
+                            mUnseenCount--;
+                            lSetMailboxStatus = true;
                         }
                     }
-
-
+                    else if (lFetchedItem.Seen == false)
+                    {
+                        if (lFetchedItem.Unseen == null)
+                        {
+                            lFetchedItem.Unseen = true;
+                            mUnseenUnknownCount--;
+                            mUnseenCount++;
+                            lSetMailboxStatus = true;
+                        }
+                        else if (lFetchedItem.Unseen == false)
+                        {
+                            lFetchedItem.Unseen = true;
+                            mUnseenCount++;
+                            lSetMailboxStatus = true;
+                        }
+                    }
 
                     if (!pQResync)
                     {
                         if (lFetchedItem.ModSeq > mPendingHighestModSeq) mPendingHighestModSeq = lFetchedItem.ModSeq.Value;
-                        mSynchroniser.InvokeMessagePropertiesChanged(lFetchedItem, lPropertiesChanged, lContext);
+                        mSynchroniser.InvokeMessagePropertiesChanged(lFetchedItem, lModSeqFlagPropertiesChanged, lContext);
                         if (lSetMailboxStatus) ZSetMailboxStatus(lContext);
                     }
                 }
