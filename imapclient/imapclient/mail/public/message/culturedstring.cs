@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 using System.Text;
 using work.bacome.mailclient.support;
 
@@ -10,18 +11,14 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Represents a string that may include language information as per RFC 2231.
     /// </summary>
+    [Serializable]
+    [DataContract]
     public class cCulturedString
     {
-        /*
-        private static readonly cBytes kSpace = new cBytes(" ");
-        private static readonly cBytes kCRLFSPACE = new cBytes("\r\n ");
-        private static readonly cBytes kTab = new cBytes("\t");
-        private static readonly cBytes kCRLFTAB = new cBytes("\r\n\t");
-        */
-
         /// <summary>
         /// The parts of the string. May be <see langword="null"/>.
         /// </summary>
+        [DataMember]
         public readonly ReadOnlyCollection<cCulturedStringPart> Parts;
 
         internal cCulturedString(IList<byte> pBytes, bool pPhraseSemantics)
@@ -114,6 +111,12 @@ namespace work.bacome.mailclient
             Parts = new ReadOnlyCollection<cCulturedStringPart>(lParts);
         }
 
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            foreach (var lPart in Parts) if (lPart == null) throw new cDeserialiseException($"{nameof(cCulturedString)}.{nameof(Parts)}.containsnulls");
+        }
+
         /**<summary>Returns the string data sans the language information.</summary>*/
         public override string ToString()
         {
@@ -170,16 +173,20 @@ namespace work.bacome.mailclient
     /// Represents part of a string that may include language information as per RFC 2231.
     /// </summary>
     /// <seealso cref="cCulturedString"/>
-    public class cCulturedStringPart // TODO: remove : IEquatable<cCulturedStringPart>
+    [Serializable]
+    [DataContract]
+    public class cCulturedStringPart
     {
         /// <summary>
         /// The text of the part (after RFC 2231 decoding). 
         /// </summary>
+        [DataMember]
         public readonly string String;
 
         /// <summary>
         /// The language of the part. May be <see langword="null"/>.
         /// </summary>
+        [DataMember]
         public readonly string LanguageTag;
 
         internal cCulturedStringPart(string pString, string pLanguageTag)
@@ -188,39 +195,13 @@ namespace work.bacome.mailclient
             LanguageTag = pLanguageTag;
         }
 
-        /*
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
-        public bool Equals(cCulturedStringPart pObject) => this == pObject;
-
-        /// <inheritdoc />
-        public override bool Equals(object pObject) => this == pObject as cCulturedStringPart;
-
-        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
-        public override int GetHashCode()
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
         {
-            unchecked
-            {
-                int lHash = 17;
-                lHash = lHash * 23 + String.GetHashCode();
-                if (LanguageTag != null) lHash = lHash * 23 + LanguageTag.GetHashCode();
-                return lHash;
-            }
-        } */
+            if (String == null) throw new cDeserialiseException($"{nameof(cCulturedStringPart)}.{nameof(String)}.null");
+        }
 
         /// <inheritdoc/>
         public override string ToString() => $"{nameof(cCulturedStringPart)}({String},{LanguageTag})";
-
-        /*
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
-        public static bool operator ==(cCulturedStringPart pA, cCulturedStringPart pB)
-        {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
-            return pA.String == pB.String && pA.LanguageTag == pB.LanguageTag;
-        }
-
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
-        public static bool operator !=(cCulturedStringPart pA, cCulturedStringPart pB) => !(pA == pB); */
     }
 }

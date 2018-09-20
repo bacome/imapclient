@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
@@ -7,8 +8,18 @@ namespace work.bacome.imapclient
 {
     public abstract class cPersistentCacheComponent
     {
-        ;?;
-        // implement a component to implement these
+        public readonly string InstanceName;
+        protected readonly cTrace.cContext mRootContext;
+        private long mLastAccessSequenceNumber;
+
+        protected cPersistentCacheComponent(string pInstanceName, long pLastAccessSequenceNumber)
+        {
+            InstanceName = pInstanceName ?? throw new ArgumentNullException(nameof(pInstanceName));
+            mRootContext = cMailClient.Trace.NewRoot(pInstanceName);
+            if (pLastAccessSequenceNumber < 0) throw new ArgumentOutOfRangeException(nameof(pLastAccessSequenceNumber));
+            mLastAccessSequenceNumber = pLastAccessSequenceNumber;
+        }
+
         public abstract uint GetUIDValidity(cMailboxId pMailboxId, cTrace.cContext pParentContext);
         public abstract ulong GetHighestModSeq(cMailboxUID pMailboxUID, cTrace.cContext pParentContext);
         public abstract HashSet<cUID> GetUIDs(cMailboxUID pMailboxUID, cTrace.cContext pParentContext);
@@ -51,6 +62,8 @@ namespace work.bacome.imapclient
             var lContext = pParentContext.NewMethod(nameof(cPersistentCacheComponent), nameof(YRename), pMailboxId, pMailboxName);
             // overrides must take account of the fact that duplicates could be created by any rename done
         }
+
+        internal long GetNextAccessSequenceNumber() => Interlocked.Increment(ref mLastAccessSequenceNumber);
 
         internal void Rename(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext)
         {

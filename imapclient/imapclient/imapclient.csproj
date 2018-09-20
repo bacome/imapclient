@@ -57,6 +57,7 @@
     <Compile Include="imap\public\persistentcache\header\base.cs" />
     <Compile Include="imap\public\persistentcache\component.cs" />
     <Compile Include="imap\public\persistentcache\header\item.cs" />
+    <Compile Include="imap\public\persistentcache\item.cs" />
     <Compile Include="imap\public\persistentcache\section\directorysectioncache.cs" />
     <Compile Include="imap\public\mailbox\mailboxid.cs" />
     <Compile Include="imap\public\persistentcache\section\maintenance.cs" />

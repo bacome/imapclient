@@ -417,7 +417,7 @@ namespace work.bacome.imapclient
             ZNewItemCheck(lNewItem, lContext);
             lNewItem.SetSectionId(pSectionId, lContext);
 
-            if (!mPendingItems.TryAdd(lNewItem, cASCII.NUL)) throw new cUnexpectedSectionCacheActionException(lContext);
+            if (!mPendingItems.TryAdd(lNewItem, cASCII.NUL)) throw new cUnexpectedPersistentCacheActionException(lContext);
 
             return lNewItem;
         }
@@ -471,7 +471,7 @@ namespace work.bacome.imapclient
             ZNewItemCheck(lNewItem, lContext);
             lNewItem.SetSectionHandle(pSectionHandle, lContext);
 
-            if (!mPendingItems.TryAdd(lNewItem, cASCII.NUL)) throw new cUnexpectedSectionCacheActionException(lContext);
+            if (!mPendingItems.TryAdd(lNewItem, cASCII.NUL)) throw new cUnexpectedPersistentCacheActionException(lContext);
 
             return lNewItem;
         }
@@ -528,12 +528,12 @@ namespace work.bacome.imapclient
 
         private void ZExistingItemCheck(cSectionCacheItem pItem, cTrace.cContext pParentContext)
         {
-            if (pItem == null || pItem.Cache != this || pItem.Pending || pItem.PersistState != eSectionCachePersistState.persisted || pItem.Deleted || pItem.ToBeDeleted) throw new cUnexpectedSectionCacheActionException(pParentContext);
+            if (pItem == null || pItem.Cache != this || pItem.Pending || pItem.PersistState != eSectionCachePersistState.persisted || pItem.Deleted || pItem.ToBeDeleted) throw new cUnexpectedPersistentCacheActionException(pParentContext);
         }
 
         private void ZNewItemCheck(cSectionCacheItem pItem, cTrace.cContext pParentContext)
         {
-            if (pItem == null || pItem.Cache != this || !pItem.CanGetReaderWriter) throw new cUnexpectedSectionCacheActionException(pParentContext);
+            if (pItem == null || pItem.Cache != this || !pItem.CanGetReaderWriter) throw new cUnexpectedPersistentCacheActionException(pParentContext);
         }
 
         private async Task ZMaintenanceAsync(cTrace.cContext pParentContext)

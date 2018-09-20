@@ -1,22 +1,12 @@
 ﻿using System;
-using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
     public abstract class cHeaderCache : cPersistentCacheComponent
     {
-        public readonly string InstanceName;
-        protected readonly cTrace.cContext mRootContext;
-
-        protected cHeaderCache(string pInstanceName)
-        {
-            InstanceName = pInstanceName ?? throw new ArgumentNullException(nameof(pInstanceName));
-            mRootContext = cMailClient.Trace.NewRoot(pInstanceName);
-        }
-
-        // comment back in later(commented out to stop me using the wrong ones)  public bool TryGetHeaderCacheItem(cMessageUID pMessageUID, out cHeaderCacheItem rHeaderCacheItem) => TryGetHeaderCacheItem(pMessageUID, out rHeaderCacheItem, mRootContext);
-
-        protected internal abstract bool TryGetHeaderCacheItem(cMessageUID pMessageUID, out cHeaderCacheItem rHeaderCacheItem, cTrace.cContext pParentContext);
+        protected cHeaderCache(string pInstanceName, long pLastAccessSequenceNumber) : base(pInstanceName, pLastAccessSequenceNumber) { }
+        public abstract bool TryGetItem(cMessageUID pMessageUID, out cHeaderCacheItem rItem);
+        protected internal abstract cHeaderCacheItem GetItem(cMessageUID pMessageUID, cTrace.cContext pParentContext);
     }
 }

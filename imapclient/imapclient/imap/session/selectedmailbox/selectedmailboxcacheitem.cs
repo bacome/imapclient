@@ -19,31 +19,41 @@ namespace work.bacome.imapclient
                     private readonly cSelectedMailboxCache mSelectedMailboxCache;
                     private readonly int mCacheSequence;
 
+                    private bool mReceivedUID = false;
                     private cUID mUID = null;
                     private cMessageUID mMessageUID = null;
-                    private cHeaderCacheItem mHeaderCacheItem = new cDefaultHeaderCacheItem();
+                    private cHeaderCacheItem mHeaderCacheItem = new cHeaderCacheItem();
                     private bool? mSeen = null; // is this message seen (null = don't know)
+                    private cFlagCacheItem mFlagCacheItem = new cFlagCacheItem();
                     private cModSeqFlags mModSeqFlags = null;
 
                     private bool mExpunged = false;
-                    ;?;
-                    private fMessageCacheAttributes mAttributes; // contains flags, uid, modseq only
                     public bool? Unseen = null; // is this message unseen (null = don't know)
 
                     public cItem(cSelectedMailboxCache pSelectedMailboxCache, int pCacheSequence)
                     {
                         mSelectedMailboxCache = pSelectedMailboxCache ?? throw new ArgumentNullException(nameof(pSelectedMailboxCache));
                         mCacheSequence = pCacheSequence;
-
-                        if (pSelectedMailboxCache.NoModSeq) mAttributes = fMessageCacheAttributes.modseq;
-                        else mAttributes = 0;
                     }
 
                     public iMessageCache MessageCache => mSelectedMailboxCache;
                     public int CacheSequence => mCacheSequence;
                     public bool Expunged => mExpunged;
 
-                    public fMessageCacheAttributes Attributes => mAttributes | mHeaderCacheItem.Attributes;
+                    public fMessageCacheAttributes Attributes
+                    {
+                        get
+                        {
+                            fMessageCacheAttributes lAttributes = 0;
+
+                            if (mSelectedMailboxCache.NoModSeq) lAttributes |= fMessageCacheAttributes.modseq;
+                            if (mReceivedUID) lAttributes |= fMessageCacheAttributes.uid;
+                            lAttributes |= mHeaderCacheItem.attributes;
+                            if (mModSeqFlags != null) lAttributes |= fMessageCacheAttributes.flags | fMessageCacheAttributes.modseq;
+
+                            return lAttributes;
+                        }
+                    }
 
                     public cFetchableFlags Flags
                     {
@@ -101,68 +111,84 @@ namespace work.bacome.imapclient
 
                         rUIDWasSet = false; // to indicate that the item should be indexed by uid
 
-                        if (((mAttributes & fMessageCacheAttributes.uid) == 0) && mSelectedMailboxCache.mUIDValidity != 0 && pFetch.UID != null)
+                        if (!mReceivedUID  && pFetch.UID != null)
                         {
-                            // this is the first time that we know the UID for this item
+                            mReceivedUID = true;
 
-                            rUIDWasSet = true;
-
-                            mUID = new cUID(mSelectedMailboxCache.mUIDValidity, pFetch.UID.Value);
-                            mMessageUID = new cMessageUID(mSelectedMailboxCache.MailboxHandle.MailboxId, mUID);
-
-                            ;?; // is this optional to return (NO) and the get should touch it
-                            if (mSelectedMailboxCache.mPersistentCache.TryGetHeaderCacheItem(mMessageUID, out var lHeaderCacheItem, lContext))
+                            if (mSelectedMailboxCache.mUIDValidity != 0)
                             {
-                                ;?; // don't use the getters here as they set the touched
-                                if (lHeaderCacheItem.Envelope == null)
+                                rUIDWasSet = true;
+
+                                mUID = new cUID(mSelectedMailboxCache.mUIDValidity, pFetch.UID.Value);
+                                mMessageUID = new cMessageUID(mSelectedMailboxCache.MailboxHandle.MailboxId, mUID);
+
+                                m
+
+                                ;?; // is this optional to return (NO) and the get should touch it
+                                if (mSelectedMailboxCache.mPersistentCache.TryGetHeaderCacheItem(mMessageUID, out var lHeaderCacheItem, lContext))
                                 {
-                                    if (mHeaderCacheItem.Envelope != null) lHeaderCacheItem.Envelope = mHeaderCacheItem.Envelope;
-                                }
-                                else mAttributes |= fMessageCacheAttributes.envelope;
+                                    ;?; // don't use the getters here as they set the touched
+                                    if (lHeaderCacheItem.Envelope == null)
+                                    {
+                                        if (mHeaderCacheItem.Envelope != null) lHeaderCacheItem.Envelope = mHeaderCacheItem.Envelope;
+                                    }
+                                    else mAttributes |= fMessageCacheAttributes.envelope;
 
-                                if (lHeaderCacheItem.ReceivedDateTimeOffset == null)
+                                    if (lHeaderCacheItem.ReceivedDateTimeOffset == null)
+                                    {
+                                        if (mHeaderCacheItem.ReceivedDateTimeOffset != null) lHeaderCacheItem.SetReceivedDateTime(mHeaderCacheItem.ReceivedDateTime.Value, mHeaderCacheItem.ReceivedDateTime.Value);
+                                    }
+                                    else mAttributes |= fMessageCacheAttributes.received;
+
+                                    if (lHeaderCacheItem.Size == null)
+                                    {
+                                        if (mHeaderCacheItem.Size != null) lHeaderCacheItem.Size = mHeaderCacheItem.Size;
+                                    }
+                                    else mAttributes |= fMessageCacheAttributes.size;
+
+                                    if (lHeaderCacheItem.Body == null)
+                                    {
+                                        if (mHeaderCacheItem.Body != null) lHeaderCacheItem.Body = mHeaderCacheItem.Body;
+                                    }
+                                    else mAttributes |= fMessageCacheAttributes.body;
+
+                                    if (lHeaderCacheItem.BodyStructure == null)
+                                    {
+                                        if (mHeaderCacheItem.BodyStructure != null) lHeaderCacheItem.BodyStructure = mHeaderCacheItem.BodyStructure;
+                                    }
+                                    else mAttributes |= fMessageCacheAttributes.bodystructure;
+
+                                    if (mHeaderCacheItem.HeaderFields != null) lHeaderCacheItem.AddHeaderFields(mHeaderCacheItem.HeaderFields);
+                                    if (mHeaderCacheItem.BinarySizes != null) lHeaderCacheItem.AddBinarySizes(mHeaderCacheItem.BinarySizes);
+
+                                    mHeaderCacheItem = lHeaderCacheItem;
+                                }
+
+                                var lFlagCacheItem = mSelectedMailboxCache.mPersistentCache.getflagcacheitem(mMessageUID, lContext);
+
+                                if (lFlagCacheItem == null) throw new cUnexpectedPersistentCacheActionException(lContext, 2);
+
+                                ;?; // do stuff
+
+
+                                if (mModSeqFlags == null)
                                 {
-                                    if (mHeaderCacheItem.ReceivedDateTimeOffset != null) lHeaderCacheItem.SetReceivedDateTime(mHeaderCacheItem.ReceivedDateTime.Value, mHeaderCacheItem.ReceivedDateTime.Value);
+                                    ;?; // note: if I have condstore on but the value retrived from the cache has a zero modseq then I can't use it
+                                        //  I can update the cache with values I get though
+
+
+                                    if (mSelectedMailboxCache.mPersistentCache.TryGetModSeqFlags(mMessageUID, out var lModSeqFlags, lContext))
+                                    {
+                                        mSeen = lModSeqFlags.Flags.Contains(kMessageFlag.Seen);
+
+                                        if (mSelectedMailboxCache.mNoModSeq && lModSeqFlags.ModSeq != 0) mModSeqFlags = new cModSeqFlags(lModSeqFlags.Flags, 0);
+                                        else mModSeqFlags = lModSeqFlags;
+
+                                        mAttributes |= fMessageCacheAttributes.flags | fMessageCacheAttributes.modseq;
+                                    }
                                 }
-                                else mAttributes |= fMessageCacheAttributes.received;
-
-                                if (lHeaderCacheItem.Size == null)
-                                {
-                                    if (mHeaderCacheItem.Size != null) lHeaderCacheItem.Size = mHeaderCacheItem.Size;
-                                }
-                                else mAttributes |= fMessageCacheAttributes.size;
-
-                                if (lHeaderCacheItem.Body == null)
-                                {
-                                    if (mHeaderCacheItem.Body != null) lHeaderCacheItem.Body = mHeaderCacheItem.Body;
-                                }
-                                else mAttributes |= fMessageCacheAttributes.body;
-
-                                if (lHeaderCacheItem.BodyStructure == null)
-                                {
-                                    if (mHeaderCacheItem.BodyStructure != null) lHeaderCacheItem.BodyStructure = mHeaderCacheItem.BodyStructure;
-                                }
-                                else mAttributes |= fMessageCacheAttributes.bodystructure;
-
-                                if (mHeaderCacheItem.HeaderFields != null) lHeaderCacheItem.AddHeaderFields(mHeaderCacheItem.HeaderFields);
-                                if (mHeaderCacheItem.BinarySizes != null) lHeaderCacheItem.AddBinarySizes(mHeaderCacheItem.BinarySizes);
-
-                                mHeaderCacheItem = lHeaderCacheItem;
+                                else mSelectedMailboxCache.mPersistentCache.SetModSeqFlags(mMessageUID, mModSeqFlags, lContext);
                             }
-
-                            if (mModSeqFlags == null)
-                            {
-                                if (mSelectedMailboxCache.mPersistentCache.TryGetModSeqFlags(mMessageUID, out var lModSeqFlags, lContext))
-                                {
-                                    mSeen = lModSeqFlags.Flags.Contains(kMessageFlag.Seen);
-
-                                    if (mSelectedMailboxCache.mNoModSeq && lModSeqFlags.ModSeq != 0) mModSeqFlags = new cModSeqFlags(lModSeqFlags.Flags, 0);
-                                    else mModSeqFlags = lModSeqFlags;
-
-                                    mAttributes |= fMessageCacheAttributes.flags | fMessageCacheAttributes.modseq;
-                                }
-                            }
-                            else mSelectedMailboxCache.mPersistentCache.SetModSeqFlags(mMessageUID, mModSeqFlags, lContext);
                         }
 
                         // modseq and flags

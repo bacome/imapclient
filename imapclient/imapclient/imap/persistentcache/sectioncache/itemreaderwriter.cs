@@ -212,7 +212,7 @@ namespace work.bacome.imapclient
             var lContext = pParentContext.NewMethod(nameof(cSectionCacheItemReaderWriter), nameof(WriteBegin));
             if (mDisposed) throw new ObjectDisposedException(nameof(cSectionCacheItemReaderWriter));
             if (mWritingState != eWritingState.notstarted) throw new InvalidOperationException();
-            if (mStream.Position != 0) throw new cUnexpectedSectionCacheActionException(lContext);
+            if (mStream.Position != 0) throw new cUnexpectedPersistentCacheActionException(lContext);
             mWritingState = eWritingState.inprogress;
         }
 

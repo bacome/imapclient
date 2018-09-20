@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.mailclient
@@ -10,15 +11,20 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Contains message envelope data.
     /// </summary>
+    [Serializable]
+    [DataContract]
     public class cEnvelope
     {
         /** <summary>The message sent date. May be <see langword="null"/>.</summary> */
+        [DataMember]
         public readonly DateTimeOffset? SentDateTimeOffset;
 
         /** <summary>The message sent date (in local time if there is usable time zone information). May be <see langword="null"/>.</summary> */
+        [DataMember]
         public readonly DateTime? SentDateTime;
 
         /** <summary>The message subject. May be <see langword="null"/>.</summary> */
+        [DataMember]
         public readonly cCulturedString Subject;
 
         /// <summary>
@@ -27,9 +33,11 @@ namespace work.bacome.mailclient
         /// <remarks>
         /// The base subject is defined RFC 5256 and is the subject with the RE: FW: etc artifacts removed.
         /// </remarks>
+        [DataMember]
         public readonly string BaseSubject;
 
         /** <summary>The message 'from' address(s). May be <see langword="null"/>.</summary> */
+        [DataMember] ...
         public readonly cAddresses From;
 
         /** <summary>The message 'sender' address(s). May be <see langword="null"/>.</summary> */

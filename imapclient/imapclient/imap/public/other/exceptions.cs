@@ -122,11 +122,11 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Thrown when something happens that shouldn't.
     /// </summary>
-    public class cUnexpectedSectionCacheActionException : cMailException
+    public class cUnexpectedPersistentCacheActionException : cMailException
     {
-        internal cUnexpectedSectionCacheActionException(string pClass, int pPlace = 1) : base($"{pClass}.{pPlace}") { }
-        internal cUnexpectedSectionCacheActionException(string pClass, string pMethod, int pPlace = 1) : base($"{pClass}.{pMethod}.{pPlace}") { }
-        internal cUnexpectedSectionCacheActionException(cTrace.cContext pContext, int pPlace = 1) => pContext.TraceError("{0}: {1}", nameof(cUnexpectedSectionCacheActionException), pPlace);
+        internal cUnexpectedPersistentCacheActionException(string pClass, int pPlace = 1) : base($"{pClass}.{pPlace}") { }
+        internal cUnexpectedPersistentCacheActionException(string pClass, string pMethod, int pPlace = 1) : base($"{pClass}.{pMethod}.{pPlace}") { }
+        internal cUnexpectedPersistentCacheActionException(cTrace.cContext pContext, int pPlace = 1) => pContext.TraceError("{0}: {1}", nameof(cUnexpectedPersistentCacheActionException), pPlace);
     }
     /// <summary>
     /// Thrown when the section cache cannot continue.

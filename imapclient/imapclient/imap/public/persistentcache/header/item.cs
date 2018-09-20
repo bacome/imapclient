@@ -1,30 +1,37 @@
 ﻿using System;
+using System.Runtime.Serialization;
 using System.Threading;
 using work.bacome.mailclient;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
+    ;?;
+    [Serializable]
+    [DataContract]
     public class cHeaderCacheItem
     {
-        private static long mAccessSequenceSource = 7; 
-
-        private long mAccessSequence = 0;
-
-        private object mAttributesLock = new object();
+        private readonly object mAttributesLock = new object();
         private fMessageCacheAttributes mAttributes;
 
+        [DataMember] ...
         private cEnvelope mEnvelope;
+        [DataMember]
         private DateTimeOffset? mReceivedDateTimeOffset;
+        [DataMember]
         private DateTime? mReceivedDateTime;
+        [DataMember]
         private uint? mSize;
         private cBodyPart mBody;
+        [DataMember] ...
         private cBodyPart mBodyStructure;
 
-        private object mHeaderFieldsLock = new object();
+        private readonly object mHeaderFieldsLock = new object();
+        [DataMember] ...
         private cHeaderFields mHeaderFields;
 
-        private object mBinarySizesLock = new object();
+        private readonly object mBinarySizesLock = new object();
+        [DataMember] ...
         private cBinarySizes mBinarySizes;
 
         protected internal cHeaderCacheItem()
@@ -39,6 +46,8 @@ namespace work.bacome.imapclient
             mHeaderFields = null;
             mBinarySizes = null;
         }
+
+        ;/; // set atributes in ondeser
 
         protected long AccessSequence => mAccessSequence;
 

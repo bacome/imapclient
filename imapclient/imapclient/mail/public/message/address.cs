@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Net.Mail;
+using System.Runtime.Serialization;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
@@ -10,16 +11,25 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Represents an address on an email; either an individual <see cref="cEmailAddress"/> or a <see cref="cGroupAddress"/>.
     /// </summary>
+    [Serializable]
+    [DataContract]
     public abstract class cAddress : IEquatable<cAddress>
     {
         /// <summary>
         /// The display name for the address, may be <see langword="null"/>.
         /// </summary>
+        [DataMember]
         public readonly cCulturedString DisplayName;
 
         internal cAddress(cCulturedString pDisplayName)
         {
             DisplayName = pDisplayName;
+        }
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            if (DisplayName != null && !cCharset.WSPVChar.ContainsAll(DisplayName.ToString())) throw new cDeserialiseException($"{nameof(cAddress)}.{nameof(DisplayName)}.invalid");
         }
 
         /// <summary>
@@ -53,28 +63,34 @@ namespace work.bacome.mailclient
     /// <summary>
     /// An immutable collection of addresses.
     /// </summary>
+    [Serializable]
+    [DataContract]
     public class cAddresses : IReadOnlyList<cAddress>, IEquatable<cAddresses>
     {
         /// <summary>
         /// The RFC 5256 sort string for the collection of addresses.
         /// </summary>
-        public readonly string SortString;
+        private string mSortString;
 
         /// <summary>
         /// The RFC 5957 display sort string for the collection of addresses.
         /// </summary>
-        public readonly string DisplaySortString;
+        private string mDisplaySortString;
 
+        [DataMember]
         private readonly ReadOnlyCollection<cAddress> mAddresses;
 
         internal cAddresses(List<cAddress> pAddresses)
         {
+            if (pAddresses == null) throw new ArgumentNullException(nameof(pAddresses));
             mAddresses = pAddresses.AsReadOnly();
-            ZSortStrings(out SortString, out DisplaySortString);
+            ZFinishConstruct();
         }
 
         public cAddresses(IEnumerable<cAddress> pAddresses)
         {
+            if (pAddresses == null) throw new ArgumentNullException(nameof(pAddresses));
+
             var lAddresses = new List<cAddress>();
 
             foreach (var lAddress in pAddresses)
@@ -84,37 +100,48 @@ namespace work.bacome.mailclient
             }
 
             mAddresses = lAddresses.AsReadOnly();
-            ZSortStrings(out SortString, out DisplaySortString);
+            ZFinishConstruct();
         }
 
-        private void ZSortStrings(out string rSortString, out string rDisplaySortString)
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            if (mAddresses == null) throw new Exception($"{nameof(cAddresses)}.{nameof(mAddresses)}.null");
+            foreach (var lAddress in mAddresses) if (lAddress == null) throw new cDeserialiseException($"{nameof(cAddresses)}.{nameof(mAddresses)}.containsnulls");
+            ZFinishConstruct();
+        }
+
+        private void ZFinishConstruct()
         {
             if (mAddresses.Count == 0)
             {
-                rSortString = string.Empty;
-                rDisplaySortString = string.Empty;
+                mSortString = string.Empty;
+                mDisplaySortString = string.Empty;
                 return;
             }
 
             if (mAddresses[0] is cGroupAddress lGroup)
             {
-                rSortString = lGroup.DisplayName;
-                rDisplaySortString = rSortString;
+                mSortString = lGroup.DisplayName;
+                mDisplaySortString = mSortString;
                 return;
             }
 
             if (mAddresses[0] is cEmailAddress lEMail)
             {
-                rSortString = lEMail.LocalPart;
+                mSortString = lEMail.LocalPart;
 
-                if (lEMail.DisplayName != null) rDisplaySortString = lEMail.DisplayName;
-                else rDisplaySortString = lEMail.LocalPart + "@" + lEMail.Domain;
+                if (lEMail.DisplayName != null) mDisplaySortString = lEMail.DisplayName;
+                else mDisplaySortString = lEMail.LocalPart + "@" + lEMail.Domain;
 
                 return;
             }
 
-            throw new cInternalErrorException(nameof(cAddresses), nameof(ZSortStrings));
+            throw new cInternalErrorException(nameof(cAddresses), nameof(ZFinishConstruct));
         }
+
+        public string SortString => mSortString;
+        public string DisplaySortString => mDisplaySortString;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
         public int Count => mAddresses.Count;
@@ -171,19 +198,21 @@ namespace work.bacome.mailclient
     /// Represents an individual email address.
     /// </summary>
     /// <seealso cref="cAddresses"/>
+    [Serializable]
+    [DataContract]
     public sealed class cEmailAddress : cAddress, IEquatable<cEmailAddress>, IComparable<cEmailAddress>
     {
+        [DataMember]
         public readonly string LocalPart;
+        [DataMember]
         public readonly string Domain;
-        private readonly string mQuotedLocalPart;
+        private string mQuotedLocalPart;
 
         internal cEmailAddress(string pLocalPart, string pDomain, cCulturedString pDisplayName) : base(pDisplayName)
         {
             LocalPart = pLocalPart ?? throw new ArgumentNullException(nameof(pLocalPart));
             Domain = pDomain ?? throw new ArgumentNullException(nameof(pDomain));
-
-            if (cValidation.IsDotAtomText(LocalPart)) mQuotedLocalPart = LocalPart;
-            else mQuotedLocalPart = cTools.Enquote(LocalPart);
+            ZFinishConstruct();
         }
 
         public cEmailAddress(string pLocalPart, string pDomain, string pDisplayName = null) : base(ZDisplayName(pDisplayName))
@@ -194,8 +223,7 @@ namespace work.bacome.mailclient
             if (pDomain == null) throw new ArgumentNullException(nameof(pDomain));
             if (!cValidation.TryParseDomain(pDomain, out Domain)) throw new ArgumentOutOfRangeException(nameof(pDomain));
 
-            if (cValidation.IsDotAtomText(LocalPart)) mQuotedLocalPart = LocalPart;
-            else mQuotedLocalPart = cTools.Enquote(LocalPart);
+            ZFinishConstruct();
         }
 
         public cEmailAddress(MailAddress pAddress) : base(ZDisplayName(pAddress))
@@ -206,6 +234,23 @@ namespace work.bacome.mailclient
             if (!cValidation.TryParseLocalPart(pAddress.User, out LocalPart)) throw new cAddressFormException(pAddress);
             if (!cValidation.TryParseDomain(pAddress.Host, out Domain)) throw new cAddressFormException(pAddress);
 
+            ZFinishConstruct();
+        }
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            if (LocalPart == null) throw new cDeserialiseException($"{nameof(cEmailAddress)}.{nameof(LocalPart)}.null");
+            if (!cValidation.TryParseLocalPart(LocalPart, out var lLocalPart) || lLocalPart != LocalPart) throw new cDeserialiseException($"{nameof(cEmailAddress)}.{nameof(LocalPart)}.invalid");
+
+            if (Domain == null) throw new cDeserialiseException($"{nameof(cEmailAddress)}.{nameof(Domain)}.null");
+            if (!cValidation.TryParseDomain(Domain, out var lDomain) || lDomain != Domain) throw new cDeserialiseException($"{nameof(cEmailAddress)}.{nameof(Domain)}.invalid");
+
+            ZFinishConstruct();
+        }
+
+        private void ZFinishConstruct()
+        {
             if (cValidation.IsDotAtomText(LocalPart)) mQuotedLocalPart = LocalPart;
             else mQuotedLocalPart = cTools.Enquote(LocalPart);
         }
@@ -280,30 +325,6 @@ namespace work.bacome.mailclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
         public static bool operator !=(cEmailAddress pA, cEmailAddress pB) => !(pA == pB);
 
-        /* TODO: remove
-        public static bool TryConstruct(string pLocalPart, string pDomain, string pDisplayName, out cEmailAddress rEmailAddress)
-        {
-            // NOTE: just because the address is valid by this routine doesn't mean it can be included in a header
-            //  if the local part is UTF8 and the client doesn't support UTF8 then the address will be unusable
-
-            if (pLocalPart == null) throw new ArgumentNullException(nameof(pLocalPart));
-            if (pDomain == null) throw new ArgumentNullException(nameof(Domain));
-
-            if (!cValidation.TryParseLocalPart(pLocalPart, out var lLocalPart) || !cValidation.TryParseDomain(pDomain, out var lDomain)) { rEmailAddress = null; return false; }
-
-            cCulturedString lDisplayName;
-
-            if (pDisplayName == null) lDisplayName = null;
-            else
-            {
-                if (!cCharset.WSPVChar.ContainsAll(pDisplayName)) { rEmailAddress = null; return false; }
-                lDisplayName = new cCulturedString(pDisplayName);
-            }
-
-            rEmailAddress = new cEmailAddress(lLocalPart, lDomain, lDisplayName);
-            return true;
-        } */
-
         internal static bool TryConstruct(MailAddress pAddress, out cEmailAddress rEmailAddress)
         {
             // NOTE: just because the address is valid by this routine doesn't mean it can be included in a header
@@ -338,13 +359,17 @@ namespace work.bacome.mailclient
     /// Represents a named group of email addresses.
     /// </summary>
     /// <seealso cref="cAddresses"/>
+    [Serializable]
+    [DataContract] ;?; // up to here
     public sealed class cGroupAddress : cAddress, IEquatable<cGroupAddress>
     {
+        ;?; // is this a datamember or not?
         private readonly string mDisplayName;
 
         /// <summary>
         /// The sorted collection of group members. May be empty.
         /// </summary>
+        [DataMember]
         public readonly ReadOnlyCollection<cEmailAddress> EmailAddresses;
 
         internal cGroupAddress(cCulturedString pDisplayName, List<cEmailAddress> pAddresses) : base(pDisplayName)
