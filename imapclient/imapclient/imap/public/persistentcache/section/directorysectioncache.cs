@@ -710,7 +710,6 @@ namespace work.bacome.imapclient
         }
 
         [Serializable]
-        [DataContract]
         private class cInfo : cInfoUID, IComparable<cInfo>
         {
             [DataMember]
@@ -759,7 +758,6 @@ namespace work.bacome.imapclient
         }
 
         [Serializable]
-        [DataContract]
         private class cPersistentKey : IEquatable<cPersistentKey>, IComparable<cPersistentKey>
         {
             [DataMember]

@@ -20,21 +20,13 @@ namespace work.bacome.imapclient
 
             if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
 
-            IEnumerable<cUID> lLikelyToHaveBeenExpungedUIDs;
-
             using (var lToken = CancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
 
-                if (pAndUnselect) lLikelyToHaveBeenExpungedUIDs = await lSession.CloseAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
-                else
-                {
-                    await lSession.ExpungeAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
-                    lLikelyToHaveBeenExpungedUIDs = null;
-                }
+                if (pAndUnselect) await lSession.CloseAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
+                else await lSession.ExpungeAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
             }
-
-            if (lLikelyToHaveBeenExpungedUIDs != null) ZCacheIntegrationMessagesExpunged(pMailboxHandle.MailboxId, lLikelyToHaveBeenExpungedUIDs, lContext);
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
@@ -10,6 +11,7 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Represents a message header field.
     /// </summary>
+    [Serializable]
     public class cHeaderField
     {
         /// <summary>
@@ -28,6 +30,13 @@ namespace work.bacome.mailclient
             Value = pValue ?? throw new ArgumentNullException(nameof(pValue));
         }
 
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            if (Name == null) throw new cDeserialiseException($"{nameof(cHeaderField)}.{nameof(Name)}.null");
+            if (Value == null) throw new cDeserialiseException($"{nameof(cHeaderField)}.{nameof(Value)}.null");
+        }
+
         /// <inheritdoc />
         public override string ToString() => $"{nameof(cHeaderField)}({Name},{Value})";
     }
@@ -35,51 +44,79 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Represents a header field where the value is a message-id.
     /// </summary>
+    [Serializable]
     public class cHeaderFieldMsgId : cHeaderField
     {
+        [NonSerialized]
+        private string mMessageId;
+
+        private cHeaderFieldMsgId(string pName, cBytes pValue, string pMessageId) : base(pName, pValue) { mMessageId = pMessageId; }
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            if (!ZTryParse(Value, out mMessageId)) throw new cDeserialiseException($"{nameof(cHeaderFieldMsgId)}.{nameof(Value)}.invalid");
+        }
+
         /// <summary>
         /// The value of the field as a normalised (quoting, comments and white space removed) message-id.
         /// </summary>
-        public readonly string MessageId;
+        public string MessageId => mMessageId;
 
-        private cHeaderFieldMsgId(string pName, cBytes pValue, string pMessageId) : base(pName, pValue) { MessageId = pMessageId; }
+        private static bool ZTryParse(IList<byte> pValue, out string rMessageId)
+        {
+            cBytesCursor lCursor = new cBytesCursor(pValue);
+
+            if (lCursor.GetRFC822MsgId(out var lIdLeft, out var lIdRight) && lCursor.Position.AtEnd)
+            {
+                rMessageId = cTools.MessageId(lIdLeft, lIdRight);
+                return true;
+            }
+
+            rMessageId = null;
+            return false;
+        }
 
         internal static bool TryConstruct(string pName, IList<byte> pValue, out cHeaderFieldMsgId rMsgId)
         {
-            if (pValue == null) { rMsgId = null; return false; }
-
-            cBytesCursor lCursor = new cBytesCursor(pValue);
-
-            if (!lCursor.GetRFC822MsgId(out var lIdLeft, out var lIdRight) || !lCursor.Position.AtEnd)
+            if (pName != null && pValue != null && ZTryParse(pValue, out var lMessageId))
             {
-                rMsgId = null;
-                return false;
+                rMsgId = new cHeaderFieldMsgId(pName, new cBytes(pValue), lMessageId);
+                return true;
             }
 
-            rMsgId = new cHeaderFieldMsgId(pName, new cBytes(pValue), cTools.MessageId(lIdLeft, lIdRight));
-            return true;
+            rMsgId = null;
+            return false;
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cHeaderFieldMsgId)}({MessageId})";
+        public override string ToString() => $"{nameof(cHeaderFieldMsgId)}({mMessageId})";
     }
 
     /// <summary>
     /// Represents a header field where the value is a set of message-ids.
     /// </summary>
+    [Serializable]
     public class cHeaderFieldMsgIds : cHeaderField
     {
+        [NonSerialized]
+        private cStrings mMessageIds;
+
+        private cHeaderFieldMsgIds(string pName, cBytes pValue, cStrings pMessageIds) : base(pName, pValue) { mMessageIds = pMessageIds; }
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            if (!ZTryParse(Value, out mMessageIds)) throw new cDeserialiseException($"{nameof(cHeaderFieldMsgIds)}.{nameof(Value)}.invalid");
+        }
+
         /// <summary>
         /// The value of the field as normalised (quoting, comments and white space removed) message-ids.
         /// </summary>
-        public readonly cStrings MessageIds;
+        public cStrings MessageIds => mMessageIds;
 
-        private cHeaderFieldMsgIds(string pName, cBytes pValue, cStrings pMessageIds) : base(pName, pValue) { MessageIds = pMessageIds; }
-
-        internal static bool TryConstruct(string pName, IList<byte> pValue, out cHeaderFieldMsgIds rMsgIds)
+        private static bool ZTryParse(IList<byte> pValue, out cStrings rMessageIds)
         {
-            if (pValue == null) { rMsgIds = null; return false; }
-
             List<string> lMessageIds = new List<string>();
 
             cBytesCursor lCursor = new cBytesCursor(pValue);
@@ -92,7 +129,19 @@ namespace work.bacome.mailclient
 
             if (lCursor.Position.AtEnd)
             {
-                rMsgIds = new cHeaderFieldMsgIds(pName, new cBytes(pValue), new cStrings(lMessageIds));
+                rMessageIds = new cStrings(lMessageIds);
+                return true;
+            }
+
+            rMessageIds = null;
+            return false;
+        }
+
+        internal static bool TryConstruct(string pName, IList<byte> pValue, out cHeaderFieldMsgIds rMsgIds)
+        {
+            if (pName != null && pValue != null && ZTryParse(pValue, out var lMessageIds))
+            {
+                rMsgIds = new cHeaderFieldMsgIds(pName, new cBytes(pValue), lMessageIds);
                 return true;
             }
 
@@ -101,12 +150,13 @@ namespace work.bacome.mailclient
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cHeaderFieldMsgIds)}({MessageIds})";
+        public override string ToString() => $"{nameof(cHeaderFieldMsgIds)}({mMessageIds})";
     }
 
     /// <summary>
     /// Represents a header field where the value is an importance.
     /// </summary>
+    [Serializable]
     public class cHeaderFieldImportance : cHeaderField
     {
         /** <summary>The string constant for low importance.</summary>*/
@@ -120,31 +170,42 @@ namespace work.bacome.mailclient
         private static readonly cBytes kNormal = new cBytes(Normal);
         private static readonly cBytes kHigh = new cBytes(High);
 
-        /** <summary>The value of the field as an importance code.</summary>*/
-        public readonly eImportance Importance;
+        [NonSerialized]
+        private eImportance mImportance;
 
-        private cHeaderFieldImportance(cBytes pValue, eImportance pImportance) : base(kHeaderFieldName.Importance, pValue) { Importance = pImportance; }
+        private cHeaderFieldImportance(cBytes pValue, eImportance pImportance) : base(kHeaderFieldName.Importance, pValue) { mImportance = pImportance; }
 
-        internal static bool TryConstruct(IList<byte> pValue, out cHeaderFieldImportance rImportance)
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
         {
-            if (pValue == null) { rImportance = null; return false; }
+            if (!Name.Equals(kHeaderFieldName.Importance, StringComparison.InvariantCultureIgnoreCase)) throw new cDeserialiseException($"{nameof(cHeaderFieldImportance)}.{nameof(Name)}.invalid");
+            if (!ZTryParse(Value, out mImportance)) throw new cDeserialiseException($"{nameof(cHeaderFieldImportance)}.{nameof(Value)}.invalid");
+        }
 
-            eImportance lImportance;
+        /** <summary>The value of the field as an importance code.</summary>*/
+        public eImportance Importance => mImportance;
 
+        private static bool ZTryParse(IList<byte> pValue, out eImportance rImportance)
+        {
             cBytesCursor lCursor = new cBytesCursor(pValue);
 
             lCursor.SkipRFC822CFWS();
 
-            if (lCursor.SkipBytes(kLow)) lImportance = eImportance.low;
-            else if (lCursor.SkipBytes(kNormal)) lImportance = eImportance.normal;
-            else if (lCursor.SkipBytes(kHigh)) lImportance = eImportance.high;
-            else { rImportance = null; return false; }
+            if (lCursor.SkipBytes(kLow)) rImportance = eImportance.low;
+            else if (lCursor.SkipBytes(kNormal)) rImportance = eImportance.normal;
+            else if (lCursor.SkipBytes(kHigh)) rImportance = eImportance.high;
+            else { rImportance = 0; return false; }
 
             lCursor.SkipRFC822CFWS();
 
-            if (lCursor.Position.AtEnd)
+            return lCursor.Position.AtEnd;
+        }
+
+        internal static bool TryConstruct(IList<byte> pValue, out cHeaderFieldImportance rImportance)
+        {
+            if (pValue != null && ZTryParse(pValue, out var lImportance))
             {
-                rImportance = new cHeaderFieldImportance(new cBytes(pValue), lImportance);
+                rImportance = new cHeaderFieldImportance(new cBytes(pValue), lImportance;
                 return true;
             }
 
@@ -169,13 +230,14 @@ namespace work.bacome.mailclient
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cHeaderFieldImportance)}({Importance})";
+        public override string ToString() => $"{nameof(cHeaderFieldImportance)}({mImportance})";
     }
 
     /// <summary>
     /// An immutable collection of message header fields.
     /// </summary>
     /// <seealso cref="iMessageHandle.HeaderFields"/>
+    [Serializable]
     public class cHeaderFields : ReadOnlyCollection<cHeaderField>
     {
         /** <summary>An empty collection.</summary>*/
@@ -188,6 +250,17 @@ namespace work.bacome.mailclient
         {
             mNames = pNames ?? throw new ArgumentNullException(nameof(pNames));
             mNot = pNot;
+        }
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            if (mNames == null) throw new cDeserialiseException($"{nameof(cHeaderFields)}.{nameof(mNames)}.null");
+            // potentially should check that the fields and the fieldnames should match
+            //  but .. this isn't checked in the ZTryConstruct, so ...
+
+
+            ;?; // also check that each entry is not null
         }
 
         /// <summary>

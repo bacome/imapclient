@@ -8,30 +8,30 @@ namespace work.bacome.imapclient
 {
     ;?;
     [Serializable]
-    [DataContract]
     public class cHeaderCacheItem
     {
+        [NonSerialized]
         private readonly object mAttributesLock = new object();
+        [NonSerialized]
         private fMessageCacheAttributes mAttributes;
 
-        [DataMember] ...
         private cEnvelope mEnvelope;
-        [DataMember]
         private DateTimeOffset? mReceivedDateTimeOffset;
-        [DataMember]
         private DateTime? mReceivedDateTime;
-        [DataMember]
         private uint? mSize;
+        [NonSerialized]
         private cBodyPart mBody;
-        [DataMember] ...
+        ;...;
         private cBodyPart mBodyStructure;
 
+        [NonSerialized]
         private readonly object mHeaderFieldsLock = new object();
-        [DataMember] ...
+        ;...;
         private cHeaderFields mHeaderFields;
 
+        [NonSerialized]
         private readonly object mBinarySizesLock = new object();
-        [DataMember] ...
+        ;...;
         private cBinarySizes mBinarySizes;
 
         protected internal cHeaderCacheItem()

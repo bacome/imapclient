@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using work.bacome.imapclient.support;
@@ -19,6 +20,9 @@ namespace work.bacome.imapclient
         private readonly cHeaderCache mHeaderCache;
         private readonly cFlagCache mFlagCache;
         private readonly cSectionCache mSectionCache;
+
+        private readonly object mMailboxToSelectedCountLock = new object();
+        private readonly Dictionary<cMailboxId, int> mMailboxToSelectedCount = new Dictionary<cMailboxId, int>();
 
         public cPersistentCache(string pInstanceName, cHeaderCache pHeaderCache, cFlagCache pFlagCache, cSectionCache pSectionCache)
         {
@@ -49,6 +53,38 @@ namespace work.bacome.imapclient
             rStream = null;
             return false;
         } */
+
+        internal void RecordMailboxSelected(cMailboxId pMailboxId, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(RecordMailboxSelected), pMailboxId);
+
+            lock (mMailboxToSelectedCountLock)
+            {
+                int lSelectedCount;
+
+                if (mMailboxToSelectedCount.TryGetValue(pMailboxId, out lSelectedCount)) lSelectedCount++;
+                else lSelectedCount = 1;
+
+                mMailboxToSelectedCount[pMailboxId] = lSelectedCount;
+            }
+        }
+
+        internal void RecordMailboxUnselected(cMailboxId pMailboxId, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(RecordMailboxUnselected), pMailboxId);
+
+            lock (mMailboxToSelectedCountLock)
+            {
+                if (!mMailboxToSelectedCount.TryGetValue(pMailboxId, out var lSelectedCount)) throw new cInternalErrorException(lContext);
+                lSelectedCount--;
+                mMailboxToSelectedCount[pMailboxId] = lSelectedCount;
+
+                if (lSelectedCount == 0)
+                {
+                    ;?; // tell the flag and header caches
+                }
+            }
+        }
 
         internal uint GetUIDValidity(cMailboxId pMailboxId, cTrace.cContext pParentContext)
         {
@@ -286,6 +322,9 @@ namespace work.bacome.imapclient
         {
             // this is to let the section cache know what the UID is for the handle - we may have been filing things under the handle so this gives a chance for those things to be moved to be filed under the UID
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(MessageHandleUIDSet), pMessageHandle);
+
+            ;?; // only use the cache in action
+
             kDefaultSectionCache.MessageHandleUIDSet(pMessageHandle, lContext);
             mSectionCache?.MessageHandleUIDSet(pMessageHandle, lContext);
         }
@@ -294,6 +333,8 @@ namespace work.bacome.imapclient
         {
             // this is to let the section cache know that any data stored against handles in the cache can be trashed
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(MessageCacheDeactivated), pMessageCache);
+
+            ;?; // only use the cache in action
             kDefaultSectionCache.MessageCacheDeactivated(pMessageCache, lContext);
             mSectionCache?.MessageCacheDeactivated(pMessageCache, lContext);
         }
@@ -328,7 +369,7 @@ namespace work.bacome.imapclient
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(TryGetSectionLength), pSectionId);
             if (pSectionId == null) throw new ArgumentNullException(nameof(pSectionId));
             if (mSectionCache == null) return kDefaultSectionCache.TryGetSectionLength(pSectionId, out rLength, lContext);
-            return  mSectionCache.TryGetSectionLength(pSectionId, out rLength, lContext);
+            return mSectionCache.TryGetSectionLength(pSectionId, out rLength, lContext);
         }
 
         internal bool TryGetSectionReader(cSectionId pSectionId, out cSectionCacheItemReader rReader, cTrace.cContext pParentContext)

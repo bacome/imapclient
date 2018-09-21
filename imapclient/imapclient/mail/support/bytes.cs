@@ -7,7 +7,7 @@ namespace work.bacome.mailclient.support
     /// <summary>
     /// An immutable collection of bytes.
     /// </summary>
-    /// <seealso cref="cNetworkSendEventArgs"/>
+    [Serializable]
     public class cBytes : ReadOnlyCollection<byte>
     {
         internal static readonly cBytes Empty = new cBytes(new byte[] { });

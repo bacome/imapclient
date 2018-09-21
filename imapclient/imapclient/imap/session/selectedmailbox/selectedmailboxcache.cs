@@ -228,13 +228,10 @@ namespace work.bacome.imapclient
                     return lMessageHandles;
                 }
 
-                public IEnumerable<cUID> GetKnownDeletedMessageUIDs(cTrace.cContext pParentContext)
+                public cUIDList GetMessageUIDsWithDeletedFlag(cTrace.cContext pParentContext)
                 {
-                    // should only be called if you are sure that messages (e.g. expunges) aren't being processed
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(GetKnownDeletedMessageUIDs));
-                    var lMailboxId = mMailboxCacheItem.MailboxId;
-                    if (lMailboxId == null) return null; // should never happen
-                    return from lItem in mItems where lItem.UID != null && lItem.Flags != null && lItem.Flags.Contains(kMessageFlag.Deleted) select lItem.UID;
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(GetMessageUIDsWithDeletedFlag));
+                    return new cUIDList(from lItem in mItems where lItem.UID != null && lItem.Flags != null && lItem.Flags.Contains(kMessageFlag.Deleted) select lItem.UID);
                 }
 
                 private void ZExists(int pMessageCount, cTrace.cContext pParentContext)

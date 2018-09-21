@@ -31,7 +31,6 @@ namespace work.bacome.mailclient
     /// (Header field names may only include <see cref="cCharset.FText"/> characters.)
     /// </remarks>
     [Serializable]
-    [DataContract]
     public class cHeaderFieldNames : IReadOnlyList<string>, IEquatable<cHeaderFieldNames>, IComparable<cHeaderFieldNames>
     {
         // immutable (for passing in and out)
@@ -44,7 +43,6 @@ namespace work.bacome.mailclient
         public static readonly cHeaderFieldNames Importance = new cHeaderFieldNames(kHeaderFieldName.Importance);
 
         // ordered (case insensitive) list of names (the ordering is required for the hashcode, ==, and IComparable implementations)
-        [DataMember]
         private readonly cHeaderFieldNameList mNames;
 
         private cHeaderFieldNames() => mNames = new cHeaderFieldNameList();
@@ -206,14 +204,12 @@ namespace work.bacome.mailclient
     /// </summary>
     /// <inheritdoc cref="cHeaderFieldNames" select="remarks"/>
     [Serializable]
-    [DataContract]
     public class cHeaderFieldNameList : IReadOnlyList<string>
     {
         // implements case insensitivity
         //  implements only one copy of each header field
         //  implements the grammar for header field names
 
-        [DataMember]
         private readonly List<string> mNames;
 
         /// <summary>

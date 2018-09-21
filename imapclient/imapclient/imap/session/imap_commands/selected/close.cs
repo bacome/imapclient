@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kCloseCommandPart = new cTextCommandPart("CLOSE");
 
-            public async Task<IEnumerable<cUID>> CloseAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
+            public async Task CloseAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(CloseAsync), pMC);
 
@@ -25,48 +25,44 @@ namespace work.bacome.imapclient
                 {
                     lBuilder.Add(await mSelectExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // get exclusive access to the selected mailbox
 
-                    mMailboxCache.CheckIsSelectedMailbox(pMailboxHandle, null);
+                    var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pMailboxHandle, null);
 
                     lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
                     lBuilder.Add(kCloseCommandPart);
 
-                    var lHook = new cCloseCommandHook(mMailboxCache);
+                    var lHook = new cCloseCommandHook(PersistentCache, mMailboxCache, lSelectedMailbox);
                     lBuilder.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
-                    if (lResult.ResultType == eIMAPCommandResultType.ok)
-                    {
-                        lContext.TraceInformation("close success");
-                        return lHook.KnownDeletedMessageUIDs;
-                    }
-
-                    throw new cIMAPProtocolErrorException(lResult, 0, lContext);
+                    if (lResult.ResultType == eIMAPCommandResultType.ok) lContext.TraceInformation("close success");
+                    else throw new cIMAPProtocolErrorException(lResult, 0, lContext);
                 }
             }
 
             private class cCloseCommandHook : cCommandHook
             {
+                private readonly cPersistentCache mPersistentCache;
                 private readonly cMailboxCache mMailboxCache;
+                private readonly cSelectedMailbox mSelectedMailbox;
 
-                public cCloseCommandHook(cMailboxCache pMailboxCache)
+                public cCloseCommandHook(cPersistentCache pPersistentCache, cMailboxCache pMailboxCache, cSelectedMailbox pSelectedMailbox)
                 {
+                    mPersistentCache = pPersistentCache ?? throw new ArgumentNullException(nameof(pPersistentCache));
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
-                }
-
-                public IEnumerable<cUID> KnownDeletedMessageUIDs { get; private set; } = null;
-
-                public override void CommandStarted(cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cCloseCommandHook), nameof(CommandStarted));
-                    KnownDeletedMessageUIDs = mMailboxCache.GetKnownDeletedMessageUIDs(lContext);
+                    mSelectedMailbox = pSelectedMailbox ?? throw new ArgumentNullException(nameof(pSelectedMailbox));
                 }
 
                 public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCloseCommandHook), nameof(CommandCompleted), pResult);
-                    if (pResult.ResultType == eIMAPCommandResultType.ok) mMailboxCache.Unselect(lContext);
+
+                    if (pResult.ResultType == eIMAPCommandResultType.ok)
+                    {
+                        if (mSelectedMailbox.SelectedForUpdate && !mSelectedMailbox.AccessReadOnly) mPersistentCache.MessagesExpunged(mSelectedMailbox.MailboxHandle.MailboxId, mSelectedMailbox.GetMessageUIDsWithDeletedFlag(lContext), lContext);
+                        mMailboxCache.Unselect(lContext);
+                    }
                 }
             }
         }

@@ -12,13 +12,11 @@ namespace work.bacome.mailclient
     /// Represents an address on an email; either an individual <see cref="cEmailAddress"/> or a <see cref="cGroupAddress"/>.
     /// </summary>
     [Serializable]
-    [DataContract]
     public abstract class cAddress : IEquatable<cAddress>
     {
         /// <summary>
         /// The display name for the address, may be <see langword="null"/>.
         /// </summary>
-        [DataMember]
         public readonly cCulturedString DisplayName;
 
         internal cAddress(cCulturedString pDisplayName)
@@ -64,20 +62,14 @@ namespace work.bacome.mailclient
     /// An immutable collection of addresses.
     /// </summary>
     [Serializable]
-    [DataContract]
     public class cAddresses : IReadOnlyList<cAddress>, IEquatable<cAddresses>
     {
-        /// <summary>
-        /// The RFC 5256 sort string for the collection of addresses.
-        /// </summary>
+        [NonSerialized]
         private string mSortString;
 
-        /// <summary>
-        /// The RFC 5957 display sort string for the collection of addresses.
-        /// </summary>
+        [NonSerialized]
         private string mDisplaySortString;
 
-        [DataMember]
         private readonly ReadOnlyCollection<cAddress> mAddresses;
 
         internal cAddresses(List<cAddress> pAddresses)
@@ -140,7 +132,14 @@ namespace work.bacome.mailclient
             throw new cInternalErrorException(nameof(cAddresses), nameof(ZFinishConstruct));
         }
 
+        /// <summary>
+        /// The RFC 5256 sort string for the collection of addresses.
+        /// </summary>
         public string SortString => mSortString;
+
+        /// <summary>
+        /// The RFC 5957 display sort string for the collection of addresses.
+        /// </summary>
         public string DisplaySortString => mDisplaySortString;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
@@ -197,15 +196,13 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Represents an individual email address.
     /// </summary>
-    /// <seealso cref="cAddresses"/>
     [Serializable]
-    [DataContract]
     public sealed class cEmailAddress : cAddress, IEquatable<cEmailAddress>, IComparable<cEmailAddress>
     {
-        [DataMember]
         public readonly string LocalPart;
-        [DataMember]
         public readonly string Domain;
+
+        [NonSerialized]
         private string mQuotedLocalPart;
 
         internal cEmailAddress(string pLocalPart, string pDomain, cCulturedString pDisplayName) : base(pDisplayName)
@@ -358,18 +355,15 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Represents a named group of email addresses.
     /// </summary>
-    /// <seealso cref="cAddresses"/>
     [Serializable]
-    [DataContract] ;?; // up to here
     public sealed class cGroupAddress : cAddress, IEquatable<cGroupAddress>
     {
-        ;?; // is this a datamember or not?
-        private readonly string mDisplayName;
+        [NonSerialized]
+        private string mDisplayName;
 
         /// <summary>
         /// The sorted collection of group members. May be empty.
         /// </summary>
-        [DataMember]
         public readonly ReadOnlyCollection<cEmailAddress> EmailAddresses;
 
         internal cGroupAddress(cCulturedString pDisplayName, List<cEmailAddress> pAddresses) : base(pDisplayName)
@@ -415,6 +409,14 @@ namespace work.bacome.mailclient
 
             mDisplayName = pDisplayName;
             EmailAddresses = lEmailAddresses.AsReadOnly();
+        }
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            if (EmailAddresses == null) throw new Exception($"{nameof(cGroupAddress)}.{nameof(EmailAddresses)}.null");
+            foreach (var lEMailAddress in EmailAddresses) if (lEMailAddress == null) throw new cDeserialiseException($"{nameof(cGroupAddress)}.{nameof(EmailAddresses)}.containsnulls");
+            mDisplayName = DisplayName.ToString();
         }
 
         private static cCulturedString ZDisplayName(string pDisplayName)

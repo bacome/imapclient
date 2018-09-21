@@ -8,14 +8,12 @@ namespace work.bacome.imapclient
     /// Represents an IMAP message UID
     /// </summary>
     [Serializable]
-    [DataContract]
     public class cUID : IEquatable<cUID>, IComparable<cUID>
     {
         /**<summary>The UIDValidity of the instance.</summary>*/
-        [DataMember]
         public readonly uint UIDValidity;
+
         /**<summary>The UID of the instance.</summary>*/
-        [DataMember]
         public readonly uint UID;
 
         /// <summary>

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient.support;
 
@@ -45,16 +44,8 @@ namespace work.bacome.imapclient
                 public iMessageHandle GetHandle(uint pMSN) => mCache.GetHandle(pMSN); // this should only be called from a commandcompletion
                 public iMessageHandle GetHandle(cUID pUID) => mCache.GetHandle(pUID);
                 public uint GetMSN(iMessageHandle pMessageHandle) => mCache.GetMSN(pMessageHandle); // this should only be called when no msnunsafe commands are running
-
                 public cMessageHandleList SetUnseenCount(int pMessageCount, IEnumerable<uint> pMSNs, cTrace.cContext pParentContext) => mCache.SetUnseenCount(pMessageCount, pMSNs, pParentContext); // this should only be called from a commandcompletion
-
-                // this should only be called when messages aren't being processed (e.g. from command start)
-                public IEnumerable<cUID> GetKnownDeletedMessageUIDs(cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(GetKnownDeletedMessageUIDs));
-                    if (!mSelectedForUpdate || mAccessReadOnly) return null;
-                    return mCache.GetKnownDeletedMessageUIDs(lContext);
-                }
+                public cUIDList GetMessageUIDsWithDeletedFlag(cTrace.cContext pParentContext) => mCache.GetMessageUIDsWithDeletedFlag(pParentContext); // this should only be called from a commandcompletion
 
                 public override string ToString() => $"{nameof(cSelectedMailbox)}({mMailboxCacheItem},{mSelectedForUpdate},{mAccessReadOnly})";
             }

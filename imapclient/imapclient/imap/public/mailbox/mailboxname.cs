@@ -17,13 +17,11 @@ namespace work.bacome.imapclient
     /// Be careful to correctly specify the hierarchy delimiter, it is used in preparing the mailbox name for sending to the server.
     /// </remarks>
     [Serializable]
-    [DataContract]
     public class cMailboxName : IEquatable<cMailboxName>, IComparable<cMailboxName>
     {
         internal const string InboxString = "INBOX";
         internal static readonly ReadOnlyCollection<byte> InboxBytes = new cBytes(InboxString);
 
-        [DataMember]
         private string mPath;
 
         /// <summary>
@@ -32,9 +30,9 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// Will be <see langword="null"/> if the server has no hierarchy in its names.
         /// </remarks>
-        [DataMember]
         public readonly char? Delimiter;
 
+        [NonSerialized]
         private string mDescendantPathPrefix = null;
 
         private cMailboxName(string pPath, char? pDelimiter, bool pValid)

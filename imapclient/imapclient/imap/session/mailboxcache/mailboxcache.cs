@@ -190,6 +190,8 @@ namespace work.bacome.imapclient
                     mSetState(eIMAPConnectionState.notselected, lContext);
                     mSynchroniser.InvokeMailboxPropertiesChanged(lMailboxHandle, lProperties, lContext);
                     mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.SelectedMailbox), lContext);
+
+                    mPersistentCache.RecordMailboxUnselected(lMailboxHandle.MailboxId, lContext);
                 }
 
                 public void Select(iMailboxHandle pMailboxHandle, bool pForUpdate, bool pAccessReadOnly, bool pUIDNotSticky, cFetchableFlags pFlags, cPermanentFlags pPermanentFlags, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, ulong pHighestModSeq, IEnumerable<cResponseDataVanished> pVanishedEarlier, IEnumerable<cResponseDataFetch> pFetch, cTrace.cContext pParentContext)
@@ -210,6 +212,8 @@ namespace work.bacome.imapclient
                     foreach (var lVanished in pVanishedEarlier) if (!ZVanishedEarlier(pMailboxHandle, lVanished, lContext)) throw new ArgumentOutOfRangeException(nameof(pVanishedEarlier));
 
                     if (pFetch == null) throw new ArgumentNullException(nameof(pFetch));
+
+                    mPersistentCache.RecordMailboxSelected(pMailboxHandle.MailboxId, lContext);
 
                     mSelectedMailbox = new cSelectedMailbox(mPersistentCache, mSynchroniser, mQResyncEnabled, lItem, pForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq, pFetch, lContext);
 
@@ -239,13 +243,6 @@ namespace work.bacome.imapclient
                             return true;
 
                     return false;
-                }
-
-                public IEnumerable<cUID> GetKnownDeletedMessageUIDs(cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(GetKnownDeletedMessageUIDs));
-                    if (mSelectedMailbox == null) return null;
-                    return mSelectedMailbox.GetKnownDeletedMessageUIDs(lContext);
                 }
 
 

@@ -7,6 +7,7 @@ namespace work.bacome.mailclient
     /// <summary>
     /// A read-only collection of strings.
     /// </summary>
+    [Serializable]
     public class cStrings : ReadOnlyCollection<string>
     {
         public static readonly cStrings Empty = new cStrings(new string[] { });

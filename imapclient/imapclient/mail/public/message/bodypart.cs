@@ -93,6 +93,7 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Represents a message body-part.
     /// </summary>
+    [Serializable]
     public abstract class cBodyPart
     {
         /// <summary>
@@ -113,6 +114,7 @@ namespace work.bacome.mailclient
         /// <summary>
         /// The MIME type of the body-part as a code.
         /// </summary>
+        [NonSerialized]
         public readonly eBodyPartTypeCode TypeCode;
 
         internal cBodyPart(string pType, string pSubType, cSection pSection)
@@ -130,6 +132,19 @@ namespace work.bacome.mailclient
             else if (pType.Equals(kMimeType.Message, StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.message;
             else TypeCode = eBodyPartTypeCode.other;
         }
+
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            ;?; // does the section have limits? : I'm pretty sure it should?
+            if (mAddresses == null) throw new Exception($"{nameof(cAddresses)}.{nameof(mAddresses)}.null");
+            foreach (var lAddress in mAddresses) if (lAddress == null) throw new cDeserialiseException($"{nameof(cAddresses)}.{nameof(mAddresses)}.containsnulls");
+            ZFinishConstruct();
+        }
+
+
+
 
         public abstract fMessageDataFormat Format { get; }
 

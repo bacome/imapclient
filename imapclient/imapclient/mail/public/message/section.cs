@@ -31,7 +31,6 @@ namespace work.bacome.mailclient
     /// Represents a message section specification.
     /// </summary>
     [Serializable]
-    [DataContract]
     public class cSection : IEquatable<cSection>, IComparable<cSection>
     {
         /// <summary>
@@ -55,13 +54,11 @@ namespace work.bacome.mailclient
         /// <remarks>
         /// A dot separated list of integers specifying the body-part, or <see langword="null"/> for the whole message.
         /// </remarks>
-        [DataMember]
         public readonly string Part;
 
         /// <summary>
         /// The text part of the section specification.
         /// </summary>
-        [DataMember]
         public readonly eSectionTextPart TextPart;
 
         /// <summary>
@@ -71,7 +68,6 @@ namespace work.bacome.mailclient
         /// Will not be <see langword="null"/> nor empty if <see cref="TextPart"/> is <see cref="eSectionTextPart.headerfields"/> or <see cref="eSectionTextPart.headerfieldsnot"/>.
         /// Will be <see langword="null"/> otherwise.
         /// </remarks>
-        [DataMember]
         public readonly cHeaderFieldNames Names;
 
         /// <summary>

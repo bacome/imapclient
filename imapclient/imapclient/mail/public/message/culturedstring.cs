@@ -12,13 +12,11 @@ namespace work.bacome.mailclient
     /// Represents a string that may include language information as per RFC 2231.
     /// </summary>
     [Serializable]
-    [DataContract]
     public class cCulturedString
     {
         /// <summary>
         /// The parts of the string. May be <see langword="null"/>.
         /// </summary>
-        [DataMember]
         public readonly ReadOnlyCollection<cCulturedStringPart> Parts;
 
         internal cCulturedString(IList<byte> pBytes, bool pPhraseSemantics)
@@ -174,19 +172,16 @@ namespace work.bacome.mailclient
     /// </summary>
     /// <seealso cref="cCulturedString"/>
     [Serializable]
-    [DataContract]
     public class cCulturedStringPart
     {
         /// <summary>
         /// The text of the part (after RFC 2231 decoding). 
         /// </summary>
-        [DataMember]
         public readonly string String;
 
         /// <summary>
         /// The language of the part. May be <see langword="null"/>.
         /// </summary>
-        [DataMember]
         public readonly string LanguageTag;
 
         internal cCulturedStringPart(string pString, string pLanguageTag)
