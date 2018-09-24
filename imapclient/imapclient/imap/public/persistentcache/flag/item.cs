@@ -14,7 +14,7 @@ namespace work.bacome.imapclient
         // note that the cache for the containing mailbox has been updated without a modseq being specified 
         //  => it cannot claim to be synchronised up to any highestmodseq
         //
-        protected abstract void SetNoModSeq(cTrace.cContext pParentContext); 
+        protected abstract void YSetNoModSeq(cTrace.cContext pParentContext); 
 
         public cFetchableFlags Flags
         {
@@ -54,7 +54,7 @@ namespace work.bacome.imapclient
                 if (pModSeqFlags.ModSeq == 0)
                 {
                     mModSeqFlags = pModSeqFlags;
-                    SetNoModSeq(lContext);
+                    YSetNoModSeq(lContext);
                 }
                 else if (mModSeqFlags == null || mModSeqFlags.ModSeq < pModSeqFlags.ModSeq) mModSeqFlags = pModSeqFlags;
             }

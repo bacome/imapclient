@@ -45,6 +45,9 @@ namespace work.bacome.imapclient
                     mPersistentCache = pPersistentCache ?? throw new ArgumentNullException(nameof(pPersistentCache));
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                     mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
+
+                    if (pFetch == null) throw new ArgumentNullException(nameof(pFetch));
+
                     mUIDValidity = pUIDValidity;
                     mNoModSeq = pHighestModSeq == 0;
 

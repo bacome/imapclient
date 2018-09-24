@@ -20,9 +20,12 @@ namespace work.bacome.imapclient
             mLastAccessSequenceNumber = pLastAccessSequenceNumber;
         }
 
-        public abstract uint GetUIDValidity(cMailboxId pMailboxId, cTrace.cContext pParentContext);
-        public abstract ulong GetHighestModSeq(cMailboxUID pMailboxUID, cTrace.cContext pParentContext);
-        public abstract HashSet<cUID> GetUIDs(cMailboxUID pMailboxUID, cTrace.cContext pParentContext);
+        public abstract void Open(cMailboxId pMailboxId, cTrace.cContext pParentContext); // called before the first select of the mailbox
+        public abstract void Close(cMailboxId pMailboxId, cTrace.cContext pParentContext); // called after the last un-select of the mailbox
+
+        public abstract uint? GetUIDValidity(cMailboxId pMailboxId, cTrace.cContext pParentContext); // return null if the cache contains no entries for the mailbox
+        public abstract ulong? GetHighestModSeq(cMailboxUID pMailboxUID, cTrace.cContext pParentContext); // return null if the cache contains no entries for the mailbox/uidvalidity
+        public abstract HashSet<cUID> GetUIDs(cMailboxUID pMailboxUID, cTrace.cContext pParentContext); // return empty if the cache contains no entries
 
         protected internal abstract void MessagesExpunged(cMailboxId pMailboxId, IEnumerable<cUID> pUIDs, cTrace.cContext pParentContext);
 

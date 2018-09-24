@@ -191,10 +191,10 @@ namespace work.bacome.imapclient
                     mSynchroniser.InvokeMailboxPropertiesChanged(lMailboxHandle, lProperties, lContext);
                     mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.SelectedMailbox), lContext);
 
-                    mPersistentCache.RecordMailboxUnselected(lMailboxHandle.MailboxId, lContext);
+                    mPersistentCache.Close(lMailboxHandle.MailboxId, lContext);
                 }
 
-                public void Select(iMailboxHandle pMailboxHandle, bool pForUpdate, bool pAccessReadOnly, bool pUIDNotSticky, cFetchableFlags pFlags, cPermanentFlags pPermanentFlags, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, ulong pHighestModSeq, IEnumerable<cResponseDataVanished> pVanishedEarlier, IEnumerable<cResponseDataFetch> pFetch, cTrace.cContext pParentContext)
+                public Action<cTrace.cContext> Select(iMailboxHandle pMailboxHandle, bool pForUpdate, bool pAccessReadOnly, bool pUIDNotSticky, cFetchableFlags pFlags, cPermanentFlags pPermanentFlags, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, ulong pHighestModSeq, IEnumerable<cResponseDataVanished> pVanishedEarlier, IEnumerable<cResponseDataFetch> pFetch, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Select), pMailboxHandle, pForUpdate, pAccessReadOnly, pUIDNotSticky, pFlags, pPermanentFlags, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq);
 
@@ -211,11 +211,7 @@ namespace work.bacome.imapclient
                     if (pVanishedEarlier == null) throw new ArgumentNullException(nameof(pVanishedEarlier));
                     foreach (var lVanished in pVanishedEarlier) if (!ZVanishedEarlier(pMailboxHandle, lVanished, lContext)) throw new ArgumentOutOfRangeException(nameof(pVanishedEarlier));
 
-                    if (pFetch == null) throw new ArgumentNullException(nameof(pFetch));
-
-                    mPersistentCache.RecordMailboxSelected(pMailboxHandle.MailboxId, lContext);
-
-                    mSelectedMailbox = new cSelectedMailbox(mPersistentCache, mSynchroniser, mQResyncEnabled, lItem, pForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq, pFetch, lContext);
+                    mSelectedMailbox = new cSelectedMailbox(mPersistentCache, mSynchroniser, mQResyncEnabled, lItem, pForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq, pFetch, out var lSetCallSetHighestModSeq, lContext);
 
                     lItem.SetSelectedProperties(pUIDNotSticky, pFlags, pForUpdate, pPermanentFlags, lContext);
 
@@ -227,7 +223,7 @@ namespace work.bacome.imapclient
                     mSynchroniser.InvokeMailboxPropertiesChanged(pMailboxHandle, lProperties, lContext);
                     mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.SelectedMailbox), lContext);
 
-                    return cSASLXOAuth2; // the api for turning on telling the highestmodseq to the perisitentcache
+                    return lSetCallSetHighestModSeq;
                 }
 
                 public bool HasChildren(iMailboxHandle pMailboxHandle)

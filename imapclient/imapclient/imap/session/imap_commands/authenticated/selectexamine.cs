@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient;
@@ -14,7 +15,8 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kSelectForUpdateCommandPart = new cTextCommandPart("SELECT ");
             private static readonly cCommandPart kSelectReadOnlyCommandPart = new cTextCommandPart("EXAMINE ");
             private static readonly cCommandPart kSelectCommandPartCondStore = new cTextCommandPart(" (CONDSTORE)");
-            private static readonly cCommandPart kSelectCommandPartQResync = new cTextCommandPart(;
+            private static readonly cCommandPart kSelectCommandPartQResync = new cTextCommandPart(" (QRESYNC (");
+            private static readonly cCommandPart kSelectCommandPartRParenRParen = new cTextCommandPart("))");
 
             public async Task<cSelectResult> SelectExamineAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, bool pForUpdate, cTrace.cContext pParentContext)
             {
@@ -31,91 +33,90 @@ namespace work.bacome.imapclient
                     lBuilder.Add(await mSelectExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // get exclusive access to the selected mailbox
                     lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
-                    if (pForUpdate) lBuilder.Add(kSelectForUpdateCommandPart);
-                    else lBuilder.Add(kSelectReadOnlyCommandPart);
+                    PersistentCache.Open(pMailboxHandle.MailboxId, lContext);
 
-                    lBuilder.Add(lItem.MailboxNameCommandPart);
-
-                    bool lQResyncEnabled = (EnabledExtensions & fEnableableExtensions.qresync) != 0;
-                    bool lUsingQResync;
-
-                    if (lQResyncEnabled)
+                    try
                     {
-                        var lUIDValidity = PersistentCache.GetUIDValidity(pMailboxHandle.MailboxId, lContext);
+                        if (pForUpdate) lBuilder.Add(kSelectForUpdateCommandPart);
+                        else lBuilder.Add(kSelectReadOnlyCommandPart);
 
-                        if (lUIDValidity != 0)
+                        lBuilder.Add(lItem.MailboxNameCommandPart);
+
+                        uint lUIDValidity = 0;
+                        ulong lCachedHighestModSeq = 0;
+                        HashSet<cUID> lUIDsToQResync = null; // null or empty == qresync not used
+                        //
+                        // the danger is that someone else adds things to the cache after I qresync
+                        //  that means that for those items added I could be out of sync after selecting (because I didn't ask for those items to be synched)
+                        //
+                        // => after the select and before enabling setting the highestmodseq I should check the cache again for UIDs
+                        //  if there are new ones I should manually sync flags for those ones 
+                        //  [after selecting I don't need to worry about someone else adding things, as the server is obliged to keep me up to date after I select]
+
+                        bool lQResyncEnabled = (EnabledExtensions & fEnableableExtensions.qresync) != 0;
+
+                        if (lQResyncEnabled)
                         {
-                            var lHighestModSeq = PersistentCache.GetHighestModSeq(pMailboxHandle.MailboxId, lUIDValidity, lContext);
+                            lUIDValidity = PersistentCache.GetUIDValidity(pMailboxHandle.MailboxId, lContext);
 
-                            if (lHighestModSeq != 0)
+                            if (lUIDValidity != 0)
                             {
-                                ;/; // the dnager is that someone else adds things to the cache after I do this
-                                //  that means that for those items added I could be out of sync after selecting (because I didn't ask 
-                                //  for those items to be synched.
-                                //
-                                // => after the select and before enabling setting the highestmodseq I should check the cache again for UIDs
-                                //  if there are new ones I should manually sync flags for those ones
-                                //  => the output is 
-                                //   the set of UIDs for which qresync has been done (may be none if qresync is off)
-                                //
-                                var lUIDs = PersistentCache.GetUIDs(pMailboxHandle.MailboxId, lUIDValidity, lContext);
-
-                                if (lUIDs.Count == 0)
-                                {
-
-                                }
-                                else
-                                {
-                                    // use qresync
-                                }
+                                var lMailboxUID = new cMailboxUID(pMailboxHandle.MailboxId, lUIDValidity);
+                                lCachedHighestModSeq = PersistentCache.GetHighestModSeq(lMailboxUID, lContext);
+                                if (lCachedHighestModSeq != 0) lUIDsToQResync = PersistentCache.GetUIDs(lMailboxUID, lContext);
                             }
                         }
 
+                        bool lUsingQResync;
 
-                        ;?; // only use qresync if we have a uidvalidity, a highest mod seq, and some uids cached
-                        ;?; //  otherwise behave as if condstore is on and synchronise manually
-                        ;?; //  NOTE: if there are no UIDs then DONT manually sync (no need to)
-                        ;?; //
-
-
-
-                        lBuilder.a;
-                    }
-                    else
-                    {
-                        lUsingQResync = false;
-
-                        ;?; // set manually sync expunged
-
-                        if (_Capabilities.CondStore)
+                        if (lUIDsToQResync == null || lUIDsToQResync.Count == 0)
                         {
-                            lBuilder.Add(kSelectCommandPartCondStore);
-                            // and 
+                            lUsingQResync = false;
+                            if (_Capabilities.CondStore) lBuilder.Add(kSelectCommandPartCondStore);
                         }
+                        else
+                        {
+                            lUsingQResync = true;
+                            lBuilder.Add(kSelectCommandPartQResync);
+                            lBuilder.Add(new cTextCommandPart(lUIDValidity));
+                            lBuilder.Add(cCommandPart.Space);
+                            lBuilder.Add(new cTextCommandPart(lCachedHighestModSeq));
+                            lBuilder.Add(cCommandPart.Space);
+                            lBuilder.Add(new cTextCommandPart(cSequenceSet.FromUInts(from lUID in lUIDsToQResync select lUID.UID, 50)));
+                            lBuilder.Add(kSelectCommandPartRParenRParen);
+                        }
+
+                        var lHook = new cCommandHookSelectExamine(mMailboxCache, _Capabilities, lQResyncEnabled, pMailboxHandle, true, lUsingQResync);
+                        lBuilder.Add(lHook);
+
+                        var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
+
+                        if (lResult.ResultType == eIMAPCommandResultType.ok)
+                        {
+                            lContext.TraceInformation("select success");
+
+                            if (lHook.UIDValidity != lUIDValidity || lHook.UIDNotSticky || lHook.HighestModSeq < lCachedHighestModSeq)
+                            {
+                                lCachedHighestModSeq = 0;
+                                lUIDsToQResync = null;
+                            }
+
+                            return new cSelectResult(lHook.UIDValidity, lHook.UIDNotSticky, lCachedHighestModSeq, lUIDsToQResync, lHook.SetCallSetHighestModSeq);
+                        }
+
+                        fIMAPCapabilities lTryIgnoring;
+                        if (_Capabilities.CondStore) lTryIgnoring = fIMAPCapabilities.condstore;
+                        if (_Capabilities.QResync) lTryIgnoring = fIMAPCapabilities.qresync;
+                        else lTryIgnoring = 0;
+
+                        if (lResult.ResultType == eIMAPCommandResultType.no) throw new cUnsuccessfulIMAPCommandException(lResult.ResponseText, lTryIgnoring, lContext);
+                        throw new cIMAPProtocolErrorException(lResult, lTryIgnoring, lContext);
                     }
-
-
-                    ;?; // somewhere here: if the highestmodseq sent back is LOWER than the one I start with (and the uidvalidity is the same), then trash the cache
-                    ;?;  // in the command hook
-
-                    var lHook = new cCommandHookSelectExamine(mMailboxCache, _Capabilities, lQResyncEnabled, pMailboxHandle, true, lUsingQResync);
-                    lBuilder.Add(lHook);
-
-                    var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
-
-                    if (lResult.ResultType == eIMAPCommandResultType.ok)
+                    catch
                     {
-                        lContext.TraceInformation("select success");
-                        return lHook.Result;
+                        PersistentCache.Close(pMailboxHandle.MailboxId, lContext);
+                        throw;
                     }
-
-                    fIMAPCapabilities lTryIgnoring;
-                    if (_Capabilities.CondStore) lTryIgnoring = fIMAPCapabilities.condstore;
-                    if (_Capabilities.QResync) lTryIgnoring = fIMAPCapabilities.qresync;
-                    else lTryIgnoring = 0;
-
-                    if (lResult.ResultType == eIMAPCommandResultType.no) throw new cUnsuccessfulIMAPCommandException(lResult.ResponseText, lTryIgnoring, lContext);
-                    throw new cIMAPProtocolErrorException(lResult, lTryIgnoring, lContext);
                 }
             }
 
@@ -146,6 +147,8 @@ namespace work.bacome.imapclient
                 private readonly List<cResponseDataVanished> mVanishedEalier = new List<cResponseDataVanished>();
                 private readonly List<cResponseDataFetch> mFetch = new List<cResponseDataFetch>();
 
+                private Action<cTrace.cContext> mSetCallSetHighestModSeq = null;
+
                 public cCommandHookSelectExamine(cMailboxCache pMailboxCache, cIMAPCapabilities pCapabilities, bool pQResyncEnabled, iMailboxHandle pMailboxHandle, bool pForUpdate, bool pUsingQResync)
                 {
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
@@ -156,7 +159,10 @@ namespace work.bacome.imapclient
                     mUsingQResync = pUsingQResync;
                 }
 
-                public cSelectResult Result => new cSelectResult(mUIDValidity, mHighestModSeq, mUIDNotSticky);
+                public uint UIDValidity => mUIDValidity;
+                public ulong HighestModSeq => mHighestModSeq;
+                public bool UIDNotSticky => mUIDNotSticky;
+                public Action<cTrace.cContext> SetCallSetHighestModSeq => mSetCallSetHighestModSeq;
 
                 public override void CommandStarted(cTrace.cContext pParentContext)
                 {
@@ -269,10 +275,8 @@ namespace work.bacome.imapclient
                     // need UIDs to be able to process VANISHED
                     if (mQResyncEnabled && mHighestModSeq != 0 && mUIDValidity == 0) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.QResyncWithModSeqAndNoUIDValidity, fIMAPCapabilities.qresync, lContext);
 
-
-                    ;?; // return the callback for turning on highetmodseq IF qresync was off AND 
-
-                    mMailboxCache.Select(mMailboxHandle, mForUpdate, mAccessReadOnly, mUIDNotSticky, mFlags, mPermanentFlags, mExists, mRecent, mUIDNext, mUIDValidity, mHighestModSeq, mVanishedEalier, mFetch, lContext);
+                    // returns the callback for turning on sethighestmodseq which we must call after synchronising the persistent cache
+                    mSetCallSetHighestModSeq = mMailboxCache.Select(mMailboxHandle, mForUpdate, mAccessReadOnly, mUIDNotSticky, mFlags, mPermanentFlags, mExists, mRecent, mUIDNext, mUIDValidity, mHighestModSeq, mVanishedEalier, mFetch, lContext);
                 }
             }
         }

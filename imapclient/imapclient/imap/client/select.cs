@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
@@ -26,12 +27,61 @@ namespace work.bacome.imapclient
 
                 var lResult = await lSession.SelectExamineAsync(lMC, pMailboxHandle, pForUpdate, lContext).ConfigureAwait(false);
 
-                ;?; // note that the result includes whether qresync was requested or not
-                ;?; // note that the result should include the callback for turning on the sethighestmodseq IF it needs turning on
-
-                if (lResult.UIDNotSticky || lResult.UIDValidity == 0) lSession.PersistentCache.ClearCachedItems(pMailboxHandle.MailboxId, lContext);
+                if (lResult.UIDValidity == 0 || lResult.UIDNotSticky) lSession.PersistentCache.ClearCachedItems(pMailboxHandle.MailboxId, lContext);
                 else
                 {
+                    var lMailboxUID = new cMailboxUID(pMailboxHandle.MailboxId, lResult.UIDValidity);
+                    var lUIDsToResync = lSession.PersistentCache.GetUIDs(lMailboxUID, lContext);
+
+                    if (lResult.QResyncedUIDs != null) lUIDsToResync.ExceptWith(lResult.QResyncedUIDs);
+                    
+                    if (lUIDsToResync.Count > 0)
+                    {
+                        if ((lSession.EnabledExtensions & fEnableableExtensions.qresync) != 0 && lResult.CachedHighestModSeq != 0)
+                        {
+                            // uid fetch <luids> (FLAGS) (CHANGEDSINCE <cachedhighestmodseq> VANISHED)
+                            await lSession.FetchResyncAsync(lMC, pMailboxHandle, lUIDsToResync, lResult.CachedHighestModSeq, true, lContext).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            // manually resync deleted items
+
+                            IEnumerable<cUID> lUIDsThatExist;
+
+                            cFilter lFilter = new cFilterUIDIn(lResult.UIDValidity, cSequenceSet.FromUInts(from lUID in lUIDsToResync select lUID.UID, 50));
+
+                            if (lSession.Capabilities.ESearch) lUIDsThatExist = await lSession.UIDSearchExtendedAsync(lMC, pMailboxHandle, lFilter, lContext).ConfigureAwait(false);
+                            else lUIDsThatExist = await lSession.UIDSearchAsync(lMC, pMailboxHandle, lFilter, lContext).ConfigureAwait(false);
+
+                            var lVanished = new List<cUID>(lUIDsToResync.Except(lUIDsThatExist));
+
+                            PersistentCache.MessagesExpunged(pMailboxHandle.MailboxId, lVanished, lContext);
+
+                            // manually resync the flags for any UIDs left
+
+                            lUIDsToResync.ExceptWith(lVanished);
+
+                            if (lUIDsToResync.Count > 0)
+                            {
+                                ;?; // this is the same API just with different parameners
+                                if (lSession.Capabilities.CondStore && lResult.CachedHighestModSeq != 0)
+                                {
+                                    // uid fetch <luids> (FLAGS) (CHANGEDSINCE <cachedhighestmodseq>)
+                                    await lSession.FetchResyncAsync(lMC, pMailboxHandle, lUIDsToResync, lResult.CachedHighestModSeq, false, lContext).ConfigureAwait(false); 
+                                }
+                                else
+                                {
+                                    // uid fetch <uids> (FLAGS)
+                                    await lSession.UIDFetchCacheItemsAsync(lMC, pMailboxHandle, new cUIDList(lUIDsToResync), cMessageCacheItems.Flags, null, lContext).ConfigureAwait(false);
+                                }
+                            }
+                        }
+                    }
+
+                    // after we are sure that the cache is in sync we can start telling the cache about the highestmodseq
+                    lResult.SetCallSetHighestModSeq(lContext);
+
+
                     // get the list of UIDs from the cache
                     //  knock out the ones that are in the result (this is the set that qresync brought into sync)
                     //   if there are any left, then manually sync those
