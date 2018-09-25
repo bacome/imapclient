@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
@@ -162,6 +163,21 @@ namespace work.bacome.imapclient
             mSectionCache.MessageExpunged(pMessageHandle, lContext);
         }
 
+        internal bool Vanished(cMailboxId pMailboxId, uint pUIDValidity, cSequenceSet pKnownUIDs, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(Vanished), pMailboxId, pUIDValidity, pKnownUIDs);
+
+            if (!cUIntList.TryConstruct(pKnownUIDs, -1, true, out var lUInts)) return false;
+
+            var lUIDs = new List<cUID>(from lUID in lUInts select new cUID(pUIDValidity, lUID));
+
+            mHeaderCache.MessagesExpunged(pMailboxId, lUIDs, lContext);
+            mFlagCache.MessagesExpunged(pMailboxId, lUIDs, lContext);
+            mSectionCache.MessagesExpunged(pMailboxId, lUIDs, lContext);
+
+            return true;
+        }
+
         internal void MessagesExpunged(cMailboxId pMailboxId, IEnumerable<cUID> pUIDs, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(MessagesExpunged), pMailboxId);
@@ -179,7 +195,7 @@ namespace work.bacome.imapclient
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(SetUIDValidity), pMailboxId, pUIDValidity);
 
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
-            if (pUIDValidity < 1) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
+            if (pUIDValidity == 0) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
 
             mHeaderCache.SetUIDValidity(pMailboxId, pUIDValidity, lContext);
             mFlagCache.SetUIDValidity(pMailboxId, pUIDValidity, lContext);
@@ -196,17 +212,6 @@ namespace work.bacome.imapclient
             mHeaderCache.SetHighestModSeq(pMailboxUID, pHighestModSeq, lContext);
             mFlagCache.SetHighestModSeq(pMailboxUID, pHighestModSeq, lContext);
             mSectionCache.SetHighestModSeq(pMailboxUID, pHighestModSeq, lContext);
-        }
-
-        internal void ClearCachedItems(cMailboxId pMailboxId, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(ClearCachedItems), pMailboxId);
-
-            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
-
-            mHeaderCache.ClearCachedItems(pMailboxId, lContext);
-            mFlagCache.ClearCachedItems(pMailboxId, lContext);
-            mSectionCache.ClearCachedItems(pMailboxId, lContext);
         }
 
         internal void Copy(cMailboxId pSourceMailboxId, cMailboxName pDestinationMailboxName, cCopyFeedback pFeedback, cTrace.cContext pParentContext)
@@ -272,6 +277,7 @@ namespace work.bacome.imapclient
             }
         }
 
+        ;?; // check not called when uidnotsticky
         internal void MessageHandleUIDSet(iMessageHandle pMessageHandle, cTrace.cContext pParentContext)
         {
             // this is to let the section cache know what the UID is for the handle - we may have been filing things under the handle so this gives a chance for those things to be moved to be filed under the UID
@@ -286,6 +292,7 @@ namespace work.bacome.imapclient
             mSectionCache.MessageCacheDeactivated(pMessageCache, lContext);
         }
 
+        ;?; // check not called when uidnotsticky
         internal cHeaderCacheItem GetHeaderCacheItem(cMessageUID pMessageUID, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(GetHeaderCacheItem), pMessageUID);
@@ -293,6 +300,7 @@ namespace work.bacome.imapclient
             return mHeaderCache.GetItem(pMessageUID, lContext) ?? throw new cUnexpectedPersistentCacheActionException(lContext);
         }
 
+        ;?; // check not called when uidnotsticky
         internal cFlagCacheItem GetFlagCacheItem(cMessageUID pMessageUID, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(GetFlagCacheItem), pMessageUID);
@@ -337,12 +345,12 @@ namespace work.bacome.imapclient
             return mSectionCache.TryGetSectionReader(pSectionHandle, out rReader, lContext);
         }
 
-        internal cSectionCacheItem GetNewSectionCacheItem(cSectionHandle pSectionHandle, cTrace.cContext pParentContext)
+        internal cSectionCacheItem GetNewSectionCacheItem(cSectionHandle pSectionHandle, bool pUIDNotSticky, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionCache), nameof(GetNewSectionCacheItem), pSectionHandle);
             if (pSectionHandle == null) throw new ArgumentNullException(nameof(pSectionHandle));
             if (pSectionHandle.MessageHandle.Expunged) throw new cMessageExpungedException(pSectionHandle.MessageHandle);
-            return mSectionCache.GetNewItem(pSectionHandle, lContext) ?? throw new cUnexpectedPersistentCacheActionException(lContext);
+            return mSectionCache.GetNewItem(pSectionHandle, pUIDNotSticky, lContext) ?? throw new cUnexpectedPersistentCacheActionException(lContext);
         }
 
         internal void TryAddSectionCacheItem(cSectionCacheItem pItem, cTrace.cContext pParentContext)

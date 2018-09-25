@@ -43,11 +43,6 @@ namespace work.bacome.imapclient
                             ZProcessLSub(lLSub, lContext);
                             return eProcessDataResult.observed;
 
-                        case cResponseDataVanished lVanished:
-
-                            if (lVanished.Earlier && mSelectedMailbox != null && ZVanishedEarlier()) return eProcessDataResult.processed;
-                            return eProcessDataResult.notprocessed;
-
                         default:
 
                             return eProcessDataResult.notprocessed;

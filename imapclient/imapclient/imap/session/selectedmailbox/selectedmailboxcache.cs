@@ -16,9 +16,10 @@ namespace work.bacome.imapclient
             {
                 private readonly cPersistentCache mPersistentCache;
                 private readonly cIMAPCallbackSynchroniser mSynchroniser;
-                private readonly bool mQResyncEnabled;
                 private readonly cMailboxCacheItem mMailboxCacheItem;
                 private readonly uint mUIDValidity;
+                private readonly cMailboxUID mMailboxUID;
+                private readonly bool mUIDNotSticky;
                 private readonly bool mNoModSeq;
 
                 private int mCacheSequence = 0;
@@ -36,19 +37,25 @@ namespace work.bacome.imapclient
 
                 private ulong mHighestModSeq;
                 private ulong mPendingHighestModSeq = 0;
+
+                private bool mSelected;
+                private bool mSynchronised;
                 private bool mCallSetHighestModSeq;
 
-                public cSelectedMailboxCache(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, ulong pHighestModSeq, IEnumerable<cResponseDataFetch> pFetch, cTrace.cContext pParentContext)
+                public cSelectedMailboxCache(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, bool pUIDNotSticky, int pMessageCount, int pRecentCount, uint pUIDNext, ulong pHighestModSeq, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewObject(nameof(cSelectedMailboxCache), pMailboxCacheItem, pUIDValidity, pMessageCount, pRecentCount, pUIDNext, pHighestModSeq);
+                    var lContext = pParentContext.NewObject(nameof(cSelectedMailboxCache), pMailboxCacheItem, pUIDValidity, pUIDNotSticky, pMessageCount, pRecentCount, pUIDNext, pHighestModSeq);
 
                     mPersistentCache = pPersistentCache ?? throw new ArgumentNullException(nameof(pPersistentCache));
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
-                    mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
-
-                    if (pFetch == null) throw new ArgumentNullException(nameof(pFetch));
+                    mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(mMailboxCacheItem));
 
                     mUIDValidity = pUIDValidity;
+                    if (pUIDValidity == 0) mMailboxUID = null;
+                    else mMailboxUID = new cMailboxUID(pMailboxCacheItem.MailboxId, pUIDValidity);
+
+                    mUIDNotSticky = pUIDNotSticky;
+
                     mNoModSeq = pHighestModSeq == 0;
 
                     mItems = new List<cItem>(pMessageCount);
@@ -73,22 +80,31 @@ namespace work.bacome.imapclient
                     mUnseenUnknownCount = pMessageCount;
 
                     mHighestModSeq = pHighestModSeq;
+
+                    mSelected = false;
+                    mSynchronised = false;
                     mCallSetHighestModSeq = false;
-
-                    // qresync data
-                    foreach (var lFetch in pFetch) ZFetch(lFetch, true, lContext);
-
-                    ZSetMailboxStatus(lContext);
                 }
 
                 public cSelectedMailboxCache(cSelectedMailboxCache pOldCache, uint pUIDValidity, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cSelectedMailboxCache), pOldCache, pUIDValidity);
 
-                    mSynchroniser = pOldCache.mSynchroniser;
+                    // this constructor is for a uidvalidity change
+
+                    if (pOldCache == null) throw new ArgumentNullException(nameof(pOldCache));
+                    if (!pOldCache.mSelected) throw new cInternalErrorException(lContext);
+
                     mPersistentCache = pOldCache.mPersistentCache;
+                    mSynchroniser = pOldCache.mSynchroniser;
                     mMailboxCacheItem = pOldCache.mMailboxCacheItem;
+
                     mUIDValidity = pUIDValidity;
+                    if (pUIDValidity == 0) mMailboxUID = null;
+                    else mMailboxUID = new cMailboxUID(pOldCache.mMailboxUID.MailboxId, pUIDValidity);
+
+                    mUIDNotSticky = pOldCache.mUIDNotSticky;
+
                     mNoModSeq = pOldCache.mNoModSeq;
 
                     int lMessageCount = pOldCache.mItems.Count;
@@ -106,19 +122,35 @@ namespace work.bacome.imapclient
                     mUnseenUnknownCount = lMessageCount;
 
                     mHighestModSeq = 0;
-                    mCallSetHighestModSeq = !mNoModSeq; // this constructor is for a uidvalidity change, so we can start calling sethighestmodseq straight away
+
+                    mSelected = true;
+                    mSynchronised = true;
+                    mCallSetHighestModSeq = pUIDValidity != 0 && !mUIDNotSticky && !mNoModSeq; 
 
                     ZSetMailboxStatus(lContext);
                 }
 
-                public void SetCallSetHighestModSeq(cTrace.cContext pParentContext)
+                public void SetSelected(cFetchableFlags pMessageFlags, bool pForUpdate, cPermanentFlags pPermanentFlags, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(SetCallSetHighestModSeq));
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(SetEnabled));
 
-                    if (mCallSetHighestModSeq) throw new InvalidOperationException();
+                    if (mSelected) throw new cInternalErrorException(lContext);
+                    mSelected = true;
 
-                    mCallSetHighestModSeq = true;
-                    mPersistentCache.SetHighestModSeq(mMailboxCacheItem.MailboxId, mHighestModSeq, lContext);
+                    ZSetMailboxStatus(lContext);
+                    mMailboxCacheItem.SetSelectedProperties(pMessageFlags, pForUpdate, pPermanentFlags, mUIDNotSticky, lContext);
+                }
+
+                public void SetSynchronised(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(SetSynchronised));
+
+                    if (mSynchronised) throw new cInternalErrorException(lContext);
+                    mSynchronised = true;
+
+                    mCallSetHighestModSeq = mUIDValidity != 0 && !mUIDNotSticky && !mNoModSeq;
+
+                    if (mCallSetHighestModSeq) mPersistentCache.SetHighestModSeq(mMailboxUID, mHighestModSeq, lContext);
                 }
 
                 public int Count => mItems.Count;
@@ -146,12 +178,12 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(UpdateHighestModSeq));
 
-                    if (mNoModSeq) throw new InvalidOperationException();
+                    if (mNoModSeq) throw new cInternalErrorException(lContext);
 
                     if (mPendingHighestModSeq > mHighestModSeq)
                     {
                         mHighestModSeq = mPendingHighestModSeq;
-                        if (mCallSetHighestModSeq) mPersistentCache.SetHighestModSeq(mMailboxCacheItem.MailboxId, mHighestModSeq, lContext);
+                        if (mCallSetHighestModSeq) mPersistentCache.SetHighestModSeq(mMailboxUID, mHighestModSeq, lContext);
                         ZSetMailboxStatus(lContext);
                     }
 
@@ -293,9 +325,9 @@ namespace work.bacome.imapclient
                     ZSetMailboxStatus(lContext);
                 }
 
-                private void ZFetch(cResponseDataFetch pFetch, bool pQResync, cTrace.cContext pParentContext)
+                private void ZFetch(cResponseDataFetch pFetch, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ZFetch), pFetch, pQResync);
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ZFetch), pFetch);
 
                     var lFetchedItem = mItems[(int)pFetch.MSN - 1];
 
@@ -347,7 +379,7 @@ namespace work.bacome.imapclient
                         }
                     }
 
-                    if (!pQResync)
+                    if (mEnabled) 
                     {
                         if (lFetchedItem.ModSeq > mPendingHighestModSeq) mPendingHighestModSeq = lFetchedItem.ModSeq.Value;
                         mSynchroniser.InvokeMessagePropertiesChanged(lFetchedItem, lModSeqFlagPropertiesChanged, lContext);

@@ -11,62 +11,20 @@ namespace work.bacome.imapclient
         {
             private partial class cSelectedMailbox
             {
-                public eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(ProcessData));
-
-                    switch (pData)
-                    {
-                        case cResponseDataFlags lFlags:
-                    
-                            mMailboxCacheItem.SetMessageFlags(lFlags.Flags, lContext);
-                            return eProcessDataResult.processed;
-
-                        case cResponseDataVanished lVanished:
-
-                            if (lVanished.Earlier && ZVanishedEarlier(lVanished, lContext)) return eProcessDataResult.processed;
-                            break;
-                    }
-
-                    return mCache.ProcessData(pData, lContext);
-                }
-
+                public eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext) => mCache.ProcessData(pData, pParentContext);
                 public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext) => mCache.ProcessData(pCursor, pParentContext);
 
                 public void ProcessTextCode(eIMAPResponseTextContext pTextContext, cResponseData pData, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(ProcessTextCode), pTextContext, pData);
 
-                    switch (pData)
-                    {
-                        case cResponseDataPermanentFlags lPermanentFlags:
-
-                            mMailboxCacheItem.SetPermanentFlags(mSelectedForUpdate, lPermanentFlags.Flags, lContext);
-                            return;
-
-                        case cResponseDataUIDValidity lUIDValidity:
-
-                            ;?;
-                            mPersistentCache.MessageCacheDeactivated(mCache, lContext);
-
-                            // need UIDs to be able to process VANISHED
-                            if (mQResyncEnabled && !mCache.NoModSeq && lUIDValidity.UIDValidity == 0) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.QResyncWithModSeqAndNoUIDValidity, fIMAPCapabilities.qresync, lContext);
-
-                            mCache = new cSelectedMailboxCache(mCache, lUIDValidity.UIDValidity, lContext);
-                            return;
-
-                        case cResponseDataAccess lAccess:
-
-                            if (lAccess.ReadOnly != mAccessReadOnly)
-                            {
-                                mAccessReadOnly = lAccess.ReadOnly;
-                                mSynchroniser.InvokeMailboxPropertiesChanged(mMailboxCacheItem, fMailboxProperties.isaccessreadonly, lContext);
-                            }
-
-                            return;
+                    if (pData is cResponseDataUIDValidity lUIDValidity)
+                    { 
+                        mPersistentCache.MessageCacheDeactivated(mCache, lContext);
+                        mCache = new cSelectedMailboxCache(mCache, lUIDValidity.UIDValidity, lContext);
+                        return;
                     }
-
-                    mCache.ProcessTextCode(pTextContext, pData, lContext);
+                    else mCache.ProcessTextCode(pTextContext, pData, lContext);
                 }
             }
 
@@ -95,11 +53,24 @@ namespace work.bacome.imapclient
                             ZRecent(lRecent.Recent, lContext);
                             return eProcessDataResult.processed;
 
+                        case cResponseDataFlags lFlags:
+
+                            mMailboxCacheItem.SetMessageFlags(lFlags.Flags, lContext);
+                            return eProcessDataResult.processed;
+
                         case cResponseDataVanished lVanished:
 
-                            if (lVanished.Earlier) break;
+                            if (lVanished.Earlier)
+                            {
+                                if (mPersistentCache.Vanishedealier(mMailboxUID, lVanished.KnownUIDs, lContext)) return eProcessDataResult.processed;
+                                return eProcessDataResult.notprocessed;
+                            }
+                            else
+                            {
 
-                            ;?;
+                                ;?;
+                                // expunge
+                            }
 
                     }
 
@@ -117,16 +88,41 @@ namespace work.bacome.imapclient
                         return eProcessDataResult.processed;
                     }
 
-                    ;?; // vanished <seq> (NOT earlier)
-
                     return eProcessDataResult.notprocessed;
                 }
 
                 public void ProcessTextCode(eIMAPResponseTextContext pTextContext, cResponseData pData, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ProcessTextCode), pTextContext, pData);
-                    if (pData is cResponseDataUIDNext lUIDNext) ZUIDNext(lUIDNext.UIDNext, lContext);
-                    else if (pTextContext == eIMAPResponseTextContext.success && pData is cResponseDataHighestModSeq lHighestModSeq) ZHighestModSeq(lHighestModSeq.HighestModSeq, lContext);
+
+                    switch (pData)
+                    {
+                        case cResponseDataHighestModSeq lHighestModSeq when pTextContext == eIMAPResponseTextContext.success:
+
+                            ZHighestModSeq(lHighestModSeq.HighestModSeq, lContext);
+                            return;
+
+                        case cResponseDataUIDNext lUIDNext:
+
+                            ZUIDNext(lUIDNext.UIDNext, lContext);
+                            return;
+
+                        case cResponseDataPermanentFlags lPermanentFlags:
+
+                            mMailboxCacheItem.SetPermanentFlags(mSelectedForUpdate, lPermanentFlags.Flags, lContext);
+                            return;
+
+
+                        case cResponseDataAccess lAccess:
+
+                            if (lAccess.ReadOnly != mAccessReadOnly)
+                            {
+                                mAccessReadOnly = lAccess.ReadOnly;
+                                mSynchroniser.InvokeMailboxPropertiesChanged(mMailboxCacheItem, fMailboxProperties.isaccessreadonly, lContext);
+                            }
+
+                            return;
+                    }
                 }
             }
         }

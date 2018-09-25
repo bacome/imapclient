@@ -10,8 +10,8 @@ namespace work.bacome.imapclient
         {
             private class cMailboxCacheItem : iMailboxHandle
             {
+                private readonly cPersistentCache mPersistentCache;
                 private readonly cIMAPCallbackSynchroniser mSynchroniser;
-                private readonly Action<cMailboxId, long, cTrace.cContext> mSetMailboxUIDValidity;
                 private readonly cMailboxCache mMailboxCache;
                 private readonly string mEncodedMailboxPath;
 
@@ -23,10 +23,10 @@ namespace work.bacome.imapclient
                 private cMailboxStatus mMailboxStatus = null;
                 private cMailboxSelectedProperties mSelectedProperties = cMailboxSelectedProperties.NeverBeenSelected;
 
-                public cMailboxCacheItem(cIMAPCallbackSynchroniser pSynchroniser, Action<cMailboxId, long, cTrace.cContext> pSetMailboxUIDValidity, cMailboxCache pMailboxCache, string pEncodedMailboxPath)
+                public cMailboxCacheItem(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, cMailboxCache pMailboxCache, string pEncodedMailboxPath)
                 {
+                    mPersistentCache = pPersistentCache ?? throw new ArgumentNullException(nameof(pPersistentCache));
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
-                    mSetMailboxUIDValidity = pSetMailboxUIDValidity ?? throw new ArgumentNullException(nameof(pSetMailboxUIDValidity));
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                     mEncodedMailboxPath = pEncodedMailboxPath ?? throw new ArgumentNullException(nameof(pEncodedMailboxPath));
                 }
@@ -154,7 +154,7 @@ namespace work.bacome.imapclient
                         lDifferences = ZSetExists(true) | cMailboxStatus.Differences(mMailboxStatus, lMailboxStatus);
                         mMailboxStatus = lMailboxStatus;
 
-                        if (mMailboxId != null && lMailboxStatus.UIDValidity != 0 && lMailboxStatus.UIDValidity != lUIDValidity) mSetMailboxUIDValidity(mMailboxId, lMailboxStatus.UIDValidity, lContext);
+                        if (mMailboxId != null && lMailboxStatus.UIDValidity != 0 && lMailboxStatus.UIDValidity != lUIDValidity) mPersistentCache.SetUIDValidity(mMailboxId, lMailboxStatus.UIDValidity, lContext);
                     }
 
                     mSynchroniser.InvokeMailboxPropertiesChanged(this, lDifferences, lContext);
@@ -172,31 +172,31 @@ namespace work.bacome.imapclient
                     fMailboxProperties lDifferences = ZSetExists(true) | cMailboxStatus.Differences(mMailboxStatus, pMailboxStatus);
                     mMailboxStatus = pMailboxStatus;
 
-                    if (mMailboxId != null && pMailboxStatus.UIDValidity != 0 && pMailboxStatus.UIDValidity != lUIDValidity) mSetMailboxUIDValidity(mMailboxId, pMailboxStatus.UIDValidity, lContext);
+                    if (mMailboxId != null && pMailboxStatus.UIDValidity != 0 && pMailboxStatus.UIDValidity != lUIDValidity) mPersistentCache.SetUIDValidity(mMailboxId, pMailboxStatus.UIDValidity, lContext);
 
                     mSynchroniser.InvokeMailboxPropertiesChanged(this, lDifferences, lContext);
                 }
 
                 public cMailboxSelectedProperties SelectedProperties => mSelectedProperties;
 
-                public void SetSelectedProperties(bool pUIDNotSticky, cFetchableFlags pMessageFlags, bool pSelectedForUpdate, cPermanentFlags pPermanentFlags, cTrace.cContext pParentContext)
+                public void SetSelectedProperties(cFetchableFlags pMessageFlags, bool pForUpdate, cPermanentFlags pPermanentFlags, bool pUIDNotSticky, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetMessageFlags), pUIDNotSticky, pMessageFlags, pSelectedForUpdate, pPermanentFlags);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetSelectedProperties), pMessageFlags, pForUpdate, pPermanentFlags, pUIDNotSticky);
                     if (pMessageFlags == null) throw new ArgumentNullException(nameof(pMessageFlags));
-                    ZSetSelectedProperties(new cMailboxSelectedProperties(mSelectedProperties, pUIDNotSticky, pMessageFlags, pSelectedForUpdate, pPermanentFlags), lContext);
+                    ZSetSelectedProperties(new cMailboxSelectedProperties(mSelectedProperties, pMessageFlags, pForUpdate, pPermanentFlags, pUIDNotSticky), lContext);
                 }
 
-                public void SetMessageFlags(cFetchableFlags pMessageFlags, cTrace.cContext pParentContext)
+                public void SetMessageFlags(cFetchableFlags pFlags, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetMessageFlags), pMessageFlags);
-                    if (pMessageFlags == null) throw new ArgumentNullException(nameof(pMessageFlags));
-                    ZSetSelectedProperties(new cMailboxSelectedProperties(mSelectedProperties, pMessageFlags), lContext);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetMessageFlags), pFlags);
+                    if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
+                    ZSetSelectedProperties(new cMailboxSelectedProperties(mSelectedProperties, pFlags), lContext);
                 }
 
-                public void SetPermanentFlags(bool pSelectedForUpdate, cPermanentFlags pPermanentFlags, cTrace.cContext pParentContext)
+                public void SetPermanentFlags(bool pForUpdate, cPermanentFlags pPermanentFlags, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetPermanentFlags), pSelectedForUpdate, pPermanentFlags);
-                    ZSetSelectedProperties(new cMailboxSelectedProperties(mSelectedProperties, pSelectedForUpdate, pPermanentFlags), lContext);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetPermanentFlags), pForUpdate, pPermanentFlags);
+                    ZSetSelectedProperties(new cMailboxSelectedProperties(mSelectedProperties, pForUpdate, pPermanentFlags), lContext);
                 }
 
                 private void ZSetSelectedProperties(cMailboxSelectedProperties pSelectedProperties, cTrace.cContext pParentContext)

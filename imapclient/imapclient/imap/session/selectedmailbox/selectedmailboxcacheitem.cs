@@ -122,7 +122,7 @@ namespace work.bacome.imapclient
                                 mUID = new cUID(mSelectedMailboxCache.mUIDValidity, pFetch.UID.Value);
                                 mMessageUID = new cMessageUID(mSelectedMailboxCache.MailboxHandle.MailboxId, mUID);
 
-                                m
+                                ;?; // ONLY get things from the cache if the UID is sticky => stikcy is a property of the mSelectedMailboxCache
 
                                 ;?; // is this optional to return (NO) and the get should touch it
                                 if (mSelectedMailboxCache.mPersistentCache.TryGetHeaderCacheItem(mMessageUID, out var lHeaderCacheItem, lContext))
