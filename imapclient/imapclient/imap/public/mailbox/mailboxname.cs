@@ -49,14 +49,14 @@ namespace work.bacome.imapclient
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (string.IsNullOrEmpty(mPath)) throw new cDeserialiseException($"{nameof(cMailboxName)}.{nameof(mPath)}.isnullorempty");
-            if (Delimiter != null && !cTools.IsValidDelimiter(Delimiter.Value)) throw new cDeserialiseException($"{nameof(cMailboxName)}.{nameof(Delimiter)}.isvaliddelimiter");
+            if (string.IsNullOrEmpty(mPath)) throw new cDeserialiseException(nameof(cMailboxName), nameof(mPath), kDeserialiseExceptionMessage.IsInvalid);
+            if (Delimiter != null && !cTools.IsValidDelimiter(Delimiter.Value)) throw new cDeserialiseException(nameof(cMailboxName), nameof(Delimiter), kDeserialiseExceptionMessage.IsInvalid);
 
-            if (mPath[mPath.Length - 1] == Delimiter) throw new cDeserialiseException($"{nameof(cMailboxName)}.{nameof(mPath)}.endswithdelimiter");
+            if (mPath[mPath.Length - 1] == Delimiter) throw new cDeserialiseException(nameof(cMailboxName), nameof(mPath), kDeserialiseExceptionMessage.IsInvalid, 2);
 
             mPath = ZPath(mPath);
 
-            if (!cCommandPartFactory.Validation.TryAsListMailbox(mPath, Delimiter, out _)) throw new cDeserialiseException($"{nameof(cMailboxName)}.{nameof(mPath)}.tryaslistmailbox");
+            if (!cCommandPartFactory.Validation.TryAsListMailbox(mPath, Delimiter, out _)) throw new cDeserialiseException(nameof(cMailboxName), nameof(mPath), kDeserialiseExceptionMessage.IsInvalid, 3);
         }
 
         private string ZPath(string pPath)

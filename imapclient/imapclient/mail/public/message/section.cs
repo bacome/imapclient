@@ -79,7 +79,7 @@ namespace work.bacome.mailclient
         /// </remarks>
         public cSection(string pPart)
         {
-            if (pPart != null && !ZIsValidPart(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            if (pPart != null && !cValidation.IsValidSectionPart(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
             Part = pPart;
             TextPart = eSectionTextPart.all;
             Names = null;
@@ -92,7 +92,7 @@ namespace work.bacome.mailclient
         /// <param name="pTextPart">May be <see cref="eSectionTextPart.all"/>, <see cref="eSectionTextPart.header"/>, <see cref="eSectionTextPart.text"/> or <see cref="eSectionTextPart.mime"/> (<see cref="eSectionTextPart.mime"/> only if <paramref name="pPart"/> is not <see langword="null"/>).</param>
         public cSection(string pPart, eSectionTextPart pTextPart)
         {
-            if (pPart != null && !ZIsValidPart(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            if (pPart != null && !cValidation.IsValidSectionPart(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
             Part = pPart;
             if (pTextPart == eSectionTextPart.headerfields || pTextPart == eSectionTextPart.headerfieldsnot) throw new ArgumentOutOfRangeException(nameof(pTextPart));
             if (pPart == null && pTextPart == eSectionTextPart.mime) throw new ArgumentOutOfRangeException(nameof(pTextPart));
@@ -108,7 +108,7 @@ namespace work.bacome.mailclient
         /// <param name="pNot"><see langword="true"/> to represent all header fields except those specified, <see langword="false"/> to represent only the header fields specified.</param>
         public cSection(string pPart, cHeaderFieldNames pNames, bool pNot = false)
         {
-            if (pPart != null && !ZIsValidPart(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            if (pPart != null && !cValidation.IsValidSectionPart(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
             Part = pPart;
 
             if (pNot) TextPart = eSectionTextPart.headerfieldsnot;
@@ -122,31 +122,18 @@ namespace work.bacome.mailclient
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (Part != null && !ZIsValidPart(Part)) throw new cDeserialiseException($"{nameof(cSection)}.{nameof(Part)}.validpart");
+            if (Part != null && !cValidation.IsValidSectionPart(Part)) throw new cDeserialiseException(nameof(cSection), nameof(Part), kDeserialiseExceptionMessage.IsInvalid);
 
             if (Names == null)
             {
-                if (TextPart == eSectionTextPart.headerfields || TextPart == eSectionTextPart.headerfieldsnot) throw new cDeserialiseException($"{nameof(cSection)}.{nameof(TextPart)}.headerfields");
-                if (Part == null && TextPart == eSectionTextPart.mime) throw new cDeserialiseException($"{nameof(cSection)}.{nameof(TextPart)}.mime");
+                if (TextPart == eSectionTextPart.headerfields || TextPart == eSectionTextPart.headerfieldsnot) throw new cDeserialiseException(nameof(cSection), nameof(TextPart), kDeserialiseExceptionMessage.IsInconsistent);
+                if (Part == null && TextPart == eSectionTextPart.mime) throw new cDeserialiseException(nameof(cSection), nameof(TextPart), "mime");
             }
             else
             {
-                if (TextPart != eSectionTextPart.headerfields && TextPart != eSectionTextPart.headerfieldsnot) throw new cDeserialiseException($"{nameof(cSection)}.{nameof(TextPart)}.notheaderfields");
-                if (Names.Count == 0) throw new cDeserialiseException($"{nameof(cSection)}.{nameof(Names)}.count");
+                if (TextPart != eSectionTextPart.headerfields && TextPart != eSectionTextPart.headerfieldsnot) throw new cDeserialiseException(nameof(cSection), nameof(TextPart), kDeserialiseExceptionMessage.IsInconsistent);
+                if (Names.Count == 0) throw new cDeserialiseException(nameof(cSection), nameof(Names), kDeserialiseExceptionMessage.IsEmpty);
             }
-        }
-
-        private bool ZIsValidPart(string pPart)
-        {
-            var lCursor = new cBytesCursor(pPart);
-
-            while (true)
-            {
-                if (!lCursor.GetNZNumber(out _, out _)) return false;
-                if (!lCursor.SkipByte(cASCII.DOT)) break;
-            }
-
-            return lCursor.Position.AtEnd;
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>

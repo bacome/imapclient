@@ -60,7 +60,7 @@ namespace work.bacome.mailclient
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (mNames == null) throw new cDeserialiseException($"{nameof(cHeaderFieldNames)}.{nameof(mNames)}.null");
+            if (mNames == null) throw new cDeserialiseException(nameof(cHeaderFieldNames), nameof(mNames), kDeserialiseExceptionMessage.IsNull);
 
             bool lFirst = true;
             string lLastName = null;
@@ -70,7 +70,7 @@ namespace work.bacome.mailclient
                 string lThisName = lName.ToUpperInvariant();
 
                 if (lFirst) lFirst = false;
-                else if (lThisName.CompareTo(lLastName) != 1) throw new cDeserialiseException($"{nameof(cHeaderFieldNames)}.{nameof(mNames)}.order");
+                else if (lThisName.CompareTo(lLastName) != 1) throw new cDeserialiseException(nameof(cHeaderFieldNames), nameof(mNames), kDeserialiseExceptionMessage.IsOutOfOrder);
 
                 lLastName = lThisName;
             }
@@ -260,9 +260,9 @@ namespace work.bacome.mailclient
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (mNames == null) throw new cDeserialiseException($"{nameof(cHeaderFieldNameList)}.{nameof(mNames)}.null");
-            foreach (var lName in mNames) if (!ZIsValidName(lName)) throw new cDeserialiseException($"{nameof(cHeaderFieldNameList)}.{nameof(mNames)}.isvalidname");
-            if (mNames.Distinct(StringComparer.InvariantCultureIgnoreCase).Count() != mNames.Count) throw new cDeserialiseException($"{nameof(cHeaderFieldNameList)}.{nameof(mNames)}.distinct");
+            if (mNames == null) throw new cDeserialiseException(nameof(cHeaderFieldNameList), nameof(mNames), kDeserialiseExceptionMessage.IsNull);
+            foreach (var lName in mNames) if (!ZIsValidName(lName)) throw new cDeserialiseException(nameof(cHeaderFieldNameList), nameof(mNames), kDeserialiseExceptionMessage.ContainsInvalidValues);
+            if (mNames.Distinct(StringComparer.InvariantCultureIgnoreCase).Count() != mNames.Count) throw new cDeserialiseException(nameof(cHeaderFieldNameList), nameof(mNames), kDeserialiseExceptionMessage.ContainsDuplicates);
         }
 
         /// <summary>

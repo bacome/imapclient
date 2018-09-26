@@ -492,18 +492,18 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.SkipByte(cASCII.LPAREN)) { rParameters = null; return false; }
 
-                    cBodyStructureParametersBuilder lBuilder = new cBodyStructureParametersBuilder();
+                    var lParameters = new List<cBodyStructureParameter>();
 
                     while (true)
                     {
                         if (!pCursor.GetString(out IList<byte> lName) || !pCursor.SkipByte(cASCII.SPACE) || !pCursor.GetString(out IList<byte> lValue)) { rParameters = null; return false; }
-                        lBuilder.Add(lName, lValue);
+                        lParameters.Add(new cBodyStructureParameter(lName, lValue));
                         if (!pCursor.SkipByte(cASCII.SPACE)) break;
                     }
 
                     if (!pCursor.SkipByte(cASCII.RPAREN)) { rParameters = null; return false; }
 
-                    rParameters = lBuilder.ToBodyStructureParameters();
+                    rParameters = new cBodyStructureParameters(lParameters);
                     return true;
                 }
 
@@ -734,74 +734,6 @@ namespace work.bacome.imapclient
 
                     rPart = lSection.Part;
                     return true;
-                }
-
-                private class cBodyStructureParametersBuilder
-                {
-                    private readonly List<cBodyStructureParameter> mParameters = new List<cBodyStructureParameter>();
-
-                    public cBodyStructureParametersBuilder() { }
-
-                    public void Add(IList<byte> pName, IList<byte> pValue)
-                    {
-                        cBytes lRawValue = new cBytes(pValue);
-
-                        if (pName.Count == 0 || pName[pName.Count - 1] != cASCII.ASTERISK)
-                        {
-                            // just plain name=value
-                            mParameters.Add(new cBodyStructureParameter(pName, pValue));
-                            return;
-                        }
-                        
-                        // should be rfc 2231 syntax ... we will attempt to decode it if the IMAP server has decoded the parameter value continuations as per rfc 2231.6
-
-                        // check if there is another '*' in the name
-                        for (int i = 0; i < pName.Count - 1; i++)
-                            if (pName[i] == cASCII.ASTERISK)
-                            {
-                                // not decoded rfc 2231, store name=value
-                                mParameters.Add(new cBodyStructureParameter(pName, pValue));
-                                return;
-                            }
-
-                        // try to parse the value
-
-                        cBytesCursor lCursor = new cBytesCursor(pValue);
-
-                        // note that the code to get the charset is not strictly correct, as only registered charset names should be extracted
-                        //  also note that "'" is a valid character in a charset name but it is also the rfc 2231 delimiter, so if there were a charset with a "'" in the name this code would garble it
-                        //   (that is why charsetnamedash is used rather than charsetname)
-
-                        lCursor.GetToken(cCharset.CharsetNameDash, null, null, out var lCharsetName); // charset is optional
-
-                        if (lCursor.SkipByte(cASCII.QUOTE))
-                        {
-                            lCursor.GetLanguageTag(out var lLanguageTag); // language tag is optional
-
-                            if (lCursor.SkipByte(cASCII.QUOTE))
-                            {
-                                lCursor.GetToken(cCharset.All, cASCII.PERCENT, null, out cByteList lValueBytes); // the value itself is optional (!)
-
-                                if (lCursor.Position.AtEnd && cTools.TryCharsetBytesToString(lCharsetName, lValueBytes, out var lValue))
-                                {
-                                    // successful decode of rfc 2231 syntax
-
-                                    // trim off the asterisk at the end of the name
-                                    byte[] lName = new byte[pName.Count - 1];
-                                    for (int i = 0; i < pName.Count - 1; i++) lName[i] = pName[i];
-
-                                    // store the decoded name and the decoded value
-                                    mParameters.Add(new cBodyStructureParameter(lName, pValue, lValue, lLanguageTag));
-                                    return;
-                                }
-                            }
-                        }
-
-                        // failed to decode rfc 2231 syntax: store name=value
-                        mParameters.Add(new cBodyStructureParameter(pName, pValue));
-                    }
-
-                    public cBodyStructureParameters ToBodyStructureParameters() => new cBodyStructureParameters(mParameters);
                 }
 
                 private class cBaseSubject

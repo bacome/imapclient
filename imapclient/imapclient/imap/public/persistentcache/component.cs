@@ -150,5 +150,7 @@ namespace work.bacome.imapclient
                 }
             }
         }
+
+        public override string ToString() => $"{nameof(cPersistentCacheComponent)}({InstanceName},{mLastAccessSequenceNumber})";
     }
 }

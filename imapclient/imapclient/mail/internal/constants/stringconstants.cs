@@ -46,17 +46,28 @@ namespace work.bacome.mailclient
         public const string MessageDataStreamUnknownFormatAndLength = "message data stream unknown format and length";
     }
 
-    ;?;
     internal static class kUnexpectedIMAPServerActionMessage
     {
-
-
         public const string CountShouldOnlyGoUp = "count should only go up";
-        public const string QResyncWithModSeqAndNoUIDValidity = "qresync with modseq and no uidvalidity";
         public const string UnexpectedContinuationRequest = "unexpected continuation request";
         public const string OKAndError = "ok status response combined with error response code";
         public const string IdleCompletedBeforeDoneSent = "idle completed before done sent";
         public const string ResultsNotReceived = "results not received";
         public const string ByeNotReceived = "bye not received";
+        public const string SelectResponseOrderProblem = "select response order problem";
+    }
+
+    internal static class kDeserialiseExceptionMessage
+    {
+        public const string IsNull = "is null";
+        public const string IsInvalid = "is invalid";
+        public const string IsInconsistent = "is inconsistent";
+        public const string IsEmpty = "is empty";
+
+        public const string ContainsNulls = "contains nulls";
+        public const string ContainsInvalidValues = "contains invalid values";
+        public const string ContainsDuplicates = "contains duplicates";
+        public const string IsOutOfOrder = "is out of order";
+
     }
 }

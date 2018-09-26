@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.Serialization;
 using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
@@ -111,44 +112,58 @@ namespace work.bacome.mailclient
         /// </summary>
         public readonly cSection Section;
 
-        /// <summary>
-        /// The MIME type of the body-part as a code.
-        /// </summary>
         [NonSerialized]
-        public readonly eBodyPartTypeCode TypeCode;
+        private eBodyPartTypeCode mTypeCode;
 
         internal cBodyPart(string pType, string pSubType, cSection pSection)
         {
             Type = pType ?? throw new ArgumentNullException(nameof(pType));
             SubType = pSubType ?? throw new ArgumentNullException(nameof(pSubType));
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
-
-            if (pType.Equals(kMimeType.Text, StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.text;
-            else if (pType.Equals("IMAGE", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.image;
-            else if (pType.Equals("AUDIO", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.audio;
-            else if (pType.Equals("VIDEO", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.video;
-            else if (pType.Equals("APPLICATION", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.application;
-            else if (pType.Equals(kMimeType.Multipart, StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.multipart;
-            else if (pType.Equals(kMimeType.Message, StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.message;
-            else TypeCode = eBodyPartTypeCode.other;
+            if (!ZSectionIsValid())  throw new ArgumentOutOfRangeException(nameof(pSection));
+            ZFinishConstruct();
         }
-
 
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            ;?; // does the section have limits? : I'm pretty sure it should?
-            if (mAddresses == null) throw new Exception($"{nameof(cAddresses)}.{nameof(mAddresses)}.null");
-            foreach (var lAddress in mAddresses) if (lAddress == null) throw new cDeserialiseException($"{nameof(cAddresses)}.{nameof(mAddresses)}.containsnulls");
+            if (Type == null) throw new cDeserialiseException(nameof(cBodyPart), nameof(Type), kDeserialiseExceptionMessage.IsNull);
+            if (SubType == null) throw new cDeserialiseException(nameof(cBodyPart), nameof(SubType), kDeserialiseExceptionMessage.IsNull);
+            if (Section == null) throw new cDeserialiseException(nameof(cBodyPart), nameof(Section), kDeserialiseExceptionMessage.IsNull);
+            if (!ZSectionIsValid()) throw new cDeserialiseException(nameof(cBodyPart), nameof(Section), kDeserialiseExceptionMessage.IsInvalid);
             ZFinishConstruct();
         }
 
+        private bool ZSectionIsValid()
+        {
+            if (Section == cSection.Text) return true;
+            if (Section.Part == null) return false;
+            if (Section.Names != null) return false;
+            if (Section.TextPart == eSectionTextPart.all || Section.TextPart == eSectionTextPart.text) return true;
+            return false;
+        }
 
+        private void ZFinishConstruct()
+        {
+            if (Type.Equals(kMimeType.Text, StringComparison.InvariantCultureIgnoreCase)) mTypeCode = eBodyPartTypeCode.text;
+            else if (Type.Equals("IMAGE", StringComparison.InvariantCultureIgnoreCase)) mTypeCode = eBodyPartTypeCode.image;
+            else if (Type.Equals("AUDIO", StringComparison.InvariantCultureIgnoreCase)) mTypeCode = eBodyPartTypeCode.audio;
+            else if (Type.Equals("VIDEO", StringComparison.InvariantCultureIgnoreCase)) mTypeCode = eBodyPartTypeCode.video;
+            else if (Type.Equals("APPLICATION", StringComparison.InvariantCultureIgnoreCase)) mTypeCode = eBodyPartTypeCode.application;
+            else if (Type.Equals(kMimeType.Multipart, StringComparison.InvariantCultureIgnoreCase)) mTypeCode = eBodyPartTypeCode.multipart;
+            else if (Type.Equals(kMimeType.Message, StringComparison.InvariantCultureIgnoreCase)) mTypeCode = eBodyPartTypeCode.message;
+            else mTypeCode = eBodyPartTypeCode.other;
+        }
 
+        /// <summary>
+        /// The MIME type of the body-part as a code.
+        /// </summary>
+        public eBodyPartTypeCode TypeCode => mTypeCode;
 
         public abstract fMessageDataFormat Format { get; }
 
-        public abstract bool Contains(cBodyPart pPart);
+        public abstract bool LikelyIs(cBodyPart pPart);
+        public abstract bool LikelyContains(cBodyPart pPart);
 
         /// <summary>
         /// Gets the disposition of the body-part. May be <see langword="null"/>. 
@@ -171,12 +186,13 @@ namespace work.bacome.mailclient
         public abstract cBodyPartExtensionValues ExtensionValues { get; }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cBodyPart)}({Type},{SubType},{Section},{TypeCode})";
+        public override string ToString() => $"{nameof(cBodyPart)}({Type},{SubType},{Section},{mTypeCode})";
     }
 
     /// <summary>
     /// Represents an element of additional IMAP BODYSTRUCTURE extension-data.
     /// </summary>
+    [Serializable]
     public abstract class cBodyPartExtensionValue
     {
         internal cBodyPartExtensionValue() { }
@@ -185,6 +201,7 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Contains an element of additional IMAP BODYSTRUCTURE extension-data that is a string.
     /// </summary>
+    [Serializable]
     public class cBodyPartExtensionString : cBodyPartExtensionValue
     {
         /**<summary>The additional extension-data.</summary>*/
@@ -197,6 +214,7 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Contains an element of additional IMAP BODYSTRUCTURE extension-data that is a number.
     /// </summary>
+    [Serializable]
     public class cBodyPartExtensionNumber : cBodyPartExtensionValue
     {
         /**<summary>The additional extension-data.</summary>*/
@@ -209,13 +227,20 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Contains an element of additional IMAP BODYSTRUCTURE extension-data that is a collection of values.
     /// </summary>
-    /// <seealso cref="cBodyPart.ExtensionValues"/>
-    /// <seealso cref="cBodyPartExtensionData.ExtensionValues"/>
+    [Serializable]
     public class cBodyPartExtensionValues : cBodyPartExtensionValue, IEnumerable<cBodyPartExtensionValue>
     {
         /**<summary>The additional extension-data.</summary>*/
         public ReadOnlyCollection<cBodyPartExtensionValue> Values;
+
         internal cBodyPartExtensionValues(IList<cBodyPartExtensionValue> pValues) { Values = new ReadOnlyCollection<cBodyPartExtensionValue>(pValues); }
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            foreach (var lValue in Values) if (lValue == null) throw new cDeserialiseException(nameof(cBodyPartExtensionValues), nameof(Values), kDeserialiseExceptionMessage.ContainsNulls);
+        }
+
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetEnumerator"/>
         public IEnumerator<cBodyPartExtensionValue> GetEnumerator() => Values.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -232,10 +257,16 @@ namespace work.bacome.mailclient
     /// <summary>
     /// An immutable collection of message body-parts.
     /// </summary>
-    /// <seealso cref="cMultiPartBody.Parts"/>
+    [Serializable]
     public class cBodyParts : ReadOnlyCollection<cBodyPart>
     {
         internal cBodyParts(IList<cBodyPart> pParts) : base(pParts) { }
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            foreach (var lPart in this) if (lPart == null) throw new cDeserialiseException(nameof(cBodyParts), null, kDeserialiseExceptionMessage.ContainsNulls);
+        }
 
         /// <inheritdoc />
         public override string ToString()
@@ -249,6 +280,7 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Represents IMAP BODYSTRUCTURE extension-data.
     /// </summary>
+    [Serializable]
     public abstract class cBodyPartExtensionData
     {
         /// <summary>
@@ -279,6 +311,12 @@ namespace work.bacome.mailclient
             ExtensionValues = pExtensionValues;
         }
 
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            if (Languages != null) foreach (var lLanguage in Languages) if (lLanguage == null) throw new cDeserialiseException(nameof(cBodyPartExtensionData), nameof(Languages), kDeserialiseExceptionMessage.ContainsNulls);
+        }
+
         /// <inheritdoc />
         public override string ToString() => $"{nameof(cBodyPartExtensionData)}({Disposition},{Languages},{Location},{ExtensionValues})";
     }
@@ -286,7 +324,7 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Contains the IMAP BODYSTRUCTURE extension-data of a multipart message body-part.
     /// </summary>
-    /// <seealso cref="cMultiPartBody.ExtensionData"/>
+    [Serializable]
     public class cMultiPartExtensionData : cBodyPartExtensionData
     {
         /// <summary>
@@ -306,7 +344,7 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Containts the IMAP BODYSTRUCTURE extension-data of a single-part message body-part.
     /// </summary>
-    /// <seealso cref="cSinglePartBody.ExtensionData"/>
+    [Serializable]
     public class cSinglePartExtensionData : cBodyPartExtensionData
     {
         /**<summary>The MD5 value of the body-part. May be <see langword="null"/>.</summary>*/
@@ -336,6 +374,7 @@ namespace work.bacome.mailclient
     /// </list>
     /// Instances populated with BODY data are only available via <see cref="iMessageHandle.Body"/>.
     /// </remarks>
+    [Serializable]
     public class cMultiPartBody : cBodyPart
     {
         /// <summary>
@@ -343,38 +382,59 @@ namespace work.bacome.mailclient
         /// </summary>
         public readonly cBodyParts Parts;
 
-        private readonly fMessageDataFormat mFormat = 0;
+        private readonly bool mUTF8Enabled;
 
-        /// <summary>
-        /// The MIME subtype of the body-part as a code.
-        /// </summary>
-        public readonly eMultiPartBodySubTypeCode SubTypeCode;
+        [NonSerialized]
+        private fMessageDataFormat mFormat;
+
+        [NonSerialized]
+        private eMultiPartBodySubTypeCode mSubTypeCode;
 
         /// <summary>
         /// The IMAP BODYSTRUCTURE extension-data for the body-part. May be <see langword="null"/>.
         /// </summary>
         public readonly cMultiPartExtensionData ExtensionData;
 
-        internal cMultiPartBody(IList<cBodyPart> pParts, bool pUTF8Headers, string pSubType, cSection pSection, cMultiPartExtensionData pExtensionData) : base(kMimeType.Multipart, pSubType, pSection)
+        internal cMultiPartBody(IList<cBodyPart> pParts, bool pUTF8Enabled, string pSubType, cSection pSection, cMultiPartExtensionData pExtensionData) : base(kMimeType.Multipart, pSubType, pSection)
         {
             Parts = new cBodyParts(pParts);
-
-            foreach (var lPart in pParts) mFormat |= lPart.Format;
-            if (pUTF8Headers) mFormat = mFormat | fMessageDataFormat.eightbitutf8headers; // just in case the mime headers have utf8 in them
-
-            if (SubType.Equals("MIXED", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eMultiPartBodySubTypeCode.mixed;
-            else if (SubType.Equals("DIGEST", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eMultiPartBodySubTypeCode.digest;
-            else if (SubType.Equals("ALTERNATIVE", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eMultiPartBodySubTypeCode.alternative;
-            else if (SubType.Equals("RELATED", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eMultiPartBodySubTypeCode.related;
-            else SubTypeCode = eMultiPartBodySubTypeCode.other;
-
+            mUTF8Enabled = pUTF8Enabled;
             ExtensionData = pExtensionData;
+            ZFinishConstruct();
+        }
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            if (Parts == null) throw new cDeserialiseException(nameof(cMultiPartBody), nameof(Parts), kDeserialiseExceptionMessage.IsNull);
+
+            ;?; // validate that the parts are numbered 1..n, no nulls
+
+            ZFinishConstruct();
+        }
+
+        private void ZFinishConstruct()
+        {
+            foreach (var lPart in Parts) mFormat |= lPart.Format;
+            if (mUTF8Enabled) mFormat = mFormat | fMessageDataFormat.eightbitutf8headers; // just in case the mime headers have utf8 in them
+
+            if (SubType.Equals("MIXED", StringComparison.InvariantCultureIgnoreCase)) mSubTypeCode = eMultiPartBodySubTypeCode.mixed;
+            else if (SubType.Equals("DIGEST", StringComparison.InvariantCultureIgnoreCase)) mSubTypeCode = eMultiPartBodySubTypeCode.digest;
+            else if (SubType.Equals("ALTERNATIVE", StringComparison.InvariantCultureIgnoreCase)) mSubTypeCode = eMultiPartBodySubTypeCode.alternative;
+            else if (SubType.Equals("RELATED", StringComparison.InvariantCultureIgnoreCase)) mSubTypeCode = eMultiPartBodySubTypeCode.related;
+            else mSubTypeCode = eMultiPartBodySubTypeCode.other;
         }
 
         public override fMessageDataFormat Format => mFormat;
 
+        /// <summary>
+        /// The MIME subtype of the body-part as a code.
+        /// </summary>
+        ;?; //public eMultiPartBodySubTypeCode SubTypeCode => mSubTypeCode;
+
         public override bool Contains(cBodyPart pPart)
         {
+            ;?; // note that the reference equals here is a problem: if the bodypart was extracted before the UID was known, and when the UID was known the cache had a bodystructure, this would fail
             foreach (var lPart in Parts)
             {
                 if (ReferenceEquals(lPart, pPart)) return true;
@@ -408,10 +468,7 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Contains RFC 2183 disposition data.
     /// </summary>
-    /// <seealso cref="cBodyPart.Disposition"/>
-    /// <seealso cref="cBodyPartExtensionData.Disposition"/>
-    /// <seealso cref="cSinglePartBody.Disposition"/>
-    /// <seealso cref="cMultiPartBody.Disposition"/>
+    [Serializable]
     public class cBodyPartDisposition
     {
         /// <summary>
@@ -422,7 +479,8 @@ namespace work.bacome.mailclient
         /// <summary>
         /// The disposition type as a code. 
         /// </summary>
-        public readonly eDispositionTypeCode TypeCode;
+        [NonSerialized]
+        private eDispositionTypeCode mTypeCode;
 
         /// <summary>
         /// The disposition parameters. May be <see langword="null"/>.
@@ -433,11 +491,24 @@ namespace work.bacome.mailclient
         {
             Type = pType ?? throw new ArgumentNullException(nameof(pType));
             Parameters = pParameters;
-
-            if (Type.Equals("INLINE", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eDispositionTypeCode.inline;
-            else if (Type.Equals("ATTACHMENT", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eDispositionTypeCode.attachment;
-            else TypeCode = eDispositionTypeCode.other;
+            ZFinishConstruct();
         }
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            if (Type == null) throw new cDeserialiseException(nameof(cBodyPartDisposition), nameof(Type), kDeserialiseExceptionMessage.IsNull);
+            ZFinishConstruct();
+        }
+
+        private void ZFinishConstruct()
+        {
+            if (Type.Equals("INLINE", StringComparison.InvariantCultureIgnoreCase)) mTypeCode = eDispositionTypeCode.inline;
+            else if (Type.Equals("ATTACHMENT", StringComparison.InvariantCultureIgnoreCase)) mTypeCode = eDispositionTypeCode.attachment;
+            else mTypeCode = eDispositionTypeCode.other;
+        }
+
+        public eDispositionTypeCode TypeCode => mTypeCode;
 
         /// <summary>
         /// Gets the suggested filename. May be <see langword="null"/>.
@@ -480,7 +551,7 @@ namespace work.bacome.mailclient
         public uint? Size => Parameters?.First("size")?.UIntValue;
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cBodyPartDisposition)}({Type},{Parameters},{TypeCode})";
+        public override string ToString() => $"{nameof(cBodyPartDisposition)}({Type},{Parameters},{mTypeCode})";
     }
 
     /// <summary>
@@ -498,6 +569,7 @@ namespace work.bacome.mailclient
     /// </list>
     /// Instances populated with BODY data are only available via <see cref="iMessageHandle.Body"/>.
     /// </remarks>
+    [...]
     public class cSinglePartBody : cBodyPart
     {
         /// <summary>
@@ -615,6 +687,7 @@ namespace work.bacome.mailclient
     /// The <see cref="BodyStructure"/> element of instances will be <see langword="null"/> when populated with IMAP BODY data rather than IMAP BODYSTRUCTURE data.
     /// Instances populated with BODY data are only available via <see cref="iMessageHandle.Body"/>.
     /// </remarks>
+    [...]
     public class cMessageBodyPart : cSinglePartBody
     {
         /// <summary>
@@ -644,6 +717,7 @@ namespace work.bacome.mailclient
 
         public override bool Contains(cBodyPart pPart)
         {
+            ;?; // ref equeals problem
             if (ReferenceEquals(BodyStructure, pPart)) return true;
             return BodyStructure.Contains(pPart);
         }
@@ -660,7 +734,7 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Represents a message body-part that contains text.
     /// </summary>
-    /// <seealso cref="cIMAPMessage.Fetch(cTextBodyPart)"/>.
+    [...]
     public class cTextBodyPart : cSinglePartBody
     {
         /// <summary>
@@ -697,52 +771,120 @@ namespace work.bacome.mailclient
     /// <remarks>
     /// The value may have a language associated with it. See RFC 2184.
     /// </remarks>
-    /// <seealso cref="cAttachment.Parameters"/>
-    /// <seealso cref="cSinglePartBody.Parameters"/>
-    /// <seealso cref="cMultiPartBody.Parameters"/>
-    /// <seealso cref="cBodyPartDisposition.Parameters"/>
-    /// <seealso cref="cMultiPartExtensionData"/>
+    [Serializable]
     public class cBodyStructureParameter
     {
-        /// <summary>
-        /// The name of the attribute.
-        /// </summary>
-        public readonly string Name;
+        private readonly cBytes mRawName;
 
         /// <summary>
         /// The un-decoded value.
         /// </summary>
         public readonly cBytes RawValue;
 
-        /// <summary>
-        /// The decoded value.
-        /// </summary>
-        public readonly string StringValue;
+        [NonSerialized]
+        private string mName;
 
-        /// <summary>
-        /// The language tag of the value. May be <see langword="null"/>.
-        /// </summary>
-        public readonly string LanguageTag;
+        [NonSerialized]
+        private string mStringValue;
+
+        [NonSerialized]
+        private string mLanguageTag;
 
         internal cBodyStructureParameter(IList<byte> pName, IList<byte> pValue)
         {
             if (pName == null) throw new ArgumentNullException(nameof(pName));
             if (pValue == null) throw new ArgumentNullException(nameof(pValue));
-            Name = cTools.UTF8BytesToString(pName);
+            mRawName = new cBytes(pName);
             RawValue = new cBytes(pValue);
-            StringValue = cTools.UTF8BytesToString(pValue);
-            LanguageTag = null;
+            ZFinishConstruct();
         }
 
-        internal cBodyStructureParameter(IList<byte> pName, IList<byte> pValue, string pStringValue, string pLanguageTag)
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
         {
-            if (pName == null) throw new ArgumentNullException(nameof(pName));
-            if (pValue == null) throw new ArgumentNullException(nameof(pValue));
-            Name = cTools.UTF8BytesToString(pName);
-            RawValue = new cBytes(pValue);
-            StringValue = pStringValue;
-            LanguageTag = pLanguageTag;
+            if (mRawName == null) throw new cDeserialiseException(nameof(cBodyStructureParameter), nameof(mRawName), kDeserialiseExceptionMessage.IsNull);
+            if (RawValue == null) throw new cDeserialiseException(nameof(cBodyStructureParameter), nameof(RawValue), kDeserialiseExceptionMessage.IsNull);
+            // could validate that the name and value are in the correct domain 
+            ZFinishConstruct();
         }
+
+        private void ZFinishConstruct()
+        {
+            if (mRawName.Count == 0 || mRawName[mRawName.Count - 1] != cASCII.ASTERISK)
+            {
+                // just plain name=value
+                mName = cTools.UTF8BytesToString(mRawName);
+                mStringValue = cTools.UTF8BytesToString(RawValue);
+                mLanguageTag = null;
+                return;
+            }
+
+            // should be rfc 2231 syntax ... we will attempt to decode it if the IMAP server has decoded the parameter value continuations as per rfc 2231.6
+
+            // check if there is another '*' in the name
+            for (int i = 0; i < mRawName.Count - 1; i++)
+                if (mRawName[i] == cASCII.ASTERISK)
+                {
+                    // not decoded rfc 2231, store name=value
+                    mName = cTools.UTF8BytesToString(mRawName);
+                    mStringValue = cTools.UTF8BytesToString(RawValue);
+                    mLanguageTag = null;
+                    return;
+                }
+
+            // try to parse the value
+
+            cBytesCursor lCursor = new cBytesCursor(RawValue);
+
+            // note that the code to get the charset is not strictly correct, as only registered charset names should be extracted
+            //  also note that "'" is a valid character in a charset name but it is also the rfc 2231 delimiter, so if there were a charset with a "'" in the name this code would garble it
+            //   (that is why charsetnamedash is used rather than charsetname)
+
+            lCursor.GetToken(cCharset.CharsetNameDash, null, null, out var lCharsetName); // charset is optional
+
+            if (lCursor.SkipByte(cASCII.QUOTE))
+            {
+                lCursor.GetLanguageTag(out mLanguageTag); // language tag is optional
+
+                if (lCursor.SkipByte(cASCII.QUOTE))
+                {
+                    lCursor.GetToken(cCharset.All, cASCII.PERCENT, null, out cByteList lValueBytes); // the value itself is optional (!)
+
+                    if (lCursor.Position.AtEnd && cTools.TryCharsetBytesToString(lCharsetName, lValueBytes, out mStringValue))
+                    {
+                        // successful decode of rfc 2231 syntax
+
+                        // trim off the asterisk at the end of the name
+                        byte[] lTrimmedName = new byte[mRawName.Count - 1];
+                        for (int i = 0; i < mRawName.Count - 1; i++) lTrimmedName[i] = mRawName[i];
+
+                        mName = cTools.UTF8BytesToString(lTrimmedName);
+
+                        return;
+                    }
+                }
+            }
+
+            // failed to decode rfc 2231 syntax: store name=value
+            mName = cTools.UTF8BytesToString(mRawName);
+            mStringValue = cTools.UTF8BytesToString(RawValue);
+            mLanguageTag = null;
+        }
+
+        /// <summary>
+        /// The name of the attribute.
+        /// </summary>
+        public string Name => mName;
+
+        /// <summary>
+        /// The decoded value.
+        /// </summary>
+        public string StringValue => mStringValue;
+
+        /// <summary>
+        /// The language tag of the value. May be <see langword="null"/>.
+        /// </summary>
+        public string LanguageTag => mLanguageTag;
 
         /// <summary>
         /// Gets the value as a <see cref="UInt32"/>. May be <see langword="null"/>.
@@ -794,20 +936,22 @@ namespace work.bacome.mailclient
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cBodyStructureParameter)}({Name},{RawValue},{StringValue},{LanguageTag})";
+        public override string ToString() => $"{nameof(cBodyStructureParameter)}({mRawName},{RawValue},{mName},{mStringValue},{mLanguageTag})";
     }
 
     /// <summary>
     /// An immutable collection of IMAP BODYSTRUCTURE attribute-value pairs.
     /// </summary>
-    /// <seealso cref="cAttachment.Parameters"/>
-    /// <seealso cref="cSinglePartBody.Parameters"/>
-    /// <seealso cref="cMultiPartBody.Parameters"/>
-    /// <seealso cref="cBodyPartDisposition.Parameters"/>
-    /// <seealso cref="cMultiPartExtensionData"/>
+    [Serializable]
     public class cBodyStructureParameters : ReadOnlyCollection<cBodyStructureParameter>
     {
         internal cBodyStructureParameters(IList<cBodyStructureParameter> pParameters) : base(pParameters) { }
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            foreach (var lParameter in this) if (lParameter == null) throw new cDeserialiseException(nameof(cBodyStructureParameters), null, kDeserialiseExceptionMessage.ContainsNulls);
+        }
 
         /// <summary>
         /// Returns the first parameter with the specified attribute name.

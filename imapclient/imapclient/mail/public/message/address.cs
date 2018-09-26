@@ -27,7 +27,7 @@ namespace work.bacome.mailclient
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (DisplayName != null && !cCharset.WSPVChar.ContainsAll(DisplayName.ToString())) throw new cDeserialiseException($"{nameof(cAddress)}.{nameof(DisplayName)}.invalid");
+            if (DisplayName != null && !cCharset.WSPVChar.ContainsAll(DisplayName.ToString())) throw new cDeserialiseException(nameof(cAddress), nameof(DisplayName), kDeserialiseExceptionMessage.IsInvalid);
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace work.bacome.mailclient
         private void OnDeserialised(StreamingContext pSC)
         {
             if (mAddresses == null) throw new Exception($"{nameof(cAddresses)}.{nameof(mAddresses)}.null");
-            foreach (var lAddress in mAddresses) if (lAddress == null) throw new cDeserialiseException($"{nameof(cAddresses)}.{nameof(mAddresses)}.containsnulls");
+            foreach (var lAddress in mAddresses) if (lAddress == null) throw new cDeserialiseException(nameof(cAddresses), nameof(mAddresses), kDeserialiseExceptionMessage.ContainsNulls);
             ZFinishConstruct();
         }
 
@@ -237,11 +237,11 @@ namespace work.bacome.mailclient
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (LocalPart == null) throw new cDeserialiseException($"{nameof(cEmailAddress)}.{nameof(LocalPart)}.null");
-            if (!cValidation.TryParseLocalPart(LocalPart, out var lLocalPart) || lLocalPart != LocalPart) throw new cDeserialiseException($"{nameof(cEmailAddress)}.{nameof(LocalPart)}.invalid");
+            if (LocalPart == null) throw new cDeserialiseException(nameof(cEmailAddress), nameof(LocalPart), kDeserialiseExceptionMessage.IsNull);
+            if (!cValidation.TryParseLocalPart(LocalPart, out var lLocalPart) || lLocalPart != LocalPart) throw new cDeserialiseException(nameof(cEmailAddress), nameof(LocalPart), kDeserialiseExceptionMessage.IsInvalid);
 
-            if (Domain == null) throw new cDeserialiseException($"{nameof(cEmailAddress)}.{nameof(Domain)}.null");
-            if (!cValidation.TryParseDomain(Domain, out var lDomain) || lDomain != Domain) throw new cDeserialiseException($"{nameof(cEmailAddress)}.{nameof(Domain)}.invalid");
+            if (Domain == null) throw new cDeserialiseException(nameof(cEmailAddress), nameof(Domain), kDeserialiseExceptionMessage.IsNull);
+            if (!cValidation.TryParseDomain(Domain, out var lDomain) || lDomain != Domain) throw new cDeserialiseException(nameof(cEmailAddress), nameof(Domain), kDeserialiseExceptionMessage.IsInvalid);
 
             ZFinishConstruct();
         }
@@ -414,8 +414,8 @@ namespace work.bacome.mailclient
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (EmailAddresses == null) throw new Exception($"{nameof(cGroupAddress)}.{nameof(EmailAddresses)}.null");
-            foreach (var lEMailAddress in EmailAddresses) if (lEMailAddress == null) throw new cDeserialiseException($"{nameof(cGroupAddress)}.{nameof(EmailAddresses)}.containsnulls");
+            if (EmailAddresses == null) throw new cDeserialiseException(nameof(cGroupAddress), nameof(EmailAddresses), kDeserialiseExceptionMessage.IsNull);
+            foreach (var lEMailAddress in EmailAddresses) if (lEMailAddress == null) throw new cDeserialiseException(nameof(cGroupAddress), nameof(EmailAddresses), kDeserialiseExceptionMessage.ContainsNulls);
             mDisplayName = DisplayName.ToString();
         }
 

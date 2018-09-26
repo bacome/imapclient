@@ -112,7 +112,7 @@ namespace work.bacome.mailclient
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            foreach (var lPart in Parts) if (lPart == null) throw new cDeserialiseException($"{nameof(cCulturedString)}.{nameof(Parts)}.containsnulls");
+            foreach (var lPart in Parts) if (lPart == null) throw new cDeserialiseException(nameof(cCulturedString), nameof(Parts), kDeserialiseExceptionMessage.ContainsNulls);
         }
 
         /**<summary>Returns the string data sans the language information.</summary>*/
@@ -193,7 +193,7 @@ namespace work.bacome.mailclient
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (String == null) throw new cDeserialiseException($"{nameof(cCulturedStringPart)}.{nameof(String)}.null");
+            if (String == null) throw new cDeserialiseException(nameof(cCulturedStringPart), nameof(String), kDeserialiseExceptionMessage.IsNull);
         }
 
         /// <inheritdoc/>

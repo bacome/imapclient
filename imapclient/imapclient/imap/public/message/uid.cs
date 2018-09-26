@@ -32,8 +32,8 @@ namespace work.bacome.imapclient
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (UIDValidity == 0) throw new cDeserialiseException($"{nameof(cUID)}.{nameof(UIDValidity)}.zero");
-            if (UID == 0) throw new cDeserialiseException($"{nameof(cUID)}.{nameof(UID)}.zero");
+            if (UIDValidity == 0) throw new cDeserialiseException(nameof(cUID), nameof(UIDValidity), kDeserialiseExceptionMessage.IsInvalid);
+            if (UID == 0) throw new cDeserialiseException(nameof(cUID), nameof(UID), kDeserialiseExceptionMessage.IsInvalid);
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>

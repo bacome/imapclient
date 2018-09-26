@@ -174,26 +174,26 @@ namespace work.bacome.imapclient
                     {
                         case cResponseDataFlags lFlags:
 
-                            if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, "flags after fetch", fIMAPCapabilities.qresync, lContext);
+                            if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.SelectResponseOrderProblem, fIMAPCapabilities.qresync, lContext);
                             mFlags = lFlags.Flags;
                             return eProcessDataResult.processed;
 
                         case cResponseDataExists lExists:
 
-                            if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, "exists after fetch", fIMAPCapabilities.qresync, lContext);
+                            if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.SelectResponseOrderProblem, fIMAPCapabilities.qresync, lContext);
                             mExists = lExists.Exists;
                             return eProcessDataResult.processed;
 
                         case cResponseDataRecent lRecent:
 
-                            if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, "recent after fetch", fIMAPCapabilities.qresync, lContext);
+                            if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.SelectResponseOrderProblem, fIMAPCapabilities.qresync, lContext);
                             mRecent = lRecent.Recent;
                             return eProcessDataResult.processed;
 
                         case cResponseDataVanished lVanished when mUsingQResync && lVanished.Earlier:
 
-                            if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, "vanished after fetch", fIMAPCapabilities.qresync, lContext);
-                            if (mUIDValidity == 0) throw new cUnexpectedIMAPServerActionException(null, "vanished before uidvalidity", fIMAPCapabilities.qresync, lContext);
+                            if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.SelectResponseOrderProblem, fIMAPCapabilities.qresync, lContext);
+                            if (mUIDValidity == 0) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.SelectResponseOrderProblem, fIMAPCapabilities.qresync, lContext);
                             if (mPersistentCache.Vanished(mMailboxCacheItem.MailboxId, mUIDValidity, lVanished.KnownUIDs, lContext)) return eProcessDataResult.processed;
                             else return eProcessDataResult.notprocessed;
 
@@ -218,25 +218,25 @@ namespace work.bacome.imapclient
                         {
                             case cResponseDataPermanentFlags lFlags:
 
-                                if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, "flags after fetch", fIMAPCapabilities.qresync, lContext);
+                                if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.SelectResponseOrderProblem, fIMAPCapabilities.qresync, lContext);
                                 mPermanentFlags = lFlags.Flags;
                                 return;
 
                             case cResponseDataUIDNext lUIDNext:
 
-                                if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, "uidnext after fetch", fIMAPCapabilities.qresync, lContext);
+                                if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.SelectResponseOrderProblem, fIMAPCapabilities.qresync, lContext);
                                 mUIDNext = lUIDNext.UIDNext;
                                 return;
 
                             case cResponseDataUIDValidity lUIDValidity:
 
-                                if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, "uidvalidity after fetch", fIMAPCapabilities.qresync, lContext);
+                                if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.SelectResponseOrderProblem, fIMAPCapabilities.qresync, lContext);
                                 mUIDValidity = lUIDValidity.UIDValidity;
                                 return;
 
                             case cResponseDataHighestModSeq lHighestModSeq:
 
-                                if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, "highestmodseq after fetch", fIMAPCapabilities.qresync, lContext);
+                                if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.SelectResponseOrderProblem, fIMAPCapabilities.qresync, lContext);
                                 mHighestModSeq = lHighestModSeq.HighestModSeq;
                                 return;
                         }
@@ -252,12 +252,12 @@ namespace work.bacome.imapclient
                     {
                         if (pTextContext == eIMAPResponseTextContext.information && pCode.Equals(kNoModSeq) && pArguments == null)
                         {
-                            if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, "nomodseq after fetch", fIMAPCapabilities.qresync, lContext);
+                            if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.SelectResponseOrderProblem, fIMAPCapabilities.qresync, lContext);
                             mHighestModSeq = 0;
                         }
                         else if (pTextContext == eIMAPResponseTextContext.warning && pCode.Equals(kUIDNotSticky) && pArguments == null)
                         {
-                            if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, "uidnotsticky after fetch", fIMAPCapabilities.qresync, lContext);
+                            if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.SelectResponseOrderProblem, fIMAPCapabilities.qresync, lContext);
                             mUIDNotSticky = true;
                         }
                     }

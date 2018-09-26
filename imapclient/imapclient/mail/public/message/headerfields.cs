@@ -33,8 +33,8 @@ namespace work.bacome.mailclient
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (Name == null) throw new cDeserialiseException($"{nameof(cHeaderField)}.{nameof(Name)}.null");
-            if (Value == null) throw new cDeserialiseException($"{nameof(cHeaderField)}.{nameof(Value)}.null");
+            if (Name == null) throw new cDeserialiseException(nameof(cHeaderField), nameof(Name), kDeserialiseExceptionMessage.IsNull);
+            if (Value == null) throw new cDeserialiseException(nameof(cHeaderField), nameof(Value), kDeserialiseExceptionMessage.IsNull);
         }
 
         /// <inheritdoc />
@@ -55,7 +55,7 @@ namespace work.bacome.mailclient
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (!ZTryParse(Value, out mMessageId)) throw new cDeserialiseException($"{nameof(cHeaderFieldMsgId)}.{nameof(Value)}.invalid");
+            if (!ZTryParse(Value, out mMessageId)) throw new cDeserialiseException(nameof(cHeaderFieldMsgId), nameof(Value), kDeserialiseExceptionMessage.IsInvalid);
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace work.bacome.mailclient
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (!ZTryParse(Value, out mMessageIds)) throw new cDeserialiseException($"{nameof(cHeaderFieldMsgIds)}.{nameof(Value)}.invalid");
+            if (!ZTryParse(Value, out mMessageIds)) throw new cDeserialiseException(nameof(cHeaderFieldMsgIds), nameof(Value), kDeserialiseExceptionMessage.IsInvalid);
         }
 
         /// <summary>
@@ -178,8 +178,8 @@ namespace work.bacome.mailclient
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (!Name.Equals(kHeaderFieldName.Importance, StringComparison.InvariantCultureIgnoreCase)) throw new cDeserialiseException($"{nameof(cHeaderFieldImportance)}.{nameof(Name)}.invalid");
-            if (!ZTryParse(Value, out mImportance)) throw new cDeserialiseException($"{nameof(cHeaderFieldImportance)}.{nameof(Value)}.invalid");
+            if (!Name.Equals(kHeaderFieldName.Importance, StringComparison.InvariantCultureIgnoreCase)) throw new cDeserialiseException(nameof(cHeaderFieldImportance), nameof(Name), kDeserialiseExceptionMessage.IsInvalid);
+            if (!ZTryParse(Value, out mImportance)) throw new cDeserialiseException(nameof(cHeaderFieldImportance), nameof(Value), kDeserialiseExceptionMessage.IsInvalid);
         }
 
         /** <summary>The value of the field as an importance code.</summary>*/
@@ -255,12 +255,7 @@ namespace work.bacome.mailclient
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (mNames == null) throw new cDeserialiseException($"{nameof(cHeaderFields)}.{nameof(mNames)}.null");
-            // potentially should check that the fields and the fieldnames should match
-            //  but .. this isn't checked in the ZTryConstruct, so ...
-
-
-            ;?; // also check that each entry is not null
+            if (mNames == null) throw new cDeserialiseException(nameof(cHeaderFields), nameof(mNames), kDeserialiseExceptionMessage.IsNull);
         }
 
         /// <summary>

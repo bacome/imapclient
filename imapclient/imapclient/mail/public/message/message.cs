@@ -115,6 +115,7 @@ namespace work.bacome.mailclient
         {
             if (pPart == null) throw new ArgumentNullException(nameof(pPart));
             var lBodyStructure = BodyStructure;
+            ;?; // this ref equals is a problem
             if (ReferenceEquals(lBodyStructure, pPart)) return;
             if (!lBodyStructure.Contains(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
         }

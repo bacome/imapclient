@@ -6,48 +6,15 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    ;?;
-    [Serializable]
-    public class cHeaderCacheItem
+    public class cUTF8HeaderCacheItem
     {
-        [NonSerialized]
-        private readonly object mAttributesLock = new object();
-        [NonSerialized]
-        private fMessageCacheAttributes mAttributes;
-
-        private cEnvelope mEnvelope;
-        private DateTimeOffset? mReceivedDateTimeOffset;
-        private DateTime? mReceivedDateTime;
-        private uint? mSize;
-        [NonSerialized]
-        private cBodyPart mBody;
-        ;...;
-        private cBodyPart mBodyStructure;
-
-        [NonSerialized]
-        private readonly object mHeaderFieldsLock = new object();
-        ;...;
-        private cHeaderFields mHeaderFields;
-
-        [NonSerialized]
-        private readonly object mBinarySizesLock = new object();
-        ;...;
-        private cBinarySizes mBinarySizes;
 
         protected internal cHeaderCacheItem()
         {
-            mAttributes = 0;
             mEnvelope = null;
-            mReceivedDateTimeOffset = null;
-            mReceivedDateTime = null;
-            mSize = null;
-            mBody = null;
             mBodyStructure = null;
             mHeaderFields = null;
-            mBinarySizes = null;
         }
-
-        ;/; // set atributes in ondeser
 
         protected long AccessSequence => mAccessSequence;
 
@@ -97,5 +64,22 @@ namespace work.bacome.imapclient
         public virtual cBinarySizes BinarySizes { get; protected set; } // note that this is dynamic AND updates to it must be synchronised in the persistent cache
 
         protected internal virtual void AddBinarySizes(cBinarySizes pBinarySizes); // merge while locked
+    }
+
+    [Serializable]
+    public class cUTF8HeaderCacheItemData : cPersistentCacheItemData
+    {
+        private cEnvelope mEnvelope;
+        ;...;
+        private cBodyPart mBodyStructure;
+
+        [NonSerialized]
+        private readonly object mHeaderFieldsLock = new object();
+
+        private cHeaderFields mHeaderFields;
+
+
+
+        ;?; // the deserialise must check the 'section' of the bodystructure ... it should be cSection.Text ? [what ever the top part should be]
     }
 }
