@@ -98,6 +98,14 @@ namespace work.bacome.mailclient
     public abstract class cBodyPart
     {
         /// <summary>
+        /// Indicates if this is the internationalized version of the body-part.
+        /// </summary>
+        /// <remarks>
+        /// See RFCs 6855 (section 7) 6857 and 6858.
+        /// </remarks>
+        public readonly bool UTF8Enabled;
+
+        /// <summary>
         /// The MIME type of the body-part as a string.
         /// </summary>
         public readonly string Type;
@@ -115,8 +123,12 @@ namespace work.bacome.mailclient
         [NonSerialized]
         private eBodyPartTypeCode mTypeCode;
 
-        internal cBodyPart(string pType, string pSubType, cSection pSection)
+        ;?; // note that utf8 at this level replaces it at other levels ...
+        ;?; //  and in checking on-deserialise, the consistency of this flag must be checked
+        ;?; //  and that this must be an attribute of envelope (and address)
+        internal cBodyPart(bool pUTF8Enabled, string pType, string pSubType, cSection pSection)
         {
+            UTF8Enabled = pUTF8Enabled;
             Type = pType ?? throw new ArgumentNullException(nameof(pType));
             SubType = pSubType ?? throw new ArgumentNullException(nameof(pSubType));
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
@@ -162,8 +174,8 @@ namespace work.bacome.mailclient
 
         public abstract fMessageDataFormat Format { get; }
 
-        public abstract bool LikelyIs(cBodyPart pPart);
-        public abstract bool LikelyContains(cBodyPart pPart);
+        internal abstract bool LikelyIs(cBodyPart pPart);
+        internal abstract bool LikelyContains(cBodyPart pPart);
 
         /// <summary>
         /// Gets the disposition of the body-part. May be <see langword="null"/>. 

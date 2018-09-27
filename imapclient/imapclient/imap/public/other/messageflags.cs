@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
 
@@ -69,11 +70,10 @@ namespace work.bacome.imapclient
     /// Represents an immutable message-flag collection.
     /// </summary>
     /// <remarks>
-    /// Message flags are case insensitive and have a limited grammer - see RFC 3501.
+    /// Message flags are case insensitive and have a limited grammar - see RFC 3501.
     /// (Generally user-defined message-flags may only include <see cref="cCharset.Atom"/> characters.)
     /// </remarks>
-    /// <seealso cref="cMailbox.ForUpdatePermanentFlags"/>
-    /// <seealso cref="cMailbox.ReadOnlyPermanentFlags"/>
+    [Serializable]
     public abstract class cMessageFlags : IReadOnlyList<string>, IEquatable<cMessageFlags>
     {
         // ordered (case insensitive) list of flags (the ordering is required for the hashcode and == implementations)
@@ -84,6 +84,27 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pFlags"></param>
         internal cMessageFlags(IEnumerable<string> pFlags) => mFlags = new List<string>(from f in pFlags orderby f.ToUpperInvariant() select f);
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            if (mFlags == null) throw new cDeserialiseException(nameof(cMessageFlags), nameof(mFlags), kDeserialiseExceptionMessage.IsNull);
+
+            bool lFirst = true;
+            string lLastFlag = null;
+
+            foreach (var lFlag in mFlags)
+            {
+                if (lFlag == null) throw new cDeserialiseException(nameof(cMessageFlags), nameof(mFlags), kDeserialiseExceptionMessage.ContainsNulls);
+
+                string lThisFlag = lFlag.ToUpperInvariant();
+
+                if (lFirst) lFirst = false;
+                else if (lThisFlag.CompareTo(lLastFlag) != 1) throw new cDeserialiseException(nameof(cMessageFlags), nameof(mFlags), kDeserialiseExceptionMessage.IsOutOfOrder);
+
+                lLastFlag = lThisFlag;
+            }
+        }
 
         /// <summary>
         /// Determines whether the collection contains the specified flag (case insensitive).
@@ -182,10 +203,6 @@ namespace work.bacome.imapclient
     /// <see cref="kMessageFlag.Recent"/> is not a storable-message-flag.
     /// <see cref="kMessageFlag.CreateNewIsPossible"/> is not a storable-message-flag.
     /// </remarks>
-    /// <seealso cref="cIMAPMessage.Store(eStoreOperation, cStorableFlags, ulong?)"/>,
-    /// <seealso cref="cIMAPClient.Store(IEnumerable{cIMAPMessage}, eStoreOperation, cStorableFlags, ulong?)"/>
-    /// <seealso cref="cMailbox.UIDStore(cUID, eStoreOperation, cStorableFlags, ulong?)"/>,
-    /// <seealso cref="cMailbox.UIDStore(IEnumerable{cUID}, eStoreOperation, cStorableFlags, ulong?)"/>,
     public class cStorableFlags : cMessageFlags, IEquatable<cStorableFlags>
     {
         // immutable (for passing in)
@@ -258,8 +275,7 @@ namespace work.bacome.imapclient
     /// (Generally user-defined message-flags may only include <see cref="cCharset.Atom"/> characters.)
     /// <see cref="kMessageFlag.CreateNewIsPossible"/> is not a fetchable-message-flag.
     /// </remarks>
-    /// <seealso cref="cMailbox.MessageFlags"/>
-    /// <seealso cref="cFilter.FlagsContain(cFetchableFlags)"/>
+    [Serializable]
     public class cFetchableFlags : cMessageFlags, IEquatable<cFetchableFlags>
     {
         // immutable (for passing in and out)
@@ -282,6 +298,13 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pFlags"></param>
         public cFetchableFlags(cFetchableFlagList pFlags) : base(pFlags) { }
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            foreach (var lFlag in this) if (!cValidation.IsFetchableFlag(lFlag)) throw new cDeserialiseException(nameof(cFetchableFlags), null, kDeserialiseExceptionMessage.ContainsInvalidValues);
+            if (this.Distinct(StringComparer.InvariantCultureIgnoreCase).Count() != Count) throw new cDeserialiseException(nameof(cFetchableFlags), null, kDeserialiseExceptionMessage.ContainsDuplicates);
+        }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public bool Equals(cFetchableFlags pObject) => this == pObject;
@@ -441,15 +464,8 @@ namespace work.bacome.imapclient
         private static bool ZIsValidFlag(string pFlag)
         {
             if (pFlag == null) return false;
-            if (pFlag.Length == 0) return false;
-
             if (pFlag.Equals(kMessageFlag.Recent, StringComparison.InvariantCultureIgnoreCase)) return false;
-
-            string lFlag;
-            if (pFlag[0] == '\\') lFlag = pFlag.Remove(0, 1);
-            else lFlag = pFlag;
-
-            return cCommandPartFactory.TryAsAtom(lFlag, out _);
+            return cValidation.IsFetchableFlag(pFlag);
         }
 
         private static List<string> ZCtor(IEnumerable<string> pFlags)
@@ -524,31 +540,19 @@ namespace work.bacome.imapclient
         private cFetchableFlagList(List<string> pFlags) : base(pFlags) { } // wraps
 
         /**<summary></summary>*/
-        protected override bool YIsValidFlag(string pFlag) => ZIsValidFlag(pFlag);
-
-        private static bool ZIsValidFlag(string pFlag)
-        {
-            if (pFlag == null) return false;
-            if (pFlag.Length == 0) return false;
-
-            string lFlag;
-            if (pFlag[0] == '\\') lFlag = pFlag.Remove(0, 1);
-            else lFlag = pFlag;
-
-            return cCommandPartFactory.TryAsAtom(lFlag, out _);
-        }
+        protected override bool YIsValidFlag(string pFlag) => cValidation.IsFetchableFlag(pFlag);
 
         private static List<string> ZCtor(IEnumerable<string> pFlags)
         {
             if (pFlags == null) return new List<string>();
-            foreach (var lFlag in pFlags) if (!ZIsValidFlag(lFlag)) throw new ArgumentOutOfRangeException(nameof(pFlags));
+            foreach (var lFlag in pFlags) if (!cValidation.IsFetchableFlag(lFlag)) throw new ArgumentOutOfRangeException(nameof(pFlags));
             return new List<string>(pFlags.Distinct(StringComparer.InvariantCultureIgnoreCase));
         }
 
         internal static bool TryConstruct(IEnumerable<string> pFlags, out cFetchableFlagList rFlags)
         {
             if (pFlags == null) { rFlags = null; return false; }
-            foreach (var lFlag in pFlags) if (!ZIsValidFlag(lFlag)) { rFlags = null; return false; }
+            foreach (var lFlag in pFlags) if (!cValidation.IsFetchableFlag(lFlag)) { rFlags = null; return false; }
             rFlags = new cFetchableFlagList(new List<string>(pFlags.Distinct(StringComparer.InvariantCultureIgnoreCase)));
             return true;
         }

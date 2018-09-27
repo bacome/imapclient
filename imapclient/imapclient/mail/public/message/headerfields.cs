@@ -50,12 +50,15 @@ namespace work.bacome.mailclient
         [NonSerialized]
         private string mMessageId;
 
-        private cHeaderFieldMsgId(string pName, cBytes pValue, string pMessageId) : base(pName, pValue) { mMessageId = pMessageId; }
+        private cHeaderFieldMsgId(string pName, cBytes pValue, string pMessageId) : base(pName, pValue)
+        {
+            mMessageId = pMessageId;
+        }
 
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (!ZTryParse(Value, out mMessageId)) throw new cDeserialiseException(nameof(cHeaderFieldMsgId), nameof(Value), kDeserialiseExceptionMessage.IsInvalid);
+            if (!cParsing.TryParseMsgId(Value, out mMessageId)) throw new cDeserialiseException(nameof(cHeaderFieldMsgId), nameof(Value), kDeserialiseExceptionMessage.IsInvalid);
         }
 
         /// <summary>
@@ -63,23 +66,9 @@ namespace work.bacome.mailclient
         /// </summary>
         public string MessageId => mMessageId;
 
-        private static bool ZTryParse(IList<byte> pValue, out string rMessageId)
-        {
-            cBytesCursor lCursor = new cBytesCursor(pValue);
-
-            if (lCursor.GetRFC822MsgId(out var lIdLeft, out var lIdRight) && lCursor.Position.AtEnd)
-            {
-                rMessageId = cTools.MessageId(lIdLeft, lIdRight);
-                return true;
-            }
-
-            rMessageId = null;
-            return false;
-        }
-
         internal static bool TryConstruct(string pName, IList<byte> pValue, out cHeaderFieldMsgId rMsgId)
         {
-            if (pName != null && pValue != null && ZTryParse(pValue, out var lMessageId))
+            if (pName != null && pValue != null && cParsing.TryParseMsgId(pValue, out var lMessageId))
             {
                 rMsgId = new cHeaderFieldMsgId(pName, new cBytes(pValue), lMessageId);
                 return true;
@@ -102,12 +91,15 @@ namespace work.bacome.mailclient
         [NonSerialized]
         private cStrings mMessageIds;
 
-        private cHeaderFieldMsgIds(string pName, cBytes pValue, cStrings pMessageIds) : base(pName, pValue) { mMessageIds = pMessageIds; }
+        private cHeaderFieldMsgIds(string pName, cBytes pValue, cStrings pMessageIds) : base(pName, pValue)
+        {
+            mMessageIds = pMessageIds;
+        }
 
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (!ZTryParse(Value, out mMessageIds)) throw new cDeserialiseException(nameof(cHeaderFieldMsgIds), nameof(Value), kDeserialiseExceptionMessage.IsInvalid);
+            if (!cParsing.TryParseMsgIds(Value, out mMessageIds)) throw new cDeserialiseException(nameof(cHeaderFieldMsgIds), nameof(Value), kDeserialiseExceptionMessage.IsInvalid);
         }
 
         /// <summary>
@@ -115,31 +107,9 @@ namespace work.bacome.mailclient
         /// </summary>
         public cStrings MessageIds => mMessageIds;
 
-        private static bool ZTryParse(IList<byte> pValue, out cStrings rMessageIds)
-        {
-            List<string> lMessageIds = new List<string>();
-
-            cBytesCursor lCursor = new cBytesCursor(pValue);
-
-            while (true)
-            {
-                if (!lCursor.GetRFC822MsgId(out var lIdLeft, out var lIdRight)) break;
-                lMessageIds.Add(cTools.MessageId(lIdLeft, lIdRight));
-            }
-
-            if (lCursor.Position.AtEnd)
-            {
-                rMessageIds = new cStrings(lMessageIds);
-                return true;
-            }
-
-            rMessageIds = null;
-            return false;
-        }
-
         internal static bool TryConstruct(string pName, IList<byte> pValue, out cHeaderFieldMsgIds rMsgIds)
         {
-            if (pName != null && pValue != null && ZTryParse(pValue, out var lMessageIds))
+            if (pName != null && pValue != null && cParsing.TryParseMsgIds(pValue, out var lMessageIds))
             {
                 rMsgIds = new cHeaderFieldMsgIds(pName, new cBytes(pValue), lMessageIds);
                 return true;
@@ -205,7 +175,7 @@ namespace work.bacome.mailclient
         {
             if (pValue != null && ZTryParse(pValue, out var lImportance))
             {
-                rImportance = new cHeaderFieldImportance(new cBytes(pValue), lImportance;
+                rImportance = new cHeaderFieldImportance(new cBytes(pValue), lImportance);
                 return true;
             }
 

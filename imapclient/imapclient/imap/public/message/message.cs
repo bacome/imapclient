@@ -25,7 +25,6 @@ namespace work.bacome.imapclient
         private static readonly cMessageCacheItems kFlags = fMessageCacheAttributes.flags;
         private static readonly cMessageCacheItems kReceived = fMessageCacheAttributes.received;
         private static readonly cMessageCacheItems kUID = fMessageCacheAttributes.uid;
-        private static readonly cMessageCacheItems kModSeq = fMessageCacheAttributes.modseq;
         private static readonly cMessageCacheItems kBodyStructure = fMessageCacheAttributes.bodystructure;
         private static readonly cMessageCacheItems kReferences = cHeaderFieldNames.References;
         private static readonly cMessageCacheItems kImportance = cHeaderFieldNames.Importance;
@@ -291,14 +290,14 @@ namespace work.bacome.imapclient
         /// Gets the mod-sequence of the message. May be zero.
         /// </summary>
         /// <remarks>
-        /// If the message cache does not contain the <see cref="fMessageCacheAttributes.modseq"/> of the message, it will be fetched from the server.
+        /// If the message cache does not contain the mod-sequence of the message, it will be fetched from the server.
         /// Will be zero if <see cref="cIMAPCapabilities.CondStore"/> is not in use or if the mailbox does not support the persistent storage of mod-sequences.
         /// </remarks>
         public ulong ModSeq
         {
             get
             {
-                ZFetch(kModSeq, true);
+                ZFetch(kFlags, true);
                 return MessageHandle.ModSeq.Value;
             }
         }

@@ -52,13 +52,12 @@ namespace work.bacome.imapclient
             Attributes = 0;
 
             // see comments elsewhere as to why mdnsent is commented out
-            if ((pProperties & (fIMAPMessageProperties.flags | fIMAPMessageProperties.answered | fIMAPMessageProperties.flagged | fIMAPMessageProperties.deleted | fIMAPMessageProperties.seen | fIMAPMessageProperties.draft | fIMAPMessageProperties.recent | /* fMessageProperties.mdnsent | */ fIMAPMessageProperties.forwarded | fIMAPMessageProperties.submitpending | fIMAPMessageProperties.submitted)) != 0) Attributes |= fMessageCacheAttributes.flags;
+            if ((pProperties & (fIMAPMessageProperties.flags | fIMAPMessageProperties.answered | fIMAPMessageProperties.flagged | fIMAPMessageProperties.deleted | fIMAPMessageProperties.seen | fIMAPMessageProperties.draft | fIMAPMessageProperties.recent | /* fMessageProperties.mdnsent | */ fIMAPMessageProperties.forwarded | fIMAPMessageProperties.submitpending | fIMAPMessageProperties.submitted | fIMAPMessageProperties.modseq)) != 0) Attributes |= fMessageCacheAttributes.flags;
             if ((pProperties & (fIMAPMessageProperties.envelope | fIMAPMessageProperties.sent | fIMAPMessageProperties.subject | fIMAPMessageProperties.basesubject | fIMAPMessageProperties.from | fIMAPMessageProperties.sender | fIMAPMessageProperties.replyto | fIMAPMessageProperties.to | fIMAPMessageProperties.cc | fIMAPMessageProperties.bcc | fIMAPMessageProperties.inreplyto | fIMAPMessageProperties.messageid)) != 0) Attributes |= fMessageCacheAttributes.envelope;
             if ((pProperties & fIMAPMessageProperties.received) != 0) Attributes |= fMessageCacheAttributes.received;
             if ((pProperties & fIMAPMessageProperties.size) != 0) Attributes |= fMessageCacheAttributes.size;
             if ((pProperties & fIMAPMessageProperties.bodystructure | fIMAPMessageProperties.attachments | fIMAPMessageProperties.plaintextsizeinbytes) != 0) Attributes |= fMessageCacheAttributes.bodystructure;
             if ((pProperties & fIMAPMessageProperties.uid) != 0) Attributes |= fMessageCacheAttributes.uid;
-            if ((pProperties & fIMAPMessageProperties.modseq) != 0) Attributes |= fMessageCacheAttributes.modseq;
 
             cHeaderFieldNameList lNames = new cHeaderFieldNameList();
 

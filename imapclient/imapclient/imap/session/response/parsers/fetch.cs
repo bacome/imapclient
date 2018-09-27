@@ -179,7 +179,7 @@ namespace work.bacome.imapclient
                         }
                         else if (pCursor.SkipBytes(kModSeqSpaceLParen))
                         {
-                            lAttribute = fMessageCacheAttributes.modseq;
+                            lAttribute = 0;
                             lOK = pCursor.GetNumber(out var lTemp) && pCursor.SkipByte(cASCII.RPAREN);
                             if (lOK) lModSeq = lTemp;
                         }
@@ -208,7 +208,7 @@ namespace work.bacome.imapclient
                     return true;
                 }
 
-                private static bool ZProcessEnvelope(cBytesCursor pCursor, out cEnvelope rEnvelope)
+                private bool ZProcessEnvelope(cBytesCursor pCursor, out cEnvelope rEnvelope)
                 {
                     //  NOTE: this routine does not return the cursor to its original position if it fails
 
@@ -276,10 +276,10 @@ namespace work.bacome.imapclient
                         lBaseSubject = cBaseSubject.Calculate(lSubject);
                     }
 
-                    cHeaderFieldMsgIds.TryConstruct(kHeaderFieldName.InReplyTo, lInReplyToBytes, out var lInReplyTo);
-                    cHeaderFieldMsgId.TryConstruct(kHeaderFieldName.MessageId, lMessageIdBytes, out var lMsgId);
+                    cParsing.TryParseMsgIds(lInReplyToBytes, out var lInReplyTo);
+                    cParsing.TryParseMsgId(lMessageIdBytes, out var lMessageId);
 
-                    rEnvelope = new cEnvelope(lSentDateTimeOffset, lSentDateTime, lSubject, lBaseSubject, lFrom, lSender, lReplyTo, lTo, lCC, lBCC, lInReplyTo, lMsgId);
+                    rEnvelope = new cEnvelope(mUTF8Enabled, lSentDateTimeOffset, lSentDateTime, lSubject, lBaseSubject, lFrom, lSender, lReplyTo, lTo, lCC, lBCC, lInReplyTo, lMessageId);
                     return true;
                 }
 
@@ -1013,7 +1013,7 @@ namespace work.bacome.imapclient
 
                     if (lData.Envelope.BCC != null || lData.Envelope.InReplyTo != null) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.10");
 
-                    if (lData.Envelope.MsgId.MessageId != "<B27397-0100000@cac.washington.edu>") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.11");
+                    if (lData.Envelope.MessageId != "<B27397-0100000@cac.washington.edu>") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.11");
 
                     lTextPart = lData.Body as cTextBodyPart;
                     if (lTextPart.SubTypeCode != eTextBodyPartSubTypeCode.plain || lTextPart.Parameters.Count != 1 || lTextPart.Charset != "US-ASCII" || lTextPart.SizeInBytes != 3028 || lTextPart.SizeInLines != 92) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.12.1");
@@ -1038,7 +1038,7 @@ namespace work.bacome.imapclient
                     lData = lRD as cResponseDataFetch;
                     if (lData == null) throw new cTestsException($"{nameof(cResponseDataFetch)}.1a.2");
 
-                    if (lData.Envelope.InReplyTo == null || lData.Envelope.InReplyTo.MessageIds.Count != 1 || lData.Envelope.InReplyTo.MessageIds[0] != "<01KF8JCEOCBS0045PS@xxx.yyy.com>") throw new cTestsException($"{nameof(cResponseDataFetch)}.1a.3");
+                    if (lData.Envelope.InReplyTo == null || lData.Envelope.InReplyTo.Count != 1 || lData.Envelope.InReplyTo[0] != "<01KF8JCEOCBS0045PS@xxx.yyy.com>") throw new cTestsException($"{nameof(cResponseDataFetch)}.1a.3");
 
 
                     lCursor = new cBytesCursor(

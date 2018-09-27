@@ -2,6 +2,7 @@
 
 namespace work.bacome.imapclient
 {
+    [Serializable]
     public class cModSeqFlags
     {
         public readonly cFetchableFlags Flags;

@@ -9,12 +9,14 @@ namespace work.bacome.imapclient
 
         protected cPersistentCacheItem(cPersistentCacheComponent pCache, cPersistentCacheItemData pData)
         {
-            pCache = mCache ?? throw new ArgumentNullException(nameof(pCache));
+            mCache = pCache ?? throw new ArgumentNullException(nameof(pCache));
             mData = pData ?? throw new ArgumentNullException(nameof(pData));
         }
 
-        public long AccessSequenceNumber => mData.AccessSequenceNumber;
         public DateTime AccessDateTime => mData.AccessDateTime;
+        public long AccessSequenceNumber => mData.AccessSequenceNumber;
+
+        internal void RecordAccess() => mData.SetAccessed(mCache.GetNextAccessSequenceNumber());
 
         public override string ToString() => $"{nameof(cPersistentCacheItem)}({mCache},{mData})";
     }
@@ -22,23 +24,30 @@ namespace work.bacome.imapclient
     [Serializable]
     public abstract class cPersistentCacheItemData
     {
-        private long mAccessSequenceNumber;
+        [NonSerialized]
+        protected readonly object mUpdateLock = new object();
+
         private DateTime mAccessDateTime;
+        private long mAccessSequenceNumber;
 
-        protected cPersistentCacheItemData(cPersistentCacheComponent pCache)
+        protected cPersistentCacheItemData()
         {
-            RecordAccess(pCache);
+            mAccessDateTime = DateTime.MinValue;
+            mAccessSequenceNumber = long.MinValue;
         }
 
-        public long AccessSequenceNumber => mAccessSequenceNumber;
         public DateTime AccessDateTime => mAccessDateTime;
+        public long AccessSequenceNumber => mAccessSequenceNumber;
 
-        protected void RecordAccess(cPersistentCacheComponent pCache)
+        internal void SetAccessed(long pAccessSequenceNumber)
         {
-            mAccessSequenceNumber = pCache.GetNextAccessSequenceNumber();
-            mAccessDateTime = DateTime.UtcNow;
+            lock (mUpdateLock)
+            {
+                mAccessDateTime = DateTime.UtcNow;
+                if (pAccessSequenceNumber > mAccessSequenceNumber) mAccessSequenceNumber = pAccessSequenceNumber;
+            }
         }
 
-        public override string ToString() => $"{nameof(cPersistentCacheItemData)}({mAccessSequenceNumber},{mAccessDateTime})";
+        public override string ToString() => $"{nameof(cPersistentCacheItemData)}({mAccessDateTime},{mAccessSequenceNumber})";
     }
 }

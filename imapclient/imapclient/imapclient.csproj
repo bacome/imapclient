@@ -48,14 +48,15 @@
     <Compile Include="imap\client\getuids.cs" />
     <Compile Include="imap\internal\sectionreader.cs" />
     <Compile Include="imap\internal\selectresult.cs" />
+    <Compile Include="imap\internal\validation.cs" />
     <Compile Include="imap\public\mailbox\mailboxuid.cs" />
     <Compile Include="imap\public\other\modseqflags.cs" />
     <Compile Include="imap\public\persistentcache\base.cs" />
     <Compile Include="imap\public\persistentcache\flag\base.cs" />
     <Compile Include="imap\public\persistentcache\flag\item.cs" />
-    <Compile Include="imap\public\persistentcache\staticheader\base.cs" />
+    <Compile Include="imap\public\persistentcache\header\base.cs" />
     <Compile Include="imap\public\persistentcache\component.cs" />
-    <Compile Include="imap\public\persistentcache\staticheader\item.cs" />
+    <Compile Include="imap\public\persistentcache\header\item.cs" />
     <Compile Include="imap\public\persistentcache\item.cs" />
     <Compile Include="imap\public\persistentcache\section\directorysectioncache.cs" />
     <Compile Include="imap\public\mailbox\mailboxid.cs" />
@@ -75,8 +76,6 @@
     <Compile Include="imap\public\persistentcache\section\item.cs" />
     <Compile Include="imap\public\persistentcache\section\sectionid.cs" />
     <Compile Include="imap\public\message\messagedatastream.cs" />
-    <Compile Include="imap\public\persistentcache\utf8header\base.cs" />
-    <Compile Include="imap\public\persistentcache\utf8header\item.cs" />
     <Compile Include="imap\session\command_hooks\commandhookbasesort.cs" />
     <Compile Include="imap\session\fetch\sectiontargetwriter.cs" />
     <Compile Include="imap\session\fetch\uidsection.cs" />
@@ -103,6 +102,7 @@
     <Compile Include="mail\internal\encoding\tests.cs" />
     <Compile Include="mail\internal\message\message.cs" />
     <Compile Include="mail\internal\other\incrementer.cs" />
+    <Compile Include="mail\internal\other\parsing.cs" />
     <Compile Include="mail\public\configuration\setmaximumconfiguration.cs" />
     <Compile Include="mail\public\other\encoding.cs" />
     <Compile Include="mail\support\decodingstream.cs" />

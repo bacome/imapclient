@@ -45,12 +45,12 @@ namespace work.bacome.mailclient
         public readonly cAddresses BCC;
 
         /** <summary>The normalised (delimiters, quoting, comments and white space removed) 'in-reply-to' message-ids. May be <see langword="null"/>.</summary> */
-        public readonly cHeaderFieldMsgIds InReplyTo;
+        public readonly cStrings InReplyTo;
 
         /** <summary>The normalised (delimiters, quoting, comments and white space removed) 'message-id' of the message. May be <see langword="null"/>.</summary> */
-        public readonly cHeaderFieldMsgId MsgId;
+        public readonly string MessageId;
 
-        internal cEnvelope(DateTimeOffset? pSentDateTimeOffset, DateTime? pSentDateTime, cCulturedString pSubject, string pBaseSubject, cAddresses pFrom, cAddresses pSender, cAddresses pReplyTo, cAddresses pTo, cAddresses pCC, cAddresses pBCC, cHeaderFieldMsgIds pInReplyTo, cHeaderFieldMsgId pMsgId)
+        internal cEnvelope(DateTimeOffset? pSentDateTimeOffset, DateTime? pSentDateTime, cCulturedString pSubject, string pBaseSubject, cAddresses pFrom, cAddresses pSender, cAddresses pReplyTo, cAddresses pTo, cAddresses pCC, cAddresses pBCC, cStrings pInReplyTo, string pMessageId)
         {
             SentDateTimeOffset = pSentDateTimeOffset;
             SentDateTime = pSentDateTime;
@@ -63,10 +63,10 @@ namespace work.bacome.mailclient
             CC = pCC;
             BCC = pBCC;
             InReplyTo = pInReplyTo;
-            MsgId = pMsgId;
+            MessageId = pMessageId;
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cEnvelope)}({SentDateTimeOffset},{SentDateTime},{Subject},{BaseSubject},{From},{Sender},{ReplyTo},{To},{CC},{BCC},{InReplyTo},{MsgId})";
+        public override string ToString() => $"{nameof(cEnvelope)}({SentDateTimeOffset},{SentDateTime},{Subject},{BaseSubject},{From},{Sender},{ReplyTo},{To},{CC},{BCC},{InReplyTo},{MessageId})";
     }
 }

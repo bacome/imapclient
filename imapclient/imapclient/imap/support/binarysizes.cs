@@ -22,7 +22,7 @@ namespace work.bacome.imapclient.support
             foreach (var lKey in Keys)
             {
                 if (lKey == null) throw new cDeserialiseException(nameof(cBinarySizes), nameof(Keys), kDeserialiseExceptionMessage.ContainsNulls);
-                if (!cValidation.IsValidSectionPart(lKey)) throw new cDeserialiseException(nameof(cBinarySizes), nameof(Keys), kDeserialiseExceptionMessage.ContainsInvalidValues);
+                if (!cValidation.IsSectionPart(lKey)) throw new cDeserialiseException(nameof(cBinarySizes), nameof(Keys), kDeserialiseExceptionMessage.ContainsInvalidValues);
             }
         }
 

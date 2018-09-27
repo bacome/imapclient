@@ -7,7 +7,7 @@ namespace work.bacome.imapclient
     /// Represents a set of IMAP message attributes that can be cached.
     /// </summary>
     [Flags]
-    public enum fMessageCacheAttributes : int
+    public enum fMessageCacheAttributes
     {
         /**<summary>The flags that are set for the message.</summary>*/
         flags = 1 << 0,
@@ -23,17 +23,18 @@ namespace work.bacome.imapclient
         bodystructure = 1 << 5,
         /**<summary>The unique identifier of the message.</summary>*/
         uid = 1 << 6,
-        /**<summary>The mod-sequence of the message.</summary>*/
-        modseq = 1 << 7,
         // macros from rfc3501
         /**<summary>The IMAP FAST macro (equivalent to: <see cref="flags"/>, <see cref="received"/> and <see cref="size"/>).</summary>*/
         macrofast = flags | received | size,
         /**<summary>The IMAP ALL macro (equivalent to: <see cref="flags"/>, <see cref="received"/>, <see cref="size"/> and <see cref="envelope"/>).</summary>*/
         macroall = flags | envelope | received | size,
         /**<summary>The IMAP FULL macro (equivalent to: <see cref="flags"/>, <see cref="received"/>, <see cref="size"/>, <see cref="envelope"/> and <see cref="body"/>).</summary>*/
-        macrofull = flags | envelope | received | size | body,
+        macrofull = flags | envelope | received | size | body
+            
+            // 
+            //,
 
-        staticattributes = envelope | received | size | body | bodystructure | uid,
-        dynamicattributes= flags | modseq
+        //staticattributes = envelope | received | size | body | bodystructure | uid,
+        //dynamicattributes= flags | modseq
     }
 }
