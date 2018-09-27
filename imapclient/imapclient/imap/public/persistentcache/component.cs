@@ -30,7 +30,6 @@ namespace work.bacome.imapclient
 
         protected internal abstract void SetUIDValidity(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext);
         protected internal abstract void SetHighestModSeq(cMailboxUID pMailboxUID, ulong pHighestModSeq, cTrace.cContext pParentContext);
-        protected internal abstract void ClearHighestModSeq(); ???????????????????? <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         protected internal abstract void ClearCachedItems(cMailboxId pMailboxId, cTrace.cContext pParentContext); // including the UIDValidity and HighestModSeq
 
 
