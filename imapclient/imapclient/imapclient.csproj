@@ -104,6 +104,7 @@
     <Compile Include="mail\internal\other\incrementer.cs" />
     <Compile Include="mail\internal\other\parsing.cs" />
     <Compile Include="mail\public\configuration\setmaximumconfiguration.cs" />
+    <Compile Include="mail\public\message\datetime.cs" />
     <Compile Include="mail\public\other\encoding.cs" />
     <Compile Include="mail\support\decodingstream.cs" />
     <Compile Include="mail\support\encodingstream.cs" />

@@ -52,8 +52,7 @@ namespace work.bacome.imapclient
                     fMessageCacheAttributes lAttributes = 0;
                     cFetchableFlags lFlags = null;
                     cEnvelope lEnvelope = null;
-                    DateTimeOffset? lReceivedDateTimeOffset = null;
-                    DateTime? lReceivedDateTime = null;
+                    cTimestamp lReceived = null;
                     IList<byte> lRFC822 = null;
                     IList<byte> lRFC822Header = null;
                     IList<byte> lRFC822Text = null;
@@ -84,13 +83,7 @@ namespace work.bacome.imapclient
                         else if (pCursor.SkipBytes(kInternalDateSpace))
                         {
                             lAttribute = fMessageCacheAttributes.received;
-                            lOK = pCursor.GetDateTime(out var lDateTimeOffset, out var lDateTime);
-
-                            if (lOK)
-                            {
-                                lReceivedDateTimeOffset = lDateTimeOffset;
-                                lReceivedDateTime = lDateTime;
-                            }
+                            lOK = pCursor.GetDateTime(out lReceived);
                         }
                         else if (pCursor.SkipBytes(kRFC822Space))
                         {
@@ -204,7 +197,7 @@ namespace work.bacome.imapclient
                         return true;
                     }
 
-                    rResponseData = new cResponseDataFetch(lMSN, lAttributes, lFlags, lEnvelope, lReceivedDateTimeOffset, lReceivedDateTime, lRFC822, lRFC822Header, lRFC822Text, lSize, lBody, lBodyStructure, lBodies, lUID, lHeaderFields, lBinarySizes, lModSeq);
+                    rResponseData = new cResponseDataFetch(lMSN, lAttributes, lFlags, lEnvelope, lReceived, lRFC822, lRFC822Header, lRFC822Text, lSize, lBody, lBodyStructure, lBodies, lUID, lHeaderFields, lBinarySizes, lModSeq);
                     return true;
                 }
 
@@ -237,49 +230,25 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.SkipByte(cASCII.RPAREN)) { rEnvelope = null; return false; }
 
-                    DateTimeOffset? lSentDateTimeOffset;
-                    DateTime? lSentDateTime;
+                    cTimestamp lSent;
 
-                    if (lDateBytes == null || lDateBytes.Count == 0)
-                    {
-                        lSentDateTimeOffset = null;
-                        lSentDateTime = null;
-                    }
+                    if (lDateBytes == null || lDateBytes.Count == 0) lSent = null;
                     else
                     {
                         // rfc 5256 says quite a lot about how this date should be parsed: please note that I haven't done what it says at this stage (TODO?)
                         var lCursor = new cBytesCursor(lDateBytes);
-
-                        if (lCursor.GetRFC822DateTime(out var lTempDateTimeOffset, out var lTempDateTime) && lCursor.Position.AtEnd)
-                        {
-                            lSentDateTimeOffset = lTempDateTimeOffset;
-                            lSentDateTime = lTempDateTime;
-                        }
-                        else
-                        {
-                            lSentDateTimeOffset = null;
-                            lSentDateTime = null;
-                        }
+                        if (lCursor.GetRFC822DateTime(out lSent) && !lCursor.Position.AtEnd) lSent = null;
                     }
 
                     cCulturedString lSubject;
-                    string lBaseSubject;
 
-                    if (lSubjectBytes == null || lSubjectBytes.Count == 0)
-                    {
-                        lSubject = null;
-                        lBaseSubject = null;
-                    }
-                    else
-                    {
-                        lSubject = new cCulturedString(lSubjectBytes, false);
-                        lBaseSubject = cBaseSubject.Calculate(lSubject);
-                    }
+                    if (lSubjectBytes == null || lSubjectBytes.Count == 0) lSubject = null;
+                    else lSubject = new cCulturedString(lSubjectBytes, false);
 
                     cParsing.TryParseMsgIds(lInReplyToBytes, out var lInReplyTo);
                     cParsing.TryParseMsgId(lMessageIdBytes, out var lMessageId);
 
-                    rEnvelope = new cEnvelope(mUTF8Enabled, lSentDateTimeOffset, lSentDateTime, lSubject, lBaseSubject, lFrom, lSender, lReplyTo, lTo, lCC, lBCC, lInReplyTo, lMessageId);
+                    rEnvelope = new cEnvelope(lSent, lSubject, lFrom, lSender, lReplyTo, lTo, lCC, lBCC, lInReplyTo, lMessageId);
                     return true;
                 }
 
@@ -736,230 +705,6 @@ namespace work.bacome.imapclient
                     return true;
                 }
 
-                private class cBaseSubject
-                {
-                    // from rfc5256 section 2.1
-
-                    private string mSubject;
-                    private int mFront;
-                    private int mRear;
-
-                    private cBaseSubject(string pChars)
-                    {
-                        mSubject = pChars;
-                        mFront = 0;
-                        mRear = mSubject.Length - 1;
-                    }
-
-                    private bool ZSkipCharAtFront(char pChar)
-                    {
-                        if (mFront > mRear) return false;
-                        if (ZCompare(mSubject[mFront], pChar)) { mFront++; return true; }
-                        return false;
-                    }
-
-                    private bool ZSkipCharsAtFront(string pChars)
-                    {
-                        if (mFront > mRear) return false;
-
-                        var lBookmark = mFront;
-
-                        int lChar = 0;
-
-                        while (true)
-                        {
-                            if (!ZCompare(mSubject[mFront], pChars[lChar]))
-                            {
-                                mFront = lBookmark;
-                                return false;
-                            }
-
-                            mFront++;
-                            lChar++;
-
-                            if (lChar == pChars.Length) return true;
-
-                            if (mFront > mRear)
-                            {
-                                mFront = lBookmark;
-                                return false;
-                            }
-                        }
-                    }
-
-                    private bool ZGetCharAtFront(out char rChar)
-                    {
-                        if (mFront > mRear) { rChar = '\0'; return false; }
-                        rChar = mSubject[mFront++];
-                        return true;
-                    }
-
-                    private bool ZSkipCharAtRear(char pChar)
-                    {
-                        if (mFront > mRear) return false;
-                        if (ZCompare(mSubject[mRear], pChar)) { mRear--; return true; }
-                        return false;
-                    }
-
-                    private bool ZSkipCharsAtRear(string pChars)
-                    {
-                        if (mFront > mRear) return false;
-
-                        var lBookmark = mRear;
-
-                        int lChar = pChars.Length - 1;
-
-                        while (true)
-                        {
-                            if (!ZCompare(mSubject[mRear], pChars[lChar]))
-                            {
-                                mRear = lBookmark;
-                                return false;
-                            }
-
-                            mRear--;
-                            lChar--;
-
-                            if (lChar == -1) return true;
-
-                            if (mFront > mRear)
-                            {
-                                mRear = lBookmark;
-                                return false;
-                            }
-                        }
-                    }
-
-                    private bool ZSkipWSP()
-                    {
-                        bool lResult = false;
-
-                        while (true)
-                        {
-                            if (!ZSkipCharAtFront(' ') && !ZSkipCharAtFront('\t')) return lResult;
-                            lResult = true;
-                        }
-                    }
-
-                    private bool ZSkipBlobReFwd()
-                    {
-                        int lBookmark = mFront;
-
-                        while (true)
-                        {
-                            if (!ZSkipBlob()) break;
-                        }
-
-                        if (!ZSkipCharsAtFront("re") &&
-                            !ZSkipCharsAtFront("fwd") &&
-                            !ZSkipCharsAtFront("fw"))
-                        {
-                            mFront = lBookmark;
-                            return false;
-                        }
-
-                        ZSkipWSP();
-                        ZSkipBlob();
-
-                        if (!ZSkipCharAtFront(':'))
-                        {
-                            mFront = lBookmark;
-                            return false;
-                        }
-
-                        return true;
-                    }
-
-                    private bool ZSkipBlob()
-                    {
-                        int lBookmark = mFront;
-
-                        if (!ZSkipCharAtFront('[')) return false;
-
-                        while (true)
-                        {
-                            if (!ZGetCharAtFront(out var lChar) || lChar == '[') { mFront = lBookmark; return false; }
-                            if (lChar == ']') break;
-                        }
-
-                        ZSkipWSP();
-
-                        return true;
-                    }
-
-                    private bool ZCompare(char pChar1, char pChar2)
-                    {
-                        char lChar1;
-                        if (pChar1 < 'a') lChar1 = pChar1;
-                        else if (pChar1 > 'z') lChar1 = pChar1;
-                        else lChar1 =(char)(pChar1 - 'a' + 'A');
-
-                        char lChar2;
-                        if (pChar2 < 'a') lChar2 = pChar2;
-                        else if (pChar2 > 'z') lChar2 = pChar2;
-                        else lChar2 = (char)(pChar2 - 'a' + 'A');
-
-                        return lChar1 == lChar2;
-                    }
-
-                    public static string Calculate(string pSubject)
-                    {
-                        cBaseSubject lBaseSubject = new cBaseSubject(pSubject);
-                        int lBookmark;
-
-                        while (true)
-                        {
-                            // 2.1.2
-                            while (true)
-                            {
-                                if (!lBaseSubject.ZSkipCharsAtRear("(fwd)") &&
-                                    !lBaseSubject.ZSkipCharAtRear(' ') &&
-                                    !lBaseSubject.ZSkipCharAtRear('\t')) break;
-                            }
-
-                            while (true) // 2.1.5
-                            {
-                                // 2.1.3
-                                if (lBaseSubject.ZSkipWSP()) continue;
-                                if (lBaseSubject.ZSkipBlobReFwd()) continue;
-
-                                // 2.1.4
-
-                                lBookmark = lBaseSubject.mFront;
-
-                                if (lBaseSubject.ZSkipBlob())
-                                {
-                                    if (lBaseSubject.mFront > lBaseSubject.mRear)
-                                    {
-                                        lBaseSubject.mFront = lBookmark;
-                                        break;
-                                    }
-
-                                    continue;
-                                }
-
-                                break;
-                            }
-
-                            // 2.1.6
-
-                            lBookmark = lBaseSubject.mFront;
-
-                            if (!lBaseSubject.ZSkipCharsAtFront("[fwd:")) break;
-
-                            if (!lBaseSubject.ZSkipCharAtRear(']'))
-                            {
-                                lBaseSubject.mFront = lBookmark;
-                                break;
-                            }
-                        }
-
-                        if (lBaseSubject.mFront > lBaseSubject.mRear) return null;
-
-                        return lBaseSubject.mSubject.Substring(lBaseSubject.mFront, lBaseSubject.mRear - lBaseSubject.mFront + 1);
-                    }
-                }
-
                 [Conditional("DEBUG")]
                 public static void _Tests(cTrace.cContext pParentContext)
                 {
@@ -993,8 +738,8 @@ namespace work.bacome.imapclient
                     if (lData == null) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.1.1");
 
                     if (lData.Flags.Count != 1 || !lData.Flags.Contains(@"\SeEn")) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.2");
-                    if (lData.ReceivedDateTime.Value.ToUniversalTime() != new DateTime(1996, 7, 17, 9, 44, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.3");
-                    if (lData.Envelope.SentDateTime.Value.ToUniversalTime() != new DateTime(1996, 7, 17, 9, 23, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.4");
+                    if (lData.Received.UtcDateTime != new DateTime(1996, 7, 17, 9, 44, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.3");
+                    if (lData.Envelope.Sent.UtcDateTime != new DateTime(1996, 7, 17, 9, 23, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.4");
                     if (lData.Envelope.Subject != "IMAP4rev1 WG mtg summary and minutes") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.5");
                     if (lData.Envelope.From.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.6.1");
                     lEmailAddress = lData.Envelope.From[0] as cEmailAddress;
@@ -1241,7 +986,7 @@ namespace work.bacome.imapclient
 
                     void LTestBaseSubject(string pSubject, string pBaseSubject, string pTest)
                     {
-                        string lBaseSubject = cBaseSubject.Calculate(pSubject);
+                        string lBaseSubject = cParsing.CalculateBaseSubject(pSubject);
                         if (lBaseSubject != pBaseSubject) throw new cTestsException($"{pSubject} -> {lBaseSubject} not {pBaseSubject}", lContext);
                     }
 

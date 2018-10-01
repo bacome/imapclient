@@ -10,21 +10,10 @@ namespace work.bacome.mailclient
     public class cEnvelope
     {
         /** <summary>The message sent date. May be <see langword="null"/>.</summary> */
-        public readonly DateTimeOffset? SentDateTimeOffset;
-
-        /** <summary>The message sent date (in local time if there is usable time zone information). May be <see langword="null"/>.</summary> */
-        public readonly DateTime? SentDateTime;
+        public readonly cTimestamp Sent;
 
         /** <summary>The message subject. May be <see langword="null"/>.</summary> */
         public readonly cCulturedString Subject;
-
-        /// <summary>
-        /// The message base subject. May be <see langword="null"/>.
-        /// </summary>
-        /// <remarks>
-        /// The base subject is defined RFC 5256 and is the subject with the RE: FW: etc artifacts removed.
-        /// </remarks>
-        public readonly string BaseSubject;
 
         /** <summary>The message 'from' address(s). May be <see langword="null"/>.</summary> */
         public readonly cAddresses From;
@@ -50,12 +39,16 @@ namespace work.bacome.mailclient
         /** <summary>The normalised (delimiters, quoting, comments and white space removed) 'message-id' of the message. May be <see langword="null"/>.</summary> */
         public readonly string MessageId;
 
-        internal cEnvelope(DateTimeOffset? pSentDateTimeOffset, DateTime? pSentDateTime, cCulturedString pSubject, string pBaseSubject, cAddresses pFrom, cAddresses pSender, cAddresses pReplyTo, cAddresses pTo, cAddresses pCC, cAddresses pBCC, cStrings pInReplyTo, string pMessageId)
+        [NonSerialized]
+        private bool mBaseSubjectCalculated = false;
+
+        [NonSerialized]
+        private string mBaseSubject = null;
+
+        internal cEnvelope(cTimestamp pSent, cCulturedString pSubject, cAddresses pFrom, cAddresses pSender, cAddresses pReplyTo, cAddresses pTo, cAddresses pCC, cAddresses pBCC, cStrings pInReplyTo, string pMessageId)
         {
-            SentDateTimeOffset = pSentDateTimeOffset;
-            SentDateTime = pSentDateTime;
+            Sent = pSent;
             Subject = pSubject;
-            BaseSubject = pBaseSubject;
             From = pFrom;
             Sender = pSender;
             ReplyTo = pReplyTo;
@@ -66,7 +59,27 @@ namespace work.bacome.mailclient
             MessageId = pMessageId;
         }
 
+        /// <summary>
+        /// The message base subject. May be <see langword="null"/>.
+        /// </summary>
+        /// <remarks>
+        /// The base subject is defined RFC 5256 and is the subject with the RE: FW: etc artifacts removed.
+        /// </remarks>
+        public string BaseSubject
+        {
+            get
+            {
+                if (!mBaseSubjectCalculated)
+                {
+                    mBaseSubject = cParsing.CalculateBaseSubject(Subject);
+                    mBaseSubjectCalculated = true;
+                }
+
+                return mBaseSubject;
+            }
+        }
+
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cEnvelope)}({SentDateTimeOffset},{SentDateTime},{Subject},{BaseSubject},{From},{Sender},{ReplyTo},{To},{CC},{BCC},{InReplyTo},{MessageId})";
+        public override string ToString() => $"{nameof(cEnvelope)}({Sent},{Subject},{From},{Sender},{ReplyTo},{To},{CC},{BCC},{InReplyTo},{MessageId},{mBaseSubjectCalculated},{mBaseSubject})";
     }
 }

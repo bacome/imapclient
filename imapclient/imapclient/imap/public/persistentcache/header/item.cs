@@ -24,29 +24,18 @@ namespace work.bacome.imapclient
             internal set => ((cHeaderCacheItemData)mData).Envelope = value;
         }
 
-        public DateTimeOffset? ReceivedDateTimeOffset
+        public cTimestamp Received
         {
             get
             {
-                var lValue = ((cHeaderCacheItemData)mData).ReceivedDateTimeOffset;
+                var lValue = ((cHeaderCacheItemData)mData).Received;
                 if (lValue == null) return null;
                 RecordAccess();
                 return lValue;
             }
-        }
 
-        public DateTime? ReceivedDateTime
-        {
-            get
-            {
-                var lValue = ((cHeaderCacheItemData)mData).ReceivedDateTime;
-                if (lValue == null) return null;
-                RecordAccess();
-                return lValue;
-            }
+            internal set => ((cHeaderCacheItemData)mData).Received = value;
         }
-
-        internal void SetReceivedDateTime(DateTimeOffset pOffset, DateTime pDateTime) => ((cHeaderCacheItemData)mData).SetReceivedDateTime(pOffset, pDateTime);
 
         public uint? Size
         {
@@ -108,9 +97,7 @@ namespace work.bacome.imapclient
         private fMessageCacheAttributes mAttributes;
 
         private cEnvelope mEnvelope;
-
-        private DateTimeOffset? mReceivedDateTimeOffset;
-        private DateTime? mReceivedDateTime;
+        private cTimestamp mReceived;
         private uint? mSize;
 
         ;...;
@@ -122,8 +109,7 @@ namespace work.bacome.imapclient
         {
             mAttributes = 0;
             mEnvelope = null;
-            mReceivedDateTimeOffset = null;
-            mReceivedDateTime = null;
+            mReceived = null;
             mSize = null;
             mBodyStructure = null;
             mHeaderFields = null;
@@ -134,20 +120,14 @@ namespace work.bacome.imapclient
         private void OnDeserialised(StreamingContext pSC)
         {
             if (mEnvelope != null) mAttributes |= fMessageCacheAttributes.envelope;
-
-            if (mReceivedDateTimeOffset == null)
-            {
-                if (mReceivedDateTime != null) throw new cDeserialiseException(nameof(cHeaderCacheItemData), nameof(mReceivedDateTime), kDeserialiseExceptionMessage.IsInconsistent);
-            }
-            else
-            {
-                if (mReceivedDateTime == null) throw new cDeserialiseException(nameof(cHeaderCacheItemData), nameof(mReceivedDateTime), kDeserialiseExceptionMessage.IsInconsistent, 2);
-                if (!ZDatesAreConsistent(mReceivedDateTimeOffset.Value, mReceivedDateTime.Value)) throw new cDeserialiseException(nameof(cHeaderCacheItemData), nameof(mReceivedDateTime), kDeserialiseExceptionMessage.IsInconsistent, 3);
-                mAttributes |= fMessageCacheAttributes.received;
-            }
-
+            if (mReceived != null) mAttributes |= fMessageCacheAttributes.received;
             if (mSize != null) mAttributes |= fMessageCacheAttributes.size;
-            if (mBodyStructure != null) mAttributes |= fMessageCacheAttributes.bodystructure;
+
+            if (mBodyStructure != null)
+            {
+                if (mBodyStructure.Section != cSection.Text) throw new cDeserialiseException(nameof(cHeaderCacheItemData), nameof(mBodyStructure), kDeserialiseExceptionMessage.IsInvalid);
+                mAttributes |= fMessageCacheAttributes.bodystructure;
+            }
         }
 
         public fMessageCacheAttributes Attributes => mAttributes;
@@ -169,19 +149,20 @@ namespace work.bacome.imapclient
             }
         }
 
-        public DateTimeOffset? ReceivedDateTimeOffset => mReceivedDateTimeOffset;
-        public DateTime? ReceivedDateTime => mReceivedDateTime;
-
-        internal void SetReceivedDateTime(DateTimeOffset pOffset, DateTime pDateTime)
+        public cTimestamp Received
         {
-            if (!ZDatesAreConsistent(pOffset, pDateTime)) throw new ArgumentOutOfRangeException(nameof(pDateTime));
+            get => mReceived;
 
-            lock (mUpdateLock)
+            internal set
             {
-                if (mReceivedDateTimeOffset != null) return;
-                mReceivedDateTimeOffset = pOffset;
-                mReceivedDateTime = pDateTime;
-                mAttributes |= fMessageCacheAttributes.received;
+                if (value == null) throw new ArgumentNullException();
+
+                lock (mUpdateLock)
+                {
+                    if (mReceived != null) return;
+                    mReceived = value;
+                    mAttributes |= fMessageCacheAttributes.received;
+                }
             }
         }
 
@@ -241,6 +222,6 @@ namespace work.bacome.imapclient
             return false;
         }
 
-        public override string ToString() => $"{nameof(cHeaderCacheItemData)}({base.ToString()},{mAttributes},{Envelope},{mReceivedDateTimeOffset},{mReceivedDateTime},{mSize},{BodyStructure},{HeaderFields},{mBinarySizes})";
+        public override string ToString() => $"{nameof(cHeaderCacheItemData)}({base.ToString()},{mAttributes},{Envelope},{mReceived},{mSize},{BodyStructure},{HeaderFields},{mBinarySizes})";
     }
 }
