@@ -136,6 +136,12 @@ namespace work.bacome.mailclient
             }
         }
 
+        internal string GetSubPartPrefix()
+        {
+            if (Part == null) return string.Empty;
+            return Part + ".";
+        }
+
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public bool Equals(cSection pObject) => this == pObject;
 

@@ -98,14 +98,6 @@ namespace work.bacome.mailclient
     public abstract class cBodyPart
     {
         /// <summary>
-        /// Indicates if this is the internationalized version of the body-part.
-        /// </summary>
-        /// <remarks>
-        /// See RFCs 6855 (section 7) 6857 and 6858.
-        /// </remarks>
-        public readonly bool UTF8Enabled;
-
-        /// <summary>
         /// The MIME type of the body-part as a string.
         /// </summary>
         public readonly string Type;
@@ -123,12 +115,8 @@ namespace work.bacome.mailclient
         [NonSerialized]
         private eBodyPartTypeCode mTypeCode;
 
-        ;?; // note that utf8 at this level replaces it at other levels ...
-        ;?; //  and in checking on-deserialise, the consistency of this flag must be checked
-        ;?; //  and that this must be an attribute of envelope (and address)
-        internal cBodyPart(bool pUTF8Enabled, string pType, string pSubType, cSection pSection)
+        internal cBodyPart(string pType, string pSubType, cSection pSection)
         {
-            UTF8Enabled = pUTF8Enabled;
             Type = pType ?? throw new ArgumentNullException(nameof(pType));
             SubType = pSubType ?? throw new ArgumentNullException(nameof(pSubType));
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
@@ -420,7 +408,14 @@ namespace work.bacome.mailclient
         {
             if (Parts == null) throw new cDeserialiseException(nameof(cMultiPartBody), nameof(Parts), kDeserialiseExceptionMessage.IsNull);
 
-            ;?; // validate that the parts are numbered 1..n, no nulls
+            string lSubPartPrefix = Section.GetSubPartPrefix();
+            int lSubPart = 1;
+
+            foreach (var lPart in Parts)
+            {
+                if (lPart == null) throw new cDeserialiseException(nameof(cMultiPartBody), nameof(Parts), kDeserialiseExceptionMessage.ContainsNulls);
+                if (lPart.Section.Part != lSubPartPrefix + lSubPart++) throw new cDeserialiseException(nameof(cMultiPartBody), nameof(Parts), kDeserialiseExceptionMessage.incorrectlynumbered);
+            }
 
             ZFinishConstruct();
         }
@@ -442,7 +437,7 @@ namespace work.bacome.mailclient
         /// <summary>
         /// The MIME subtype of the body-part as a code.
         /// </summary>
-        ;?; //public eMultiPartBodySubTypeCode SubTypeCode => mSubTypeCode;
+        public eMultiPartBodySubTypeCode SubTypeCode => mSubTypeCode;
 
         public override bool Contains(cBodyPart pPart)
         {

@@ -341,9 +341,7 @@ namespace work.bacome.imapclient
                     string lSubType;
                     cBodyPart lBodyPart;
 
-                    string lSubPartPrefix;
-                    if (pSection.Part == null) lSubPartPrefix = "";
-                    else lSubPartPrefix = pSection.Part + ".";
+                    string lSubPartPrefix = pSection.GetSubPartPrefix();
 
                     if (ZProcessBodyStructure(pCursor, new cSection(lSubPartPrefix + "1"), pExtended, out lBodyPart))
                     {
