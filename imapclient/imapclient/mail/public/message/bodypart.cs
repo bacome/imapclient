@@ -162,9 +162,6 @@ namespace work.bacome.mailclient
 
         public abstract fMessageDataFormat Format { get; }
 
-        internal abstract bool LikelyIs(cBodyPart pPart);
-        internal abstract bool LikelyContains(cBodyPart pPart);
-
         /// <summary>
         /// Gets the disposition of the body-part. May be <see langword="null"/>. 
         /// </summary>
@@ -184,6 +181,18 @@ namespace work.bacome.mailclient
         /// Gets any additional extension-data for the body-part. May be <see langword="null"/>.
         /// </summary>
         public abstract cBodyPartExtensionValues ExtensionValues { get; }
+
+        internal virtual bool LikelyIs(cBodyPart pPart)
+        {
+            if (pPart == null) throw new ArgumentNullException(nameof(pPart));
+            return Type == pPart.Type && SubType == pPart.SubType && Section == pPart.Section && Format == pPart.Format;
+        }
+
+        internal virtual bool LikelyContains(cBodyPart pPart)
+        {
+            if (pPart == null) throw new ArgumentNullException(nameof(pPart));
+            return false;
+        }
 
         /// <inheritdoc />
         public override string ToString() => $"{nameof(cBodyPart)}({Type},{SubType},{Section},{mTypeCode})";
@@ -414,7 +423,7 @@ namespace work.bacome.mailclient
             foreach (var lPart in Parts)
             {
                 if (lPart == null) throw new cDeserialiseException(nameof(cMultiPartBody), nameof(Parts), kDeserialiseExceptionMessage.ContainsNulls);
-                if (lPart.Section.Part != lSubPartPrefix + lSubPart++) throw new cDeserialiseException(nameof(cMultiPartBody), nameof(Parts), kDeserialiseExceptionMessage.incorrectlynumbered);
+                if (lPart.Section.Part != lSubPartPrefix + lSubPart++) throw new cDeserialiseException(nameof(cMultiPartBody), nameof(Parts), kDeserialiseExceptionMessage.IncorrectSequence);
             }
 
             ZFinishConstruct();
@@ -432,29 +441,17 @@ namespace work.bacome.mailclient
             else mSubTypeCode = eMultiPartBodySubTypeCode.other;
         }
 
-        public override fMessageDataFormat Format => mFormat;
-
         /// <summary>
         /// The MIME subtype of the body-part as a code.
         /// </summary>
         public eMultiPartBodySubTypeCode SubTypeCode => mSubTypeCode;
 
-        public override bool Contains(cBodyPart pPart)
-        {
-            ;?; // note that the reference equals here is a problem: if the bodypart was extracted before the UID was known, and when the UID was known the cache had a bodystructure, this would fail
-            foreach (var lPart in Parts)
-            {
-                if (ReferenceEquals(lPart, pPart)) return true;
-                if (lPart.Contains(pPart)) return true;
-            }
-
-            return false;
-        }
-
         /// <summary>
         /// Gets the MIME-type parameters of the body-part. May be <see langword="null"/>.
         /// </summary>
         public cBodyStructureParameters Parameters => ExtensionData?.Parameters;
+
+        public override fMessageDataFormat Format => mFormat;
 
         /// <inheritdoc />
         public override cBodyPartDisposition Disposition => ExtensionData?.Disposition;
@@ -467,6 +464,29 @@ namespace work.bacome.mailclient
 
         /// <inheritdoc />
         public override cBodyPartExtensionValues ExtensionValues => ExtensionData?.ExtensionValues;
+
+        internal override bool LikelyIs(cBodyPart pPart)
+        {
+            if (!base.LikelyIs(pPart)) return false;
+            var lPart = pPart as cMultiPartBody;
+            if (lPart == null) return false;
+            if (Parts.Count != lPart.Parts.Count || mUTF8Enabled != lPart.mUTF8Enabled) return false;
+            for (int i = 0; i < Parts.Count; i++) if (!Parts[i].LikelyIs(lPart.Parts[i])) return false;
+            return true;
+        }
+
+        internal override bool LikelyContains(cBodyPart pPart)
+        {
+            if (pPart == null) throw new ArgumentNullException(nameof(pPart));
+
+            foreach (var lPart in Parts)
+            {
+                if (lPart.LikelyIs(pPart)) return true;
+                if (lPart.LikelyContains(pPart)) return true;
+            }
+
+            return false;
+        }
 
         /// <inheritdoc />
         public override string ToString() => $"{nameof(cMultiPartBody)}({base.ToString()},{Parts},{ExtensionData})";
@@ -525,32 +545,17 @@ namespace work.bacome.mailclient
         /// <summary>
         /// Gets the creation date. May be <see langword="null"/>.
         /// </summary>
-        public DateTimeOffset? CreationDateTimeOffset => Parameters?.First("creation-date")?.DateTimeOffsetValue;
-
-        /// <summary>
-        /// Gets the creation date (in local time if there is usable time zone information). May be <see langword="null"/>.
-        /// </summary>
-        public DateTime? CreationDateTime => Parameters?.First("creation-date")?.DateTimeValue;
+        public cTimestamp CreationDate => Parameters?.First("creation-date")?.TimestampValue;
 
         /// <summary>
         /// Gets the modification date. May be <see langword="null"/>.
         /// </summary>
-        public DateTimeOffset? ModificationDateTimeOffset => Parameters?.First("modification-date")?.DateTimeOffsetValue;
+        public cTimestamp ModificationDate => Parameters?.First("modification-date")?.TimestampValue;
 
         /// <summary>
-        /// Gets the modification date (in local time if there is usable time zone information). May be <see langword="null"/>.
+        /// Gets the read date. May be <see langword="null"/>.
         /// </summary>
-        public DateTime? ModificationDateTime => Parameters?.First("modification-date")?.DateTimeValue;
-
-        /// <summary>
-        /// Gets the last read date. May be <see langword="null"/>.
-        /// </summary>
-        public DateTimeOffset? ReadDateTimeOffset => Parameters?.First("read-date")?.DateTimeOffsetValue;
-
-        /// <summary>
-        /// Gets the last read date (in local time if there is usable time zone information). May be <see langword="null"/>.
-        /// </summary>
-        public DateTime? ReadDateTime => Parameters?.First("read-date")?.DateTimeValue;
+        public cTimestamp ReadDate => Parameters?.First("read-date")?.TimestampValue;
 
         /// <summary>
         /// Gets the approximate size in bytes. May be <see langword="null"/>.
@@ -576,7 +581,7 @@ namespace work.bacome.mailclient
     /// </list>
     /// Instances populated with BODY data are only available via <see cref="iMessageHandle.Body"/>.
     /// </remarks>
-    [...]
+    [Serializable]
     public class cSinglePartBody : cBodyPart
     {
         /// <summary>
@@ -599,12 +604,7 @@ namespace work.bacome.mailclient
         /// </summary>
         public readonly string ContentTransferEncoding;
 
-        private readonly fMessageDataFormat mFormat;
-
-        /// <summary>
-        /// The MIME content-transfer-encoding of the body-part as a code.
-        /// </summary>
-        public readonly eDecodingRequired DecodingRequired;
+        private readonly bool m8bitImpliesUTF8Headers;
 
         /// <summary>
         /// The size in bytes of the encoded body-part.
@@ -616,60 +616,81 @@ namespace work.bacome.mailclient
         /// </summary>
         public readonly cSinglePartExtensionData ExtensionData;
 
+        [NonSerialized]
+        private fMessageDataFormat mFormat;
+
+        [NonSerialized]
+        private eDecodingRequired mDecodingRequired;
+
         internal cSinglePartBody(string pType, string pSubType, cSection pSection, cBodyStructureParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, bool p8bitImpliesUTF8Headers, uint pSizeInBytes, cSinglePartExtensionData pExtensionData) : base(pType, pSubType, pSection)
         {
             Parameters = pParameters;
             ContentId = pContentId;
             Description = pDescription;
             ContentTransferEncoding = pContentTransferEncoding ?? throw new ArgumentNullException(nameof(pContentTransferEncoding));
+            m8bitImpliesUTF8Headers = p8bitImpliesUTF8Headers;
+            SizeInBytes = pSizeInBytes;
+            ExtensionData = pExtensionData;
+            ZFinishConstruct();
+        }
 
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            if (ContentTransferEncoding == null) throw new cDeserialiseException(nameof(cSinglePartBody), nameof(ContentTransferEncoding), kDeserialiseExceptionMessage.IsNull);
+            if (m8bitImpliesUTF8Headers && (TypeCode != eBodyPartTypeCode.message) || !SubType.Equals(kMimeSubType.RFC822, StringComparison.InvariantCultureIgnoreCase)) throw new cDeserialiseException(nameof(cSinglePartBody), nameof(m8bitImpliesUTF8Headers), kDeserialiseExceptionMessage.IsInconsistent);
+            ZFinishConstruct();
+        }
+
+        private void ZFinishConstruct()
+        {
             if (ContentTransferEncoding.Equals("7BIT", StringComparison.InvariantCultureIgnoreCase))
             {
                 mFormat = 0;
-                DecodingRequired = eDecodingRequired.none;
+                mDecodingRequired = eDecodingRequired.none;
             }
             else if (ContentTransferEncoding.Equals("8BIT", StringComparison.InvariantCultureIgnoreCase))
             {
-                if (p8bitImpliesUTF8Headers) mFormat = fMessageDataFormat.eightbitutf8headers; // should be a message subtype
+                if (m8bitImpliesUTF8Headers) mFormat = fMessageDataFormat.eightbitutf8headers;
                 else mFormat = fMessageDataFormat.eightbit;
 
-                DecodingRequired = eDecodingRequired.none;
+                mDecodingRequired = eDecodingRequired.none;
             }
             else if (ContentTransferEncoding.Equals("BINARY", StringComparison.InvariantCultureIgnoreCase))
             {
-                if (p8bitImpliesUTF8Headers) mFormat = fMessageDataFormat.all; // should be a message subtype
+                if (m8bitImpliesUTF8Headers) mFormat = fMessageDataFormat.all;
                 else mFormat = fMessageDataFormat.eightbitbinary;
 
-                DecodingRequired = eDecodingRequired.none;
+                mDecodingRequired = eDecodingRequired.none;
             }
             else if (ContentTransferEncoding.Equals("QUOTED-PRINTABLE", StringComparison.InvariantCultureIgnoreCase))
             {
                 mFormat = 0;
-                DecodingRequired = eDecodingRequired.quotedprintable;
+                mDecodingRequired = eDecodingRequired.quotedprintable;
             }
             else if (ContentTransferEncoding.Equals("BASE64", StringComparison.InvariantCultureIgnoreCase))
             {
                 mFormat = 0;
-                DecodingRequired = eDecodingRequired.base64;
+                mDecodingRequired = eDecodingRequired.base64;
             }
             else
             {
                 // note that rfc 2045 section 6.4 specifies that if 'unknown' then the part has to be treated as application/octet-stream
                 //  however I think I should be able to assume that it is 7bit data (otherwise the CTE should be binary)
                 mFormat = 0;
-                DecodingRequired = eDecodingRequired.other; 
+                mDecodingRequired = eDecodingRequired.other;
             }
-
-            SizeInBytes = pSizeInBytes;
-            ExtensionData = pExtensionData;
         }
+
+        /// <summary>
+        /// The MIME content-transfer-encoding of the body-part as a code.
+        /// </summary>
+        public eDecodingRequired DecodingRequired => mDecodingRequired;
 
         /**<summary>Gets the MD5 value of the body-part. May be <see langword="null"/>.</summary>*/
         public string MD5 => ExtensionData?.MD5;
 
         public override fMessageDataFormat Format => mFormat;
-
-        public override bool Contains(cBodyPart pPart) => false;
 
         /// <inheritdoc />
         public override cBodyPartDisposition Disposition => ExtensionData?.Disposition;
@@ -683,6 +704,14 @@ namespace work.bacome.mailclient
         /// <inheritdoc />
         public override cBodyPartExtensionValues ExtensionValues => ExtensionData?.ExtensionValues;
 
+        internal override bool LikelyIs(cBodyPart pPart)
+        {
+            if (!base.LikelyIs(pPart)) return false;
+            var lPart = pPart as cSinglePartBody;
+            if (lPart == null) return false;
+            return ContentTransferEncoding == lPart.ContentTransferEncoding && SizeInBytes == lPart.SizeInBytes;
+        }
+
         /// <inheritdoc />
         public override string ToString() => $"{nameof(cSinglePartBody)}({base.ToString()},{Parameters},{ContentId},{Description},{ContentTransferEncoding},{Format},{DecodingRequired},{SizeInBytes},{ExtensionData})";
     }
@@ -694,7 +723,7 @@ namespace work.bacome.mailclient
     /// The <see cref="BodyStructure"/> element of instances will be <see langword="null"/> when populated with IMAP BODY data rather than IMAP BODYSTRUCTURE data.
     /// Instances populated with BODY data are only available via <see cref="iMessageHandle.Body"/>.
     /// </remarks>
-    [...]
+    [Serializable]
     public class cMessageBodyPart : cSinglePartBody
     {
         /// <summary>
@@ -702,6 +731,7 @@ namespace work.bacome.mailclient
         /// </summary>
         public readonly cEnvelope Envelope;
 
+        [NonSerialized]
         private readonly cBodyPart mBody;
 
         /// <summary>
@@ -722,17 +752,27 @@ namespace work.bacome.mailclient
             SizeInLines = pSizeInLines;
         }
 
-        public override bool Contains(cBodyPart pPart)
-        {
-            ;?; // ref equeals problem
-            if (ReferenceEquals(BodyStructure, pPart)) return true;
-            return BodyStructure.Contains(pPart);
-        }
-
         /// <summary>
         /// Gets the IMAP BODY or BODYSTRUCTURE information for the encapsulated message, whichever is available.
         /// </summary>
         public cBodyPart Body => mBody ?? BodyStructure;
+
+        internal override bool LikelyIs(cBodyPart pPart)
+        {
+            if (!base.LikelyIs(pPart)) return false;
+            var lPart = pPart as cMessageBodyPart;
+            if (lPart == null) return false;
+            return SizeInLines == lPart.SizeInLines && BodyStructure.LikelyIs(lPart.BodyStructure);
+        }
+
+        internal override bool LikelyContains(cBodyPart pPart) 
+        {
+            if (pPart == null) throw new ArgumentNullException(nameof(pPart));
+            if (BodyStructure == null) return false;
+            if (BodyStructure.LikelyIs(pPart)) return true;
+            if (BodyStructure.LikelyContains(pPart)) return true;
+            return false;
+        }
 
         /// <inheritdoc />
         public override string ToString() => $"{nameof(cMessageBodyPart)}({base.ToString()},{Envelope},{BodyStructure ?? mBody},{SizeInLines})";
@@ -741,32 +781,53 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Represents a message body-part that contains text.
     /// </summary>
-    [...]
+    [Serializable]
     public class cTextBodyPart : cSinglePartBody
     {
-        /// <summary>
-        /// The MIME subtype of the body-part as a code.
-        /// </summary>
-        public readonly eTextBodyPartSubTypeCode SubTypeCode;
-
         /// <summary>
         /// The size in text-lines of the body-part.
         /// </summary>
         public readonly uint SizeInLines;
 
+        [NonSerialized]
+        private eTextBodyPartSubTypeCode mSubTypeCode;
+
         internal cTextBodyPart(string pSubType, cSection pSection, cBodyStructureParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(kMimeType.Text, pSubType, pSection, pParameters, pContentId, pDescription, pContentTransferEncoding, false, pSizeInBytes, pExtensionData)
         {
-            if (SubType.Equals("PLAIN", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eTextBodyPartSubTypeCode.plain;
-            else if (SubType.Equals("HTML", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eTextBodyPartSubTypeCode.html;
-            else SubTypeCode = eTextBodyPartSubTypeCode.other;
-
             SizeInLines = pSizeInLines;
+            ZFinishConstruct();
         }
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            ZFinishConstruct();
+        }
+
+        private void ZFinishConstruct()
+        {
+            if (SubType.Equals("PLAIN", StringComparison.InvariantCultureIgnoreCase)) mSubTypeCode = eTextBodyPartSubTypeCode.plain;
+            else if (SubType.Equals("HTML", StringComparison.InvariantCultureIgnoreCase)) mSubTypeCode = eTextBodyPartSubTypeCode.html;
+            else mSubTypeCode = eTextBodyPartSubTypeCode.other;
+        }
+
+        /// <summary>
+        /// The MIME subtype of the body-part as a code.
+        /// </summary>
+        public eTextBodyPartSubTypeCode SubTypeCode => mSubTypeCode;
 
         /// <summary>
         /// The character set of the text data.
         /// </summary>
         public string Charset => Parameters?.First("charset")?.StringValue ?? "us-ascii";
+
+        internal override bool LikelyIs(cBodyPart pPart)
+        {
+            if (!base.LikelyIs(pPart)) return false;
+            var lPart = pPart as cTextBodyPart;
+            if (lPart == null) return false;
+            return SizeInLines == lPart.SizeInLines;
+        }
 
         /// <inheritdoc />
         public override string ToString() => $"{nameof(cTextBodyPart)}({base.ToString()},{SizeInLines})";
@@ -820,8 +881,8 @@ namespace work.bacome.mailclient
             if (mRawName.Count == 0 || mRawName[mRawName.Count - 1] != cASCII.ASTERISK)
             {
                 // just plain name=value
-                mName = cTools.UTF8BytesToString(mRawName);
-                mStringValue = cTools.UTF8BytesToString(RawValue);
+                mName = cMailTools.UTF8BytesToString(mRawName);
+                mStringValue = cMailTools.UTF8BytesToString(RawValue);
                 mLanguageTag = null;
                 return;
             }
@@ -833,8 +894,8 @@ namespace work.bacome.mailclient
                 if (mRawName[i] == cASCII.ASTERISK)
                 {
                     // not decoded rfc 2231, store name=value
-                    mName = cTools.UTF8BytesToString(mRawName);
-                    mStringValue = cTools.UTF8BytesToString(RawValue);
+                    mName = cMailTools.UTF8BytesToString(mRawName);
+                    mStringValue = cMailTools.UTF8BytesToString(RawValue);
                     mLanguageTag = null;
                     return;
                 }
@@ -857,7 +918,7 @@ namespace work.bacome.mailclient
                 {
                     lCursor.GetToken(cCharset.All, cASCII.PERCENT, null, out cByteList lValueBytes); // the value itself is optional (!)
 
-                    if (lCursor.Position.AtEnd && cTools.TryCharsetBytesToString(lCharsetName, lValueBytes, out mStringValue))
+                    if (lCursor.Position.AtEnd && cMailTools.TryCharsetBytesToString(lCharsetName, lValueBytes, out mStringValue))
                     {
                         // successful decode of rfc 2231 syntax
 
@@ -865,7 +926,7 @@ namespace work.bacome.mailclient
                         byte[] lTrimmedName = new byte[mRawName.Count - 1];
                         for (int i = 0; i < mRawName.Count - 1; i++) lTrimmedName[i] = mRawName[i];
 
-                        mName = cTools.UTF8BytesToString(lTrimmedName);
+                        mName = cMailTools.UTF8BytesToString(lTrimmedName);
 
                         return;
                     }
@@ -873,8 +934,8 @@ namespace work.bacome.mailclient
             }
 
             // failed to decode rfc 2231 syntax: store name=value
-            mName = cTools.UTF8BytesToString(mRawName);
-            mStringValue = cTools.UTF8BytesToString(RawValue);
+            mName = cMailTools.UTF8BytesToString(mRawName);
+            mStringValue = cMailTools.UTF8BytesToString(RawValue);
             mLanguageTag = null;
         }
 
@@ -910,34 +971,17 @@ namespace work.bacome.mailclient
         }
 
         /// <summary>
-        /// Gets the value as a <see cref="DateTime"/>. May be <see langword="null"/>.
-        /// </summary>
-        /// <remarks>
-        /// Will be <see langword="null"/> if the value cannot be parsed as an RFC 5322 date-time.
-        /// In local time if the RFC 5322 date-time includes usable time zone information.
-        /// </remarks>
-        public DateTime? DateTimeValue
-        {
-            get
-            {
-                cBytesCursor lCursor = new cBytesCursor(RawValue);
-                if (lCursor.GetRFC822DateTime(out _, out var lResult) && lCursor.Position.AtEnd) return lResult;
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets the value as a <see cref="DateTimeOffset"/>. May be <see langword="null"/>.
+        /// Gets the value as a <see cref="cTimestamp"/>. May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
         /// Will be <see langword="null"/> if the value cannot be parsed as an RFC 5322 date-time.
         /// </remarks>
-        public DateTimeOffset? DateTimeOffsetValue
+        public cTimestamp TimestampValue
         {
             get
             {
                 cBytesCursor lCursor = new cBytesCursor(RawValue);
-                if (lCursor.GetRFC822DateTime(out var lResult, out _) && lCursor.Position.AtEnd) return lResult;
+                if (lCursor.GetRFC822DateTime(out var lResult) && lCursor.Position.AtEnd) return lResult;
                 return null;
             }
         }

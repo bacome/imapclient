@@ -3,7 +3,7 @@ using work.bacome.mailclient;
 
 namespace work.bacome.imapclient
 {
-    internal static class cValidation
+    internal static class cIMAPValidation
     {
         public static bool IsFetchableFlag(string pString)
         {

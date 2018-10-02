@@ -10,7 +10,6 @@ namespace work.bacome.imapclient
     {
         public static readonly cCommandPartFactory Validation = new cCommandPartFactory(false, null);
 
-        private static readonly cBytes kUTC = new cBytes("+0000");
         private static readonly cBytes kUnspecified = new cBytes("-0000");
 
         public readonly bool UTF8Enabled;
@@ -123,14 +122,14 @@ namespace work.bacome.imapclient
         public bool TryAsListMailbox(string pString, char? pDelimiter, out cCommandPart rResult)
         {
             if (pString == null) { rResult = null; return false; }
-            if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
+            if (pDelimiter != null && !cIMAPTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
             return ZTryAsMailbox(pString, pDelimiter, cCharset.ListMailbox, out rResult, out _);
         }
 
         public cCommandPart AsListMailbox(string pString, char? pDelimiter)
         {
             if (string.IsNullOrEmpty(pString)) throw new ArgumentOutOfRangeException(nameof(pString));
-            if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) throw new ArgumentOutOfRangeException(nameof(pDelimiter));
+            if (pDelimiter != null && !cIMAPTools.IsValidDelimiter(pDelimiter.Value)) throw new ArgumentOutOfRangeException(nameof(pDelimiter));
             if (!ZTryAsMailbox(pString, pDelimiter, cCharset.ListMailbox, out var lResult, out _)) throw new ArgumentOutOfRangeException(nameof(pString));
             return lResult;
         }
@@ -138,7 +137,7 @@ namespace work.bacome.imapclient
         public bool TryAsMailbox(string pMailboxPath, char? pDelimiter, out cCommandPart rCommandPart, out string rEncodedMailboxPath)
         {
             if (pMailboxPath == null) { rCommandPart = null; rEncodedMailboxPath = null; return false; }
-            if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rCommandPart = null; rEncodedMailboxPath = null; return false; }
+            if (pDelimiter != null && !cIMAPTools.IsValidDelimiter(pDelimiter.Value)) { rCommandPart = null; rEncodedMailboxPath = null; return false; }
             return ZTryAsMailbox(pMailboxPath, pDelimiter, cCharset.AString, out rCommandPart, out rEncodedMailboxPath);
         }
 
@@ -199,14 +198,14 @@ namespace work.bacome.imapclient
             if (ZTryAsBytesInCharset(lBytes, pCharset, false, false, out lText) || ZTryAsQuotedASCII(lBytes, false, false, out lText))
             {
                 rCommandPart = lText;
-                rEncodedMailboxPath = cTools.ASCIIBytesToString(lBytes);
+                rEncodedMailboxPath = cMailTools.ASCIIBytesToString(lBytes);
                 return true;
             }
 
             if (ZTryAsASCIILiteral(lBytes, false, out lLiteral))
             {
                 rCommandPart = lLiteral;
-                rEncodedMailboxPath = cTools.ASCIIBytesToString(lBytes);
+                rEncodedMailboxPath = cMailTools.ASCIIBytesToString(lBytes);
                 return true;
             }
 
@@ -221,7 +220,7 @@ namespace work.bacome.imapclient
             // If this needs to be an option, it would have to be a user selected one via a property on cIMAPClient that reflects a value in instances of this class.
 
             if (pMailboxPath == null) { rEncodedMailboxPath = null; return false; }
-            if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rEncodedMailboxPath = null; return false; }
+            if (pDelimiter != null && !cIMAPTools.IsValidDelimiter(pDelimiter.Value)) { rEncodedMailboxPath = null; return false; }
 
             if (pMailboxPath.Equals(cMailboxName.InboxString, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -252,45 +251,36 @@ namespace work.bacome.imapclient
             return new cTextCommandPart(lBytes);
         }
 
-        public static cTextCommandPart AsDateTime(DateTime pDate)
+        public static cTextCommandPart AsDateTime(cTimestamp pTimestamp)
         {
             var lBytes = new cByteList(27);
 
             lBytes.Add(cASCII.DQUOTE);
 
-            lBytes.AddRange(ZIntToBytes(pDate.Day, 2));
+            lBytes.AddRange(ZIntToBytes(pTimestamp.Day, 2));
             lBytes.Add(cASCII.HYPEN);
-            lBytes.AddRange(cRFCMonth.aName[pDate.Month - 1]);
+            lBytes.AddRange(cRFCMonth.aName[pTimestamp.Month - 1]);
             lBytes.Add(cASCII.HYPEN);
-            lBytes.AddRange(ZIntToBytes(pDate.Year, 4));
+            lBytes.AddRange(ZIntToBytes(pTimestamp.Year, 4));
 
             lBytes.Add(cASCII.SPACE);
 
-            lBytes.AddRange(ZIntToBytes(pDate.Hour, 2));
+            lBytes.AddRange(ZIntToBytes(pTimestamp.Hour, 2));
             lBytes.Add(cASCII.COLON);
-            lBytes.AddRange(ZIntToBytes(pDate.Minute, 2));
+            lBytes.AddRange(ZIntToBytes(pTimestamp.Minute, 2));
             lBytes.Add(cASCII.COLON);
-            lBytes.AddRange(ZIntToBytes(pDate.Second, 2));
+            lBytes.AddRange(ZIntToBytes(pTimestamp.Second, 2));
 
             lBytes.Add(cASCII.SPACE);
 
-            if (pDate.Kind == DateTimeKind.Local)
+            if (pTimestamp.UnknownLocalOffset) lBytes.AddRange(kUnspecified);
+            else
             {
-                var lOffset = TimeZoneInfo.Local.GetUtcOffset(pDate);
-
-                if (lOffset < TimeSpan.Zero)
-                {
-                    lBytes.Add(cASCII.HYPEN);
-                    lOffset = -lOffset;
-                }
+                if (pTimestamp.Offset < TimeSpan.Zero) lBytes.Add(cASCII.HYPEN);
                 else lBytes.Add(cASCII.PLUS);
 
-                var lOffsetChars = lOffset.ToString("hhmm");
-
-                foreach (var lChar in lOffsetChars) lBytes.Add((byte)lChar);
+                foreach (var lChar in pTimestamp.Offset.ToString("hhmm")) lBytes.Add((byte)lChar);
             }
-            else if (pDate.Kind == DateTimeKind.Utc) lBytes.AddRange(kUTC);
-            else lBytes.AddRange(kUnspecified);
 
             lBytes.Add(cASCII.DQUOTE);
 
@@ -395,7 +385,7 @@ namespace work.bacome.imapclient
         private static cByteList ZIntToBytes(int pNumber, int pMinLength)
         {
             if (pNumber < 0) throw new ArgumentOutOfRangeException(nameof(pNumber));
-            cByteList lBytes = cTools.IntToBytesReverse(pNumber);
+            cByteList lBytes = cMailTools.IntToBytesReverse(pNumber);
             for (int i = lBytes.Count; i < pMinLength; i++) lBytes.Add(cASCII.ZERO);
             lBytes.Reverse();
             return lBytes;

@@ -99,8 +99,6 @@ namespace work.bacome.imapclient
         private cEnvelope mEnvelope;
         private cTimestamp mReceived;
         private uint? mSize;
-
-        ;...;
         private cBodyPart mBodyStructure;
         private cHeaderFields mHeaderFields;
         private cBinarySizes mBinarySizes;
@@ -213,13 +211,6 @@ namespace work.bacome.imapclient
             {
                 mBinarySizes += pBinarySizes;
             }
-        }
-
-        private static bool ZDatesAreConsistent(DateTimeOffset pOffset, DateTime pDateTime)
-        {
-            if (pDateTime.Kind == DateTimeKind.Local && pDateTime == pOffset.LocalDateTime) return true;
-            if (pDateTime.Kind == DateTimeKind.Unspecified && pDateTime == pOffset.DateTime) return true;
-            return false;
         }
 
         public override string ToString() => $"{nameof(cHeaderCacheItemData)}({base.ToString()},{mAttributes},{Envelope},{mReceived},{mSize},{BodyStructure},{HeaderFields},{mBinarySizes})";

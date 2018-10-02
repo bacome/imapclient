@@ -842,7 +842,7 @@ namespace work.bacome.imapclient
                             {
                                 case cTextCommandPart lText:
 
-                                    lBuilder.Append(cTools.BytesToLoggableString(lText.Bytes));
+                                    lBuilder.Append(cMailTools.BytesToLoggableString(lText.Bytes));
                                     break;
 
                                 case cLiteralCommandPart lLiteral:
@@ -851,7 +851,7 @@ namespace work.bacome.imapclient
                                     lBuilder.Append(lLiteral.Bytes.Count);
                                     lBuilder.Append("}");
 
-                                    lBuilder.Append(cTools.BytesToLoggableString(lLiteral.Bytes));
+                                    lBuilder.Append(cMailTools.BytesToLoggableString(lLiteral.Bytes));
 
                                     break;
                             }

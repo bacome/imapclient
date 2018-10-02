@@ -104,17 +104,10 @@ namespace work.bacome.mailclient
             return lBytes.GetMessageDataPart();
         }
 
-        public cLiteralMessageDataPart GetDateTimeValuedField(string pFieldName, DateTime pDateTime)
+        public cLiteralMessageDataPart GetDateTimeValuedField(string pFieldName, cTimestamp pTimestamp)
         {
             var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
-            if (!lBytes.TryAdd(cTools.GetRFC822DateTimeString(pDateTime), eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(GetDateTimeValuedField), 1);
-            return lBytes.GetMessageDataPart();
-        }
-
-        public cLiteralMessageDataPart GetDateTimeValuedField(string pFieldName, DateTimeOffset pDateTimeOffset)
-        {
-            var lBytes = new cHeaderFieldBytes(pFieldName, mUTF8Headers, mEncoding, mCharsetNameBytes);
-            if (!lBytes.TryAdd(cTools.GetRFC822DateTimeString(pDateTimeOffset), eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(GetDateTimeValuedField), 2);
+            if (!lBytes.TryAdd(pTimestamp.GetRFC822DateTimeString(), eHeaderFieldTextContext.structured)) throw new cInternalErrorException(nameof(cHeaderFieldFactory), nameof(GetDateTimeValuedField), 1);
             return lBytes.GetMessageDataPart();
         }
 

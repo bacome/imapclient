@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace work.bacome.mailclient
 {
@@ -8,7 +9,7 @@ namespace work.bacome.mailclient
         public readonly DateTimeOffset DateTimeOffset;
         public readonly bool UnknownLocalOffset;
 
-        public cTimestamp(int pYYYY, int pMonth, int pDay, int pHour, int pMinute, int pSecond, int pMillisecond, bool pWest, int pOffsetHour, int pOffsetMinute)
+        internal cTimestamp(int pYYYY, int pMonth, int pDay, int pHour, int pMinute, int pSecond, int pMillisecond, bool pWest, int pOffsetHour, int pOffsetMinute)
         {
             // west = a negative offset
 
@@ -37,11 +38,66 @@ namespace work.bacome.mailclient
             }
         }
 
+        public cTimestamp(DateTime pDateTime)
+        {
+            DateTimeOffset = new DateTimeOffset(pDateTime);
+            UnknownLocalOffset = false;
+        }
+
+        public cTimestamp(DateTimeOffset pDateTimeOffset)
+        {
+            DateTimeOffset = pDateTimeOffset;
+            UnknownLocalOffset = false;
+        }
+
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            if (UnknownLocalOffset && DateTimeOffset.Offset != TimeSpan.Zero) throw new cDeserialiseException(nameof(cTimestamp), nameof(UnknownLocalOffset), kDeserialiseExceptionMessage.IsInconsistent);
+        }
+
         public DateTime Date => DateTimeOffset.Date;
         public DateTime DateTime => DateTimeOffset.DateTime;
         public TimeSpan Offset => DateTimeOffset.Offset;
         public DateTime LocalDateTime => DateTimeOffset.LocalDateTime;
         public DateTime UtcDateTime => DateTimeOffset.UtcDateTime;
+
+        public int Day => DateTimeOffset.Day;
+        public int Month => DateTimeOffset.Month;
+        public int Year => DateTimeOffset.Year;
+        public int Hour => DateTimeOffset.Hour;
+        public int Minute => DateTimeOffset.Minute;
+        public int Second => DateTimeOffset.Second;
+        public int Millisecond => DateTimeOffset.Millisecond;
+
+        public string GetRFC822DateTimeString()
+        {
+            string lSign;
+            string lZone;
+
+            if (UnknownLocalOffset)
+            {
+                lSign = "-";
+                lZone = "0000";
+            }
+            else
+            {
+                var lOffset = DateTimeOffset.Offset;
+
+                if (lOffset < TimeSpan.Zero)
+                {
+                    lSign = "-";
+                    lOffset = -lOffset;
+                }
+                else lSign = "+";
+
+                lZone = lOffset.ToString("hhmm");
+            }
+
+            var lMonth = cRFCMonth.cName[DateTimeOffset.Month - 1];
+
+            return string.Format("{0:dd} {1} {0:yyyy} {0:HH}:{0:mm}:{0:ss} {2}{3}", DateTimeOffset, lMonth, lSign, lZone);
+        }
 
         public bool Equals(cTimestamp pObject) => this == pObject;
 
@@ -79,5 +135,7 @@ namespace work.bacome.mailclient
         }
 
         public static bool operator !=(cTimestamp pA, cTimestamp pB) => !(pA == pB);
+
+        public static cTimestamp Now => new cTimestamp(DateTimeOffset.Now);
     }
 }

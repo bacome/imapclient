@@ -60,10 +60,8 @@ namespace work.bacome.mailclient
         public uint? PartialOffset => mParts.PartialOffset;
         /**<summary>Gets the 'length' part of the 'partial-range' part of the URL. May be <see langword="null"/>.</summary>*/
         public uint? PartialLength => mParts.PartialLength;
-        /**<summary>Gets the parsed 'datetime' part of the 'expire' part of the URL. May be <see langword="null"/>.</summary>*/
-        public DateTimeOffset? ExpireDateTimeOffset => mParts.ExpireDateTimeOffset;
-        /**<summary>Gets the parsed 'datetime' part of the 'expire' part of the URL (in local time if there is useable time zone information). May be <see langword="null"/>.</summary>*/
-        public DateTime? ExpireDateTime => mParts.ExpireDateTime;
+        /**<summary>Gets the 'expire' part of the URL. May be <see langword="null"/>.</summary>*/
+        public cTimestamp Expire => mParts.Expire;
         /**<summary>Gets the 'application' part of the 'access identifier' part of the URL. May be <see langword="null"/>.</summary>*/
         public string Application => mParts.Application;
         /**<summary>Gets the decoded 'enc-user' part of the 'access identifier' part of the URL. May be <see langword="null"/>.</summary>*/

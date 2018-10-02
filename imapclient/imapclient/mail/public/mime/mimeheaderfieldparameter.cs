@@ -19,11 +19,11 @@ namespace work.bacome.mailclient
             if (!cCharset.WSPVChar.ContainsAll(pValue)) throw new ArgumentOutOfRangeException(nameof(pValue));
         }
 
-        public cMIMEHeaderFieldParameter(string pAttribute, DateTime pDateTime)
+        public cMIMEHeaderFieldParameter(string pAttribute, cTimestamp pTimestamp)
         {
             Attribute = pAttribute ?? throw new ArgumentNullException(nameof(pAttribute));
             if (!cCharset.AttributeChar.ContainsAll(pAttribute)) throw new ArgumentOutOfRangeException(nameof(pAttribute));
-            Value = cTools.GetRFC822DateTimeString(pDateTime);
+            Value = pTimestamp.GetRFC822DateTimeString();
         }
 
         public cMIMEHeaderFieldParameter(string pAttribute, long pValue)

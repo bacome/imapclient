@@ -67,7 +67,7 @@ namespace work.bacome.mailclient
         public const string ContainsNulls = "contains nulls";
         public const string ContainsInvalidValues = "contains invalid values";
         public const string ContainsDuplicates = "contains duplicates";
-        public const string IsOutOfOrder = "is out of order";
+        public const string IncorrectSequence = "incorrect sequence";
 
     }
 }

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace work.bacome.mailclient
 {
-    internal static class cTools
+    internal static class cMailTools
     {
         private static readonly IdnMapping kIDNMapping = new IdnMapping();
         private static readonly char[] kWSP = new char[] { '\t', ' ' };
@@ -71,47 +71,6 @@ namespace work.bacome.mailclient
             return lBuilder.ToString() + ")";
         }
 
-        public static bool TryEncodedMailboxPathToString(IList<byte> pEncodedMailboxPath, byte? pDelimiter, bool pUTF8Enabled, out string rString)
-        {
-            if (pUTF8Enabled) { rString = UTF8BytesToString(pEncodedMailboxPath); return true; }
-
-            if (pDelimiter == null) return cModifiedUTF7.TryDecode(pEncodedMailboxPath, out rString, out _);
-
-            byte lDelimiterByte = pDelimiter.Value;
-            char lDelimiterChar = (char)lDelimiterByte;
-
-            List<cByteList> lSegments = new List<cByteList>();
-
-            cByteList lSegment = new cByteList();
-
-            foreach (byte lByte in pEncodedMailboxPath)
-            {
-                if (lByte == lDelimiterByte)
-                {
-                    lSegments.Add(lSegment);
-                    lSegment = new cByteList();
-                }
-                else lSegment.Add(lByte);
-            }
-
-            lSegments.Add(lSegment);
-
-            StringBuilder lResult = new StringBuilder();
-            bool lFirst = true;
-
-            foreach (var lSegmentBytes in lSegments)
-            {
-                if (lFirst) lFirst = false;
-                else lResult.Append(lDelimiterChar);
-
-                if (!cModifiedUTF7.TryDecode(lSegmentBytes, out var lSegmentString, out _)) { rString = null; return false; }
-                lResult.Append(lSegmentString);
-            }
-
-            rString = lResult.ToString();
-            return true;
-        }
-
         public static cByteList UIntToBytesReverse(uint pNumber)
         {
             cByteList lBytes = new cByteList(10);
@@ -161,9 +120,6 @@ namespace work.bacome.mailclient
 
             return lBytes;
         }
-
-        public static bool IsValidDelimiter(char pDelimiter) => pDelimiter <= cChar.DEL && pDelimiter != cChar.NUL && pDelimiter != cChar.CR && pDelimiter != cChar.LF;
-        public static bool IsValidDelimiter(byte pDelimiter) => pDelimiter <= cASCII.DEL && pDelimiter != cASCII.NUL && pDelimiter != cASCII.CR && pDelimiter != cASCII.LF;
 
         public static bool TryCharsetBytesToString(string pCharset, IList<byte> pBytes, out string rString)
         {
@@ -230,61 +186,6 @@ namespace work.bacome.mailclient
             }
         }
 
-        public static string GetRFC822DateTimeString(DateTime pDateTime)
-        {
-            string lSign;
-            string lZone;
-
-            if (pDateTime.Kind == DateTimeKind.Local)
-            {
-                var lOffset = TimeZoneInfo.Local.GetUtcOffset(pDateTime);
-
-                if (lOffset < TimeSpan.Zero)
-                {
-                    lSign = "-";
-                    lOffset = -lOffset;
-                }
-                else lSign = "+";
-
-                lZone = lOffset.ToString("hhmm");
-            }
-            else if (pDateTime.Kind == DateTimeKind.Utc)
-            {
-                lSign = "+";
-                lZone = "0000";
-            }
-            else
-            {
-                lSign = "-";
-                lZone = "0000";
-            }
-
-            var lMonth = cRFCMonth.cName[pDateTime.Month - 1];
-
-            return string.Format("{0:dd} {1} {0:yyyy} {0:HH}:{0:mm}:{0:ss} {2}{3}", pDateTime, lMonth, lSign, lZone);
-        }
-
-        public static string GetRFC822DateTimeString(DateTimeOffset pDateTimeOffset)
-        {
-            string lSign;
-            string lZone;
-
-            var lOffset = pDateTimeOffset.Offset;
-
-            if (lOffset < TimeSpan.Zero)
-            {
-                lSign = "-";
-                lOffset = -lOffset;
-            }
-            else lSign = "+";
-
-            lZone = lOffset.ToString("hhmm");
-
-            var lMonth = cRFCMonth.cName[pDateTimeOffset.Month - 1];
-
-            return string.Format("{0:dd} {1} {0:yyyy} {0:HH}:{0:mm}:{0:ss} {2}{3}", pDateTimeOffset, lMonth, lSign, lZone);
-        }
-
         public static string GetDNSHost(string pHost) => kIDNMapping.GetAscii(pHost);
 
         public static string GetDisplayHost(string pHost)
@@ -331,7 +232,7 @@ namespace work.bacome.mailclient
         {
             if (pIdLeft == null) throw new ArgumentNullException(nameof(pIdLeft));
             if (pIdRight == null) throw new ArgumentNullException(nameof(pIdRight));
-            if (cValidation.IsDotAtomText(pIdLeft)) return "<" + pIdLeft + "@" + pIdRight + ">";
+            if (cMailValidation.IsDotAtomText(pIdLeft)) return "<" + pIdLeft + "@" + pIdRight + ">";
             else return "<" + Enquote(pIdLeft) + "@" + pIdRight + ">";
         }
     }

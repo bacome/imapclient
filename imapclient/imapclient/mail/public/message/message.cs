@@ -19,12 +19,7 @@ namespace work.bacome.mailclient
         /// <summary>
         /// Gets the sent date of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
         /// </summary>
-        public DateTimeOffset? SentDateTimeOffset => Envelope.SentDateTimeOffset;
-
-        /// <summary>
-        /// Gets the sent date of the message from the <see cref="Envelope"/> (in local time if there is usable time zone information). May be <see langword="null"/>.
-        /// </summary>
-        public DateTime? SentDateTime => Envelope.SentDateTime;
+        public cTimestamp Sent => Envelope.Sent;
 
         /// <summary>
         /// Gets the subject of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.

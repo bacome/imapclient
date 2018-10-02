@@ -415,24 +415,6 @@ namespace work.bacome.mailclient
             return true;
         }
 
-        public bool GetDate(out DateTime rDate)
-        {
-            var lBookmark = Position;
-
-            if (SkipByte(cASCII.DQUOTE))
-            {
-                if (ZGetDayMonthYear(out var lDay, out var lMonth, out var lYear) && ZDate(lYear, lMonth, lDay, out rDate) && SkipByte(cASCII.DQUOTE)) return true;
-            }
-            else
-            {
-                if (ZGetDayMonthYear(out var lDay, out var lMonth, out var lYear) && ZDate(lYear, lMonth, lDay, out rDate)) return true;
-            }
-
-            Position = lBookmark;
-            rDate = new DateTime();
-            return false;
-        }
-
         public bool GetDateTime(out cTimestamp rTimestamp)
         {
             // imap date time

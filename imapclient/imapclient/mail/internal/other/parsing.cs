@@ -15,7 +15,7 @@ namespace work.bacome.mailclient
 
             if (lCursor.GetRFC822MsgId(out var lIdLeft, out var lIdRight) && lCursor.Position.AtEnd)
             {
-                rMessageId = cTools.MessageId(lIdLeft, lIdRight);
+                rMessageId = cMailTools.MessageId(lIdLeft, lIdRight);
                 return true;
             }
 
@@ -32,7 +32,7 @@ namespace work.bacome.mailclient
             while (true)
             {
                 if (!lCursor.GetRFC822MsgId(out var lIdLeft, out var lIdRight)) break;
-                lMessageIds.Add(cTools.MessageId(lIdLeft, lIdRight));
+                lMessageIds.Add(cMailTools.MessageId(lIdLeft, lIdRight));
             }
 
             if (lCursor.Position.AtEnd)

@@ -231,27 +231,12 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// If the message cache does not contain the <see cref="fMessageCacheAttributes.received"/> date of the message, it will be fetched from the server.
         /// </remarks>
-        public DateTimeOffset ReceivedDateTimeOffset
+        public cTimestamp Received
         {
             get
             {
                 ZFetch(kReceived, true);
-                return MessageHandle.ReceivedDateTimeOffset.Value;
-            }
-        }
-
-        /// <summary>
-        /// Gets the IMAP INTERNALDATE of the message (in local time if there is useable time zone information).
-        /// </summary>
-        /// <remarks>
-        /// If the message cache does not contain the <see cref="fMessageCacheAttributes.received"/> date of the message, it will be fetched from the server.
-        /// </remarks>
-        public DateTime ReceivedDateTime
-        {
-            get
-            {
-                ZFetch(kReceived, true);
-                return MessageHandle.ReceivedDateTime.Value;
+                return MessageHandle.Received;
             }
         }
 

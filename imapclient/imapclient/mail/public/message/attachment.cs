@@ -73,32 +73,17 @@ namespace work.bacome.mailclient
         /// <summary>
         /// Gets the creation date of the attachment. May be <see langword="null"/>.
         /// </summary>
-        public DateTimeOffset? CreationDateTimeOffset => Part.Disposition?.CreationDateTimeOffset;
-
-        /// <summary>
-        /// Gets the creation date of the attachment (in local time if there is usable time zone information). May be <see langword="null"/>.
-        /// </summary>
-        public DateTime? CreationDateTime => Part.Disposition?.CreationDateTime;
+        public cTimestamp CreationDate => Part.Disposition?.CreationDate;
 
         /// <summary>
         /// Gets the modification date of the attachment. May be <see langword="null"/>.
         /// </summary>
-        public DateTimeOffset? ModificationDateTimeOffset => Part.Disposition?.ModificationDateTimeOffset;
+        public cTimestamp ModificationTime => Part.Disposition?.ModificationDate;
 
         /// <summary>
-        /// Gets the modification date of the attachment (in local time if there is usable time zone information). May be <see langword="null"/>.
+        /// Gets the read date of the attachment. May be <see langword="null"/>.
         /// </summary>
-        public DateTime? ModificationDateTime => Part.Disposition?.ModificationDateTime;
-
-        /// <summary>
-        /// Gets the last read date of the attachment. May be <see langword="null"/>.
-        /// </summary>
-        public DateTimeOffset? ReadDateTimeOffset => Part.Disposition?.ReadDateTimeOffset;
-
-        /// <summary>
-        /// Gets the last read date of the attachment (in local time if there is usable time zone information). May be <see langword="null"/>.
-        /// </summary>
-        public DateTime? ReadDateTime => Part.Disposition?.ReadDateTime;
+        public cTimestamp ReadTime => Part.Disposition?.ReadDate;
 
         /// <summary>
         /// Gets the approximate size of the attachment in bytes. May be <see langword="null"/>.
@@ -139,21 +124,23 @@ namespace work.bacome.mailclient
 
             if (Part.Disposition == null) return;
 
-            if (Part.Disposition.CreationDateTime != null)
+            cTimestamp lFileDate;
+
+            if ((lFileDate = Part.Disposition.CreationDate) != null)
             {
-                try { File.SetCreationTime(pPath, Part.Disposition.CreationDateTime.Value); }
+                try { File.SetCreationTimeUtc(pPath, lFileDate.UtcDateTime); }
                 catch (Exception e) { lContext.TraceException("failed to setcreationtime", e); }
             }
 
-            if (Part.Disposition.ModificationDateTime != null)
+            if ((lFileDate = Part.Disposition.ModificationDate) != null)
             {
-                try { File.SetLastWriteTime(pPath, Part.Disposition.ModificationDateTime.Value); }
+                try { File.SetLastWriteTimeUtc(pPath, lFileDate.UtcDateTime); }
                 catch (Exception e) { lContext.TraceException("failed to setlastwritetime", e); }
             }
 
-            if (Part.Disposition.ReadDateTime != null)
+            if ((lFileDate = Part.Disposition.ReadDate) != null)
             {
-                try { File.SetLastAccessTime(pPath, Part.Disposition.ReadDateTime.Value); }
+                try { File.SetLastAccessTimeUtc(pPath, lFileDate.UtcDateTime); }
                 catch (Exception e) { lContext.TraceException("failed to setlastaccesstime", e); }
             }
         }

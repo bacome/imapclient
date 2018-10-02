@@ -77,10 +77,8 @@ namespace work.bacome.mailclient
         public uint? PartialOffset => mURLParts?.PartialOffset;
         /**<summary>Gets the <see cref="cURL.PartialLength"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
         public uint? PartialLength => mURLParts?.PartialLength;
-        /**<summary>Gets the <see cref="cURL.ExpireDateTimeOffset"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
-        public DateTimeOffset? ExpireDateTimeOffset => mURLParts?.ExpireDateTimeOffset;
-        /**<summary>Gets the <see cref="cURL.ExpireDateTime"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
-        public DateTime? ExpireDateTime => mURLParts?.ExpireDateTime;
+        /**<summary>Gets the <see cref="cURL.Expire"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
+        public cTimestamp Expire => mURLParts?.Expire;
         /**<summary>Gets the <see cref="cURL.Application"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
         public string Application => mURLParts?.Application;
         /**<summary>Gets the <see cref="cURL.AccessUserId"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/

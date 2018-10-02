@@ -5,7 +5,7 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
 {
-    internal static class cValidation
+    internal static class cMailValidation
     {
         // validates input from the user of the library
         //  this code only outputs non-obsolete rfc 5322 syntax but it will accept obsolete syntax as input

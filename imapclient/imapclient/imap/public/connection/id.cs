@@ -278,7 +278,7 @@ namespace work.bacome.imapclient
 
                 mDictionary[kIMAPIdFieldName.Vendor] = "bacome";
                 mDictionary[kIMAPIdFieldName.SupportURL] = @"http:\\bacome.work";
-                mDictionary[kIMAPIdFieldName.Date] = cTools.UTF8BytesToString(cCommandPartFactory.AsDate(cIMAPClient.ReleaseDate).Bytes);
+                mDictionary[kIMAPIdFieldName.Date] = cIMAPTools.DateToRFC3501DateString(cIMAPClient.ReleaseDate);
 
                 /* not safe: the command line could contain anything
                 try
@@ -443,7 +443,7 @@ namespace work.bacome.imapclient
         /// Sets <see cref="Date"/>. This method converts the supplied date to RFC 3501 date format.
         /// </summary>
         /// <param name="pDate"></param>
-        public void SetDate(DateTime pDate) => mDictionary[kIMAPIdFieldName.Date] = cTools.UTF8BytesToString(cCommandPartFactory.AsDate(pDate).Bytes);
+        public void SetDate(DateTime pDate) => mDictionary[kIMAPIdFieldName.Date] = cIMAPTools.DateToRFC3501DateString(pDate);
 
         /**<summary>Gets (<see langword="null"/> if it isn't specified) and sets the command used to start the program.</summary>*/
         public string Command

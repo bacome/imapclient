@@ -76,8 +76,7 @@ namespace work.bacome.imapclient
                     }
 
                     ;?; // more property changes here
-                    public DateTimeOffset? ReceivedDateTimeOffset => mHeaderCacheItem.ReceivedDateTimeOffset;
-                    public DateTime? ReceivedDateTime => mHeaderCacheItem.ReceivedDateTime;
+                    public cTimestamp Received => mHeaderCacheItem.Received;
                     public uint? Size => mHeaderCacheItem.Size;
                     public cBodyPart Body => mHeaderCacheItem.Body ?? mHeaderCacheItem.BodyStructure;
                     public cBodyPart BodyStructure => mHeaderCacheItem.BodyStructure;
