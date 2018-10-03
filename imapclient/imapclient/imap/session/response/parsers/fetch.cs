@@ -310,8 +310,8 @@ namespace work.bacome.imapclient
                             // not sure how mailbox names are meant to support i18n? rfc 6530 implies UTF8 but I can't find how that affects the value reported by IMAP in mailbox
                             //  at this stage if UTF8 were to appear in the mailbox then we would just accept it
 
-                            string lMailbox = cTools.UTF8BytesToString(lMailboxBytes);
-                            string lHost = cTools.UTF8BytesToString(lHostBytes);
+                            string lMailbox = cMailTools.UTF8BytesToString(lMailboxBytes);
+                            string lHost = cMailTools.UTF8BytesToString(lHostBytes);
 
                             cCulturedString lDisplayName;
                             if (lNameBytes == null) lDisplayName = null;
@@ -412,32 +412,35 @@ namespace work.bacome.imapclient
 
                     if (lType.Equals(kMimeType.Message, StringComparison.InvariantCultureIgnoreCase) && lSubType.Equals(kMimeSubType.RFC822, StringComparison.InvariantCultureIgnoreCase))
                     {
+                        cSection lSection;
+
+                        if (pSection.TextPart == eSectionTextPart.text)
+                        {
+                            // TODO: test this [and if it is wrong change the ondeserialised on cMessageBodyPart]
+
+                            // this case covers the situation where the media-type of a _message_ is message/rfc822
+                            //  (i.e. where the message body directly contains 1 and only one encapsulated message)
+
+                            lSection = new cSection(lSubPartPrefix + "1", eSectionTextPart.text);
+                        }
+                        else lSection = new cSection(pSection.Part, eSectionTextPart.text);
+
                         if (!pCursor.SkipByte(cASCII.SPACE) || 
                             !ZProcessEnvelope(pCursor, out var lEnvelope) ||
                             !pCursor.SkipByte(cASCII.SPACE) ||
-                            !ZProcessBodyStructure(pCursor, new cSection(pSection.Part, eSectionTextPart.text), pExtended, out lBodyPart) ||
+                            !ZProcessBodyStructure(pCursor, lSection, pExtended, out lBodyPart) ||
                             !pCursor.SkipByte(cASCII.SPACE) ||
                             !pCursor.GetNumber(out _, out var lSizeInLines)) { rBodyPart = null; return false; }
 
-                        cBodyPart lBody;
-                        cBodyPart lBodyStructure;
-
                         if (pExtended)
                         {
-                            lBody = null;
-                            lBodyStructure = lBodyPart;
                             if (!ZProcessBodyStructureSinglePartExtensionData(pCursor, out lExtensionData)) { rBodyPart = null; return false; }
                         }
-                        else
-                        {
-                            lBody = lBodyPart;
-                            lBodyStructure = null;
-                            lExtensionData = null;
-                        }
+                        else lExtensionData = null;
 
                         if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyPart = null; return false; }
 
-                        rBodyPart = new cMessageBodyPart(pSection, lParameters, lContentId, lDescription, lContentTransferEncoding, mUTF8Enabled, lSizeInBytes, lEnvelope, lBody, lBodyStructure, lSizeInLines, lExtensionData);
+                        rBodyPart = new cMessageBodyPart(pSection, lParameters, lContentId, lDescription, lContentTransferEncoding, mUTF8Enabled, lSizeInBytes, lEnvelope, lBodyPart, lSizeInLines, lExtensionData);
                         return true;
                     }
 
@@ -609,7 +612,7 @@ namespace work.bacome.imapclient
 
                     string lPart;
                     if (lPartBytes.Count == 0) lPart = null;
-                    else lPart = cTools.ASCIIBytesToString(lPartBytes);
+                    else lPart = cMailTools.ASCIIBytesToString(lPartBytes);
 
                     if (pBinary)
                     {

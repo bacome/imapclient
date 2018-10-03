@@ -4,7 +4,7 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    public abstract class cSectionCacheItem
+    public abstract class cSectionCacheItemx
     {
         protected enum eItemState { deleted, exists }
 

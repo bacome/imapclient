@@ -2,7 +2,14 @@
 
 namespace work.bacome.imapclient
 {
-    public abstract class cPersistentCacheItem
+
+
+
+
+
+
+
+    public abstract class cPersistentCacheItemx
     {
         protected readonly cPersistentCacheComponent mCache;
         protected readonly cPersistentCacheItemData mData;
@@ -22,7 +29,7 @@ namespace work.bacome.imapclient
     }
 
     [Serializable]
-    public abstract class cPersistentCacheItemData
+    public abstract class cPersistentCacheItemDatax
     {
         [NonSerialized]
         protected readonly object mUpdateLock = new object();

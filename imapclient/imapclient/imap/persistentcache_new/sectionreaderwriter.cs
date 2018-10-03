@@ -7,16 +7,13 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    internal sealed class cSectionCacheItemReaderWriter : iSectionReader, iFetchSectionTarget, IDisposable
+    internal sealed class cSectionReaderWriter : iSectionReader, iFetchSectionTarget, IDisposable
     {
         private enum eWritingState { notstarted, inprogress, completedok, failed }
 
         private bool mDisposed = false;
-        private int mCount = 1;
 
         private readonly Stream mStream;
-        private readonly Action<cTrace.cContext> mDecrementOpenStreamCount;
-        private readonly cTrace.cContext mContextToUseWhenDisposing;
         private readonly CancellationTokenSource mCancellationTokenSource = new CancellationTokenSource();
         private readonly SemaphoreSlim mSemaphore = new SemaphoreSlim(1, 1);
         private readonly cReleaser mReleaser;
@@ -33,20 +30,18 @@ namespace work.bacome.imapclient
         // read/write
         private long mFetchedBytesReadPosition = 0;
 
-        internal cSectionCacheItemReaderWriter(Stream pStream, Action<cTrace.cContext> pDecrementOpenStreamCount, cTrace.cContext pContextToUseWhenDisposing)
+        internal cSectionReaderWriter(Stream pStream)
         {
             mStream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!mStream.CanRead || !mStream.CanSeek || !mStream.CanWrite || mStream.Position != 0) throw new ArgumentOutOfRangeException(nameof(pStream));
-            mDecrementOpenStreamCount = pDecrementOpenStreamCount ?? throw new ArgumentNullException(nameof(pDecrementOpenStreamCount));
-            mContextToUseWhenDisposing = pContextToUseWhenDisposing;
-            mReleaser = new cReleaser(nameof(cSectionCacheItemReaderWriter), mCancellationTokenSource.Token);
+            mReleaser = new cReleaser(nameof(cSectionReaderWriter), mCancellationTokenSource.Token);
         }
 
         public async Task<long> GetLengthAsync(cMethodControl pMC, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItemReaderWriter), nameof(GetLengthAsync), pMC);
+            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(GetLengthAsync), pMC);
 
-            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionCacheItemReaderWriter));
+            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionReaderWriter));
 
             if (mWritingState == eWritingState.completedok) return mStream.Length;
 
@@ -65,16 +60,16 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (mDisposed) throw new ObjectDisposedException(nameof(cSectionCacheItemReaderWriter));
+                if (mDisposed) throw new ObjectDisposedException(nameof(cSectionReaderWriter));
                 return mReadPosition;
             }
         }
 
         public async Task SetReadPositionAsync(long pReadPosition, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItemReaderWriter), nameof(SetReadPositionAsync), pReadPosition);
+            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(SetReadPositionAsync), pReadPosition);
 
-            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionCacheItemReaderWriter));
+            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionReaderWriter));
 
             if (pReadPosition < 0) throw new ArgumentOutOfRangeException(nameof(pReadPosition));
 
@@ -118,9 +113,9 @@ namespace work.bacome.imapclient
 
         public async Task<int> ReadAsync(byte[] pBuffer, int pOffset, int pCount, int pTimeout, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItemReaderWriter), nameof(ReadAsync), pOffset, pCount, pTimeout);
+            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(ReadAsync), pOffset, pCount, pTimeout);
 
-            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionCacheItemReaderWriter));
+            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionReaderWriter));
 
             if (pBuffer == null) throw new ArgumentNullException(nameof(pBuffer));
             if (pOffset < 0) throw new ArgumentOutOfRangeException(nameof(pOffset));
@@ -151,9 +146,9 @@ namespace work.bacome.imapclient
 
         public async Task<int> ReadByteAsync(int pTimeout, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItemReaderWriter), nameof(ReadByteAsync), pTimeout);
+            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(ReadByteAsync), pTimeout);
 
-            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionCacheItemReaderWriter));
+            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionReaderWriter));
 
             var lMC = new cMethodControl(pTimeout);
 
@@ -184,7 +179,7 @@ namespace work.bacome.imapclient
 
         private async Task ZWaitForDataToReadAsync(cMethodControl pMC, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItemReaderWriter), nameof(ZWaitForDataToReadAsync), pMC);
+            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(ZWaitForDataToReadAsync), pMC);
 
             if (mStream.Length == mReadPosition && mWritingState != eWritingState.completedok)
             {
@@ -202,15 +197,15 @@ namespace work.bacome.imapclient
 
         private Task ZGetAwaitWriteTask(cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItemReaderWriter), nameof(ZGetAwaitWriteTask));
-            if (mWritingState == eWritingState.failed) throw new IOException(nameof(cSectionCacheItemReaderWriter), mWriteException);
+            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(ZGetAwaitWriteTask));
+            if (mWritingState == eWritingState.failed) throw new IOException(nameof(cSectionReaderWriter), mWriteException);
             return mReleaser.GetAwaitReleaseTask(lContext);
         }
 
         public void WriteBegin(cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItemReaderWriter), nameof(WriteBegin));
-            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionCacheItemReaderWriter));
+            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(WriteBegin));
+            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionReaderWriter));
             if (mWritingState != eWritingState.notstarted) throw new InvalidOperationException();
             if (mStream.Position != 0) throw new cUnexpectedPersistentCacheActionException(lContext);
             mWritingState = eWritingState.inprogress;
@@ -218,9 +213,9 @@ namespace work.bacome.imapclient
 
         public async Task WriteAsync(byte[] pBuffer, int pFetchedBytesInBuffer, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItemReaderWriter), nameof(WriteAsync), pFetchedBytesInBuffer);
+            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(WriteAsync), pFetchedBytesInBuffer);
 
-            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionCacheItemReaderWriter));
+            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionReaderWriter));
             if (mWritingState != eWritingState.inprogress) throw new InvalidOperationException();
 
             if (pBuffer == null) throw new ArgumentNullException(nameof(pBuffer));
@@ -249,9 +244,9 @@ namespace work.bacome.imapclient
 
         public void WritingFailed(Exception pException, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItemReaderWriter), nameof(WritingFailed));
+            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(WritingFailed));
 
-            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionCacheItemReaderWriter));
+            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionReaderWriter));
 
             mWriteException = pException;
             mWritingState = eWritingState.failed;
@@ -262,9 +257,9 @@ namespace work.bacome.imapclient
 
         public async Task WritingCompletedOKAsync(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionCacheItemReaderWriter), nameof(WritingCompletedOKAsync));
+            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(WritingCompletedOKAsync));
 
-            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionCacheItemReaderWriter));
+            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionReaderWriter));
             if (mWritingState != eWritingState.inprogress) throw new InvalidOperationException();
 
             await mStream.FlushAsync(pCancellationToken).ConfigureAwait(false);
@@ -302,8 +297,6 @@ namespace work.bacome.imapclient
                 try { mStream.Dispose(); }
                 catch { }
             }
-
-            if (Interlocked.Decrement(ref mCount) == 0) mDecrementOpenStreamCount(mContextToUseWhenDisposing);
 
             if (mCancellationTokenSource != null)
             {

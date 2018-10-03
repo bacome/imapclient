@@ -9,14 +9,14 @@ namespace work.bacome.imapclient
         public readonly cIMAPClient Client;
         public readonly iMessageHandle MessageHandle;
         public readonly cSection Section;
-        public readonly eDecodingRequired Decoding;
+        public readonly bool Decoded;
 
-        public cSectionHandle(cIMAPClient pClient, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding)
+        public cSectionHandle(cIMAPClient pClient, iMessageHandle pMessageHandle, cSection pSection, bool pDecoded)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
-            Decoding = pDecoding;
+            Decoded = pDecoded;
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
@@ -34,14 +34,14 @@ namespace work.bacome.imapclient
 
                 lHash = lHash * 23 + MessageHandle.GetHashCode();
                 lHash = lHash * 23 + Section.GetHashCode();
-                lHash = lHash * 23 + Decoding.GetHashCode();
+                lHash = lHash * 23 + Decoded.GetHashCode();
 
                 return lHash;
             }
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cSectionHandle)}({MessageHandle},{Section},{Decoding})";
+        public override string ToString() => $"{nameof(cSectionHandle)}({MessageHandle},{Section},{Decoded})";
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cSectionHandle pA, cSectionHandle pB)
@@ -49,7 +49,7 @@ namespace work.bacome.imapclient
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
             if (ReferenceEquals(pB, null)) return false;
-            return pA.MessageHandle == pB.MessageHandle && pA.Section == pB.Section && pA.Decoding == pB.Decoding;
+            return pA.MessageHandle == pB.MessageHandle && pA.Section == pB.Section && pA.Decoded == pB.Decoded;
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>

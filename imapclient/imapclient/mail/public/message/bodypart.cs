@@ -719,10 +719,6 @@ namespace work.bacome.mailclient
     /// <summary>
     /// Represents a message body-part that contains a message.
     /// </summary>
-    /// <remarks>
-    /// The <see cref="BodyStructure"/> element of instances will be <see langword="null"/> when populated with IMAP BODY data rather than IMAP BODYSTRUCTURE data.
-    /// Instances populated with BODY data are only available via <see cref="iMessageHandle.Body"/>.
-    /// </remarks>
     [Serializable]
     public class cMessageBodyPart : cSinglePartBody
     {
@@ -731,11 +727,8 @@ namespace work.bacome.mailclient
         /// </summary>
         public readonly cEnvelope Envelope;
 
-        [NonSerialized]
-        private readonly cBodyPart mBody;
-
         /// <summary>
-        /// The IMAP BODYSTRUCTURE information for the encapsulated message. May be <see langword="null"/>.
+        /// The IMAP body structure information for the encapsulated message.
         /// </summary>
         public readonly cBodyPart BodyStructure;
 
@@ -744,18 +737,26 @@ namespace work.bacome.mailclient
         /// </summary>
         public readonly uint SizeInLines;
 
-        internal cMessageBodyPart(cSection pSection, cBodyStructureParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, bool p8bitImpliesUTF8Headers, uint pSizeInBytes, cEnvelope pEnvelope, cBodyPart pBody, cBodyPart pBodyStructure, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(kMimeType.Message, kMimeSubType.RFC822, pSection, pParameters, pContentId, pDescription, pContentTransferEncoding, p8bitImpliesUTF8Headers, pSizeInBytes, pExtensionData)
+        internal cMessageBodyPart(cSection pSection, cBodyStructureParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, bool p8bitImpliesUTF8Headers, uint pSizeInBytes, cEnvelope pEnvelope, cBodyPart pBodyStructure, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(kMimeType.Message, kMimeSubType.RFC822, pSection, pParameters, pContentId, pDescription, pContentTransferEncoding, p8bitImpliesUTF8Headers, pSizeInBytes, pExtensionData)
         {
-            Envelope = pEnvelope;
-            mBody = pBody;
-            BodyStructure = pBodyStructure;
+            Envelope = pEnvelope ?? throw new ArgumentNullException(nameof(pEnvelope));
+            BodyStructure = pBodyStructure ?? throw new ArgumentNullException(nameof(pBodyStructure));
             SizeInLines = pSizeInLines;
         }
 
-        /// <summary>
-        /// Gets the IMAP BODY or BODYSTRUCTURE information for the encapsulated message, whichever is available.
-        /// </summary>
-        public cBodyPart Body => mBody ?? BodyStructure;
+        [OnDeserialized]
+        private void OnDeserialised(StreamingContext pSC)
+        {
+            if (Envelope == null) throw new cDeserialiseException(nameof(cMessageBodyPart), nameof(Envelope), kDeserialiseExceptionMessage.IsNull);
+            if (BodyStructure == null) throw new cDeserialiseException(nameof(cMessageBodyPart), nameof(BodyStructure), kDeserialiseExceptionMessage.IsNull);
+
+            cSection lSection;
+
+            if (Section.TextPart == eSectionTextPart.text) lSection = new cSection(Section.GetSubPartPrefix() + "1", eSectionTextPart.text);
+            else lSection = new cSection(Section.Part, eSectionTextPart.text);
+
+            if (BodyStructure.Section != lSection) throw new cDeserialiseException(nameof(cMessageBodyPart), nameof(BodyStructure), kDeserialiseExceptionMessage.IsInvalid);
+        }
 
         internal override bool LikelyIs(cBodyPart pPart)
         {
@@ -775,7 +776,7 @@ namespace work.bacome.mailclient
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cMessageBodyPart)}({base.ToString()},{Envelope},{BodyStructure ?? mBody},{SizeInLines})";
+        public override string ToString() => $"{nameof(cMessageBodyPart)}({base.ToString()},{Envelope},{BodyStructure},{SizeInLines})";
     }
 
     /// <summary>
