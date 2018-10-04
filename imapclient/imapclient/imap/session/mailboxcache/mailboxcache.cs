@@ -175,20 +175,20 @@ namespace work.bacome.imapclient
 
                     if (mSelectedMailbox == null) return;
 
-                    mPersistentCache.MessageCacheDeactivated(mSelectedMailbox.MessageCache, lContext);
-
                     var lMailboxHandle = mSelectedMailbox.MailboxHandle;
 
                     fMailboxProperties lProperties = fMailboxProperties.isselected;
                     if (mSelectedMailbox.SelectedForUpdate) lProperties |= fMailboxProperties.isselectedforupdate;
                     if (mSelectedMailbox.AccessReadOnly) lProperties |= fMailboxProperties.isaccessreadonly;
 
+                    var lSelectedMailbox = mSelectedMailbox;
                     mSelectedMailbox = null;
 
                     mSetState(eIMAPConnectionState.notselected, lContext);
                     mSynchroniser.InvokeMailboxPropertiesChanged(lMailboxHandle, lProperties, lContext);
                     mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.SelectedMailbox), lContext);
 
+                    lSelectedMailbox.SetUnselected(lContext);
                     mPersistentCache.Close(lMailboxHandle.MailboxId, lContext);
                 }
 

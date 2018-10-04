@@ -20,8 +20,10 @@ namespace work.bacome.imapclient.support
         /**<summary>Gets the attributes that the message cache currently contains for the message.</summary>*/
         fMessageCacheAttributes Attributes { get; }
 
-        /**<summary>Gets the current IMAP FLAGS data, <see langword="null"/> if this data isn't cached.</summary>*/
-        cFetchableFlags Flags { get; }
+        /// <summary>
+        /// Gets the RFC 7162 mod-sequence data and the IMAP FLAGS data, <see langword="null"/> if this data isn't cached.
+        /// </summary>
+        cModSeqFlags ModSeqFlags { get; }
 
         /**<summary>Gets the IMAP ENVELOPE data, <see langword="null"/> if this data isn't cached.</summary>*/
         cEnvelope Envelope { get; }
@@ -49,20 +51,12 @@ namespace work.bacome.imapclient.support
         cBodyPart BodyStructure { get; }
 
         /// <summary>
-        /// Gets the UID of the message, may be <see langword="null"/>.
+        /// Gets the MessageUID of the message, may be <see langword="null"/>.
         /// </summary>
         /// <remarks>
         /// <see langword="null"/> indicates that either the data isn't cached or that the mailbox does not support unique identifiers.
         /// </remarks>
-        cUID UID { get; }
-
-        /// <summary>
-        /// Gets the RFC 7162 mod-sequence data, <see langword="null"/> if this data isn't cached, may be zero.
-        /// </summary>
-        /// <remarks>
-        /// Zero indicates that either <see cref="cIMAPCapabilities.CondStore"/> is not in use or that the mailbox does not support the persistent storage of mod-sequences.
-        /// </remarks>
-        ulong? ModSeq { get; }
+        cMessageUID MessageUID { get; }
 
         /**<summary>Gets the set of header fields that are currently cached for the message, will be <see langword="null"/> if none have been cached.</summary>*/
         cHeaderFields HeaderFields { get; }

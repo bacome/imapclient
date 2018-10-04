@@ -55,6 +55,7 @@ namespace work.bacome.mailclient
         public const string ResultsNotReceived = "results not received";
         public const string ByeNotReceived = "bye not received";
         public const string SelectResponseOrderProblem = "select response order problem";
+        public const string VanishedWithNoUIDValidity = "vanished with no uidvalidity";
     }
 
     internal static class kDeserialiseExceptionMessage

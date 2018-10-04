@@ -63,5 +63,7 @@ namespace work.bacome.imapclient.support
         /// Zero indicates that <see cref="cIMAPCapabilities.CondStore"/> is not in use or that the mailbox does not support the persistent storage of mod-sequences.
         /// </remarks>
         ulong HighestModSeq { get; }
+
+        bool IsInvalid { get; }
     }
 }

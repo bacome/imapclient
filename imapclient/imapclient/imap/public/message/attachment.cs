@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
             MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
         }
 
-        public bool IsValid => ReferenceEquals(Client.SelectedMailboxDetails?.MessageCache, MessageHandle.MessageCache);
+        public bool IsInvalid => MessageHandle.MessageCache.IsInvalid;
 
         /// <summary>
         /// Gets the number of bytes that will have to come over the network from the server to save the attachment.

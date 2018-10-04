@@ -91,19 +91,6 @@ namespace work.bacome.imapclient
 
         protected internal sealed override void MessageExpunged(iMessageHandle pMessageHandle, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cCompositePersistentCache), nameof(MessageExpunged), pMessageHandle);
-
-            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
-
-            if (pMessageHandle.UID != null)
-            {
-                cUID[] lUIDs = new cUID[] { pMessageHandle.UID };
-
-                mHeaderCache.MessagesExpunged(pMessageHandle.MessageCache.MailboxHandle.MailboxId, lUIDs, lContext);
-                mFlagCache.MessagesExpunged(pMessageHandle.MessageCache.MailboxHandle.MailboxId, lUIDs, lContext);
-            }
-
-            mSectionCache.MessageExpunged(pMessageHandle, lContext);
         }
 
         protected internal sealed override void MessagesExpunged(cMailboxId pMailboxId, IEnumerable<cUID> pUIDs, cTrace.cContext pParentContext)

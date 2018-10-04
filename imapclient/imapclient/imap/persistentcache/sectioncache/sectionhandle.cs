@@ -6,17 +6,28 @@ namespace work.bacome.imapclient
 {
     internal class cSectionHandle : IEquatable<cSectionHandle>
     {
-        public readonly cIMAPClient Client;
         public readonly iMessageHandle MessageHandle;
         public readonly cSection Section;
         public readonly bool Decoded;
 
-        public cSectionHandle(cIMAPClient pClient, iMessageHandle pMessageHandle, cSection pSection, bool pDecoded)
+        private cSectionId mSectionId = null;
+
+        public cSectionHandle(iMessageHandle pMessageHandle, cSection pSection, bool pDecoded)
         {
-            Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
             Decoded = pDecoded;
+        }
+
+        public cSectionId SectionId
+        {
+            get
+            {
+                if (mSectionId != null) return mSectionId;
+                if (MessageHandle.messageUID == null) return null;
+                mSectionId = new cSectionId(MessageHandle.messageUID, Section, Decoded);
+                return mSectionId;
+            }
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>

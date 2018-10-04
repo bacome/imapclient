@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
         private void OnDeserialised(StreamingContext pSC)
         {
             if (string.IsNullOrEmpty(mPath)) throw new cDeserialiseException(nameof(cMailboxName), nameof(mPath), kDeserialiseExceptionMessage.IsInvalid);
-            if (Delimiter != null && !cTools.IsValidDelimiter(Delimiter.Value)) throw new cDeserialiseException(nameof(cMailboxName), nameof(Delimiter), kDeserialiseExceptionMessage.IsInvalid);
+            if (Delimiter != null && !cIMAPTools.IsValidDelimiter(Delimiter.Value)) throw new cDeserialiseException(nameof(cMailboxName), nameof(Delimiter), kDeserialiseExceptionMessage.IsInvalid);
 
             if (mPath[mPath.Length - 1] == Delimiter) throw new cDeserialiseException(nameof(cMailboxName), nameof(mPath), kDeserialiseExceptionMessage.IsInvalid, 2);
 
@@ -74,7 +74,7 @@ namespace work.bacome.imapclient
         public cMailboxName(string pPath, char? pDelimiter)
         {
             if (string.IsNullOrEmpty(pPath)) throw new ArgumentNullException(nameof(pPath));
-            if (pDelimiter != null &&  !cTools.IsValidDelimiter(pDelimiter.Value)) throw new ArgumentOutOfRangeException(nameof(pDelimiter));
+            if (pDelimiter != null &&  !cIMAPTools.IsValidDelimiter(pDelimiter.Value)) throw new ArgumentOutOfRangeException(nameof(pDelimiter));
 
             if (pPath[pPath.Length - 1] == pDelimiter) throw new ArgumentOutOfRangeException(nameof(pPath));
 
@@ -250,7 +250,7 @@ namespace work.bacome.imapclient
         internal static bool TryConstruct(string pPath, char? pDelimiter, out cMailboxName rResult)
         {
             if (string.IsNullOrEmpty(pPath)) { rResult = null; return false; }
-            if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
+            if (pDelimiter != null && !cIMAPTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
 
             if (pPath.Equals(InboxString, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -269,12 +269,12 @@ namespace work.bacome.imapclient
         internal static bool TryConstruct(IList<byte> pEncodedMailboxPath, byte? pDelimiter, bool pUTF8Enabled, out cMailboxName rResult)
         {
             if (pEncodedMailboxPath == null || pEncodedMailboxPath.Count == 0) { rResult = null; return false; }
-            if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
+            if (pDelimiter != null && !cIMAPTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
 
             string lPath;
 
             if (cASCII.Compare(pEncodedMailboxPath, InboxBytes, false)) lPath = InboxString;
-            else if (!cTools.TryEncodedMailboxPathToString(pEncodedMailboxPath, pDelimiter, pUTF8Enabled, out lPath)) { rResult = null; return false; }
+            else if (!cIMAPTools.TryEncodedMailboxPathToString(pEncodedMailboxPath, pDelimiter, pUTF8Enabled, out lPath)) { rResult = null; return false; }
 
             char? lDelimiter;
             if (pDelimiter == null) lDelimiter = null;

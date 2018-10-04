@@ -14,6 +14,7 @@ namespace work.bacome.imapclient
         private bool mDisposed = false;
 
         private readonly Stream mStream;
+        private readonly iSectionAdder mAdder;
         private readonly CancellationTokenSource mCancellationTokenSource = new CancellationTokenSource();
         private readonly SemaphoreSlim mSemaphore = new SemaphoreSlim(1, 1);
         private readonly cReleaser mReleaser;
@@ -30,10 +31,11 @@ namespace work.bacome.imapclient
         // read/write
         private long mFetchedBytesReadPosition = 0;
 
-        internal cSectionReaderWriter(Stream pStream)
+        internal cSectionReaderWriter(Stream pStream, iSectionAdder pAdder)
         {
             mStream = pStream ?? throw new ArgumentNullException(nameof(pStream));
-            if (!mStream.CanRead || !mStream.CanSeek || !mStream.CanWrite || mStream.Position != 0) throw new ArgumentOutOfRangeException(nameof(pStream));
+            mAdder = pAdder ?? throw new ArgumentNullException(nameof(pAdder));
+            if (!pStream.CanRead || !pStream.CanSeek || !pStream.CanWrite || pStream.Position != 0) throw new ArgumentOutOfRangeException(nameof(pStream));
             mReleaser = new cReleaser(nameof(cSectionReaderWriter), mCancellationTokenSource.Token);
         }
 
@@ -265,6 +267,8 @@ namespace work.bacome.imapclient
             await mStream.FlushAsync(pCancellationToken).ConfigureAwait(false);
 
             mWritingState = eWritingState.completedok;
+
+            mAdder.Add(lContext);
 
             // let any pending read know that there is no more data to consider
             mReleaser.Release(lContext);

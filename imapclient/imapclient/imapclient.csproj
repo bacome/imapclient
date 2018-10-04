@@ -46,6 +46,7 @@
     <Compile Include="imap\client\getmessagehandle.cs" />
     <Compile Include="imap\client\getnotprefixedwith.cs" />
     <Compile Include="imap\client\getuids.cs" />
+    <Compile Include="imap\persistentcache_new\sectionadder.cs" />
     <Compile Include="imap\public\persistentcache\flagitem.cs" />
     <Compile Include="imap\public\persistentcache\headeritem.cs" />
     <Compile Include="imap\persistentcache_new\sectionreader.cs" />

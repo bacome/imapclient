@@ -43,6 +43,8 @@ namespace work.bacome.imapclient
                 public cMessageHandleList SetUnseenCount(int pMessageCount, IEnumerable<uint> pMSNs, cTrace.cContext pParentContext) => mCache.SetUnseenCount(pMessageCount, pMSNs, pParentContext); // this should only be called from a commandcompletion
                 public cUIDList GetMessageUIDsWithDeletedFlag(cTrace.cContext pParentContext) => mCache.GetMessageUIDsWithDeletedFlag(pParentContext); // this should only be called from a commandcompletion
 
+                public void SetUnselected(cTrace.cContext pParentContext) => mCache.SetInvalid(pParentContext);
+
                 public override string ToString() => $"{nameof(cSelectedMailbox)}({mCache},{mSelectedForUpdate},{mAccessReadOnly})";
             }
         }

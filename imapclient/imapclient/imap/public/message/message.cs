@@ -364,7 +364,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        public bool IsValid => ReferenceEquals(Client.SelectedMailboxDetails?.MessageCache, MessageHandle.MessageCache);
+        public bool IsInvalid => MessageHandle.MessageCache.IsInvalid;
 
         /// <summary>
         /// Ensures that the message cache contains the specified items for the message.

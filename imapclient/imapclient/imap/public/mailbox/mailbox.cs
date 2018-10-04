@@ -776,7 +776,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        public bool IsValid => ReferenceEquals(Client.MailboxCache, MailboxHandle.MailboxCache);
+        public bool IsInvalid => !ReferenceEquals(Client.MailboxCache, MailboxHandle.MailboxCache);
 
         /// <summary>
         /// Gets the mailbox's child mailboxes.
@@ -1315,7 +1315,7 @@ namespace work.bacome.imapclient
         
         public Stream GetMessageDataStream(cUID pUID, cSection pSection = null, eDecodingRequired pDecoding = eDecodingRequired.none)
         {
-            if (!IsValid) throw new InvalidOperationException(kInvalidOperationExceptionMessage.IsInvalid);
+            if (IsInvalid) throw new InvalidOperationException(kInvalidOperationExceptionMessage.IsInvalid);
             return new cIMAPMessageDataStream(Client, MailboxHandle, pUID, pSection ?? cSection.All, pDecoding);
         }
 

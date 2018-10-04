@@ -40,7 +40,7 @@ namespace work.bacome.imapclient
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
-            if (!ReferenceEquals(pClient.SelectedMailboxDetails?.MessageCache, pMessageHandle.MessageCache)) throw new ArgumentOutOfRangeException(nameof(pMessageHandle));
+            if (pMessageHandle.MessageCache.IsInvalid) throw new ArgumentOutOfRangeException(nameof(pMessageHandle));
             if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
 
             Part = pPart ?? throw new ArgumentNullException(nameof(pPart));
@@ -60,7 +60,7 @@ namespace work.bacome.imapclient
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
-            if (!ReferenceEquals(pClient.SelectedMailboxDetails?.MessageCache, pMessageHandle.MessageCache)) throw new ArgumentOutOfRangeException(nameof(pMessageHandle));
+            if (pMessageHandle.MessageCache.IsInvalid) throw new ArgumentOutOfRangeException(nameof(pMessageHandle));
             if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
 
             Part = null;

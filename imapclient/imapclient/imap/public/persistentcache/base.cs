@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
         private readonly object mMailboxToSelectedCountLock = new object();
         private readonly Dictionary<cMailboxId, int> mMailboxToSelectedCount = new Dictionary<cMailboxId, int>();
 
-        private readonly ConcurrentDictionary<cSectionHandle, cSectionCacheItem> mSectionHandleToItem = new ConcurrentDictionary<cSectionHandle, cSectionCacheItem>();
+        private readonly ConcurrentDictionary<cSectionHandle, iPersistentSectionCacheItem> mSectionHandleToCacheItem = new ConcurrentDictionary<cSectionHandle, iPersistentSectionCacheItem>();
 
         public virtual void Open(cMailboxId pMailboxId, cTrace.cContext pParentContext)
         {
@@ -74,18 +74,86 @@ namespace work.bacome.imapclient
 
         protected abstract HashSet<cUID> YGetUIDs(cMailboxUID pMailboxUID, bool pCachedFlagsOnly, cTrace.cContext pParentContext);
 
-        protected internal abstract void MessageExpunged(iMessageHandle pMessageHandle, cTrace.cContext pParentContext);
+        internal void MessageCacheInvalidated(iMessageCache pMessageCache, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(MessageCacheInvalidated), pMessageCache);
+
+            if (pMessageCache == null) throw new ArgumentNullException(nameof(pMessageCache));
+
+            var lHandlesToRemove = new List<cSectionHandle>();
+            foreach (var lSectionHandle in mSectionHandleToCacheItem.Keys) if (lSectionHandle.MessageHandle.MessageCache == pMessageCache) lHandlesToRemove.Add(lSectionHandle);
+            foreach (var lSectionHandle in lHandlesToRemove) mSectionHandleToCacheItem.TryRemove(lSectionHandle, out _);
+        }
+
+        internal void MessageExpunged(iMessageHandle pMessageHandle, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(MessageExpunged), pMessageHandle);
+
+            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
+
+            var lHandlesToRemove = new List<cSectionHandle>();
+            foreach (var lSectionHandle in mSectionHandleToCacheItem.Keys) if (lSectionHandle.MessageHandle == pMessageHandle) lHandlesToRemove.Add(lSectionHandle);
+            foreach (var lSectionHandle in lHandlesToRemove) mSectionHandleToCacheItem.TryRemove(lSectionHandle, out _);
+
+            if (pMessageHandle.UID != null)
+            {
+                cUID[] lUIDs = new cUID[] { pMessageHandle.UID };
+                MessagesExpunged(pMessageHandle.MessageCache.MailboxHandle.MailboxId, lUIDs, lContext);
+            }
+        }
+
+        internal void MessageHandleUIDSet(iMessageHandle pMessageHandle, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(MessageHandleUIDSet), pMessageHandle);
+
+            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
+            if (pMessageHandle.messageUID == null) throw new ArgumentOutOfRangeException(nameof(pMessageHandle));
+
+            var lItemsToMove = new List<KeyValuePair<cSectionHandle, iPersistentSectionCacheItem>>();
+            foreach (var lPair in mSectionHandleToCacheItem) if (lPair.Key.MessageHandle == pMessageHandle) lItemsToMove.Add(lPair);
+
+            foreach (var lPair in lItemsToMove)
+            {
+                AddSectionCacheItem(lPair.Key.SectionId, lPair.Value, lContext);
+                mSectionHandleToCacheItem.TryRemove(lPair.Key, out _);
+            }
+        }
+
         protected internal abstract void MessagesExpunged(cMailboxId pMailboxId, IEnumerable<cUID> pUIDs, cTrace.cContext pParentContext);
         protected internal abstract void SetUIDValidity(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext);
         protected internal abstract void SetHighestModSeq(cMailboxUID pMailboxUID, ulong pHighestModSeq, cTrace.cContext pParentContext);
         protected internal abstract void ClearHighestModSeq(cMailboxUID pMailboxUID, cTrace.cContext pParentContext); // for flags, from now until re-opened
-        protected internal abstract void ClearCache(cMailboxId pMailboxId, cTrace.cContext pParentContext); // including uidvalidity and highestmodseq
+
+        internal void ClearCache(cMailboxId pMailboxId, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(ClearCache), pMailboxId);
+
+            var lHandlesToRemove = new List<cSectionHandle>();
+            foreach (var lSectionHandle in mSectionHandleToCacheItem.Keys) if (lSectionHandle.MessageHandle.MessageCache.MailboxHandle.MailboxId == pMailboxId) lHandlesToRemove.Add(lSectionHandle);
+            foreach (var lSectionHandle in lHandlesToRemove) mSectionHandleToCacheItem.TryRemove(lSectionHandle, out _);
+
+            YClearCache(pMailboxId, lContext);
+        }
+
+        protected abstract void YClearCache(cMailboxId pMailboxId, cTrace.cContext pParentContext); // including uidvalidity and highestmodseq
+
+        private HashSet<cMailboxName> ZGetMailboxNames(cAccountId pAccountId, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(ZGetMailboxNames), pAccountId);
+            var lMailboxNames = YGetMailboxNames(pAccountId, lContext);
+            if (lMailboxNames == null) throw new cUnexpectedPersistentCacheActionException(lContext);
+            foreach (var lSectionHandle in mSectionHandleToCacheItem.Keys) if (lSectionHandle.MessageHandle.MessageCache.MailboxHandle.MailboxId.AccountId == pAccountId) lMailboxNames.Add(lSectionHandle.MessageHandle.MessageCache.MailboxHandle.MailboxId.MailboxName);
+            return lMailboxNames;
+        }
 
         protected abstract HashSet<cMailboxName> YGetMailboxNames(cAccountId pAccountId, cTrace.cContext pParentContext);
 
         protected internal virtual void Copy(cMailboxId pSourceMailboxId, cMailboxName pDestinationMailboxName, cCopyFeedback pFeedback, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(Copy), pSourceMailboxId, pDestinationMailboxName, pFeedback);
+            if (pSourceMailboxId == null) throw new ArgumentNullException(nameof(pSourceMailboxId));
+            if (pDestinationMailboxName == null) throw new ArgumentNullException(nameof(pDestinationMailboxName));
+            if (pFeedback == null) throw new ArgumentNullException(nameof(pFeedback));
         }
 
         internal void Rename(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext)
@@ -104,7 +172,7 @@ namespace work.bacome.imapclient
             YRename(pMailboxId, pMailboxName, lContext);
             ClearCache(pMailboxId, lContext);
 
-            var lMailboxNames = YGetMailboxNames(pMailboxId.AccountId, lContext);
+            var lMailboxNames = ZGetMailboxNames(pMailboxId.AccountId, lContext);
 
             int lStartIndex = pMailboxId.MailboxName.GetDescendantPathPrefix().Length;
 
@@ -124,6 +192,8 @@ namespace work.bacome.imapclient
         protected virtual void YRename(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(YRename), pMailboxId, pMailboxName);
+            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
+            if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
             // overrides must take account of the fact that duplicates could be created by any rename done
         }
 
@@ -132,72 +202,118 @@ namespace work.bacome.imapclient
 
         internal bool TryGetSectionReader(cSectionId pSectionId, out cSectionReader rSectionReader, cTrace.cContext pParentContext)
         {
-            ;?;
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(TryGetSectionReader), pSectionId);
+            if (pSectionId == null) throw new ArgumentNullException(nameof(pSectionId));
+            if (!YTryGetReadStream(pSectionId, out var lStream, lContext)) { rSectionReader = null; return false; }
+            if (lStream == null) throw new cUnexpectedPersistentCacheActionException(lContext);
+            return ZTryGetSectionReader(lStream, out rSectionReader, lContext);
         }
 
-        protected abstract bool YTryGetSectionReader(cSectionId pSectionId, out Stream rStream, cTrace.cContext pParentContext);
+        protected abstract bool YTryGetReadStream(cSectionId pSectionId, out Stream rStream, cTrace.cContext pParentContext);
 
         internal bool TryGetSectionReader(cSectionHandle pSectionHandle, out cSectionReader rSectionReader, cTrace.cContext pParentContext)
         {
-            ;?; // this is completely internal
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(TryGetSectionReader), pSectionHandle);
+
+            if (pSectionHandle == null) throw new ArgumentNullException(nameof(pSectionHandle));
+
+            Stream lStream;
+
+            if (!mSectionHandleToCacheItem.TryGetValue(pSectionHandle, out var lSectionCacheItem) || !lSectionCacheItem.TryGetReadStream(out lStream, lContext))
+            { 
+                if (pSectionHandle.SectionId == null || !YTryGetReadStream(pSectionHandle.SectionId, out lStream, lContext))
+                {
+                    rSectionReader = null;
+                    return false;
+                }
+            }
+
+            if (lStream == null) throw new cUnexpectedPersistentCacheActionException(lContext);
+
+            return ZTryGetSectionReader(lStream, out rSectionReader, lContext);
         }
 
-        internal cSectionReaderWriter GetSectionReaderWriter(cTrace.cContext pParentContext)
+        private bool ZTryGetSectionReader(Stream pStream, out cSectionReader rSectionReader, cTrace.cContext pParentContext)
         {
-            ;?;
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(ZTryGetSectionReader));
+
+            try
+            {
+                if (!pStream.CanRead || !pStream.CanSeek || pStream.CanWrite || pStream.Position != 0) throw new cUnexpectedPersistentCacheActionException(lContext);
+                rSectionReader = new cSectionReader(pStream);
+                return true;
+            }
+            catch
+            {
+                pStream.Dispose();
+                throw;
+            }
         }
 
-
-        protected abstract cSectionItem YGetNewSectionItem(cTrace.cContext pParentContext);
-
-        protected internal abstract void AddSectionItem(cSectionId pSectionId, cSectionItem pSectionItem);
-
-        internal void AddSectionItem(cSectionHandle pSectionHandle, cSectionItem pSectionItem)
+        internal cSectionReaderWriter GetSectionReaderWriter(cSectionId pSectionId, cTrace.cContext pParentContext)
         {
-            ;?;
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(GetSectionReaderWriter));
 
-            // after adding it, check that it doesn't have a UID
-            //  if it does, do the transfer imediately
+            if (pSectionId == null) throw new ArgumentNullException(nameof(pSectionId));
+
+            YGetNewSectionCacheItem(out var lStream, out var lSectionCacheItem, lContext);
+
+            if (lStream == null) throw new cUnexpectedPersistentCacheActionException(lContext, 1);
+
+            try
+            {
+                if (lSectionCacheItem == null) throw new cUnexpectedPersistentCacheActionException(lContext, 2);
+                var lAdder = new cSectionIdAdder(this, pSectionId, lSectionCacheItem);
+                return new cSectionReaderWriter(lStream, lAdder);
+            }
+            catch
+            {
+                lStream.Dispose();
+                throw;
+            }
         }
 
-        internal void hasuidnow();
-
-
-
-        internal iPersistentSectionCacheItem GetSectionReaderWriter(cSectionHandle pSectionHandle, cTrace.cContext pParentContext)
+        internal cSectionReaderWriter GetSectionReaderWriter(cSectionHandle pSectionHandle, cTrace.cContext pParentContext)
         {
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(GetSectionReaderWriter));
 
+            if (pSectionHandle == null) throw new ArgumentNullException(nameof(pSectionHandle));
 
+            YGetNewSectionCacheItem(out var lStream, out var lSectionCacheItem, lContext);
 
-            ;?; // the concrete class has to provide a writable item, but it 
-            ;?; // handlehasuid API here moves items into cache and then removes from our list => check ourlist then sc
+            if (lStream == null) throw new cUnexpectedPersistentCacheActionException(lContext, 1);
+
+            try
+            {
+                if (lSectionCacheItem == null) throw new cUnexpectedPersistentCacheActionException(lContext, 2);
+                var lAdder = new cSectionHandleAdder(this, pSectionHandle, lSectionCacheItem);
+                return new cSectionReaderWriter(lStream, lAdder);
+            }
+            catch
+            {
+                lStream.Dispose();
+                throw;
+            }
         }
 
-        protected iPersistentSectionCacheNewItem GetNewSectionCacheItem(cTrace.cContext pParentContext)
+        protected abstract void YGetNewSectionCacheItem(out Stream rStream, out iPersistentSectionCacheItem rSectionCacheItem, cTrace.cContext pParentContext);
+
+        private void ZAddSectionCacheItem(cSectionHandle pSectionHandle, iPersistentSectionCacheItem pSectionCacheItem, cTrace.cContext pParentContext)
         {
-            ;?;
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(ZAddSectionCacheItem), pSectionHandle, pSectionCacheItem);
+
+            if (mSectionHandleToCacheItem.TryGetValue(pSectionHandle, out var lSectionCacheItem))
+            {
+                if (!lSectionCacheItem.CanGetReadStream(lContext) && mSectionHandleToCacheItem.TryUpdate(pSectionHandle, pSectionCacheItem, lSectionCacheItem)) pSectionCacheItem.SetAdded(lContext);
+            }
+            else if (mSectionHandleToCacheItem.TryAdd(pSectionHandle, pSectionCacheItem)) pSectionCacheItem.SetAdded(lContext);
+
+            if (pSectionHandle.SectionId != null) MessageHandleUIDSet(pSectionHandle.MessageHandle, lContext);
+            if (pSectionHandle.MessageHandle.Expunged) MessageExpunged(pSectionHandle.MessageHandle, lContext);
+            if (pSectionHandle.MessageHandle.MessageCache.IsInvalid) MessageCacheInvalidated(pSectionHandle.MessageHandle.MessageCache, lContext);
         }
 
-
-
-        ;?; // handlehasuid API here moves items into cache and then removes from our list => check ourlist then sc
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        protected abstract void AddSectionCacheItem(cSectionId pSectionId, iPersistentSectionCacheItem pSectionCacheItem, cTrace.cContext pParentContext);
 
         internal void Reconcile(cMailboxId pMailboxId, IEnumerable<iMailboxHandle> pAllChildMailboxHandles, cTrace.cContext pParentContext)
         {
@@ -208,7 +324,7 @@ namespace work.bacome.imapclient
 
             ZReconcile(pAllChildMailboxHandles, out var lExistentChildMailboxNames, out var lSelectableChildMailboxNames);
 
-            var lMailboxNames = YGetMailboxNames(pMailboxId.AccountId, lContext);
+            var lMailboxNames = ZGetMailboxNames(pMailboxId.AccountId, lContext);
 
             foreach (var lMailboxName in lMailboxNames)
             {
@@ -235,7 +351,7 @@ namespace work.bacome.imapclient
 
             ZReconcile(pAllChildMailboxHandles, out var lExistentChildMailboxNames, out var lSelectableChildMailboxNames);
 
-            var lMailboxNames = YGetMailboxNames(pAccountId, lContext);
+            var lMailboxNames = ZGetMailboxNames(pAccountId, lContext);
 
             foreach (var lMailboxName in lMailboxNames)
             {
@@ -265,9 +381,6 @@ namespace work.bacome.imapclient
             }
         }
 
-        ;?;
-        
-
         /* does not belong here: the vanished responses have to be converted to UIDs for normal processing
         internal bool Vanished(cMailboxId pMailboxId, uint pUIDValidity, cSequenceSet pKnownUIDs, cTrace.cContext pParentContext)
         {
@@ -280,6 +393,46 @@ namespace work.bacome.imapclient
             MessagesExpunged(pMailboxId, lUIDs, lContext);
             return true;
         } */
-    }
 
+
+        private class cSectionHandleAdder : iSectionAdder
+        {
+            private readonly cPersistentCache mPersistentCache;
+            private readonly cSectionHandle mSectionHandle;
+            private readonly iPersistentSectionCacheItem mSectionCacheItem;
+
+            public cSectionHandleAdder(cPersistentCache pPersistentCache, cSectionHandle pSectionHandle, iPersistentSectionCacheItem pSectionCacheItem)
+            {
+                mPersistentCache = pPersistentCache ?? throw new ArgumentNullException(nameof(pPersistentCache));
+                mSectionHandle = pSectionHandle ?? throw new ArgumentNullException(nameof(pSectionHandle));
+                mSectionCacheItem = pSectionCacheItem ?? throw new ArgumentNullException(nameof(pSectionCacheItem));
+            }
+
+            public void Add(cTrace.cContext pParentContext)
+            {
+                var lContext = pParentContext.NewMethod(nameof(cSectionHandleAdder), nameof(Add));
+                mPersistentCache.ZAddSectionCacheItem(mSectionHandle, mSectionCacheItem, lContext);
+            }
+        }
+
+        private class cSectionIdAdder : iSectionAdder
+        {
+            private readonly cPersistentCache mPersistentCache;
+            private readonly cSectionId mSectionId;
+            private readonly iPersistentSectionCacheItem mSectionCacheItem;
+
+            public cSectionIdAdder(cPersistentCache pPersistentCache, cSectionId pSectionId, iPersistentSectionCacheItem pSectionCacheItem)
+            {
+                mPersistentCache = pPersistentCache ?? throw new ArgumentNullException(nameof(pPersistentCache));
+                mSectionId = pSectionId ?? throw new ArgumentNullException(nameof(pSectionId));
+                mSectionCacheItem = pSectionCacheItem ?? throw new ArgumentNullException(nameof(pSectionCacheItem));
+            }
+
+            public void Add(cTrace.cContext pParentContext)
+            {
+                var lContext = pParentContext.NewMethod(nameof(cSectionHandleAdder), nameof(Add));
+                mPersistentCache.AddSectionCacheItem(mSectionId, mSectionCacheItem, lContext);
+            }
+        }
+    }
 }

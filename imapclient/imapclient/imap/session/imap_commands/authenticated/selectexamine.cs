@@ -193,9 +193,8 @@ namespace work.bacome.imapclient
                         case cResponseDataVanished lVanished when mUsingQResync && lVanished.Earlier:
 
                             if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.SelectResponseOrderProblem, fIMAPCapabilities.qresync, lContext);
-                            if (mUIDValidity == 0) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.SelectResponseOrderProblem, fIMAPCapabilities.qresync, lContext);
-                            if (mPersistentCache.Vanished(mMailboxCacheItem.MailboxId, mUIDValidity, lVanished.KnownUIDs, lContext)) return eProcessDataResult.processed;
-                            else return eProcessDataResult.notprocessed;
+                            ZSetSelectedMailboxCache(lContext);
+                            return mSelectedMailboxCache.ProcessData(lVanished, lContext);
 
                         case cResponseDataFetch lFetch when mUsingQResync:
 
@@ -272,7 +271,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelectExamine), nameof(ZSetSelectedMailboxCache));
                     ;?; // plus sticky?
-                    if (mSelectedMailboxCache != null) mSelectedMailboxCache = new cSelectedMailboxCache(mPersistentCache, mSynchroniser, mMailboxCacheItem, mForUpdate, mUIDValidity, mExists, mRecent, mUIDNext, mHighestModSeq, mAccessReadOnly, lContext);
+                    if (mSelectedMailboxCache != null) mSelectedMailboxCache = new cSelectedMailboxCache(mPersistentCache, mSynchroniser, mMailboxCacheItem, mUIDValidity, mExists, mRecent, mUIDNext, mHighestModSeq, mAccessReadOnly, lContext);
                 }
 
                 public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)

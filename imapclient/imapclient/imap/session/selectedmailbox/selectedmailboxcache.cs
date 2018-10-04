@@ -41,6 +41,7 @@ namespace work.bacome.imapclient
                 private bool mSelected;
                 private bool mSynchronised;
                 private bool mCallSetHighestModSeq;
+                private bool mIsInvalid = false;
 
                 public cSelectedMailboxCache(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, bool pUIDNotSticky, int pMessageCount, int pRecentCount, uint pUIDNext, ulong pHighestModSeq, cTrace.cContext pParentContext)
                 {
@@ -153,6 +154,14 @@ namespace work.bacome.imapclient
                     if (mCallSetHighestModSeq) mPersistentCache.SetHighestModSeq(mMailboxUID, mHighestModSeq, lContext);
                 }
 
+                public void SetInvalid(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(SetInvalid));
+                    if (!mSelected || mIsInvalid) throw new cInternalErrorException(lContext);
+                    mIsInvalid = true;
+                    mPersistentCache.MessageCacheInvalidated(this, lContext);
+                }
+
                 public int Count => mItems.Count;
                 public iMessageHandle this[int i] => mItems[i];
                 public IEnumerator<iMessageHandle> GetEnumerator() { foreach (var lItem in mItems) yield return lItem; }
@@ -167,6 +176,7 @@ namespace work.bacome.imapclient
                 public int UnseenCount => mUnseenCount;
                 public int UnseenUnknownCount => mUnseenUnknownCount;
                 public ulong HighestModSeq => mHighestModSeq;
+                public bool IsInvalid => mIsInvalid;
 
                 public bool HasPendingHighestModSeq()
                 {

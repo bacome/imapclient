@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
@@ -20,7 +21,7 @@ namespace work.bacome.imapclient
 
                     if (pData is cResponseDataUIDValidity lUIDValidity)
                     { 
-                        mPersistentCache.MessageCacheDeactivated(mCache, lContext);
+                        mCache.SetInvalid(lContext);
                         mCache = new cSelectedMailboxCache(mCache, lUIDValidity.UIDValidity, lContext);
                         return;
                     }
@@ -60,18 +61,20 @@ namespace work.bacome.imapclient
 
                         case cResponseDataVanished lVanished:
 
-                            if (lVanished.Earlier)
-                            {
-                                if (mPersistentCache.Vanishedealier(mMailboxUID, lVanished.KnownUIDs, lContext)) return eProcessDataResult.processed;
-                                return eProcessDataResult.notprocessed;
-                            }
-                            else
+                            if (mUIDValidity == 0) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.VanishedWithNoUIDValidity, fIMAPCapabilities.qresync, lContext);
+
+                            var lUIDs = new List<cUID>(from lUID in lVanished.UIDs select new cUID(mUIDValidity, lUID));
+
+                            mPersistentCache.MessagesExpunged(mMailboxCacheItem.MailboxId, lUIDs, lContext);
+
+                            if (!lVanished.Earlier)
                             {
 
                                 ;?;
                                 // expunge
                             }
 
+                            return eProcessDataResult.processed;
                     }
 
                     return eProcessDataResult.notprocessed;

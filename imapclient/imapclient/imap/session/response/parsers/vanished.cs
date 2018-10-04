@@ -23,9 +23,9 @@ namespace work.bacome.imapclient
 
                     bool lEarlier = pCursor.SkipBytes(kEARLIERSpace);
 
-                    if (pCursor.GetSequenceSet(false, out var lKnownUIDs) && pCursor.Position.AtEnd)
+                    if (pCursor.GetSequenceSet(false, out var lKnownUIDs) && pCursor.Position.AtEnd && cUIntList.TryConstruct(lKnownUIDs, -1, true, out var lUIDs))
                     {
-                        rResponseData = new cResponseDataVanished(lEarlier, lKnownUIDs);
+                        rResponseData = new cResponseDataVanished(lEarlier, lUIDs);
                         return true;
                     }
 

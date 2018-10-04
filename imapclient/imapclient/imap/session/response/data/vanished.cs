@@ -9,15 +9,15 @@ namespace work.bacome.imapclient
             private class cResponseDataVanished : cResponseData
             {
                 public readonly bool Earlier;
-                public readonly cSequenceSet KnownUIDs;
+                public readonly cUIntList UIDs;
 
-                public cResponseDataVanished(bool pEarlier, cSequenceSet pKnownUIDs)
+                public cResponseDataVanished(bool pEarlier, cUIntList pUIDs)
                 {
                     Earlier = pEarlier;
-                    KnownUIDs = pKnownUIDs;
+                    UIDs = pUIDs ?? throw new ArgumentNullException(nameof(pUIDs));
                 }
 
-                public override string ToString() => $"{nameof(cResponseDataVanished)}({Earlier},{KnownUIDs})";
+                public override string ToString() => $"{nameof(cResponseDataVanished)}({Earlier},{UIDs})";
             }
         }
     }

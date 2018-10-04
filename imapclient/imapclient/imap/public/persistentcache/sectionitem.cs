@@ -1,18 +1,13 @@
 ﻿using System;
 using System.IO;
+using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    public abstract class cSectionItem
+    public interface iPersistentSectionCacheItem
     {
-        public readonly Stream ReadWriteStream;
-
-        public cSectionItem(Stream pReadWriteStream)
-        {
-            ReadWriteStream = pReadWriteStream ?? throw new ArgumentNullException(nameof(pReadWriteStream));
-            ;?; // check the stream
-        }
-
-        public abstract bool TryGetReadStream(out Stream rStream);
+        bool TryGetReadStream(out Stream rStream, cTrace.cContext pParentContext);
+        bool CanGetReadStream(cTrace.cContext pParentContext);
+        bool SetAdded(cTrace.cContext pParentContext);
     }
 }

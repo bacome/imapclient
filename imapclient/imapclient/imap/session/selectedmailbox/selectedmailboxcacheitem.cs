@@ -18,16 +18,15 @@ namespace work.bacome.imapclient
                 {
                     private readonly cSelectedMailboxCache mSelectedMailboxCache;
                     private readonly int mCacheSequence;
+                    private bool mExpunged = false;
 
                     private bool mReceivedUID = false;
-                    private cUID mUID = null;
                     private cMessageUID mMessageUID = null;
-                    private cHeaderCacheItem mHeaderCacheItem = new cHeaderCacheItem();
-                    private bool? mSeen = null; // is this message seen (null = don't know)
-                    private cFlagCacheItem mFlagCacheItem = new cFlagCacheItem();
-                    private cModSeqFlags mModSeqFlags = null;
 
-                    private bool mExpunged = false;
+                    private iPersistentHeaderCacheItem mHeaderCacheItem = new cHeaderCacheItem();
+                    private iPersistentFlagCacheItem mFlagCacheItem = ?;
+
+                    private bool? mSeen = null; // is this message seen (null = don't know)
                     public bool? Unseen = null; // is this message unseen (null = don't know)
 
                     public cItem(cSelectedMailboxCache pSelectedMailboxCache, int pCacheSequence)
@@ -55,15 +54,7 @@ namespace work.bacome.imapclient
                         }
                     }
 
-                    public cFetchableFlags Flags
-                    {
-                        get
-                        {
-                            if (mModSeqFlags == null) return null;
-                            if (mMessageUID != null) mSelectedMailboxCache.mPersistentCache.RecordModSeqFlagsAccess(mMessageUID);
-                            return mModSeqFlags.Flags;
-                        }
-                    }
+                    ;/; // modseqflags
 
                     public cEnvelope Envelope
                     {
@@ -78,18 +69,10 @@ namespace work.bacome.imapclient
                     ;?; // more property changes here
                     public cTimestamp Received => mHeaderCacheItem.Received;
                     public uint? Size => mHeaderCacheItem.Size;
-                    public cBodyPart Body => mHeaderCacheItem.Body ?? mHeaderCacheItem.BodyStructure;
+                    public cBodyPart Body => mBody ?? mHeaderCacheItem.BodyStructure;
                     public cBodyPart BodyStructure => mHeaderCacheItem.BodyStructure;
-                    public cUID UID => mUID;
 
-                    public ulong? ModSeq
-                    {
-                        get
-                        {
-                            if (mSelectedMailboxCache.mNoModSeq) return 0;
-                            return mModSeqFlags?.ModSeq;
-                        }
-                    }
+                    ;?; // messageuid
 
                     public cHeaderFields HeaderFields => mHeaderCacheItem.HeaderFields;
                     public cBinarySizes BinarySizes => mHeaderCacheItem.BinarySizes;
