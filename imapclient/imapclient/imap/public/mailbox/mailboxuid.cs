@@ -5,13 +5,13 @@ namespace work.bacome.imapclient
     public class cMailboxUID : IEquatable<cMailboxUID>
     {
         public readonly cMailboxId MailboxId;
-        public readonly uint UIDValidity;
+        public readonly cUIDValidity UIDValidity;
 
-        public cMailboxUID(cMailboxId pMailboxId, uint pUIDValidity)
+        public cMailboxUID(cMailboxId pMailboxId, cUIDValidity pUIDValidity)
         {
             MailboxId = pMailboxId ?? throw new ArgumentOutOfRangeException(nameof(pMailboxId));
-            if (UIDValidity < 1) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
-            UIDValidity = pUIDValidity;
+            UIDValidity = pUIDValidity ?? throw new ArgumentNullException(nameof(pUIDValidity));
+            if (pUIDValidity.IsNone) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>

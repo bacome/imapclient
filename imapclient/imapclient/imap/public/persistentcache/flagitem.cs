@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    public interface iPersistentFlagCacheItem
+    public interface iFlagItem
     {
-
+        fMessageCacheAttributes Attributes { get; }
+        cModSeqFlags ModSeqFlags { get; set; }
     }
 }

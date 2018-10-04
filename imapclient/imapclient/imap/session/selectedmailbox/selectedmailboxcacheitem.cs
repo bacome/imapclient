@@ -19,12 +19,11 @@ namespace work.bacome.imapclient
                     private readonly cSelectedMailboxCache mSelectedMailboxCache;
                     private readonly int mCacheSequence;
                     private bool mExpunged = false;
-
-                    private bool mReceivedUID = false;
+                    private fMessageCacheAttributes mAttributes = 0;
                     private cMessageUID mMessageUID = null;
-
-                    private iPersistentHeaderCacheItem mHeaderCacheItem = new cHeaderCacheItem();
-                    private iPersistentFlagCacheItem mFlagCacheItem = ?;
+                    private iFlagItem mFlagItem = new cNoUIDFlagItem();
+                    private cBodyPart mBody = null;
+                    private iHeaderItem mHeaderItem = new cNoUIDHeaderItem();
 
                     private bool? mSeen = null; // is this message seen (null = don't know)
                     public bool? Unseen = null; // is this message unseen (null = don't know)
@@ -38,73 +37,42 @@ namespace work.bacome.imapclient
                     public iMessageCache MessageCache => mSelectedMailboxCache;
                     public int CacheSequence => mCacheSequence;
                     public bool Expunged => mExpunged;
+                    public fMessageCacheAttributes Attributes => mAttributes;
+                    public cMessageUID MessageUID => mMessageUID;
+                    public cModSeqFlags ModSeqFlags => mFlagItem.ModSeqFlags;
+                    public cBodyPart Body => mBody ?? mHeaderItem.BodyStructure;
+                    public cEnvelope Envelope => mHeaderItem.Envelope;
+                    public cTimestamp Received => mHeaderItem.Received;
+                    public uint? Size => mHeaderItem.Size;
+                    public cBodyPart BodyStructure => mHeaderItem.BodyStructure;
+                    public cHeaderFields HeaderFields => mHeaderItem.HeaderFields;
+                    public cBinarySizes BinarySizes => mHeaderItem.BinarySizes;
 
-                    public fMessageCacheAttributes Attributes
-                    {
-                        get
-                        {
-                            fMessageCacheAttributes lAttributes = 0;
-
-                            if (mSelectedMailboxCache.NoModSeq) lAttributes |= fMessageCacheAttributes.modseq;
-                            if (mReceivedUID) lAttributes |= fMessageCacheAttributes.uid;
-                            lAttributes |= mHeaderCacheItem.attributes;
-                            if (mModSeqFlags != null) lAttributes |= fMessageCacheAttributes.flags | fMessageCacheAttributes.modseq;
-
-                            return lAttributes;
-                        }
-                    }
-
-                    ;/; // modseqflags
-
-                    public cEnvelope Envelope
-                    {
-                        get
-                        {
-                            if (mHeaderCacheItem.Envelope == null) return null;
-                            mHeaderCacheItem.RecordAccess();
-                            return mHeaderCacheItem.Envelope;
-                        }
-                    }
-
-                    ;?; // more property changes here
-                    public cTimestamp Received => mHeaderCacheItem.Received;
-                    public uint? Size => mHeaderCacheItem.Size;
-                    public cBodyPart Body => mBody ?? mHeaderCacheItem.BodyStructure;
-                    public cBodyPart BodyStructure => mHeaderCacheItem.BodyStructure;
-
-                    ;?; // messageuid
-
-                    public cHeaderFields HeaderFields => mHeaderCacheItem.HeaderFields;
-                    public cBinarySizes BinarySizes => mHeaderCacheItem.BinarySizes;
-
-                    public bool Contains(cMessageCacheItems pItems) => (~mAttributes & pItems.Attributes) == 0 && mHeaderCacheItem.HeaderFields.Contains(pItems.Names);
-                    public bool ContainsNone(cMessageCacheItems pItems) => (~mAttributes & pItems.Attributes) == pItems.Attributes && mHeaderCacheItem.HeaderFields.ContainsNone(pItems.Names);
-                    public cMessageCacheItems Missing(cMessageCacheItems pItems) => new cMessageCacheItems(~mAttributes & pItems.Attributes, mHeaderCacheItem.HeaderFields.GetMissing(pItems.Names));
+                    public bool Contains(cMessageCacheItems pItems) => (~mAttributes & pItems.Attributes) == 0 && mHeaderItem.HeaderFields.Contains(pItems.Names);
+                    public bool ContainsNone(cMessageCacheItems pItems) => (~mAttributes & pItems.Attributes) == pItems.Attributes && mHeaderItem.HeaderFields.ContainsNone(pItems.Names);
+                    public cMessageCacheItems Missing(cMessageCacheItems pItems) => new cMessageCacheItems(~mAttributes & pItems.Attributes, mHeaderItem.HeaderFields.GetMissing(pItems.Names));
 
                     public bool? Seen => mSeen;
 
                     public void SetExpunged() => mExpunged = true;
 
-                    public void Update(cResponseDataFetch pFetch, out bool rUIDWasSet, out fIMAPMessageProperties rModSeqFlagPropertiesChanged, cTrace.cContext pParentContext)
+                    public void Update(cResponseDataFetch pFetch, out bool rMessageUIDWasSet, out fIMAPMessageProperties rModSeqFlagPropertiesChanged, cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cItem), nameof(Update), pFetch);
 
                         // uid
 
-                        rUIDWasSet = false; // to indicate that the item should be indexed by uid
+                        rMessageUIDWasSet = false; // to indicate that the item should be indexed by uid
 
-                        if (!mReceivedUID  && pFetch.UID != null)
+                        if (mMessageUID == null && mSelectedMailboxCache.mUIDValidity != 0 && pFetch.UID != null)
                         {
-                            mReceivedUID = true;
+                            mMessageUID = new cMessageUID(mSelectedMailboxCache.MailboxHandle.MailboxId, new cUID(mSelectedMailboxCache.mUIDValidity, pFetch.UID.Value), mSelectedMailboxCache.ut);
+                            rMessageUIDWasSet = true;
 
-                            if (mSelectedMailboxCache.mUIDValidity != 0)
-                            {
-                                rUIDWasSet = true;
+                            if (!mSelectedMailboxCache.mUIDNotSticky)
+                            { 
 
-                                mUID = new cUID(mSelectedMailboxCache.mUIDValidity, pFetch.UID.Value);
-                                mMessageUID = new cMessageUID(mSelectedMailboxCache.MailboxHandle.MailboxId, mUID);
-
-                                ;?; // ONLY get things from the cache if the UID is sticky => stikcy is a property of the mSelectedMailboxCache
+                            ;?; // ONLY get things from the cache if the UID is sticky => stikcy is a property of the mSelectedMailboxCache
 
                                 ;?; // is this optional to return (NO) and the get should touch it
                                 if (mSelectedMailboxCache.mPersistentCache.TryGetHeaderCacheItem(mMessageUID, out var lHeaderCacheItem, lContext))

@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     public class cUID : IEquatable<cUID>, IComparable<cUID>
     {
         /**<summary>The UIDValidity of the instance.</summary>*/
-        public readonly uint UIDValidity;
+        public readonly cUIDValidity UIDValidity;
 
         /**<summary>The UID of the instance.</summary>*/
         public readonly uint UID;
@@ -21,18 +21,19 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pUIDValidity"></param>
         /// <param name="pUID"></param>
-        public cUID(uint pUIDValidity, uint pUID)
+        public cUID(cUIDValidity pUIDValidity, uint pUID)
         {
-            if (pUIDValidity == 0) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
+            UIDValidity = pUIDValidity ?? throw new ArgumentNullException(nameof(pUIDValidity));
+            if (pUIDValidity.IsNone) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
             if (pUID == 0) throw new ArgumentOutOfRangeException(nameof(pUID));
-            UIDValidity = pUIDValidity;
             UID = pUID;
         }
 
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (UIDValidity == 0) throw new cDeserialiseException(nameof(cUID), nameof(UIDValidity), kDeserialiseExceptionMessage.IsInvalid);
+            if (UIDValidity == null) throw new cDeserialiseException(nameof(cUID), nameof(UIDValidity), kDeserialiseExceptionMessage.IsNull);
+            if (UIDValidity.IsNone) throw new cDeserialiseException(nameof(cUID), nameof(UIDValidity), kDeserialiseExceptionMessage.IsInvalid);
             if (UID == 0) throw new cDeserialiseException(nameof(cUID), nameof(UID), kDeserialiseExceptionMessage.IsInvalid);
         }
 

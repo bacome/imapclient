@@ -21,18 +21,17 @@ namespace work.bacome.imapclient.support
         fMessageCacheAttributes Attributes { get; }
 
         /// <summary>
+        /// Gets the MessageUID of the message, may be <see langword="null"/>.
+        /// </summary>
+        /// <remarks>
+        /// <see langword="null"/> indicates that either the data isn't cached or that the mailbox does not support unique identifiers.
+        /// </remarks>
+        cMessageUID MessageUID { get; }
+
+        /// <summary>
         /// Gets the RFC 7162 mod-sequence data and the IMAP FLAGS data, <see langword="null"/> if this data isn't cached.
         /// </summary>
         cModSeqFlags ModSeqFlags { get; }
-
-        /**<summary>Gets the IMAP ENVELOPE data, <see langword="null"/> if this data isn't cached.</summary>*/
-        cEnvelope Envelope { get; }
-
-        /**<summary>Gets the IMAP INTERNALDATE, <see langword="null"/> if this data isn't cached.</summary>*/
-        cTimestamp Received { get; }
-
-        /**<summary>Gets the IMAP RFC822.SIZE data, <see langword="null"/> if this data isn't cached.</summary>*/
-        uint? Size { get; }
 
         /// <summary>
         /// Gets the IMAP BODY data, <see langword="null"/> if this data isn't cached.
@@ -47,16 +46,17 @@ namespace work.bacome.imapclient.support
         /// </remarks>
         cBodyPart Body { get; }
 
+        /**<summary>Gets the IMAP ENVELOPE data, <see langword="null"/> if this data isn't cached.</summary>*/
+        cEnvelope Envelope { get; }
+
+        /**<summary>Gets the IMAP INTERNALDATE, <see langword="null"/> if this data isn't cached.</summary>*/
+        cTimestamp Received { get; }
+
+        /**<summary>Gets the IMAP RFC822.SIZE data, <see langword="null"/> if this data isn't cached.</summary>*/
+        uint? Size { get; }
+
         /**<summary>Gets the IMAP BODYSTRUCTURE data, <see langword="null"/> if this data isn't cached.</summary>*/
         cBodyPart BodyStructure { get; }
-
-        /// <summary>
-        /// Gets the MessageUID of the message, may be <see langword="null"/>.
-        /// </summary>
-        /// <remarks>
-        /// <see langword="null"/> indicates that either the data isn't cached or that the mailbox does not support unique identifiers.
-        /// </remarks>
-        cMessageUID MessageUID { get; }
 
         /**<summary>Gets the set of header fields that are currently cached for the message, will be <see langword="null"/> if none have been cached.</summary>*/
         cHeaderFields HeaderFields { get; }

@@ -17,9 +17,8 @@ namespace work.bacome.imapclient
                 private readonly cPersistentCache mPersistentCache;
                 private readonly cIMAPCallbackSynchroniser mSynchroniser;
                 private readonly cMailboxCacheItem mMailboxCacheItem;
-                private readonly uint mUIDValidity;
+                private readonly cUIDValidity mUIDValidity;
                 private readonly cMailboxUID mMailboxUID;
-                private readonly bool mUIDNotSticky;
                 private readonly bool mNoModSeq;
 
                 private int mCacheSequence = 0;
@@ -43,19 +42,17 @@ namespace work.bacome.imapclient
                 private bool mCallSetHighestModSeq;
                 private bool mIsInvalid = false;
 
-                public cSelectedMailboxCache(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, bool pUIDNotSticky, int pMessageCount, int pRecentCount, uint pUIDNext, ulong pHighestModSeq, cTrace.cContext pParentContext)
+                public cSelectedMailboxCache(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, cMailboxCacheItem pMailboxCacheItem, cUIDValidity pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, ulong pHighestModSeq, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewObject(nameof(cSelectedMailboxCache), pMailboxCacheItem, pUIDValidity, pUIDNotSticky, pMessageCount, pRecentCount, pUIDNext, pHighestModSeq);
+                    var lContext = pParentContext.NewObject(nameof(cSelectedMailboxCache), pMailboxCacheItem, pUIDValidity, pMessageCount, pRecentCount, pUIDNext, pHighestModSeq);
 
                     mPersistentCache = pPersistentCache ?? throw new ArgumentNullException(nameof(pPersistentCache));
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
-                    mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(mMailboxCacheItem));
+                    mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
+                    mUIDValidity = pUIDValidity ?? throw new ArgumentNullException(nameof(pUIDValidity));
 
-                    mUIDValidity = pUIDValidity;
-                    if (pUIDValidity == 0) mMailboxUID = null;
+                    if (pUIDValidity == null) mMailboxUID = null;
                     else mMailboxUID = new cMailboxUID(pMailboxCacheItem.MailboxId, pUIDValidity);
-
-                    mUIDNotSticky = pUIDNotSticky;
 
                     mNoModSeq = pHighestModSeq == 0;
 
@@ -100,11 +97,16 @@ namespace work.bacome.imapclient
                     mSynchroniser = pOldCache.mSynchroniser;
                     mMailboxCacheItem = pOldCache.mMailboxCacheItem;
 
-                    mUIDValidity = pUIDValidity;
-                    if (pUIDValidity == 0) mMailboxUID = null;
-                    else mMailboxUID = new cMailboxUID(pOldCache.mMailboxUID.MailboxId, pUIDValidity);
-
-                    mUIDNotSticky = pOldCache.mUIDNotSticky;
+                    if (pUIDValidity == 0)
+                    {
+                        mUIDValidity = cUIDValidity.None;
+                        mMailboxUID = null;
+                    }
+                    else
+                    {
+                        mUIDValidity = new cUIDValidity(pUIDValidity, pOldCache.mUIDValidity.UIDNotSticky);
+                        mMailboxUID = new cMailboxUID(pOldCache.mMailboxUID.MailboxId, mUIDValidity);
+                    }
 
                     mNoModSeq = pOldCache.mNoModSeq;
 
@@ -149,7 +151,7 @@ namespace work.bacome.imapclient
                     if (mSynchronised) throw new cInternalErrorException(lContext);
                     mSynchronised = true;
 
-                    mCallSetHighestModSeq = mUIDValidity != 0 && !mUIDNotSticky && !mNoModSeq;
+                    mCallSetHighestModSeq = mUIDValidity != null && !mUIDValidity.UIDNotSticky && !mNoModSeq;
 
                     if (mCallSetHighestModSeq) mPersistentCache.SetHighestModSeq(mMailboxUID, mHighestModSeq, lContext);
                 }
@@ -172,7 +174,7 @@ namespace work.bacome.imapclient
                 public int RecentCount => mRecentCount;
                 public uint UIDNext => mUIDNext;
                 public int UIDNextUnknownCount => mUIDNextUnknownCount;
-                public uint UIDValidity => mUIDValidity;
+                public cUIDValidity UIDValidity => mUIDValidity;
                 public int UnseenCount => mUnseenCount;
                 public int UnseenUnknownCount => mUnseenUnknownCount;
                 public ulong HighestModSeq => mHighestModSeq;

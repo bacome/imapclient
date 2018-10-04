@@ -60,7 +60,7 @@ namespace work.bacome.imapclient
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(YClose), pMailboxId);
         }
 
-        public abstract uint GetUIDValidity(cMailboxId pMailboxId, cTrace.cContext pParentContext);
+        public abstract cUIDValidity GetUIDValidity(cMailboxId pMailboxId, cTrace.cContext pParentContext);
         public abstract ulong GetHighestModSeq(cMailboxUID pMailboxUID, cTrace.cContext pParentContext);
 
         public HashSet<cUID> GetUIDs(cMailboxUID pMailboxUID, bool pForCachedFlagsOnly, cTrace.cContext pParentContext)
@@ -95,9 +95,9 @@ namespace work.bacome.imapclient
             foreach (var lSectionHandle in mSectionHandleToCacheItem.Keys) if (lSectionHandle.MessageHandle == pMessageHandle) lHandlesToRemove.Add(lSectionHandle);
             foreach (var lSectionHandle in lHandlesToRemove) mSectionHandleToCacheItem.TryRemove(lSectionHandle, out _);
 
-            if (pMessageHandle.UID != null)
+            if (pMessageHandle.MessageUID != null)
             {
-                cUID[] lUIDs = new cUID[] { pMessageHandle.UID };
+                cUID[] lUIDs = new cUID[] { pMessageHandle.MessageUID.UID };
                 MessagesExpunged(pMessageHandle.MessageCache.MailboxHandle.MailboxId, lUIDs, lContext);
             }
         }
@@ -107,7 +107,7 @@ namespace work.bacome.imapclient
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(MessageHandleUIDSet), pMessageHandle);
 
             if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
-            if (pMessageHandle.messageUID == null) throw new ArgumentOutOfRangeException(nameof(pMessageHandle));
+            if (pMessageHandle.MessageUID == null) throw new ArgumentOutOfRangeException(nameof(pMessageHandle));
 
             var lItemsToMove = new List<KeyValuePair<cSectionHandle, iPersistentSectionCacheItem>>();
             foreach (var lPair in mSectionHandleToCacheItem) if (lPair.Key.MessageHandle == pMessageHandle) lItemsToMove.Add(lPair);
@@ -120,7 +120,7 @@ namespace work.bacome.imapclient
         }
 
         protected internal abstract void MessagesExpunged(cMailboxId pMailboxId, IEnumerable<cUID> pUIDs, cTrace.cContext pParentContext);
-        protected internal abstract void SetUIDValidity(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext);
+        protected internal abstract void SetUIDValidity(cMailboxId pMailboxId, cUIDValidity pUIDValidity, cTrace.cContext pParentContext); 
         protected internal abstract void SetHighestModSeq(cMailboxUID pMailboxUID, ulong pHighestModSeq, cTrace.cContext pParentContext);
         protected internal abstract void ClearHighestModSeq(cMailboxUID pMailboxUID, cTrace.cContext pParentContext); // for flags, from now until re-opened
 
@@ -156,7 +156,7 @@ namespace work.bacome.imapclient
             if (pFeedback == null) throw new ArgumentNullException(nameof(pFeedback));
         }
 
-        internal void Rename(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext)
+        internal void Rename(cMailboxId pMailboxId, bool pUIDNotSticky, cMailboxName pMailboxName, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(Rename), pMailboxId, pMailboxName);
 
@@ -169,7 +169,7 @@ namespace work.bacome.imapclient
                 return;
             }
 
-            YRename(pMailboxId, pMailboxName, lContext);
+            YRename(pMailboxId, pUIDNotSticky, pMailboxName, lContext);
             ClearCache(pMailboxId, lContext);
 
             var lMailboxNames = ZGetMailboxNames(pMailboxId.AccountId, lContext);
@@ -184,12 +184,12 @@ namespace work.bacome.imapclient
                 var lNewMailboxName = new cMailboxName(lNewPath, pMailboxName.Delimiter);
                 var lOldMailboxId = new cMailboxId(pMailboxId.AccountId, lMailboxName);
 
-                YRename(lOldMailboxId, lNewMailboxName, lContext);
+                YRename(lOldMailboxId, pUIDNotSticky, lNewMailboxName, lContext);
                 ClearCache(lOldMailboxId, lContext);
             }
         }
 
-        protected virtual void YRename(cMailboxId pMailboxId, cMailboxName pMailboxName, cTrace.cContext pParentContext)
+        protected virtual void YRename(cMailboxId pMailboxId, bool pUIDNotSticky, cMailboxName pMailboxName, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(YRename), pMailboxId, pMailboxName);
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
@@ -197,8 +197,8 @@ namespace work.bacome.imapclient
             // overrides must take account of the fact that duplicates could be created by any rename done
         }
 
-        protected internal abstract iPersistentHeaderCacheItem GetHeaderCacheItem(cMessageUID pMessageUID, cTrace.cContext pParentContext);
-        protected internal abstract iPersistentFlagCacheItem GetFlagCacheItem(cMessageUID pMessageUID, cTrace.cContext pParentContext);
+        protected internal abstract iHeaderItem GetHeaderCacheItem(cMessageUID pMessageUID, cTrace.cContext pParentContext);
+        protected internal abstract iFlagItem GetFlagCacheItem(cMessageUID pMessageUID, cTrace.cContext pParentContext);
 
         internal bool TryGetSectionReader(cSectionId pSectionId, out cSectionReader rSectionReader, cTrace.cContext pParentContext)
         {
@@ -380,20 +380,6 @@ namespace work.bacome.imapclient
                 rSelectableMailboxNames.Add(lMailboxHandle.MailboxName);
             }
         }
-
-        /* does not belong here: the vanished responses have to be converted to UIDs for normal processing
-        internal bool Vanished(cMailboxId pMailboxId, uint pUIDValidity, cSequenceSet pKnownUIDs, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(Vanished), pMailboxId, pUIDValidity, pKnownUIDs);
-            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
-            if (pUIDValidity == 0) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
-            if (pKnownUIDs == null) throw new ArgumentNullException(nameof(pKnownUIDs));
-            if (!cUIntList.TryConstruct(pKnownUIDs, -1, true, out var lUInts)) return false;
-            var lUIDs = new List<cUID>(from lUID in lUInts select new cUID(pUIDValidity, lUID));
-            MessagesExpunged(pMailboxId, lUIDs, lContext);
-            return true;
-        } */
-
 
         private class cSectionHandleAdder : iSectionAdder
         {
