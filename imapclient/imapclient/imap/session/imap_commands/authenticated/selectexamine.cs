@@ -33,7 +33,7 @@ namespace work.bacome.imapclient
                     lBuilder.Add(await mSelectExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // get exclusive access to the selected mailbox
                     lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
-                    PersistentCache.Open(pMailboxHandle.MailboxId, lContext);
+                    PersistentCache.BeforeSelect(pMailboxHandle.MailboxId, lContext);
 
                     try
                     {
@@ -42,7 +42,7 @@ namespace work.bacome.imapclient
 
                         lBuilder.Add(lMailboxCacheItem.MailboxNameCommandPart);
 
-                        uint lUIDValidity = 0;
+                        var lUIDValidity = sUIDValidity.None;
                         ulong lCachedHighestModSeq = 0;
                         HashSet<cUID> lUIDsToQResync = null; // null or empty == qresync not used
                         //
@@ -57,11 +57,11 @@ namespace work.bacome.imapclient
                         {
                             lUIDValidity = PersistentCache.GetUIDValidity(pMailboxHandle.MailboxId, lContext);
 
-                            if (lUIDValidity != 0)
+                            if (!lUIDValidity.IsNone)
                             {
                                 var lMailboxUID = new cMailboxUID(pMailboxHandle.MailboxId, lUIDValidity);
                                 lCachedHighestModSeq = PersistentCache.GetHighestModSeq(lMailboxUID, lContext);
-                                if (lCachedHighestModSeq != 0) lUIDsToQResync = PersistentCache.GetUIDs(lMailboxUID, lContext);
+                                if (lCachedHighestModSeq != 0) lUIDsToQResync = PersistentCache.GetUIDs(lMailboxUID, false, lContext);
                             }
                         }
 
@@ -76,7 +76,7 @@ namespace work.bacome.imapclient
                         {
                             lUsingQResync = true;
                             lBuilder.Add(kSelectCommandPartQResync);
-                            lBuilder.Add(new cTextCommandPart(lUIDValidity));
+                            lBuilder.Add(new cTextCommandPart(lUIDValidity.UIDValidity));
                             lBuilder.Add(cCommandPart.Space);
                             lBuilder.Add(new cTextCommandPart(lCachedHighestModSeq));
                             lBuilder.Add(cCommandPart.Space);
@@ -112,7 +112,7 @@ namespace work.bacome.imapclient
                     }
                     catch
                     {
-                        PersistentCache.Close(pMailboxHandle.MailboxId, lContext);
+                        PersistentCache.AfterUnselect(pMailboxHandle.MailboxId, lContext);
                         throw;
                     }
                 }
@@ -270,8 +270,16 @@ namespace work.bacome.imapclient
                 private void ZSetSelectedMailboxCache(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelectExamine), nameof(ZSetSelectedMailboxCache));
-                    ;?; // plus sticky?
-                    if (mSelectedMailboxCache != null) mSelectedMailboxCache = new cSelectedMailboxCache(mPersistentCache, mSynchroniser, mMailboxCacheItem, mUIDValidity, mExists, mRecent, mUIDNext, mHighestModSeq, mAccessReadOnly, lContext);
+
+                    if (mSelectedMailboxCache == null) return;
+
+                    mPersistentCache.CheckUIDValidity(mMailboxCacheItem.MailboxId, mUIDValidity, lContext);
+
+                    sUIDValidity lUIDValidity;
+                    if (mUIDValidity == 0) lUIDValidity = sUIDValidity.None;
+                    else lUIDValidity = new sUIDValidity(mUIDValidity, !mUIDNotSticky);
+
+                    mSelectedMailboxCache = new cSelectedMailboxCache(mPersistentCache, mSynchroniser, mMailboxCacheItem, lUIDValidity, mExists, mRecent, mUIDNext, mHighestModSeq, lContext);
                 }
 
                 public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)

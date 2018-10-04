@@ -27,6 +27,7 @@ namespace work.bacome.imapclient
             private readonly cCommandPipeline mPipeline;
 
             private Encoding mEncoding;
+            private int mMaxItemsInSequenceSet;
 
             private cCommandPartFactory mCommandPartFactory;
             private cCommandPartFactory mEncodingPartFactory;
@@ -57,6 +58,7 @@ namespace work.bacome.imapclient
                 cStorableFlags pAppendDefaultFlags, cBatchSizerConfiguration pAppendBatchConfiguration, 
                 cIdleConfiguration pIdleConfiguration, 
                 Encoding pEncoding,
+                int pMaxItemsInSequenceSet,
                 cTrace.cContext pParentContext)
             {
                 var lContext = 
@@ -78,6 +80,7 @@ namespace work.bacome.imapclient
                 mAppendBatchSizer = new cBatchSizer(pAppendBatchConfiguration);
                 mPipeline = new cCommandPipeline(pSynchroniser, ZDisconnected, pNetworkWriteConfiguration, pIdleConfiguration, lContext);
                 mEncoding = pEncoding ?? throw new ArgumentNullException(nameof(pEncoding));
+                mMaxItemsInSequenceSet = pMaxItemsInSequenceSet;
 
                 mCommandPartFactory = new cCommandPartFactory(false, null);
                 mEncodingPartFactory = new cCommandPartFactory(false, pEncoding);
@@ -104,8 +107,6 @@ namespace work.bacome.imapclient
                 if (!_Capabilities.CondStore) mStatusAttributes &= ~fMailboxCacheDataItems.highestmodseq;
 
                 mMailboxCache = new cMailboxCache(PersistentCache, mSynchroniser, mMailboxCacheDataItems, mCommandPartFactory, _Capabilities, _ConnectedAccountId, ZSetState);
-
-                ;?; // if qresync enabled install the vanished response processor
 
                 mPipeline.Install(new cResponseTextCodeParserSelect(_Capabilities));
                 mPipeline.Install(new cResponseDataParserSelect());
@@ -142,6 +143,12 @@ namespace work.bacome.imapclient
                 mEncoding = pEncoding ?? throw new ArgumentNullException(nameof(pEncoding));
                 if ((EnabledExtensions & fEnableableExtensions.utf8) != 0) mEncodingPartFactory = mCommandPartFactory;
                 else mEncodingPartFactory = new cCommandPartFactory(false, pEncoding);
+            }
+
+            public void SetMaxItemsInSequenceSet(int pMaxItemsInSequenceSet, cTrace.cContext pParentContext)
+            {
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetMaxItemsInSequenceSet), pMaxItemsInSequenceSet);
+                mMaxItemsInSequenceSet = pMaxItemsInSequenceSet;
             }
 
             public eIMAPConnectionState ConnectionState => _ConnectionState;

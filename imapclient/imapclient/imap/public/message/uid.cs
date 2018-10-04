@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     public class cUID : IEquatable<cUID>, IComparable<cUID>
     {
         /**<summary>The UIDValidity of the instance.</summary>*/
-        public readonly cUIDValidity UIDValidity;
+        public readonly sUIDValidity UIDValidity;
 
         /**<summary>The UID of the instance.</summary>*/
         public readonly uint UID;
@@ -21,9 +21,8 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pUIDValidity"></param>
         /// <param name="pUID"></param>
-        public cUID(cUIDValidity pUIDValidity, uint pUID)
+        public cUID(sUIDValidity pUIDValidity, uint pUID)
         {
-            UIDValidity = pUIDValidity ?? throw new ArgumentNullException(nameof(pUIDValidity));
             if (pUIDValidity.IsNone) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
             if (pUID == 0) throw new ArgumentOutOfRangeException(nameof(pUID));
             UID = pUID;

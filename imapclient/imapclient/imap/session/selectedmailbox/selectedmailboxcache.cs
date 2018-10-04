@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
                 private readonly cPersistentCache mPersistentCache;
                 private readonly cIMAPCallbackSynchroniser mSynchroniser;
                 private readonly cMailboxCacheItem mMailboxCacheItem;
-                private readonly cUIDValidity mUIDValidity;
+                private readonly sUIDValidity mUIDValidity;
                 private readonly cMailboxUID mMailboxUID;
                 private readonly bool mNoModSeq;
 
@@ -42,16 +42,16 @@ namespace work.bacome.imapclient
                 private bool mCallSetHighestModSeq;
                 private bool mIsInvalid = false;
 
-                public cSelectedMailboxCache(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, cMailboxCacheItem pMailboxCacheItem, cUIDValidity pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, ulong pHighestModSeq, cTrace.cContext pParentContext)
+                public cSelectedMailboxCache(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, cMailboxCacheItem pMailboxCacheItem, sUIDValidity pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, ulong pHighestModSeq, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cSelectedMailboxCache), pMailboxCacheItem, pUIDValidity, pMessageCount, pRecentCount, pUIDNext, pHighestModSeq);
 
                     mPersistentCache = pPersistentCache ?? throw new ArgumentNullException(nameof(pPersistentCache));
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                     mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
-                    mUIDValidity = pUIDValidity ?? throw new ArgumentNullException(nameof(pUIDValidity));
-
-                    if (pUIDValidity == null) mMailboxUID = null;
+                    mUIDValidity = pUIDValidity;
+                    
+                    if (pUIDValidity.IsNone) mMailboxUID = null;
                     else mMailboxUID = new cMailboxUID(pMailboxCacheItem.MailboxId, pUIDValidity);
 
                     mNoModSeq = pHighestModSeq == 0;
@@ -99,12 +99,12 @@ namespace work.bacome.imapclient
 
                     if (pUIDValidity == 0)
                     {
-                        mUIDValidity = cUIDValidity.None;
+                        mUIDValidity = sUIDValidity.None;
                         mMailboxUID = null;
                     }
                     else
                     {
-                        mUIDValidity = new cUIDValidity(pUIDValidity, pOldCache.mUIDValidity.UIDNotSticky);
+                        mUIDValidity = new sUIDValidity(pUIDValidity, pOldCache.mUIDValidity.IsSticky);
                         mMailboxUID = new cMailboxUID(pOldCache.mMailboxUID.MailboxId, mUIDValidity);
                     }
 
@@ -128,7 +128,7 @@ namespace work.bacome.imapclient
 
                     mSelected = true;
                     mSynchronised = true;
-                    mCallSetHighestModSeq = pUIDValidity != 0 && !mUIDNotSticky && !mNoModSeq; 
+                    mCallSetHighestModSeq = mUIDValidity.IsSticky && !mNoModSeq; 
 
                     ZSetMailboxStatus(lContext);
                 }
@@ -141,7 +141,7 @@ namespace work.bacome.imapclient
                     mSelected = true;
 
                     ZSetMailboxStatus(lContext);
-                    mMailboxCacheItem.SetSelectedProperties(pMessageFlags, pForUpdate, pPermanentFlags, mUIDNotSticky, lContext);
+                    mMailboxCacheItem.SetSelectedProperties(pMessageFlags, pForUpdate, pPermanentFlags, mUIDValidity.IsSticky, lContext);
                 }
 
                 public void SetSynchronised(cTrace.cContext pParentContext)
@@ -151,7 +151,7 @@ namespace work.bacome.imapclient
                     if (mSynchronised) throw new cInternalErrorException(lContext);
                     mSynchronised = true;
 
-                    mCallSetHighestModSeq = mUIDValidity != null && !mUIDValidity.UIDNotSticky && !mNoModSeq;
+                    mCallSetHighestModSeq = mUIDValidity.IsSticky && !mNoModSeq;
 
                     if (mCallSetHighestModSeq) mPersistentCache.SetHighestModSeq(mMailboxUID, mHighestModSeq, lContext);
                 }
@@ -174,7 +174,7 @@ namespace work.bacome.imapclient
                 public int RecentCount => mRecentCount;
                 public uint UIDNext => mUIDNext;
                 public int UIDNextUnknownCount => mUIDNextUnknownCount;
-                public cUIDValidity UIDValidity => mUIDValidity;
+                public sUIDValidity UIDValidity => mUIDValidity;
                 public int UnseenCount => mUnseenCount;
                 public int UnseenUnknownCount => mUnseenUnknownCount;
                 public ulong HighestModSeq => mHighestModSeq;
@@ -391,7 +391,7 @@ namespace work.bacome.imapclient
                         }
                     }
 
-                    if (mEnabled) 
+                    if (mSelected) 
                     {
                         if (lFetchedItem.ModSeq > mPendingHighestModSeq) mPendingHighestModSeq = lFetchedItem.ModSeq.Value;
                         mSynchroniser.InvokeMessagePropertiesChanged(lFetchedItem, lModSeqFlagPropertiesChanged, lContext);
@@ -419,7 +419,7 @@ namespace work.bacome.imapclient
                 private void ZSetMailboxStatus(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ZSetMailboxStatus));
-                    mMailboxCacheItem.SetMailboxStatus(new cMailboxStatus(mItems.Count, mRecentCount, mUIDNext, mUIDNextUnknownCount, mUIDValidity, mUnseenCount, mUnseenUnknownCount, mHighestModSeq), lContext);
+                    mMailboxCacheItem.SetMailboxStatus(new cMailboxStatus(mItems.Count, mRecentCount, mUIDNext, mUIDNextUnknownCount, mUIDValidity.UIDValidity, mUnseenCount, mUnseenUnknownCount, mHighestModSeq), lContext);
                 }
 
                 public override string ToString() => $"{nameof(cSelectedMailboxCache)}({mMailboxCacheItem},{mUIDValidity})";

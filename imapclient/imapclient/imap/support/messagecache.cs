@@ -38,12 +38,12 @@ namespace work.bacome.imapclient.support
         int UIDNextUnknownCount { get; }
 
         /// <summary>
-        /// Gets the UIDValidity of the mailbox. May be zero.
+        /// Gets the UIDValidity of the mailbox. May be <see cref="sUIDValidity.None"/>.
         /// </summary>
         /// <remarks>
-        /// Zero indicates that the server does not support unique identifiers.
+        /// <see cref="sUIDValidity.None"/> indicates that the server does not support unique identifiers.
         /// </remarks>
-        uint UIDValidity { get; }
+        sUIDValidity UIDValidity { get; }
 
         /// <summary>
         /// Gets the number of unseen messages in the mailbox.

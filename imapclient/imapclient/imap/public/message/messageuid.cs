@@ -6,14 +6,12 @@ namespace work.bacome.imapclient
     {
         public readonly cMailboxId MailboxId;
         public readonly cUID UID;
-        public readonly bool UIDNotSticky;
         public readonly bool UTF8Enabled;
 
-        public cMessageUID(cMailboxId pMailboxId, cUID pUID, bool pUIDNotSticky, bool pUTF8Enabled)
+        public cMessageUID(cMailboxId pMailboxId, cUID pUID, bool pUTF8Enabled)
         {
             MailboxId = pMailboxId ?? throw new ArgumentOutOfRangeException(nameof(pMailboxId));
             UID = pUID ?? throw new ArgumentOutOfRangeException(nameof(pUID));
-            UIDNotSticky = 
             UTF8Enabled = pUTF8Enabled;
         }
 

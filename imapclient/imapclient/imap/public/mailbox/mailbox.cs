@@ -553,7 +553,7 @@ namespace work.bacome.imapclient
         /// </list>
         /// </para>
         /// </remarks>
-        /// <seealso cref="UIDNotSticky"/>
+        /// <seealso cref="UIDsAreSticky"/>
         public uint? UIDValidity
         {
             get
@@ -679,7 +679,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// <see langword="null"/> indicates that the mailbox has never been selected on the current connection.
         /// </remarks>
-        public bool? UIDNotSticky => MailboxHandle.SelectedProperties.UIDNotSticky;
+        public bool? UIDsAreSticky => MailboxHandle.SelectedProperties.UIDsAreSticky;
 
         /// <summary>
         /// Gets the message flags defined in the mailbox. May be <see langword="null"/>.

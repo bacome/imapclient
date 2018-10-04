@@ -8,49 +8,42 @@ namespace work.bacome.imapclient
     /// Represents an IMAP message UIDValidity
     /// </summary>
     [Serializable]
-    public class cUIDValidity : IEquatable<cUIDValidity>, IComparable<cUIDValidity>
+    public struct sUIDValidity : IEquatable<sUIDValidity>, IComparable<sUIDValidity>
     {
-        public static cUIDValidity None = new cUIDValidity();
+        public static readonly sUIDValidity None = new sUIDValidity();
 
         /**<summary>The UIDValidity of the instance.</summary>*/
         public readonly uint UIDValidity;
-        public readonly bool UIDNotSticky;
+        public readonly bool IsSticky;
 
-        private cUIDValidity()
-        {
-            UIDValidity = 0;
-            UIDNotSticky = true;
-        }
-
-        public cUIDValidity(uint pUIDValidity, bool pUIDNotSticky)
+        public sUIDValidity(uint pUIDValidity, bool pIsSticky)
         {
             if (pUIDValidity == 0) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
             UIDValidity = pUIDValidity;
-            UIDNotSticky = pUIDNotSticky;
+            IsSticky = pIsSticky;
         }
 
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (UIDValidity == 0 && !UIDNotSticky) throw new cDeserialiseException(nameof(cUIDValidity), nameof(UIDNotSticky), kDeserialiseExceptionMessage.IsInconsistent);
+            if (UIDValidity == 0 && IsSticky) throw new cDeserialiseException(nameof(sUIDValidity), nameof(IsSticky), kDeserialiseExceptionMessage.IsInconsistent);
         }
 
         public bool IsNone => UIDValidity == 0;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
-        public bool Equals(cUIDValidity pOther) => this == pOther;
+        public bool Equals(sUIDValidity pOther) => this == pOther;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.CompareTo(object)"/>
-        public int CompareTo(cUIDValidity pOther)
+        public int CompareTo(sUIDValidity pOther)
         {
-            if (pOther == null) return 1;
             int lCompareTo = UIDValidity.CompareTo(pOther.UIDValidity);
-            if (lCompareTo == 0) return UIDNotSticky.CompareTo(pOther.UIDNotSticky);
+            if (lCompareTo == 0) return IsSticky.CompareTo(pOther.IsSticky);
             return lCompareTo;
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object pObject) => this == pObject as cUIDValidity;
+        public override bool Equals(object pObject) => (pObject is sUIDValidity) ? this == (sUIDValidity)pObject : false;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
@@ -59,24 +52,24 @@ namespace work.bacome.imapclient
             {
                 int lHash = 17;
                 lHash = lHash * 23 + UIDValidity.GetHashCode();
-                lHash = lHash * 23 + UIDNotSticky.GetHashCode();
+                lHash = lHash * 23 + IsSticky.GetHashCode();
                 return lHash;
             }
         }
 
         /// <inheritdoc/>
-        public override string ToString() => $"{nameof(cUIDValidity)}({UIDValidity},{UIDNotSticky})";
+        public override string ToString() => $"{nameof(sUIDValidity)}({UIDValidity},{IsSticky})";
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
-        public static bool operator ==(cUIDValidity pA, cUIDValidity pB)
+        public static bool operator ==(sUIDValidity pA, sUIDValidity pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
             if (ReferenceEquals(pB, null)) return false;
-            return pA.UIDValidity == pB.UIDValidity && pA.UIDNotSticky == pB.UIDNotSticky;
+            return pA.UIDValidity == pB.UIDValidity && pA.IsSticky == pB.IsSticky;
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
-        public static bool operator !=(cUIDValidity pA, cUIDValidity pB) => !(pA == pB);
+        public static bool operator !=(sUIDValidity pA, sUIDValidity pB) => !(pA == pB);
     }
 }

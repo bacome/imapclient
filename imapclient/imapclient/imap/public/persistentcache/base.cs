@@ -15,9 +15,9 @@ namespace work.bacome.imapclient
 
         private readonly ConcurrentDictionary<cSectionHandle, iPersistentSectionCacheItem> mSectionHandleToCacheItem = new ConcurrentDictionary<cSectionHandle, iPersistentSectionCacheItem>();
 
-        public virtual void Open(cMailboxId pMailboxId, cTrace.cContext pParentContext)
+        public virtual void BeforeSelect(cMailboxId pMailboxId, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(Open), pMailboxId);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(BeforeSelect), pMailboxId);
 
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
 
@@ -28,20 +28,20 @@ namespace work.bacome.imapclient
                 if (mMailboxToSelectedCount.TryGetValue(pMailboxId, out lSelectedCount)) lSelectedCount++;
                 else lSelectedCount = 1;
 
-                if (lSelectedCount == 1) YOpen(pMailboxId, lContext);
+                if (lSelectedCount == 1) YBeforeFirstSelect(pMailboxId, lContext);
 
                 mMailboxToSelectedCount[pMailboxId] = lSelectedCount;
             }
         }
 
-        protected virtual void YOpen(cMailboxId pMailboxId, cTrace.cContext pParentContext)
+        protected virtual void YBeforeFirstSelect(cMailboxId pMailboxId, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(YOpen), pMailboxId);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(YBeforeFirstSelect), pMailboxId);
         }
 
-        public virtual void Close(cMailboxId pMailboxId, cTrace.cContext pParentContext)
+        public virtual void AfterUnselect(cMailboxId pMailboxId, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(Close), pMailboxId);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(AfterUnselect), pMailboxId);
 
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
 
@@ -51,16 +51,16 @@ namespace work.bacome.imapclient
                 lSelectedCount--;
                 mMailboxToSelectedCount[pMailboxId] = lSelectedCount;
 
-                if (lSelectedCount == 0) YClose(pMailboxId, lContext);
+                if (lSelectedCount == 0) YAfterLastUnselect(pMailboxId, lContext);
             }
         }
 
-        protected virtual void YClose(cMailboxId pMailboxId, cTrace.cContext pParentContext)
+        protected virtual void YAfterLastUnselect(cMailboxId pMailboxId, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(YClose), pMailboxId);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(YAfterLastUnselect), pMailboxId);
         }
 
-        public abstract cUIDValidity GetUIDValidity(cMailboxId pMailboxId, cTrace.cContext pParentContext);
+        public abstract sUIDValidity GetUIDValidity(cMailboxId pMailboxId, cTrace.cContext pParentContext); // in the override, if you discover that you have different UIDValidities, clear the cache components with lower ones
         public abstract ulong GetHighestModSeq(cMailboxUID pMailboxUID, cTrace.cContext pParentContext);
 
         public HashSet<cUID> GetUIDs(cMailboxUID pMailboxUID, bool pForCachedFlagsOnly, cTrace.cContext pParentContext)
@@ -118,24 +118,21 @@ namespace work.bacome.imapclient
                 mSectionHandleToCacheItem.TryRemove(lPair.Key, out _);
             }
         }
-
+    
         protected internal abstract void MessagesExpunged(cMailboxId pMailboxId, IEnumerable<cUID> pUIDs, cTrace.cContext pParentContext);
-        protected internal abstract void SetUIDValidity(cMailboxId pMailboxId, cUIDValidity pUIDValidity, cTrace.cContext pParentContext); 
         protected internal abstract void SetHighestModSeq(cMailboxUID pMailboxUID, ulong pHighestModSeq, cTrace.cContext pParentContext);
         protected internal abstract void ClearHighestModSeq(cMailboxUID pMailboxUID, cTrace.cContext pParentContext); // for flags, from now until re-opened
 
-        internal void ClearCache(cMailboxId pMailboxId, cTrace.cContext pParentContext)
+        internal void CheckUIDValidity(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(ClearCache), pMailboxId);
-
-            var lHandlesToRemove = new List<cSectionHandle>();
-            foreach (var lSectionHandle in mSectionHandleToCacheItem.Keys) if (lSectionHandle.MessageHandle.MessageCache.MailboxHandle.MailboxId == pMailboxId) lHandlesToRemove.Add(lSectionHandle);
-            foreach (var lSectionHandle in lHandlesToRemove) mSectionHandleToCacheItem.TryRemove(lSectionHandle, out _);
-
-            YClearCache(pMailboxId, lContext);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(CheckUIDValidity), pMailboxId, pUIDValidity);
+            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
+            var lUIDValidity = GetUIDValidity(pMailboxId, lContext);
+            if (lUIDValidity.IsNone) return;
+            if (lUIDValidity.UIDValidity != pUIDValidity) ClearCache(pMailboxId, lContext);
         }
 
-        protected abstract void YClearCache(cMailboxId pMailboxId, cTrace.cContext pParentContext); // including uidvalidity and highestmodseq
+        protected abstract void ClearCache(cMailboxId pMailboxId, cTrace.cContext pParentContext); // including uidvalidity and highestmodseq
 
         private HashSet<cMailboxName> ZGetMailboxNames(cAccountId pAccountId, cTrace.cContext pParentContext)
         {
@@ -156,9 +153,9 @@ namespace work.bacome.imapclient
             if (pFeedback == null) throw new ArgumentNullException(nameof(pFeedback));
         }
 
-        internal void Rename(cMailboxId pMailboxId, bool pUIDNotSticky, cMailboxName pMailboxName, cTrace.cContext pParentContext)
+        internal void Rename(cMailboxId pMailboxId, bool pUIDsAreSticky, cMailboxName pMailboxName, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(Rename), pMailboxId, pMailboxName);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(Rename), pMailboxId, pUIDsAreSticky, pMailboxName);
 
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
             if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
@@ -169,7 +166,7 @@ namespace work.bacome.imapclient
                 return;
             }
 
-            YRename(pMailboxId, pUIDNotSticky, pMailboxName, lContext);
+            YRename(pMailboxId, pUIDsAreSticky, pMailboxName, lContext);
             ClearCache(pMailboxId, lContext);
 
             var lMailboxNames = ZGetMailboxNames(pMailboxId.AccountId, lContext);
@@ -184,14 +181,14 @@ namespace work.bacome.imapclient
                 var lNewMailboxName = new cMailboxName(lNewPath, pMailboxName.Delimiter);
                 var lOldMailboxId = new cMailboxId(pMailboxId.AccountId, lMailboxName);
 
-                YRename(lOldMailboxId, pUIDNotSticky, lNewMailboxName, lContext);
+                YRename(lOldMailboxId, pUIDsAreSticky, lNewMailboxName, lContext);
                 ClearCache(lOldMailboxId, lContext);
             }
         }
 
-        protected virtual void YRename(cMailboxId pMailboxId, bool pUIDNotSticky, cMailboxName pMailboxName, cTrace.cContext pParentContext)
+        protected virtual void YRename(cMailboxId pMailboxId, bool pUIDsAreSticky, cMailboxName pMailboxName, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(YRename), pMailboxId, pMailboxName);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(YRename), pMailboxId, pUIDsAreSticky, pMailboxName);
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
             if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
             // overrides must take account of the fact that duplicates could be created by any rename done

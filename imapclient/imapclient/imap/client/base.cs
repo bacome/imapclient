@@ -100,6 +100,7 @@ namespace work.bacome.imapclient
         private cBatchSizerConfiguration mAppendBatchConfiguration = new cBatchSizerConfiguration(1000, int.MaxValue, 10000, 1000);
         private cIMAPClientId mClientId = new cIMAPClientId(new cIMAPIdDictionary(true));
         private cIMAPClientIdUTF8 mClientIdUTF8 = null;
+        private int mMaxItemsInSequenceSet = 50;
 
         // current session
         private cSession mSession = null;
@@ -480,6 +481,28 @@ namespace work.bacome.imapclient
                 if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 mClientIdUTF8 = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets and sets the maximum number of numbers that the library will use when generating an IMAP sequence-set to cover a set of numbers in contexts where specifying a wider range will not be harmful
+        /// (e.g. in mailbox resynchronisation).
+        /// </summary>
+        /// <remarks>
+        /// This value affects command line lengths in the places where it is used. Command line length may have a server-side limit. Any server-side limit is not discoverable by the library.
+        /// The minimum value for this property is 4, the default value is 50.
+        /// </remarks>
+        public int MaxItemsInSequenceSet
+        {
+            get => mMaxItemsInSequenceSet;
+
+            set
+            {
+                var lContext = RootContext.NewSetProp(nameof(cIMAPClient), nameof(MaxItemsInSequenceSet), value);
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (value < 4) throw new ArgumentOutOfRangeException();
+                mMaxItemsInSequenceSet = value;
+                mSession?.SetMaxItemsInSequenceSet(value, lContext);
             }
         }
 
