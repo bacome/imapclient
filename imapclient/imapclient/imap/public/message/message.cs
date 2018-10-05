@@ -21,10 +21,10 @@ namespace work.bacome.imapclient
     /// </remarks>
     public class cIMAPMessage : cMailMessage, IEquatable<cIMAPMessage>
     {
-        private static readonly cMessageCacheItems kEnvelope = fMessageCacheAttributes.envelope;
-        private static readonly cMessageCacheItems kFlags = fMessageCacheAttributes.flags;
-        private static readonly cMessageCacheItems kReceived = fMessageCacheAttributes.received;
         private static readonly cMessageCacheItems kUID = fMessageCacheAttributes.uid;
+        private static readonly cMessageCacheItems kModSeqFlags = fMessageCacheAttributes.modseqflags;
+        private static readonly cMessageCacheItems kEnvelope = fMessageCacheAttributes.envelope;
+        private static readonly cMessageCacheItems kReceived = fMessageCacheAttributes.received;
         private static readonly cMessageCacheItems kBodyStructure = fMessageCacheAttributes.bodystructure;
         private static readonly cMessageCacheItems kReferences = cHeaderFieldNames.References;
         private static readonly cMessageCacheItems kImportance = cHeaderFieldNames.Importance;
@@ -82,31 +82,60 @@ namespace work.bacome.imapclient
         /// </summary>
         public bool Expunged => MessageHandle.Expunged;
 
-        /// <inheritdoc select="summary"/>
+        /// <summary>
+        /// Gets the MessageUID of the message. May be <see langword="null"/>.
+        /// </summary>
         /// <remarks>
-        /// If the message cache does not contain the <see cref="fMessageCacheAttributes.envelope"/> of the message, it will be fetched from the server.
+        /// If the message cache does not contain the <see cref="fMessageCacheAttributes.uid"/> of the message, it will be fetched from the server.
+        /// Will be <see langword="null"/> if the mailbox does not support unique identifiers.
         /// </remarks>
-        public override cEnvelope Envelope
+        public cMessageUID MessageUID
         {
             get
             {
-                ZFetch(kEnvelope, true);
-                return MessageHandle.Envelope;
+                ZFetch(kUID, true);
+                return MessageHandle.MessageUID;
+            }
+        }
+
+        /// <summary>
+        /// Gets the UID of the message. May be <see langword="null"/>.
+        /// </summary>
+        /// <inheritdoc cref="MessageUID" select="remarks"/>
+        public cUID UID
+        {
+            get
+            {
+                ZFetch(kUID, true);
+                return MessageHandle.MessageUID?.UID;
+            }
+        }
+
+        /// <summary>
+        /// Gets the mod-sequence and flags of the message. May be zero.
+        /// </summary>
+        /// <remarks>
+        /// If the message cache does not contain the <see cref="fMessageCacheAttributes.modseqflags"/> of the message, they will be fetched from the server.
+        /// </remarks>
+        public cModSeqFlags ModSeqFlags
+        {
+            get
+            {
+                ZFetch(kModSeqFlags, true);
+                return MessageHandle.ModSeqFlags;
             }
         }
 
         /// <summary>
         /// Gets the flags set for the message.
         /// </summary>
-        /// <remarks>
-        /// If the message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
-        /// </remarks>
+        /// <inheritdoc cref="Flags" select="remarks"/>
         public cFetchableFlags Flags
         {
             get
             {
-                ZFetch(kFlags, true);
-                return MessageHandle.Flags;
+                ZFetch(kModSeqFlags, true);
+                return MessageHandle.ModSeqFlags.Flags;
             }
         }
 
@@ -204,12 +233,12 @@ namespace work.bacome.imapclient
         /// Indicates whether <see cref="Flags"/> contains <see cref="kMessageFlag.Submitted"/>.
         /// </summary>
         /// <inheritdoc cref="Flags" select="remarks"/>
-        public bool Submitted  => ZFlagsContain(kMessageFlag.Submitted);
+        public bool Submitted => ZFlagsContain(kMessageFlag.Submitted);
 
         private bool ZFlagsContain(string pFlag)
         {
-            ZFetch(kFlags, true);
-            return MessageHandle.Flags.Contains(pFlag);
+            ZFetch(kModSeqFlags, true);
+            return MessageHandle.ModSeqFlags.Flags.Contains(pFlag);
         }
 
         private void ZFlagSet(cStorableFlags pFlags, bool pValue)
@@ -223,6 +252,19 @@ namespace work.bacome.imapclient
             Client.Wait(Client.StoreAsync(lFeedback, null, lContext), lContext);
 
             ZStoreProcessFeedback(lFeedback);
+        }
+
+        /// <inheritdoc select="summary"/>
+        /// <remarks>
+        /// If the message cache does not contain the <see cref="fMessageCacheAttributes.envelope"/> of the message, it will be fetched from the server.
+        /// </remarks>
+        public override cEnvelope Envelope
+        {
+            get
+            {
+                ZFetch(kEnvelope, true);
+                return MessageHandle.Envelope;
+            }
         }
 
         /// <summary>
@@ -252,38 +294,6 @@ namespace work.bacome.imapclient
             {
                 ZFetch(cMessageCacheItems.Size, true);
                 return MessageHandle.Size.Value;
-            }
-        }
-
-        /// <summary>
-        /// Gets the UID of the message. May be <see langword="null"/>.
-        /// </summary>
-        /// <remarks>
-        /// If the message cache does not contain the <see cref="fMessageCacheAttributes.uid"/> of the message, it will be fetched from the server.
-        /// Will be <see langword="null"/> if the mailbox does not support unique identifiers.
-        /// </remarks>
-        public cUID UID
-        {
-            get
-            {
-                ZFetch(kUID, true);
-                return MessageHandle.UID;
-            }
-        }
-
-        /// <summary>
-        /// Gets the mod-sequence of the message. May be zero.
-        /// </summary>
-        /// <remarks>
-        /// If the message cache does not contain the mod-sequence of the message, it will be fetched from the server.
-        /// Will be zero if <see cref="cIMAPCapabilities.CondStore"/> is not in use or if the mailbox does not support the persistent storage of mod-sequences.
-        /// </remarks>
-        public ulong ModSeq
-        {
-            get
-            {
-                ZFetch(kFlags, true);
-                return MessageHandle.ModSeq.Value;
             }
         }
 

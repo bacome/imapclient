@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
         private readonly object mMailboxToSelectedCountLock = new object();
         private readonly Dictionary<cMailboxId, int> mMailboxToSelectedCount = new Dictionary<cMailboxId, int>();
 
-        private readonly ConcurrentDictionary<cSectionHandle, iPersistentSectionCacheItem> mSectionHandleToCacheItem = new ConcurrentDictionary<cSectionHandle, iPersistentSectionCacheItem>();
+        private readonly ConcurrentDictionary<cSectionHandle, iSectionCacheItem> mSectionHandleToCacheItem = new ConcurrentDictionary<cSectionHandle, iSectionCacheItem>();
 
         public virtual void BeforeSelect(cMailboxId pMailboxId, cTrace.cContext pParentContext)
         {
@@ -109,7 +109,7 @@ namespace work.bacome.imapclient
             if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
             if (pMessageHandle.MessageUID == null) throw new ArgumentOutOfRangeException(nameof(pMessageHandle));
 
-            var lItemsToMove = new List<KeyValuePair<cSectionHandle, iPersistentSectionCacheItem>>();
+            var lItemsToMove = new List<KeyValuePair<cSectionHandle, iSectionCacheItem>>();
             foreach (var lPair in mSectionHandleToCacheItem) if (lPair.Key.MessageHandle == pMessageHandle) lItemsToMove.Add(lPair);
 
             foreach (var lPair in lItemsToMove)
@@ -121,7 +121,7 @@ namespace work.bacome.imapclient
     
         protected internal abstract void MessagesExpunged(cMailboxId pMailboxId, IEnumerable<cUID> pUIDs, cTrace.cContext pParentContext);
         protected internal abstract void SetHighestModSeq(cMailboxUID pMailboxUID, ulong pHighestModSeq, cTrace.cContext pParentContext);
-        protected internal abstract void ClearHighestModSeq(cMailboxUID pMailboxUID, cTrace.cContext pParentContext); // for flags, from now until re-opened
+        protected internal abstract void NoModSeqFlagUpdate(cMailboxUID pMailboxUID, cTrace.cContext pParentContext); // means that the cache can't be sure that it is synchronised to the highestmodseq for flags
 
         internal void CheckUIDValidity(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext)
         {
@@ -194,8 +194,8 @@ namespace work.bacome.imapclient
             // overrides must take account of the fact that duplicates could be created by any rename done
         }
 
-        protected internal abstract iHeaderItem GetHeaderCacheItem(cMessageUID pMessageUID, cTrace.cContext pParentContext);
-        protected internal abstract iFlagItem GetFlagCacheItem(cMessageUID pMessageUID, cTrace.cContext pParentContext);
+        protected internal abstract bool TryGetHeaderCacheItem(cMessageUID pMessageUID, out iHeaderCacheItem rHeaderCacheItem, cTrace.cContext pParentContext);
+        protected internal abstract bool TryGetFlagCacheItem(cMessageUID pMessageUID, out iFlagCacheItem rFlagCacheItem, cTrace.cContext pParentContext);
 
         internal bool TryGetSectionReader(cSectionId pSectionId, out cSectionReader rSectionReader, cTrace.cContext pParentContext)
         {
@@ -293,9 +293,9 @@ namespace work.bacome.imapclient
             }
         }
 
-        protected abstract void YGetNewSectionCacheItem(out Stream rStream, out iPersistentSectionCacheItem rSectionCacheItem, cTrace.cContext pParentContext);
+        protected abstract void YGetNewSectionCacheItem(out Stream rStream, out iSectionCacheItem rSectionCacheItem, cTrace.cContext pParentContext);
 
-        private void ZAddSectionCacheItem(cSectionHandle pSectionHandle, iPersistentSectionCacheItem pSectionCacheItem, cTrace.cContext pParentContext)
+        private void ZAddSectionCacheItem(cSectionHandle pSectionHandle, iSectionCacheItem pSectionCacheItem, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(ZAddSectionCacheItem), pSectionHandle, pSectionCacheItem);
 
@@ -310,7 +310,7 @@ namespace work.bacome.imapclient
             if (pSectionHandle.MessageHandle.MessageCache.IsInvalid) MessageCacheInvalidated(pSectionHandle.MessageHandle.MessageCache, lContext);
         }
 
-        protected abstract void AddSectionCacheItem(cSectionId pSectionId, iPersistentSectionCacheItem pSectionCacheItem, cTrace.cContext pParentContext);
+        protected abstract void AddSectionCacheItem(cSectionId pSectionId, iSectionCacheItem pSectionCacheItem, cTrace.cContext pParentContext);
 
         internal void Reconcile(cMailboxId pMailboxId, IEnumerable<iMailboxHandle> pAllChildMailboxHandles, cTrace.cContext pParentContext)
         {
@@ -382,9 +382,9 @@ namespace work.bacome.imapclient
         {
             private readonly cPersistentCache mPersistentCache;
             private readonly cSectionHandle mSectionHandle;
-            private readonly iPersistentSectionCacheItem mSectionCacheItem;
+            private readonly iSectionCacheItem mSectionCacheItem;
 
-            public cSectionHandleAdder(cPersistentCache pPersistentCache, cSectionHandle pSectionHandle, iPersistentSectionCacheItem pSectionCacheItem)
+            public cSectionHandleAdder(cPersistentCache pPersistentCache, cSectionHandle pSectionHandle, iSectionCacheItem pSectionCacheItem)
             {
                 mPersistentCache = pPersistentCache ?? throw new ArgumentNullException(nameof(pPersistentCache));
                 mSectionHandle = pSectionHandle ?? throw new ArgumentNullException(nameof(pSectionHandle));
@@ -402,9 +402,9 @@ namespace work.bacome.imapclient
         {
             private readonly cPersistentCache mPersistentCache;
             private readonly cSectionId mSectionId;
-            private readonly iPersistentSectionCacheItem mSectionCacheItem;
+            private readonly iSectionCacheItem mSectionCacheItem;
 
-            public cSectionIdAdder(cPersistentCache pPersistentCache, cSectionId pSectionId, iPersistentSectionCacheItem pSectionCacheItem)
+            public cSectionIdAdder(cPersistentCache pPersistentCache, cSectionId pSectionId, iSectionCacheItem pSectionCacheItem)
             {
                 mPersistentCache = pPersistentCache ?? throw new ArgumentNullException(nameof(pPersistentCache));
                 mSectionId = pSectionId ?? throw new ArgumentNullException(nameof(pSectionId));

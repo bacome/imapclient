@@ -16,6 +16,7 @@ namespace work.bacome.imapclient
             {
                 private readonly cPersistentCache mPersistentCache;
                 private readonly cIMAPCallbackSynchroniser mSynchroniser;
+                private readonly bool mUTF8Enabled;
                 private readonly cMailboxCacheItem mMailboxCacheItem;
                 private readonly sUIDValidity mUIDValidity;
                 private readonly cMailboxUID mMailboxUID;
@@ -42,12 +43,13 @@ namespace work.bacome.imapclient
                 private bool mCallSetHighestModSeq;
                 private bool mIsInvalid = false;
 
-                public cSelectedMailboxCache(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, cMailboxCacheItem pMailboxCacheItem, sUIDValidity pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, ulong pHighestModSeq, cTrace.cContext pParentContext)
+                public cSelectedMailboxCache(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, bool pUTF8Enabled, cMailboxCacheItem pMailboxCacheItem, sUIDValidity pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, ulong pHighestModSeq, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cSelectedMailboxCache), pMailboxCacheItem, pUIDValidity, pMessageCount, pRecentCount, pUIDNext, pHighestModSeq);
 
                     mPersistentCache = pPersistentCache ?? throw new ArgumentNullException(nameof(pPersistentCache));
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
+                    mUTF8Enabled = pUTF8Enabled;
                     mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
                     mUIDValidity = pUIDValidity;
                     
@@ -95,6 +97,7 @@ namespace work.bacome.imapclient
 
                     mPersistentCache = pOldCache.mPersistentCache;
                     mSynchroniser = pOldCache.mSynchroniser;
+                    mUTF8Enabled = pOldCache.mUTF8Enabled;
                     mMailboxCacheItem = pOldCache.mMailboxCacheItem;
 
                     if (pUIDValidity == 0)
@@ -343,7 +346,7 @@ namespace work.bacome.imapclient
 
                     var lFetchedItem = mItems[(int)pFetch.MSN - 1];
 
-                    lFetchedItem.Update(pFetch, out var lUIDWasSet, out var lModSeqFlagPropertiesChanged, lContext);
+                    lFetchedItem.Update(pFetch, out var lUIDWasSet, out var lMessagePropertiesChanged, lContext);
 
                     bool lSetMailboxStatus = false;
 
@@ -393,7 +396,7 @@ namespace work.bacome.imapclient
 
                     if (mSelected) 
                     {
-                        if (lFetchedItem.ModSeq > mPendingHighestModSeq) mPendingHighestModSeq = lFetchedItem.ModSeq.Value;
+                        if (lFetchedItem.ModSeqFlags != null && lFetchedItem.ModSeqFlags.ModSeq > mPendingHighestModSeq) mPendingHighestModSeq = lFetchedItem.ModSeqFlags.ModSeq.Value;
                         mSynchroniser.InvokeMessagePropertiesChanged(lFetchedItem, lModSeqFlagPropertiesChanged, lContext);
                         if (lSetMailboxStatus) ZSetMailboxStatus(lContext);
                     }

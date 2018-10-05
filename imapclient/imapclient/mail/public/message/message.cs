@@ -70,12 +70,12 @@ namespace work.bacome.mailclient
         /// <remarks>
         /// Normalised message-ids have the quoting, comments and white space removed.
         /// </remarks>
-        public cStrings InReplyTo => Envelope.InReplyTo?.MessageIds;
+        public cStrings InReplyTo => Envelope.InReplyTo;
 
         /// <summary>
         /// Gets the normalised message-id of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
         /// </summary>
-        public string MessageId => Envelope.MsgId?.MessageId;
+        public string MessageId => Envelope.MessageId;
 
         public abstract uint Size { get; }
 
@@ -110,9 +110,9 @@ namespace work.bacome.mailclient
         {
             if (pPart == null) throw new ArgumentNullException(nameof(pPart));
             var lBodyStructure = BodyStructure;
-            ;?; // this ref equals is a problem
-            if (ReferenceEquals(lBodyStructure, pPart)) return;
-            if (!lBodyStructure.Contains(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            if (lBodyStructure.LikelyIs(pPart)) return;
+            if (lBodyStructure.LikelyContains(pPart)) return;
+            throw new ArgumentOutOfRangeException(nameof(pPart));
         }
 
         /// <summary>

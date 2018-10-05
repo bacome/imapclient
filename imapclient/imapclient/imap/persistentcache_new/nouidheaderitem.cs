@@ -1,12 +1,12 @@
 ﻿using System;
 using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    internal class cNoUIDHeaderItem : iHeaderItem
+    internal class cNoUIDHeaderCacheItem : iHeaderCacheItem
     {
-        private fMessageCacheAttributes mAttributes = 0;
         private cEnvelope mEnvelope = null;
         private cTimestamp mReceived = null;
         private uint? mSize = null;
@@ -14,79 +14,23 @@ namespace work.bacome.imapclient
         private cHeaderFields mHeaderFields = null;
         private cBinarySizes mBinarySizes = null;
 
-        public fMessageCacheAttributes Attributes => mAttributes;
-
-        public cEnvelope Envelope
-        {
-            get => mEnvelope;
-
-            set
-            {
-                if (value == null) throw new ArgumentNullException();
-
-                if (mEnvelope == null)
-                {
-                    mEnvelope = value;
-                    mAttributes |= fMessageCacheAttributes.envelope;
-                }
-            }
-        }
-
-        public cTimestamp Received
-        {
-            get => mReceived;
-
-            set
-            {
-                if (value == null) throw new ArgumentNullException();
-
-                if (mReceived == null)
-                {
-                    mReceived = value;
-                    mAttributes |= fMessageCacheAttributes.received;
-                }
-            }
-        }
-
+        public cEnvelope Envelope => mEnvelope;
+        public cTimestamp Received => mReceived;
         public uint? Size => mSize;
-
-        public void SetSize(uint pSize)
-        {
-            if (mSize == null)
-            {
-                mSize = pSize;
-                mAttributes |= fMessageCacheAttributes.size;
-            }
-        }
-
-        public cBodyPart BodyStructure
-        {
-            get => mBodyStructure;
-
-            set
-            {
-                if (value == null) throw new ArgumentNullException();
-
-                if (mBodyStructure == null)
-                {
-                    mBodyStructure = value;
-                    mAttributes |= fMessageCacheAttributes.bodystructure;
-                }
-            }
-        }
-
+        public cBodyPart BodyStructure => mBodyStructure;
         public cHeaderFields HeaderFields => mHeaderFields;
-
-        public void AddHeaderFields(cHeaderFields pHeaderFields)
-        {
-            mHeaderFields += pHeaderFields;
-        }
-
         public cBinarySizes BinarySizes => mBinarySizes;
 
-        public void AddBinarySizes(cBinarySizes pBinarySizes)
+        public void Update(iHeaderDataItem pHeaderDataItem, cTrace.cContext pParentContext)
         {
-            mBinarySizes += pBinarySizes;
+            var lContext = pParentContext.NewMethod(nameof(cNoUIDHeaderCacheItem), nameof(Update), pHeaderDataItem);
+
+            if (mEnvelope == null) mEnvelope = pHeaderDataItem.Envelope;
+            if (mReceived == null) mReceived = pHeaderDataItem.Received;
+            if (mSize == null) mSize = pHeaderDataItem.Size;
+            if (mBodyStructure == null) mBodyStructure = pHeaderDataItem.BodyStructure;
+            mHeaderFields += pHeaderDataItem.HeaderFields;
+            mBinarySizes += pHeaderDataItem.BinarySizes;
         }
     }
 }

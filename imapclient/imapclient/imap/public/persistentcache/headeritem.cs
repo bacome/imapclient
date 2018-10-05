@@ -1,20 +1,22 @@
 ﻿using System;
 using work.bacome.mailclient;
+using work.bacome.mailclient.support;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    public interface iHeaderItem
+    public interface iHeaderDataItem
     {
-        fMessageCacheAttributes Attributes { get; }
-        cEnvelope Envelope { get; set; }
-        cTimestamp Received { get; set; }
+        cEnvelope Envelope { get; }
+        cTimestamp Received { get; }
         uint? Size { get; }
-        void SetSize(uint pSize);
-        cBodyPart BodyStructure { get; set; }
+        cBodyPart BodyStructure { get; }
         cHeaderFields HeaderFields { get; }
-        void AddHeaderFields(cHeaderFields pHeaderFields);
         cBinarySizes BinarySizes { get; }
-        void AddBinarySizes(cBinarySizes pBinarySizes);
+    }
+
+    public interface iHeaderCacheItem : iHeaderDataItem
+    {
+        void Update(iHeaderDataItem pHeaderDataItem, cTrace.cContext pParentContext); // updates this instance from the supplied instance
     }
 }
