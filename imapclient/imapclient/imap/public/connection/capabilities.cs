@@ -88,6 +88,14 @@ namespace work.bacome.imapclient
         public readonly cStrings AuthenticationMechanisms;
 
         /// <summary>
+        /// The set of recognised capabilities advertised by the server.
+        /// </summary>
+        /// <remarks>
+        /// This value reflects the recognised elements of <see cref="Capabilities"/>.
+        /// </remarks>
+        public readonly fIMAPCapabilities ServerCapabilities;
+
+        /// <summary>
         /// The set of capabilities that are in use.
         /// </summary>
         /// <remarks>
@@ -100,38 +108,38 @@ namespace work.bacome.imapclient
             Capabilities = pCapabilities ?? throw new ArgumentNullException(nameof(pCapabilities));
             AuthenticationMechanisms = pAuthenticationMechanisms ?? throw new ArgumentNullException(nameof(pAuthenticationMechanisms));
 
-            fIMAPCapabilities lCapabilities = 0;
+            ServerCapabilities = 0;
 
-            if (pCapabilities.Contains("LoginDisabled", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.logindisabled;
-            if (pCapabilities.Contains("StartTLS", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.starttls;
-            if (pCapabilities.Contains("Idle", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.idle;
-            if (pCapabilities.Contains("Literal+", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.literalplus;
-            if (pCapabilities.Contains("Literal-", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.literalminus;
-            if (pCapabilities.Contains("Enable", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.enable;
-            if (pCapabilities.Contains("UTF8=Accept", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.utf8accept;
-            if (pCapabilities.Contains("UTF8=Only", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.utf8only;
-            if (pCapabilities.Contains("List-Extended", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.listextended;
-            if (pCapabilities.Contains("Children", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.children;
-            if (pCapabilities.Contains("SASL-IR", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.sasl_ir;
-            if (pCapabilities.Contains("Login-Referrals", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.loginreferrals;
-            if (pCapabilities.Contains("Mailbox-Referrals", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.mailboxreferrals;
-            if (pCapabilities.Contains("Id", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.id;
-            if (pCapabilities.Contains("Binary", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.binary;
-            if (pCapabilities.Contains("Namespace", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.namespaces;
-            if (pCapabilities.Contains("List-Status", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.liststatus;
-            if (pCapabilities.Contains("Special-Use", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.specialuse;
-            if (pCapabilities.Contains("ESearch", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.esearch;
-            if (pCapabilities.Contains("Sort", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.sort;
-            if (pCapabilities.Contains("Sort=Display", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.sortdisplay;
-            if (pCapabilities.Contains("ESort", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.esort;
+            if (pCapabilities.Contains("LoginDisabled", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.logindisabled;
+            if (pCapabilities.Contains("StartTLS", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.starttls;
+            if (pCapabilities.Contains("Idle", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.idle;
+            if (pCapabilities.Contains("Literal+", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.literalplus;
+            if (pCapabilities.Contains("Literal-", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.literalminus;
+            if (pCapabilities.Contains("Enable", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.enable;
+            if (pCapabilities.Contains("UTF8=Accept", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.utf8accept;
+            if (pCapabilities.Contains("UTF8=Only", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.utf8only;
+            if (pCapabilities.Contains("List-Extended", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.listextended;
+            if (pCapabilities.Contains("Children", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.children;
+            if (pCapabilities.Contains("SASL-IR", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.sasl_ir;
+            if (pCapabilities.Contains("Login-Referrals", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.loginreferrals;
+            if (pCapabilities.Contains("Mailbox-Referrals", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.mailboxreferrals;
+            if (pCapabilities.Contains("Id", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.id;
+            if (pCapabilities.Contains("Binary", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.binary;
+            if (pCapabilities.Contains("Namespace", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.namespaces;
+            if (pCapabilities.Contains("List-Status", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.liststatus;
+            if (pCapabilities.Contains("Special-Use", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.specialuse;
+            if (pCapabilities.Contains("ESearch", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.esearch;
+            if (pCapabilities.Contains("Sort", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.sort;
+            if (pCapabilities.Contains("Sort=Display", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.sortdisplay;
+            if (pCapabilities.Contains("ESort", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.esort;
             //if (pCapabilities.Contains("Thread=OrderedSubject", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.threadorderedsubject;
             //if (pCapabilities.Contains("Thread=References", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.threadreferences;
-            if (pCapabilities.Contains("CondStore", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.condstore;
-            if (pCapabilities.Contains("QResync", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.qresync;
-            if (pCapabilities.Contains("MultiAppend", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.multiappend;
-            if (pCapabilities.Contains("Catenate", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fIMAPCapabilities.catenate;
+            if (pCapabilities.Contains("CondStore", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.condstore;
+            if (pCapabilities.Contains("QResync", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.qresync;
+            if (pCapabilities.Contains("MultiAppend", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.multiappend;
+            if (pCapabilities.Contains("Catenate", StringComparer.InvariantCultureIgnoreCase)) ServerCapabilities |= fIMAPCapabilities.catenate;
 
-            EffectiveCapabilities = lCapabilities & ~pIgnoreCapabilities;
+            EffectiveCapabilities = ServerCapabilities & ~pIgnoreCapabilities;
 
             // if qresync is on then condstore must be on
             if ((EffectiveCapabilities & fIMAPCapabilities.qresync) != 0) EffectiveCapabilities |= fIMAPCapabilities.condstore;
@@ -193,6 +201,6 @@ namespace work.bacome.imapclient
         public bool Catenate => (EffectiveCapabilities & fIMAPCapabilities.catenate) != 0;
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cIMAPCapabilities)}({Capabilities},{AuthenticationMechanisms},{EffectiveCapabilities})";
+        public override string ToString() => $"{nameof(cIMAPCapabilities)}({Capabilities},{AuthenticationMechanisms},{ServerCapabilities},{EffectiveCapabilities})";
     }
 }

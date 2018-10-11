@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
         /// <para>
         /// After authentication, depending on what the <see cref="Capabilities"/> allow;
         /// <list type="bullet">
-        /// <item><see cref="fEnableableExtensions.utf8"/> and <see cref="fEnableableExtensions.qresync"/> are enabled (see <see cref="cIMAPCapabilities.UTF8Accept"/>, <see cref="cIMAPCapabilities.UTF8Only"/> and <see cref="cIMAPCapabilities.QResync"/>); this sets <see cref="EnabledExtensions"/>.</item>
+        /// <item><see cref="fEnableableExtensions.utf8"/> and <see cref="fEnableableExtensions.qresync"/> are enabled (see <see cref="cIMAPCapabilities.UTF8Accept"/>, <see cref="cIMAPCapabilities.UTF8Only"/> and <see cref="cIMAPCapabilities.QResync"/>); this sets <see cref="EnabledExtensions"/>, <see cref="UTF8Enabled"/> and <see cref="SizesAreReliable"/>.</item>
         /// <item>ID (RFC 2971) information is exchanged with the server; this sends <see cref="ClientId"/> (or <see cref="ClientIdUTF8"/>) and sets <see cref="ServerId"/>.</item>
         /// <item>Namespace (RFC 2342) information is retrieved from the server; this sets <see cref="Namespaces"/>.</item>
         /// <item>A special syntax IMAP LIST command is used to discover the hierarchy delimiter and one personal namespace may be generated using it; this sets <see cref="Namespaces"/>.</item>
@@ -256,8 +256,8 @@ namespace work.bacome.imapclient
                     {
                         cIMAPId lClientId;
 
-                        if ((lSession.EnabledExtensions & fEnableableExtensions.utf8) == 0) lClientId = mClientId;
-                        else lClientId = mClientIdUTF8 ?? mClientId;
+                        if (lSession.UTF8Enabled) lClientId = mClientIdUTF8 ?? mClientId;
+                        else lClientId = mClientId;
 
                         lIdTask = lSession.IdAsync(lMC, lClientId, lContext);
                     }

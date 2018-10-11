@@ -8,31 +8,31 @@ namespace work.bacome.mailclient
     {
         private static readonly cBytes kCRLF = new cBytes("\r\n");
 
-        private readonly List<byte> mPendingInput = new List<byte>(57);
+        private readonly List<byte> mPendingInputBytes = new List<byte>(57);
 
         public cBase64Encoder() { }
 
-        protected sealed override void YEncode(byte[] pInput, int pCount)
+        protected sealed override void YEncode(IList<byte> pInputBytes, int pOffset, int pCount)
         {
-            int lInputPosition = 0;
+            int lInputByte = 0;
 
             while (true)
             {
-                while (mPendingInput.Count < 57 && lInputPosition < pCount) mPendingInput.Add(pInput[lInputPosition++]);
+                while (mPendingInputBytes.Count < 57 && lInputByte < pCount) mPendingInputBytes.Add(pInputBytes[pOffset + lInputByte++]);
 
-                if (mPendingInput.Count < 57 && pCount != 0) return;
-                if (mPendingInput.Count == 0) return;
+                if (mPendingInputBytes.Count < 57 && pCount != 0) return;
+                if (mPendingInputBytes.Count == 0) return;
 
-                var lEncodedBytes = cBase64.Encode(mPendingInput);
+                var lEncodedBytes = cBase64.Encode(mPendingInputBytes);
 
-                mOutput.AddRange(lEncodedBytes);
-                mOutput.AddRange(kCRLF);
+                mEncodedBytes.AddRange(lEncodedBytes);
+                mEncodedBytes.AddRange(kCRLF);
 
-                mPendingInput.Clear();
+                mPendingInputBytes.Clear();
             }
         }
 
-        protected sealed override int YGetBufferedInputBytes() => mPendingInput.Count;
+        protected sealed override int YGetBufferedInputByteCount() => mPendingInputBytes.Count;
 
         public static long GetEncodedLength(long pUnencodedLength)
         {

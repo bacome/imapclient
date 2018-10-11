@@ -12,22 +12,23 @@ namespace work.bacome.imapclient
     {
         private bool mDisposed = false;
 
+        ;?; // note that we can't trust IMAP lengths if UTF8 is available but not on (see RFC 6857 section 3)
+
         public readonly cIMAPClient Client;
-        public readonly iMessageHandle MessageHandle; ?????????????; // before getting 
         public readonly cSinglePartBody Part;
         public readonly iMailboxHandle MailboxHandle;
-        public readonly cUID UID;
-        public readonly cSection Section;
         public readonly eDecodingRequired Decoding;
+
+        private readonly cSectionHandle mSectionHandle;
+        private readonly cSectionId mSectionId;
 
         private int mReadTimeout;
 
-        private bool mCommittedToNotEncodingACachedCopy = false; // I become committed if I make a statement about the length
-        private iSectionReader mSectionReader = null;
-        private cSectionCacheItemReader mCacheItemReader = null;
-        private cSectionCacheItem mSectionCacheItem = null;
-        private cSectionCacheItemReaderWriter mCacheItemReaderWriter = null;
+        private iSectionReader mMessageDataReader = null; // this will be one of the two following
+        private cSectionReader mSectionReader = null;
+        private cSectionReaderWriter mSectionReaderWriter = null;
 
+        ;?;
         // support for progress
         private long? mProgressLength = null;
         private bool mProgressLengthIsFetchSizeInBytes = false;
@@ -39,19 +40,20 @@ namespace work.bacome.imapclient
         internal cIMAPMessageDataStream(cIMAPClient pClient, iMessageHandle pMessageHandle, cSinglePartBody pPart, bool pDecoded)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
-            MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
+
+            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
             if (pMessageHandle.MessageCache.IsInvalid) throw new ArgumentOutOfRangeException(nameof(pMessageHandle));
             if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
 
             Part = pPart ?? throw new ArgumentNullException(nameof(pPart));
 
             MailboxHandle = null;
-            UID = null;
-
-            Section = pPart.Section;
 
             if (pDecoded) Decoding = pPart.DecodingRequired;
             else Decoding = eDecodingRequired.none;
+
+            mSectionHandle = new cSectionHandle(pMessageHandle, pPart.Section, pDecoded);
+            mSectionId = null;
 
             mReadTimeout = Client.Timeout;
         }
@@ -59,17 +61,19 @@ namespace work.bacome.imapclient
         internal cIMAPMessageDataStream(cIMAPClient pClient, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
-            MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
+
+            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
             if (pMessageHandle.MessageCache.IsInvalid) throw new ArgumentOutOfRangeException(nameof(pMessageHandle));
             if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
 
+            if (pSection == null) throw new ArgumentNullException(nameof(pSection));
+
             Part = null;
-
             MailboxHandle = null;
-            UID = null;
-
-            Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
             Decoding = pDecoding;
+
+            mSectionHandle = new cSectionHandle(pMessageHandle, pSection, pDecoding != eDecodingRequired.none);
+            mSectionId = null;
 
             mReadTimeout = Client.Timeout;
         }
@@ -77,13 +81,18 @@ namespace work.bacome.imapclient
         internal cIMAPMessageDataStream(cIMAPClient pClient, iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
-            MessageHandle = null;
-            Part = null;
+
             MailboxHandle = pMailboxHandle ?? throw new ArgumentNullException(nameof(pMailboxHandle));
             if (!ReferenceEquals(pClient.MailboxCache, pMailboxHandle.MailboxCache)) throw new ArgumentOutOfRangeException(nameof(pMailboxHandle));
-            UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
-            Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
+
+            if (pUID == null) throw new ArgumentNullException(nameof(pUID));
+            if (pSection == null) throw new ArgumentNullException(nameof(pSection));
+
+            Part = null;
             Decoding = pDecoding;
+
+            mSectionHandle = null;
+            mSectionId = new cSectionId(new cMessageUID(pMailboxHandle.MailboxId, pUID, Client.UTF8Enabled), pSection, pDecoding != eDecodingRequired.none);
 
             mReadTimeout = Client.Timeout;
         }
@@ -126,6 +135,43 @@ namespace work.bacome.imapclient
             var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(GetLengthAsync));
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
+
+            if (mMessageDataReader == null)
+            {
+                if (mSectionHandle != null)
+                {
+                    if (Client.PersistentCache.TryGetSectionReader(mSectionHandle, out mSectionReader, lContext)) mMessageDataReader = mSectionReader;
+                    else
+                    {
+                        ;?; // see if we can ask IMAP (check the part required and that sizes are reliable (if whole message check not reliable, if single part isn't 7bit then check not reliable))
+
+                        ;?; // then do below
+                    }
+
+                }
+                else
+                {
+                    if (Client.PersistentCache.TryGetSectionReader(mSectionId, out mSectionReader, lContext)) mMessageDataReader = mSectionReader;
+                    else
+                    {
+                        ;?; // this should be a routine 
+                        mSectionReaderWriter = Client.PersistentCache.GetSectionReaderWriter(mSectionId, lContext);
+                        mMessageDataReader = mSectionReaderWriter;
+
+                        ;?; // start the read: might be from cache or from imap
+                        ;?; // if decoded = true then try getting the encoded one from cache and start a process that decodes that
+                        ;?; // otherwise start a process that reads from the server
+                    }
+                }
+            }
+
+
+            return await mMessageDataReader.GetLengthAsync(pMC, lContext).ConfigureAwait(false);
+
+            
+
+
+
 
             if (mSectionReader == null)
             {
@@ -614,15 +660,15 @@ namespace work.bacome.imapclient
                     catch { }
                 }
 
-                if (mCacheItemReader != null)
+                if (mSectionReader != null)
                 {
-                    try { mCacheItemReader.Dispose(); }
+                    try { mSectionReader.Dispose(); }
                     catch { }
                 }
 
-                if (mCacheItemReaderWriter != null)
+                if (mSectionReaderWriter != null)
                 {
-                    try { mCacheItemReaderWriter.Dispose(); }
+                    try { mSectionReaderWriter.Dispose(); }
                     catch { }
                 }
             }

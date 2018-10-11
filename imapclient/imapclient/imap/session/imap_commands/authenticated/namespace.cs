@@ -26,7 +26,7 @@ namespace work.bacome.imapclient
 
                 if (mNamespaceDataProcessor == null)
                 {
-                    mNamespaceDataProcessor = new cNamespaceDataProcessor(mSynchroniser, (EnabledExtensions & fEnableableExtensions.utf8) != 0);
+                    mNamespaceDataProcessor = new cNamespaceDataProcessor(mSynchroniser, UTF8Enabled);
                     mPipeline.Install(mNamespaceDataProcessor);
                 }
 

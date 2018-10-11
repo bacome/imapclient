@@ -11,6 +11,7 @@ namespace work.bacome.imapclient
         private partial class cSession
         {
             public fEnableableExtensions EnabledExtensions { get; private set; } = fEnableableExtensions.none;
+            public bool UTF8Enabled { get; private set; } = false;
 
             private static readonly cCommandPart kEnableCommandPartEnable = new cTextCommandPart("ENABLE");
             private static readonly cBytes kEnableExtensionUTF8 = new cBytes("UTF8=ACCEPT");
@@ -44,11 +45,21 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         var lEnabledExtensions = lHook.EnabledExtensions;
+
                         lContext.TraceInformation("enabled extensions {0}", lEnabledExtensions);
+
                         EnabledExtensions = EnabledExtensions | lEnabledExtensions;
-                        if ((lEnabledExtensions & fEnableableExtensions.utf8) != 0) ZAddSupportedFormat(fMessageDataFormat.utf8headers, lContext);
+
+                        if ((lEnabledExtensions & fEnableableExtensions.utf8) != 0)
+                        {
+                            UTF8Enabled = true;
+                            ZAddSupportedFormat(fMessageDataFormat.utf8headers, lContext);
+                        }
+
                         lContext.TraceVerbose("current enabled extensions {0}", EnabledExtensions);
+
                         mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.EnabledExtensions), lContext);
+
                         return;
                     }
 

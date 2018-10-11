@@ -14,10 +14,10 @@ namespace work.bacome.mailclient
         private readonly eQuotedPrintableEncodingRule mRule;
 
         private bool mPendingCR = false;
-        private List<byte> mPendingBytes = new List<byte>();
-        private int mPendingInputBytes = 0;
+        private List<byte> mPendingEncodedBytes = new List<byte>();
+        private int mPendingInputByteCount = 0;
         private readonly List<byte> mPendingWSP = new List<byte>();
-        private readonly List<byte> mPendingNonWSP = new List<byte>();
+        private readonly List<byte> mPendingEncodedNonWSP = new List<byte>();
 
         public cQuotedPrintableEncoder(eQuotedPrintableEncodingType pType, eQuotedPrintableEncodingRule pRule)
         {
@@ -25,7 +25,7 @@ namespace work.bacome.mailclient
             mRule = pRule;
         }
 
-        protected sealed override void YEncode(byte[] pInput, int pCount)
+        protected sealed override void YEncode(IList<byte> pInputBytes, int pOffset, int pCount)
         {
             if (pCount == 0)
             {
@@ -35,7 +35,7 @@ namespace work.bacome.mailclient
 
             for (int i = 0; i < pCount; i++)
             {
-                var lByte = pInput[i];
+                var lByte = pInputBytes[pOffset + i];
 
                 if (mType == eQuotedPrintableEncodingType.CRLFTerminatedLines)
                 {
@@ -71,11 +71,11 @@ namespace work.bacome.mailclient
             }
         }
 
-        protected sealed override int YGetBufferedInputBytes()
+        protected sealed override int YGetBufferedInputByteCount()
         {
-            var lResult = mPendingInputBytes + mPendingWSP.Count;
+            var lResult = mPendingInputByteCount + mPendingWSP.Count;
             if (mPendingCR) lResult++;
-            if (mPendingNonWSP.Count != 0) lResult++;
+            if (mPendingEncodedNonWSP.Count != 0) lResult++;
             return lResult;
         }
 
@@ -97,9 +97,9 @@ namespace work.bacome.mailclient
             if (lNeedsQuoting) lCount = 3;
             else lCount = 1;
 
-            if (mPendingBytes.Count + mPendingWSP.Count + mPendingNonWSP.Count + lCount > 76) ZSoftLineBreak();
+            if (mPendingEncodedBytes.Count + mPendingWSP.Count + mPendingEncodedNonWSP.Count + lCount > 76) ZSoftLineBreak();
 
-            if (mPendingNonWSP.Count != 0) throw new cInternalErrorException(nameof(cQuotedPrintableEncoder), nameof(ZAdd));
+            if (mPendingEncodedNonWSP.Count != 0) throw new cInternalErrorException(nameof(cQuotedPrintableEncoder), nameof(ZAdd));
 
             if (pByte == cASCII.TAB || pByte == cASCII.SPACE)
             {
@@ -107,107 +107,107 @@ namespace work.bacome.mailclient
                 return;
             }
 
-            if (mPendingBytes.Count + mPendingWSP.Count + lCount == 76)
+            if (mPendingEncodedBytes.Count + mPendingWSP.Count + lCount == 76)
             {
                 if (lNeedsQuoting)
                 {
-                    mPendingNonWSP.Add(cASCII.EQUALS);
-                    mPendingNonWSP.AddRange(cTools.ByteToHexBytes(pByte));
+                    mPendingEncodedNonWSP.Add(cASCII.EQUALS);
+                    mPendingEncodedNonWSP.AddRange(cMailTools.ByteToHexBytes(pByte));
                 }
-                else mPendingNonWSP.Add(pByte);
+                else mPendingEncodedNonWSP.Add(pByte);
 
                 return;
             }
 
-            mPendingBytes.AddRange(mPendingWSP);
-            mPendingInputBytes += mPendingWSP.Count;
+            mPendingEncodedBytes.AddRange(mPendingWSP);
+            mPendingInputByteCount += mPendingWSP.Count;
             mPendingWSP.Clear();
 
             if (lNeedsQuoting)
             {
-                mPendingBytes.Add(cASCII.EQUALS);
-                mPendingBytes.AddRange(cTools.ByteToHexBytes(pByte));
+                mPendingEncodedBytes.Add(cASCII.EQUALS);
+                mPendingEncodedBytes.AddRange(cMailTools.ByteToHexBytes(pByte));
             }
-            else mPendingBytes.Add(pByte);
+            else mPendingEncodedBytes.Add(pByte);
 
-            mPendingInputBytes++;
+            mPendingInputByteCount++;
         }
 
         private void ZSoftLineBreak()
         {
-            if (mPendingBytes.Count + mPendingWSP.Count + 1 > 76)
+            if (mPendingEncodedBytes.Count + mPendingWSP.Count + 1 > 76)
             {
                 if (mPendingWSP.Count == 0) throw new cInternalErrorException(nameof(cQuotedPrintableEncoder), nameof(ZSoftLineBreak));
 
-                mOutput.AddRange(mPendingBytes);
-                mPendingBytes.Clear();
+                mEncodedBytes.AddRange(mPendingEncodedBytes);
+                mPendingEncodedBytes.Clear();
 
                 if (mPendingWSP.Count > 1)
                 {
                     byte lCarriedWSP = mPendingWSP[mPendingWSP.Count - 1];
 
-                    for (int i = 0; i < mPendingWSP.Count - 1; i++) mOutput.Add(mPendingWSP[i]);
+                    for (int i = 0; i < mPendingWSP.Count - 1; i++) mPendingEncodedBytes.Add(mPendingWSP[i]);
                     mPendingWSP.Clear();
 
-                    mOutput.AddRange(kEQUALSCRLF);
+                    mPendingEncodedBytes.AddRange(kEQUALSCRLF);
 
-                    if (mPendingNonWSP.Count == 0)
+                    if (mPendingEncodedNonWSP.Count == 0)
                     {
-                        mPendingInputBytes = 0;
+                        mPendingInputByteCount = 0;
                         mPendingWSP.Add(lCarriedWSP);
                         return;
                     }
 
-                    mPendingBytes.Add(lCarriedWSP);
-                    mPendingBytes.AddRange(mPendingNonWSP);
-                    mPendingNonWSP.Clear();
-                    mPendingInputBytes = 2;
+                    mPendingEncodedBytes.Add(lCarriedWSP);
+                    mPendingEncodedBytes.AddRange(mPendingEncodedNonWSP);
+                    mPendingEncodedNonWSP.Clear();
+                    mPendingInputByteCount = 2;
 
                     return;
                 }
 
-                mOutput.AddRange(kEQUALSCRLF);
+                mEncodedBytes.AddRange(kEQUALSCRLF);
 
-                if (mPendingNonWSP.Count == 0)
+                if (mPendingEncodedNonWSP.Count == 0)
                 {
-                    mPendingInputBytes = 0;
+                    mPendingInputByteCount = 0;
                     return;
                 }
 
-                mPendingBytes.AddRange(mPendingWSP);
+                mPendingEncodedBytes.AddRange(mPendingWSP);
                 mPendingWSP.Clear();
-                mPendingBytes.AddRange(mPendingNonWSP);
-                mPendingNonWSP.Clear();
-                mPendingInputBytes = 2;
+                mPendingEncodedBytes.AddRange(mPendingEncodedNonWSP);
+                mPendingEncodedNonWSP.Clear();
+                mPendingInputByteCount = 2;
 
                 return;
             }
 
-            mOutput.AddRange(mPendingBytes);
-            mPendingBytes.Clear();
-            mOutput.AddRange(mPendingWSP);
+            mEncodedBytes.AddRange(mPendingEncodedBytes);
+            mPendingEncodedBytes.Clear();
+            mEncodedBytes.AddRange(mPendingWSP);
             mPendingWSP.Clear();
-            mOutput.AddRange(kEQUALSCRLF);
+            mEncodedBytes.AddRange(kEQUALSCRLF);
 
-            if (mPendingNonWSP.Count == 0) mPendingInputBytes = 0;
+            if (mPendingEncodedNonWSP.Count == 0) mPendingInputByteCount = 0;
             else
             {
-                mPendingBytes.AddRange(mPendingNonWSP);
-                mPendingNonWSP.Clear();
-                mPendingInputBytes = 1;
+                mPendingEncodedBytes.AddRange(mPendingEncodedNonWSP);
+                mPendingEncodedNonWSP.Clear();
+                mPendingInputByteCount = 1;
             }
         }
 
         private void ZAddHardLineBreak()
         {
-            mOutput.AddRange(mPendingBytes);
-            mPendingBytes.Clear();
-            mOutput.AddRange(mPendingWSP);
+            mEncodedBytes.AddRange(mPendingEncodedBytes);
+            mPendingEncodedBytes.Clear();
+            mEncodedBytes.AddRange(mPendingWSP);
             mPendingWSP.Clear();
-            mOutput.AddRange(mPendingNonWSP);
-            mPendingNonWSP.Clear();
-            mOutput.AddRange(kCRLF);
-            mPendingInputBytes = 0;
+            mEncodedBytes.AddRange(mPendingEncodedNonWSP);
+            mPendingEncodedNonWSP.Clear();
+            mEncodedBytes.AddRange(kCRLF);
+            mPendingInputByteCount = 0;
         }
 
         private void ZFlush()
@@ -215,14 +215,14 @@ namespace work.bacome.mailclient
             // this code handles the case where the data does not finish with a line terminator
 
             if (mPendingCR) ZAdd(cASCII.CR);
-            else if (mPendingBytes.Count == 0 && mPendingWSP.Count == 0) return; // can't have pending nonwsp unless there is something else pending
+            else if (mPendingEncodedBytes.Count == 0 && mPendingWSP.Count == 0) return; // can't have pending nonwsp unless there is something else pending
 
-            mOutput.AddRange(mPendingBytes);
+            mEncodedBytes.AddRange(mPendingEncodedBytes);
 
-            if (mPendingWSP.Count == 0 || mPendingNonWSP.Count != 0)
+            if (mPendingWSP.Count == 0 || mPendingEncodedNonWSP.Count != 0)
             {
-                mOutput.AddRange(mPendingWSP);
-                mOutput.AddRange(mPendingNonWSP);
+                mEncodedBytes.AddRange(mPendingWSP);
+                mEncodedBytes.AddRange(mPendingEncodedNonWSP);
                 return;
             }
 
@@ -233,22 +233,22 @@ namespace work.bacome.mailclient
             //     BUT in soft line break form is "12345678901234567890123456789012345678901234567890123456789012345678901234 ="  , which is normally fine, but,
             //      as the last line in a quoted-printable encoding it is not fine - it is explicitly disallowed in rfc 2045 page 21 section (3)
 
-            int lWSPThatWillFit = 74 - mPendingBytes.Count;
+            int lWSPThatWillFit = 74 - mPendingEncodedBytes.Count;
 
             if (lWSPThatWillFit < mPendingWSP.Count)
             {
                 // add the white space that will fit
-                for (int i = 0; i < lWSPThatWillFit; i++) mOutput.Add(mPendingWSP[i]);
+                for (int i = 0; i < lWSPThatWillFit; i++) mEncodedBytes.Add(mPendingWSP[i]);
                 // add a soft line break
-                mOutput.AddRange(kEQUALSCRLF);
+                mEncodedBytes.AddRange(kEQUALSCRLF);
                 // add the remaining white space except for the last one
-                for (int i = lWSPThatWillFit; i < mPendingWSP.Count - 1; i++) mOutput.Add(mPendingWSP[i]);
+                for (int i = lWSPThatWillFit; i < mPendingWSP.Count - 1; i++) mEncodedBytes.Add(mPendingWSP[i]);
             }
-            else for (int i = 0; i < mPendingWSP.Count - 1; i++) mOutput.Add(mPendingWSP[i]); // add the white space except for the last one
+            else for (int i = 0; i < mPendingWSP.Count - 1; i++) mEncodedBytes.Add(mPendingWSP[i]); // add the white space except for the last one
 
             // add the last white space, encoded
-            mOutput.Add(cASCII.EQUALS);
-            mOutput.AddRange(cTools.ByteToHexBytes(mPendingWSP[mPendingWSP.Count - 1]));
+            mEncodedBytes.Add(cASCII.EQUALS);
+            mEncodedBytes.AddRange(cMailTools.ByteToHexBytes(mPendingWSP[mPendingWSP.Count - 1]));
         }
     }
 }

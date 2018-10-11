@@ -24,8 +24,8 @@ namespace work.bacome.imapclient
             get
             {
                 if (mSectionId != null) return mSectionId;
-                if (MessageHandle.messageUID == null) return null;
-                mSectionId = new cSectionId(MessageHandle.messageUID, Section, Decoded);
+                if (MessageHandle.MessageUID == null) return null;
+                mSectionId = new cSectionId(MessageHandle.MessageUID, Section, Decoded);
                 return mSectionId;
             }
         }

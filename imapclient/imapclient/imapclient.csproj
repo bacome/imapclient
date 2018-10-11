@@ -42,7 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="imap\client\fetchsectiontarget.cs" />
+    <Compile Include="imap\persistentcache_new\sectionwriter.cs" />
     <Compile Include="imap\client\getmessagehandle.cs" />
     <Compile Include="imap\client\getnotprefixedwith.cs" />
     <Compile Include="imap\client\getuids.cs" />
@@ -85,7 +85,6 @@
     <Compile Include="imap\public\message\messagedatastream.cs" />
     <Compile Include="imap\public\persistentcache\sectionitem.cs" />
     <Compile Include="imap\session\command_hooks\commandhookbasesort.cs" />
-    <Compile Include="imap\session\fetch\sectiontargetwriter.cs" />
     <Compile Include="imap\session\fetch\uidsection.cs" />
     <Compile Include="imap\session\imap_commands\selected\uidsearch.cs" />
     <Compile Include="imap\session\imap_commands\selected\uidsearchextended.cs" />
@@ -108,14 +107,14 @@
     <Compile Include="mail\internal\encoding\quotedprintabledecoder.cs" />
     <Compile Include="mail\internal\encoding\quotedprintableencoder.cs" />
     <Compile Include="mail\internal\encoding\tests.cs" />
+    <Compile Include="mail\internal\encoding\transformer.cs" />
     <Compile Include="mail\internal\message\message.cs" />
     <Compile Include="mail\internal\other\incrementer.cs" />
     <Compile Include="mail\internal\other\parsing.cs" />
     <Compile Include="mail\public\configuration\setmaximumconfiguration.cs" />
     <Compile Include="mail\public\message\datetime.cs" />
     <Compile Include="mail\public\other\encoding.cs" />
-    <Compile Include="mail\support\decodingstream.cs" />
-    <Compile Include="mail\support\encodingstream.cs" />
+    <Compile Include="mail\support\transformingstream.cs" />
     <Compile Include="mail\public\message\attachment.cs" />
     <Compile Include="mail\public\message\message.cs" />
     <Compile Include="mail\public\other\convertmailmessagedisposables.cs" />

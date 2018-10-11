@@ -17,11 +17,11 @@ namespace work.bacome.mailclient
 
             // strip trailing space
 
-            int lEOL = mPendingInput.Count;
+            int lEOL = mBufferedInputBytes.Count;
 
             while (lEOL != 0)
             {
-                lByte = mPendingInput[lEOL - 1];
+                lByte = mBufferedInputBytes[lEOL - 1];
                 if (lByte != cASCII.SPACE && lByte != cASCII.TAB) break;
                 lEOL--;
             }
@@ -30,7 +30,7 @@ namespace work.bacome.mailclient
 
             bool lSoftLineBreak;
 
-            if (lEOL != 0 && mPendingInput[lEOL - 1] == cASCII.EQUALS)
+            if (lEOL != 0 && mBufferedInputBytes[lEOL - 1] == cASCII.EQUALS)
             {
                 lSoftLineBreak = true;
                 lEOL--;
@@ -43,7 +43,7 @@ namespace work.bacome.mailclient
 
             while (lInputPosition < lEOL)
             {
-                lByte = mPendingInput[lInputPosition++];
+                lByte = mBufferedInputBytes[lInputPosition++];
 
                 if (lByte == cASCII.EQUALS)
                 {
@@ -54,16 +54,16 @@ namespace work.bacome.mailclient
                     }
                 }
 
-                mOutput.Add(lByte);
+                mDecodedBytes.Add(lByte);
             }
 
             // potentially add a line break 
-            if (pCRLF && !lSoftLineBreak) mOutput.AddRange(kNewLine);
+            if (pCRLF && !lSoftLineBreak) mDecodedBytes.AddRange(kNewLine);
         }
 
         private bool ZGetHexEncodedNibble(int pInputPosition, out int rNibble)
         {
-            int lByte = mPendingInput[pInputPosition];
+            int lByte = mBufferedInputBytes[pInputPosition];
 
             if (lByte < cASCII.ZERO) { rNibble = 0; return false; }
             if (lByte <= cASCII.NINE) { rNibble = lByte - cASCII.ZERO; return true; }

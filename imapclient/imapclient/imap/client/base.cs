@@ -528,6 +528,16 @@ namespace work.bacome.imapclient
         /// </remarks>
         public fEnableableExtensions EnabledExtensions => mSession?.EnabledExtensions ?? fEnableableExtensions.none;
 
+        public bool UTF8Enabled
+        {
+            get
+            {
+                var lSession = mSession;
+                if (lSession == null) return false;
+                return lSession.UTF8Enabled;
+            }
+        }
+
         /// <summary>
         /// Gets the login referral (RFC 2221), if received. May be <see langword="null"/>.
         /// </summary>
@@ -537,15 +547,29 @@ namespace work.bacome.imapclient
         public cURL HomeServerReferral => mSession?.HomeServerReferral;
 
         /// <summary>
+        /// Gets whether the sizes reported by IMAP are reliable.
+        /// </summary>
+        /// <remarks>
+        /// The sizes may not be reliable if the server supports UTF8 and it is not enabled (see RFC 6858 section 3).
+        /// Set during <see cref="Connect"/>.
+        /// </remarks>
+        public bool SizesAreReliable
+        {
+            get
+            {
+                var lSession = mSession;
+                if (lSession == null) return true;
+                return lSession.SizesAreReliable;
+            }
+        }
+
+        /// <summary>
         /// Gets the ID (RFC 2971) details of the connected (or last connected) server, if they were sent. May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
         /// Set during <see cref="Connect"/>.
         /// </remarks>
         public cIMAPId ServerId => mSession?.ServerId;
-
-
-
 
         /// <summary>
         /// Gets an object that represents the currently selected mailbox, or <see langword="null"/> if there is no mailbox currently selected.

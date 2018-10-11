@@ -3,46 +3,50 @@ using System.Collections.Generic;
 
 namespace work.bacome.mailclient
 {
-    internal abstract class cEncoder
+    internal abstract class cEncoder : iTransformer
     {
         private bool mComplete = false;
-        protected readonly List<byte> mOutput = new List<byte>();
+        protected readonly List<byte> mEncodedBytes = new List<byte>();
 
         public cEncoder() { }
 
-        public byte[] Encode(byte[] pInput, int pCount)
+        public byte[] Transform(IList<byte> pInputBytes, int pOffset, int pCount)
         {
-            ZEncode(pInput, pCount);
-            if (mOutput.Count == 0) return cMailClient.ZeroLengthBuffer;
-            var lOutput = mOutput.ToArray();
-            mOutput.Clear();
+            ZEncode(pInputBytes, pOffset, pCount);
+            if (mEncodedBytes.Count == 0) return cMailClient.ZeroLengthBuffer;
+            var lOutput = mEncodedBytes.ToArray();
+            mEncodedBytes.Clear();
             return lOutput;
         }
 
-        public long GetEncodedLength(byte[] pInput, int pCount)
+        public int GetTransformedLength(IList<byte> pInputBytes, int pOffset, int pCount)
         {
-            ZEncode(pInput, pCount);
-            var lCount = mOutput.Count;
-            mOutput.Clear();
+            ZEncode(pInputBytes, pOffset, pCount);
+            var lCount = mEncodedBytes.Count;
+            mEncodedBytes.Clear();
             return lCount;
         }
 
-        public int GetBufferedInputBytes()
+        public int BufferedInputByteCount
         {
-            if (mComplete) return 0;
-            return YGetBufferedInputBytes();
+            get
+            {
+                if (mComplete) return 0;
+                return YGetBufferedInputByteCount();
+            }
         }
 
-        private void ZEncode(byte[] pInput, int pCount)
+        private void ZEncode(IList<byte> pInputBytes, int pOffset, int pCount)
         {
-            if (pInput == null) throw new ArgumentNullException(nameof(pInput));
-            if (pCount < 0 || pCount > pInput.Length) throw new ArgumentOutOfRangeException(nameof(pCount));
+            if (pInputBytes == null) throw new ArgumentNullException(nameof(pInputBytes));
+            if (pOffset < 0 || pOffset > pInputBytes.Count) throw new ArgumentOutOfRangeException(nameof(pOffset));
+            if (pCount < 0 || pOffset + pCount > pInputBytes.Count) throw new ArgumentOutOfRangeException(nameof(pCount));
             if (mComplete) throw new InvalidOperationException();
             if (pCount == 0) mComplete = true;
-            YEncode(pInput, pCount);
+            YEncode(pInputBytes, pOffset, pCount);
         }
 
-        protected abstract void YEncode(byte[] pInput, int pCount);
-        protected abstract int YGetBufferedInputBytes();
+        protected abstract void YEncode(IList<byte> pInputBytes, int pOffset, int pCount);
+        protected abstract int YGetBufferedInputByteCount();
     }
 }

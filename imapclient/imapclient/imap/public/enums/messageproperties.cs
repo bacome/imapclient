@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
     {
         /**<summary><see cref="cIMAPMessage.MessageUID"/></summary>*/
         messageuid = 1 << 0,
-        /**<summary><see cref="cIMAPMessage.MessageUID"/></summary>*/
+        /**<summary><see cref="cIMAPMessage.UID"/></summary>*/
         uid = 1 << 1,
 
         /**<summary><see cref="cIMAPMessage.ModSeqFlags"/></summary>*/
@@ -86,7 +86,5 @@ namespace work.bacome.imapclient
         // adding << 32 will require conversion to a long AND use of 1L in the shift
         //    public enum fMessageProperties : long
         //         importance = 1L << 31
-
-
     }
 }

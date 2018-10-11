@@ -202,37 +202,37 @@ namespace work.bacome.imapclient
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(TryGetSectionReader), pSectionId);
             if (pSectionId == null) throw new ArgumentNullException(nameof(pSectionId));
             if (!YTryGetReadStream(pSectionId, out var lStream, lContext)) { rSectionReader = null; return false; }
-            if (lStream == null) throw new cUnexpectedPersistentCacheActionException(lContext);
             return ZTryGetSectionReader(lStream, out rSectionReader, lContext);
         }
-
-        protected abstract bool YTryGetReadStream(cSectionId pSectionId, out Stream rStream, cTrace.cContext pParentContext);
 
         internal bool TryGetSectionReader(cSectionHandle pSectionHandle, out cSectionReader rSectionReader, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(TryGetSectionReader), pSectionHandle);
 
+            // if the handle has a uid, try getting the uid one, then try getting the handle one, then the uid one
+            //  because
+            //   1) if there are two copies (one uid, one handle) then we prefer the uid one (this is the purpose of the first look for uid)
+            //   2) if there is one copy it could be in the process of being moved (which means we have to check for it by uid the second time)
+
             if (pSectionHandle == null) throw new ArgumentNullException(nameof(pSectionHandle));
 
             Stream lStream;
 
-            if (!mSectionHandleToCacheItem.TryGetValue(pSectionHandle, out var lSectionCacheItem) || !lSectionCacheItem.TryGetReadStream(out lStream, lContext))
-            { 
-                if (pSectionHandle.SectionId == null || !YTryGetReadStream(pSectionHandle.SectionId, out lStream, lContext))
-                {
-                    rSectionReader = null;
-                    return false;
-                }
-            }
+            if (pSectionHandle.SectionId != null && YTryGetReadStream(pSectionHandle.SectionId, out lStream, lContext)) return ZTryGetSectionReader(lStream, out rSectionReader, lContext);
+            if (mSectionHandleToCacheItem.TryGetValue(pSectionHandle, out var lSectionCacheItem) && lSectionCacheItem.TryGetReadStream(out lStream, lContext)) return ZTryGetSectionReader(lStream, out rSectionReader, lContext);
+            if (pSectionHandle.SectionId != null && YTryGetReadStream(pSectionHandle.SectionId, out lStream, lContext)) return ZTryGetSectionReader(lStream, out rSectionReader, lContext);
 
-            if (lStream == null) throw new cUnexpectedPersistentCacheActionException(lContext);
-
-            return ZTryGetSectionReader(lStream, out rSectionReader, lContext);
+            rSectionReader = null;
+            return false;
         }
+
+        protected abstract bool YTryGetReadStream(cSectionId pSectionId, out Stream rStream, cTrace.cContext pParentContext);
 
         private bool ZTryGetSectionReader(Stream pStream, out cSectionReader rSectionReader, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(ZTryGetSectionReader));
+
+            if (pStream == null) throw new cUnexpectedPersistentCacheActionException(lContext);
 
             try
             {
@@ -301,9 +301,17 @@ namespace work.bacome.imapclient
 
             if (mSectionHandleToCacheItem.TryGetValue(pSectionHandle, out var lSectionCacheItem))
             {
-                if (!lSectionCacheItem.CanGetReadStream(lContext) && mSectionHandleToCacheItem.TryUpdate(pSectionHandle, pSectionCacheItem, lSectionCacheItem)) pSectionCacheItem.SetAdded(lContext);
+                if (lSectionCacheItem.CanGetReadStream(lContext)) return; // we have a copy of this data already
+                if (!mSectionHandleToCacheItem.TryUpdate(pSectionHandle, pSectionCacheItem, lSectionCacheItem)) return; // someone else replaced it before we got a chance to
             }
-            else if (mSectionHandleToCacheItem.TryAdd(pSectionHandle, pSectionCacheItem)) pSectionCacheItem.SetAdded(lContext);
+            else
+            {
+                if (!mSectionHandleToCacheItem.TryAdd(pSectionHandle, pSectionCacheItem)) return; // someone else added it before we got a chance to
+            }
+
+            pSectionCacheItem.SetAdded(lContext); // let the cache know that the item has been added - the idea is that if it hasn't been added and it gets closed, then it can be deleted immediately
+
+            // now see if anything important happened while the above was going on that we missed
 
             if (pSectionHandle.SectionId != null) MessageHandleUIDSet(pSectionHandle.MessageHandle, lContext);
             if (pSectionHandle.MessageHandle.Expunged) MessageExpunged(pSectionHandle.MessageHandle, lContext);

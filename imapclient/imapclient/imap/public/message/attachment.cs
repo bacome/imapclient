@@ -42,6 +42,7 @@ namespace work.bacome.imapclient
         {
             get
             {
+                ;?; // check if the cache has it
                 var lContext = Client.RootContext.NewGetProp(nameof(cIMAPAttachment), nameof(FetchSizeInBytes));
                 var lTask = Client.GetFetchSizeInBytesAsync(MessageHandle, Part, lContext);
                 Client.Wait(lTask, lContext);
@@ -55,6 +56,7 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="FetchSizeInBytes" select="returns|remarks"/>
         public Task<uint> GetFetchSizeInBytesAsync()
         {
+            ;?; // check if the cache has it
             var lContext = Client.RootContext.NewMethod(nameof(cIMAPAttachment), nameof(GetFetchSizeInBytesAsync));
             return Client.GetFetchSizeInBytesAsync(MessageHandle, Part, lContext);
         }
@@ -71,6 +73,7 @@ namespace work.bacome.imapclient
         {
             get
             {
+                ;?; // check if the cache has it
                 var lContext = Client.RootContext.NewGetProp(nameof(cIMAPAttachment), nameof(DecodedSizeInBytes));
                 var lTask = Client.GetDecodedSizeInBytesAsync(MessageHandle, Part, lContext);
                 Client.Wait(lTask, lContext);
@@ -84,6 +87,7 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="DecodedSizeInBytes" select="returns|remarks"/>
         public Task<uint?> GetDecodedSizeInBytesAsync()
         {
+            ;?; // check if the cache has it
             var lContext = Client.RootContext.NewMethod(nameof(cIMAPAttachment), nameof(GetDecodedSizeInBytesAsync));
             return Client.GetDecodedSizeInBytesAsync(MessageHandle, Part, lContext);
         }

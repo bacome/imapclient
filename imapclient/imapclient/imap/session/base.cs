@@ -37,6 +37,7 @@ namespace work.bacome.imapclient
             private cURL _HomeServerReferral = null;
             private cAccountId _ConnectedAccountId = null;
             private fMessageDataFormat _SupportedFormats = fMessageDataFormat.eightbit;
+            private bool _SizesAreReliable = true;
 
             // set once enabled
             private fMailboxCacheDataItems mStatusAttributes = 0;
@@ -95,9 +96,9 @@ namespace work.bacome.imapclient
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eIMAPConnectionState.authenticated) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotAuthenticated);
 
-                bool lUTF8Enabled = (EnabledExtensions & fEnableableExtensions.utf8) != 0;
+                _SizesAreReliable = ((_Capabilities.ServerCapabilities & (fIMAPCapabilities.utf8accept | fIMAPCapabilities.utf8only)) == 0) || UTF8Enabled;
 
-                if (lUTF8Enabled)
+                if (UTF8Enabled)
                 {
                     mCommandPartFactory = new cCommandPartFactory(true, null);
                     mEncodingPartFactory = mCommandPartFactory;
@@ -110,9 +111,9 @@ namespace work.bacome.imapclient
 
                 mPipeline.Install(new cResponseTextCodeParserSelect(_Capabilities));
                 mPipeline.Install(new cResponseDataParserSelect());
-                mPipeline.Install(new cResponseDataParserFetch(lUTF8Enabled));
-                mPipeline.Install(new cResponseDataParserList(lUTF8Enabled));
-                mPipeline.Install(new cResponseDataParserLSub(lUTF8Enabled));
+                mPipeline.Install(new cResponseDataParserFetch(UTF8Enabled));
+                mPipeline.Install(new cResponseDataParserList(UTF8Enabled));
+                mPipeline.Install(new cResponseDataParserLSub(UTF8Enabled));
                 if (_Capabilities.ESearch || _Capabilities.ESort) mPipeline.Install(new cResponseDataParserESearch());
                 if ((EnabledExtensions & fEnableableExtensions.qresync) != 0) mPipeline.Install(new cResponseDataParserVanished());
 
@@ -141,7 +142,7 @@ namespace work.bacome.imapclient
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetEncoding), pEncoding);
                 mEncoding = pEncoding ?? throw new ArgumentNullException(nameof(pEncoding));
-                if ((EnabledExtensions & fEnableableExtensions.utf8) != 0) mEncodingPartFactory = mCommandPartFactory;
+                if (UTF8Enabled) mEncodingPartFactory = mCommandPartFactory;
                 else mEncodingPartFactory = new cCommandPartFactory(false, pEncoding);
             }
 
@@ -222,6 +223,8 @@ namespace work.bacome.imapclient
 
                 return false;
             }
+
+            public bool SizesAreReliable => _SizesAreReliable;
 
             public cAccountId ConnectedAccountId => _ConnectedAccountId;
 
