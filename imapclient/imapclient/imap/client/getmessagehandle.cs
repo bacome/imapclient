@@ -8,6 +8,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
+        /* currently not used TODO: delete
         internal async Task<iMessageHandle> GetMessageHandleAsync(iMailboxHandle pMailboxHandle, cUID pUID, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetMessageHandleAsync), pMailboxHandle, pUID);
@@ -31,6 +32,6 @@ namespace work.bacome.imapclient
             if (lMessageHandles.Count == 0) return null;
             if (lMessageHandles.Count == 1) return lMessageHandles[0];
             throw new cInternalErrorException(lContext);
-        }
+        } */
     }
 }

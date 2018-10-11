@@ -436,53 +436,6 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the fetch size of the specified <see cref="cSinglePartBody"/>.
-        /// </summary>
-        /// <param name="pPart"></param>
-        /// <returns></returns>
-        /// <remarks>
-        /// Will throw if <paramref name="pPart"/> is not in <see cref="BodyStructure"/>.
-        /// The result may be smaller than <see cref="cSinglePartBody.SizeInBytes"/> if <see cref="cSinglePartBody.DecodingRequired"/> isn't <see cref="eDecodingRequired.none"/> and <see cref="cIMAPCapabilities.Binary"/> is in use.
-        /// The size may have to be fetched from the server, but once fetched it will be cached.
-        /// </remarks>
-        public uint GetFetchSizeInBytes(cSinglePartBody pPart)
-        {
-            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessage), nameof(GetFetchSizeInBytes), pPart);
-            CheckPart(pPart);
-            var lTask = Client.GetFetchSizeInBytesAsync(MessageHandle, pPart, lContext);
-            Client.Wait(lTask, lContext);
-            return lTask.Result;
-        }
-
-        /// <summary>
-        /// Asynchronously gets the fetch size of the specified <see cref="cSinglePartBody"/>.
-        /// </summary>
-        /// <param name="pPart"></param>
-        /// <inheritdoc cref="Fetch(cMessageCacheItems)" select="returns|remarks"/>
-        public Task<uint> GetFetchSizeInBytesAsync(cSinglePartBody pPart)
-        {
-            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessage), nameof(GetFetchSizeInBytesAsync), pPart);
-            CheckPart(pPart);
-            return Client.GetFetchSizeInBytesAsync(MessageHandle, pPart, lContext);
-        }
-
-        public uint? GetDecodedSizeInBytes(cSinglePartBody pPart)
-        {
-            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessage), nameof(GetDecodedSizeInBytes), pPart);
-            CheckPart(pPart);
-            var lTask = Client.GetDecodedSizeInBytesAsync(MessageHandle, pPart, lContext);
-            Client.Wait(lTask, lContext);
-            return lTask.Result;
-        }
-
-        public Task<uint?> GetDecodedSizeInBytesAsync(cSinglePartBody pPart)
-        {
-            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessage), nameof(GetDecodedSizeInBytesAsync), pPart);
-            CheckPart(pPart);
-            return Client.GetDecodedSizeInBytesAsync(MessageHandle, pPart, lContext);
-        }
-
-        /// <summary>
         /// Returns a message sequence number offset for use in message filtering. See <see cref="cFilter.MSN"/>.
         /// </summary>
         /// <param name="pOffset"></param>
@@ -523,7 +476,7 @@ namespace work.bacome.imapclient
 
         public override string Fetch(cSection pSection)
         {
-            using (var lDataStream = new cIMAPMessageDataStream(Client, MessageHandle, pSection, eDecodingRequired.none))
+            using (var lDataStream = new cIMAPMessageDataStream(Client, MessageHandle, pSection))
             using (var lMemoryStream = new MemoryStream())
             {
                 lDataStream.CopyTo(lMemoryStream);
@@ -533,7 +486,7 @@ namespace work.bacome.imapclient
 
         public override async Task<string> FetchAsync(cSection pSection)
         {
-            using (var lDataStream = new cIMAPMessageDataStream(Client, MessageHandle, pSection, eDecodingRequired.none))
+            using (var lDataStream = new cIMAPMessageDataStream(Client, MessageHandle, pSection))
             using (var lMemoryStream = new MemoryStream())
             {
                 await lDataStream.CopyToAsync(lMemoryStream).ConfigureAwait(false);
@@ -541,7 +494,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        public override Stream GetMessageDataStream() => new cIMAPMessageDataStream(Client, MessageHandle, cSection.All, eDecodingRequired.none);
+        public override Stream GetMessageDataStream() => new cIMAPMessageDataStream(Client, MessageHandle, cSection.All);
 
         public override Stream GetMessageDataStream(cSinglePartBody pPart, bool pDecoded = true)
         {
@@ -549,9 +502,9 @@ namespace work.bacome.imapclient
             return new cIMAPMessageDataStream(Client, MessageHandle, pPart, pDecoded);
         }
 
-        public override Stream GetMessageDataStream(cSection pSection, eDecodingRequired pDecoding = eDecodingRequired.none) => new cIMAPMessageDataStream(Client, MessageHandle, pSection, pDecoding);
+        public override Stream GetMessageDataStream(cSection pSection) => new cIMAPMessageDataStream(Client, MessageHandle, pSection);
 
-        public cIMAPMessageDataStream GetIMAPMessageDataStream() => new cIMAPMessageDataStream(Client, MessageHandle, cSection.All, eDecodingRequired.none);
+        public cIMAPMessageDataStream GetIMAPMessageDataStream() => new cIMAPMessageDataStream(Client, MessageHandle, cSection.All);
 
         public cIMAPMessageDataStream GetIMAPMessageDataStream(cSinglePartBody pPart, bool pDecoded = true)
         {
@@ -559,7 +512,7 @@ namespace work.bacome.imapclient
             return new cIMAPMessageDataStream(Client, MessageHandle, pPart, pDecoded);
         }
 
-        public cIMAPMessageDataStream GetIMAPMessageDataStream(cSection pSection, eDecodingRequired pDecoding = eDecodingRequired.none) => new cIMAPMessageDataStream(Client, MessageHandle, pSection, pDecoding);
+        public cIMAPMessageDataStream GetIMAPMessageDataStream(cSection pSection) => new cIMAPMessageDataStream(Client, MessageHandle, pSection);
 
         /// <summary>
         /// Stores flags for the message. 

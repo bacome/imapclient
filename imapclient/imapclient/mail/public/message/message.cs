@@ -203,12 +203,7 @@ namespace work.bacome.mailclient
         /// Returns a stream containing the data of the specified <see cref="cSection"/>.
         /// </summary>
         /// <param name="pSection"></param>
-        /// <param name="pDecoding">The decoding that should be applied.</param>
-        /// <remarks>
-        /// If <see cref="cIMAPCapabilities.Binary"/> is in use and the entire body-part (<see cref="cSection.TextPart"/> is <see cref="eSectionTextPart.all"/>) is being fetched then
-        /// unless <paramref name="pDecoding"/> is <see cref="eDecodingRequired.none"/> the server will do the decoding that it determines is required (i.e. the decoding specified is ignored).
-        /// </remarks>
-        public abstract Stream GetMessageDataStream(cSection pSection, eDecodingRequired pDecoding = eDecodingRequired.none);
+        public abstract Stream GetMessageDataStream(cSection pSection);
 
         protected List<cSinglePartBody> YGetAttachmentParts(cBodyPart pPart)
         {

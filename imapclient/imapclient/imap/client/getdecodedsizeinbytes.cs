@@ -8,9 +8,9 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal async Task<uint?> GetDecodedSizeInBytesAsync(iMessageHandle pMessageHandle, cSinglePartBody pPart, cTrace.cContext pParentContext)
+        internal async Task<uint?> GetDecodedSizeInBytesAsync(cMethodControl pMC, iMessageHandle pMessageHandle, cSinglePartBody pPart, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetDecodedSizeInBytesAsync), pMessageHandle, pPart);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetDecodedSizeInBytesAsync), pMC, pMessageHandle, pPart);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -24,23 +24,31 @@ namespace work.bacome.imapclient
             if (!lSession.Capabilities.Binary) return null;
             if (pPart.Section.TextPart != eSectionTextPart.all) return null;
 
-            uint lSizeInBytes;
+            if (pMessageHandle.BinarySizes.TryGetValue(pPart.Section.Part, out var lSizeInBytes)) return lSizeInBytes;
 
-            if (pMessageHandle.BinarySizes.TryGetValue(pPart.Section.Part, out lSizeInBytes)) return lSizeInBytes;
-
-            using (var lToken = CancellationManager.GetToken(lContext))
+            if (pMC == null)
             {
-                var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
-
-                if (pMessageHandle.UID == null) await lSession.FetchBinarySizeAsync(lMC, pMessageHandle, pPart.Section.Part, false, lContext).ConfigureAwait(false);
-                else
+                using (var lToken = CancellationManager.GetToken(lContext))
                 {
-                    if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
-                    await lSession.UIDFetchBinarySizeAsync(lMC, pMessageHandle.MessageCache.MailboxHandle, pMessageHandle.UID, pPart.Section.Part, false, lContext).ConfigureAwait(false);
+                    var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
+                    return await ZGetDecodedSizeInBytesAsync(lMC, lSession, pMessageHandle, pPart, lContext).ConfigureAwait(false);
                 }
             }
+            else return await ZGetDecodedSizeInBytesAsync(pMC, lSession, pMessageHandle, pPart, lContext).ConfigureAwait(false);
+        }
 
-            if (pMessageHandle.BinarySizes.TryGetValue(pPart.Section.Part, out lSizeInBytes)) return lSizeInBytes;
+        private async Task<uint?> ZGetDecodedSizeInBytesAsync(cMethodControl pMC, cSession pSession, iMessageHandle pMessageHandle, cSinglePartBody pPart, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZGetDecodedSizeInBytesAsync), pMC, pMessageHandle, pPart);
+
+            if (pMessageHandle.MessageUID == null) await pSession.FetchBinarySizeAsync(pMC, pMessageHandle, pPart.Section.Part, false, lContext).ConfigureAwait(false);
+            else
+            {
+                if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
+                await pSession.UIDFetchBinarySizeAsync(pMC, pMessageHandle.MessageCache.MailboxHandle, pMessageHandle.MessageUID.UID, pPart.Section.Part, false, lContext).ConfigureAwait(false);
+            }
+
+            if (pMessageHandle.BinarySizes.TryGetValue(pPart.Section.Part, out var lSizeInBytes)) return lSizeInBytes;
 
             if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
 

@@ -73,11 +73,7 @@ namespace work.bacome.mailclient
                     return await YConvertMailMessagesAsync(lMC, pDisposables, pMessages, pOptions, null, null, mLocalStreamReadConfiguration , mLocalStreamWriteConfiguration, lContext).ConfigureAwait(false);
                 }
             }
-            else
-            {
-                var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                return await YConvertMailMessagesAsync(lMC, pDisposables, pMessages, pOptions, pConfiguration.SetMaximum, pConfiguration.Increment, pConfiguration.ReadConfiguration ?? mLocalStreamReadConfiguration, pConfiguration.WriteConfiguration ?? mLocalStreamWriteConfiguration, lContext).ConfigureAwait(false);
-            }
+            else return await YConvertMailMessagesAsync(lMC, pDisposables, pMessages, pOptions, pConfiguration.SetMaximum, pConfiguration.Increment, pConfiguration.ReadConfiguration ?? mLocalStreamReadConfiguration, pConfiguration.WriteConfiguration ?? mLocalStreamWriteConfiguration, lContext).ConfigureAwait(false);
         }
 
         internal async Task<List<cMessageData>> YConvertMailMessagesAsync(cMethodControl pMC, cConvertMailMessageDisposables pDisposables, cMailMessageList pMessages, fConvertMailMessageOptions pOptions, Action<long> pSetMaximum, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cBatchSizerConfiguration pWriteConfiguration, cTrace.cContext pParentContext)

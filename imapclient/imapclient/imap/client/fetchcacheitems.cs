@@ -80,11 +80,7 @@ namespace work.bacome.imapclient
                     await lSession.FetchCacheItemsAsync(lMC, pMessageHandles, pItems, null, lContext).ConfigureAwait(false);
                 }
             }
-            else
-            {
-                var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                await lSession.FetchCacheItemsAsync(lMC, pMessageHandles, pItems, pConfiguration.Increment, lContext).ConfigureAwait(false);
-            }
+            else await lSession.FetchCacheItemsAsync(pConfiguration.MC, pMessageHandles, pItems, pConfiguration.Increment, lContext).ConfigureAwait(false);
         }
     }
 }

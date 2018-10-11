@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Threading;
+using work.bacome.mailclient;
 
 namespace work.bacome.imapclient
 {
     public class cAppendMailMessageConfiguration
     {
-        public readonly int Timeout;
-        public readonly CancellationToken CancellationToken;
+        internal readonly cMethodControl MC;
         public readonly Action<long> AppendSetMaximum;
         public readonly Action<int> AppendIncrement;
         public readonly Action<long> ConvertSetMaximum;
@@ -14,9 +14,7 @@ namespace work.bacome.imapclient
 
         public cAppendMailMessageConfiguration(int pTimeout)
         {
-            if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
-            Timeout = pTimeout;
-            CancellationToken = CancellationToken.None;
+            MC = new cMethodControl(pTimeout);
             AppendSetMaximum = null;
             AppendIncrement = null;
             ConvertSetMaximum = null;
@@ -25,8 +23,7 @@ namespace work.bacome.imapclient
 
         public cAppendMailMessageConfiguration(CancellationToken pCancellationToken, Action<long> pAppendSetMaximum = null, Action<int> pAppendIncrement = null, Action<long> pConvertSetMaximum = null, Action<int> pConvertIncrement = null)
         {
-            Timeout = -1;
-            CancellationToken = pCancellationToken;
+            MC = new cMethodControl(pCancellationToken);
             AppendSetMaximum = pAppendSetMaximum;
             AppendIncrement = pAppendIncrement;
             ConvertSetMaximum = pConvertSetMaximum;
@@ -35,16 +32,20 @@ namespace work.bacome.imapclient
 
         public cAppendMailMessageConfiguration(int pTimeout, CancellationToken pCancellationToken, Action<long> pAppendSetMaximum = null, Action<int> pAppendIncrement = null, Action<long> pConvertSetMaximum = null, Action<int> pConvertIncrement = null)
         {
-            if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
-            Timeout = pTimeout;
-            CancellationToken = pCancellationToken;
+            MC = new cMethodControl(pTimeout, pCancellationToken);
             AppendSetMaximum = pAppendSetMaximum;
             AppendIncrement = pAppendIncrement;
             ConvertSetMaximum = pConvertSetMaximum;
             ConvertIncrement = pConvertIncrement;
         }
 
-        public override string ToString() => $"{nameof(cAppendMailMessageConfiguration)}({Timeout},{CancellationToken.IsCancellationRequested}/{CancellationToken.CanBeCanceled},{AppendSetMaximum != null},{AppendIncrement != null},{ConvertSetMaximum != null},{ConvertIncrement != null})";
+        /**<summary>The timeout for the operation. May be <see cref="Timeout.Infinite"/>.</summary>*/
+        public int Timeout => MC.Timeout;
+
+        /**<summary>The cancellation token for the operation. May be <see cref="CancellationToken.None"/>.</summary>*/
+        public CancellationToken CancellationToken => MC.CancellationToken;
+
+        public override string ToString() => $"{nameof(cAppendMailMessageConfiguration)}({MC},{AppendSetMaximum != null},{AppendIncrement != null},{ConvertSetMaximum != null},{ConvertIncrement != null})";
 
         public static implicit operator cAppendMailMessageConfiguration(int pTimeout) => new cAppendMailMessageConfiguration(pTimeout);
         public static implicit operator cAppendMailMessageConfiguration(CancellationToken pCancellationToken) => new cAppendMailMessageConfiguration(pCancellationToken);

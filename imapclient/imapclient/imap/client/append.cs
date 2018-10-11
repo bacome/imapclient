@@ -129,11 +129,7 @@ namespace work.bacome.imapclient
                     return await lSession.AppendAsync(lMC, pMailboxHandle, pData, null, null, lContext).ConfigureAwait(false);
                 }
             }
-            else
-            {
-                var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                return await lSession.AppendAsync(lMC, pMailboxHandle, pData, pConfiguration.SetMaximum, pConfiguration.Increment, lContext).ConfigureAwait(false);
-            }
+            else return await lSession.AppendAsync(lMC, pMailboxHandle, pData, pConfiguration.SetMaximum, pConfiguration.Increment, lContext).ConfigureAwait(false);
         }
 
         internal cAppendFeedback Append(iMailboxHandle pMailboxHandle, cMailMessageList pMessages, cStorableFlags pFlags, DateTime? pReceived, cAppendMailMessageConfiguration pConfiguration)
@@ -180,11 +176,7 @@ namespace work.bacome.imapclient
                     return await ZZAppendAsync(lMC, pMailboxHandle, pMessages, null, null, LocalStreamReadConfiguration, LocalStreamWriteConfiguration, pFlags, pReceived, null, null, lContext).ConfigureAwait(false);
                 }
             }
-            else
-            {
-                var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                return await ZZAppendAsync(lMC, pMailboxHandle, pMessages, pConfiguration.ConvertSetMaximum, pConfiguration.ConvertIncrement, pConfiguration.ReadConfiguration ?? LocalStreamReadConfiguration, pConfiguration.WriteConfiguration ?? LocalStreamWriteConfiguration, pFlags, pReceived, pConfiguration.AppendSetMaximum, pConfiguration.AppendIncrement, lContext).ConfigureAwait(false);
-            }
+            else return await ZZAppendAsync(lMC, pMailboxHandle, pMessages, pConfiguration.ConvertSetMaximum, pConfiguration.ConvertIncrement, pConfiguration.ReadConfiguration ?? LocalStreamReadConfiguration, pConfiguration.WriteConfiguration ?? LocalStreamWriteConfiguration, pFlags, pReceived, pConfiguration.AppendSetMaximum, pConfiguration.AppendIncrement, lContext).ConfigureAwait(false);
         }
 
         private void ZAppendCheckAttachment(MailMessage pMessage, AttachmentBase pAttachment)

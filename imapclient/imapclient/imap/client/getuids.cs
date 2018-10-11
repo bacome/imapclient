@@ -22,11 +22,7 @@ namespace work.bacome.imapclient
                     return await ZGetUIDsAsync(lMC, pMailboxHandle, pFilter, pSort, null, lContext).ConfigureAwait(false);
                 }
             }
-            else
-            {
-                var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                return await ZGetUIDsAsync(lMC, pMailboxHandle, pFilter, pSort, pConfiguration, lContext).ConfigureAwait(false);
-            }
+            else return await ZGetUIDsAsync(pConfiguration.MC, pMailboxHandle, pFilter, pSort, pConfiguration, lContext).ConfigureAwait(false);
         }
 
         private Task<IEnumerable<cUID>> ZGetUIDsAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cFilter pFilter, cSort pSort, cSetMaximumConfiguration pConfiguration, cTrace.cContext pParentContext)

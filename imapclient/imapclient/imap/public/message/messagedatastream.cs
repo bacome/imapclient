@@ -58,7 +58,7 @@ namespace work.bacome.imapclient
             mReadTimeout = Client.Timeout;
         }
 
-        internal cIMAPMessageDataStream(cIMAPClient pClient, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding)
+        internal cIMAPMessageDataStream(cIMAPClient pClient, iMessageHandle pMessageHandle, cSection pSection)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
 
@@ -70,9 +70,9 @@ namespace work.bacome.imapclient
 
             Part = null;
             MailboxHandle = null;
-            Decoding = pDecoding;
+            Decoding = eDecodingRequired.none;
 
-            mSectionHandle = new cSectionHandle(pMessageHandle, pSection, pDecoding != eDecodingRequired.none);
+            mSectionHandle = new cSectionHandle(pMessageHandle, pSection, false);
             mSectionId = null;
 
             mReadTimeout = Client.Timeout;
@@ -138,105 +138,42 @@ namespace work.bacome.imapclient
 
             if (mMessageDataReader == null)
             {
-                if (mSectionHandle != null)
-                {
-                    if (Client.PersistentCache.TryGetSectionReader(mSectionHandle, out mSectionReader, lContext)) mMessageDataReader = mSectionReader;
-                    else
-                    {
-                        ;?; // see if we can ask IMAP (check the part required and that sizes are reliable (if whole message check not reliable, if single part isn't 7bit then check not reliable))
-
-                        ;?; // then do below
-                    }
-
-                }
-                else
-                {
-                    if (Client.PersistentCache.TryGetSectionReader(mSectionId, out mSectionReader, lContext)) mMessageDataReader = mSectionReader;
-                    else
-                    {
-                        ;?; // this should be a routine 
-                        mSectionReaderWriter = Client.PersistentCache.GetSectionReaderWriter(mSectionId, lContext);
-                        mMessageDataReader = mSectionReaderWriter;
-
-                        ;?; // start the read: might be from cache or from imap
-                        ;?; // if decoded = true then try getting the encoded one from cache and start a process that decodes that
-                        ;?; // otherwise start a process that reads from the server
-                    }
-                }
-            }
-
-
-            return await mMessageDataReader.GetLengthAsync(pMC, lContext).ConfigureAwait(false);
-
-            
-
-
-
-
-            if (mSectionReader == null)
-            {
-                // see if the cache knows
-
-                ZGetSectionCacheKey(out var lNonPersistentKey, out _, out _, out var lPersistentKey);
-
-                ;?; // check both
-                if (lPersistentKey == null)
-                {
-                    if (Client.SectionCache.TryGetItemLength(lNonPersistentKey, out var lLength, lContext)) return lLength;
-                    ;?; // if part and none and not committed, see if I have it decoded; set the qp or b64 reader, start background conversion and 
-                    // if b64 calculate length, set reader, start background converter, return, if qp convert (waiting), set reader, return length
-                }
-                else
-                {
-                    if (Client.SectionCache.TryGetItemLength(lPersistentKey, out var lLength, lContext)) return lLength;
-                    ;?; // ditto
-                }
-
-                // see if IMAP knows
-
-                ;?; // note: now that we can find the handle, this needs revision ... but, get size not uid
-                //  and could get bodystructure and search for the part if the part was for the whole part and it was a single part body
-
-                if (MessageHandle != null)
+                if (!ZTryGetIdealSectionReader(lContext) && mSectionHandle != null)
                 {
                     if (Part == null)
                     {
-                        if (Section == cSection.All && Decoding == eDecodingRequired.none)
+                        if (mSectionHandle.Section == cSection.All && Client.SizesAreReliable)
                         {
                             // special case, the whole message
-                            await Client.FetchCacheItemsAsync(cMessageHandleList.FromMessageHandle(MessageHandle), cMessageCacheItems.Size, null, lContext).ConfigureAwait(false);
+                            await Client.FetchCacheItemsAsync(cMessageHandleList.FromMessageHandle(mSectionHandle.MessageHandle), cMessageCacheItems.Size, new cIncrementConfiguration(pMC), lContext).ConfigureAwait(false);
 
-                            if (MessageHandle.Size == null)
+                            if (mSectionHandle.MessageHandle.Size == null)
                             {
-                                if (MessageHandle.Expunged) throw new cMessageExpungedException(MessageHandle);
-                                throw new cRequestedIMAPDataNotReturnedException(MessageHandle);
+                                if (mSectionHandle.MessageHandle.Expunged) throw new cMessageExpungedException(mSectionHandle.MessageHandle);
+                                throw new cRequestedIMAPDataNotReturnedException(mSectionHandle.MessageHandle);
                             }
 
-                            return MessageHandle.Size.Value;
+                            return mSectionHandle.MessageHandle.Size.Value;
                         }
                     }
                     else
                     {
-                        if (Decoding == eDecodingRequired.none)
+                        if (!(Part is cMessageBodyPart) || Client.SizesAreReliable)
                         {
-                            ;?; // commit to not encoding a local copy
-                            return Part.SizeInBytes;
+                            if (Decoding == eDecodingRequired.none) return Part.SizeInBytes;
+                            else
+                            {
+                                var lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(pMC, mSectionHandle.MessageHandle, Part, lContext).ConfigureAwait(false);
+                                if (lDecodedSizeInBytes != null) return lDecodedSizeInBytes.Value;
+                            }
                         }
-
-                        var lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(MessageHandle, Part, lContext).ConfigureAwait(false);
-                        if (lDecodedSizeInBytes != null) return lDecodedSizeInBytes.Value;
                     }
                 }
 
-                // have to read it to find out
-
-                ZSetSectionCacheItemReader(lContext);
+                ZGetSectionReaderWriter(lContext);
             }
 
-            ;?; // this would need enhancing - if encodingreader, getlengthasync
-            if (mCacheItemReader != null) return mCacheItemReader.Length;
-            if (mCacheItemReaderWriter == null) throw new cInternalErrorException(lContext);
-            return await mCacheItemReaderWriter.GetLengthAsync(pMC, lContext).ConfigureAwait(false);
+            return await mMessageDataReader.GetLengthAsync(pMC, lContext).ConfigureAwait(false);
         }
 
         public override long Position
@@ -244,8 +181,8 @@ namespace work.bacome.imapclient
             get
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
-                if (mSectionReader == null) return 0;
-                return mSectionReader.ReadPosition;
+                if (mMessageDataReader == null) return 0;
+                return mMessageDataReader.ReadPosition;
             }
 
             set
@@ -254,9 +191,9 @@ namespace work.bacome.imapclient
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
                 if (value < 0) throw new ArgumentOutOfRangeException();
-                if (value == 0 && mSectionReader == null) return;
+                if (value == 0 && mMessageDataReader == null) return;
 
-                ZSetSectionCacheItemReader(lContext);
+                ZSetMessageDataReader(lContext);
 
                 ;?; // this would need enhancing - if b64 setreadpositionasync, if qp just set?
                 if (mCacheItemReader != null) mCacheItemReader.ReadPosition = value;
@@ -361,7 +298,7 @@ namespace work.bacome.imapclient
             if (pOffset + pCount > pBuffer.Length) throw new ArgumentException();
 
             ZSetSectionCacheItemReader(lContext);
-            return mSectionReader.ReadAsync(pBuffer, pOffset, pCount, mReadTimeout, pCancellationToken, lContext);
+            return mMessageDataReader.ReadAsync(pBuffer, pOffset, pCount, mReadTimeout, pCancellationToken, lContext);
         }
 
         public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
@@ -493,7 +430,7 @@ namespace work.bacome.imapclient
             var lContext = Client.RootContext.NewGetProp(nameof(cIMAPMessageDataStream), nameof(GetProgressPosition));
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
-
+            ;?; // messagedatareader
             if (mSectionReader == null || mSectionReader.ReadPosition == 0) return 0;
 
             if (mProgressLengthIsFetchSizeInBytes)
@@ -508,6 +445,97 @@ namespace work.bacome.imapclient
             }
             else return mSectionReader.ReadPosition;
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+        private bool ZTryGetIdealSectionReader(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ZTryGetIdealSectionReader));
+
+            if (mMessageDataReader != null) throw new InvalidOperationException();
+
+            if (mSectionHandle == null)
+            {
+                if (Client.PersistentCache.TryGetSectionReader(mSectionId, out mSectionReader, lContext))
+                {
+                    mMessageDataReader = mSectionReader;
+                    return true;
+                }
+            }
+            else
+            {
+                if (Client.PersistentCache.TryGetSectionReader(mSectionHandle, out mSectionReader, lContext))
+                {
+                    mMessageDataReader = mSectionReader;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void ZGetSectionReaderWriter(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ZGetSectionReaderWriter));
+
+            if (mMessageDataReader != null) throw new InvalidOperationException();
+
+            mBackgroundCancellationTokenSource = new CancellationTokenSource();
+
+            if (mSectionHandle == null)
+            {
+                mSectionReaderWriter = Client.PersistentCache.GetSectionReaderWriter(mSectionId, lContext);
+                if (mSectionId.Decoded && Client.PersistentCache.TryGetSectionReader(new cSectionId(mSectionId.MessageUID, mSectionId.Section, false), out mSectionReader, lContext)) mBackgroundTask = ZBackgroundDecodeAsync(lContext);
+                else mBackgroundTask = ZBackgroundFetchAsync(mSectionId, lContext);
+            }
+            else
+            {
+                mSectionReaderWriter = Client.PersistentCache.GetSectionReaderWriter(mSectionHandle, lContext);
+                if (mSectionHandle.Decoded && Client.PersistentCache.TryGetSectionReader(new cSectionHandle(mSectionHandle.MessageHandle, mSectionId.Section, false), out mSectionReader, lContext)) mBackgroundTask = ZBackgroundDecodeAsync(lContext);
+                else mBackgroundTask = ZBackgroundFetchAsync(mSectionHandle, lContext);
+            }
+
+            mMessageDataReader = mSectionReaderWriter;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         private void ZGetSectionCacheKey(out cSectionHandle rNonPersistentKey, out iMailboxHandle rMailboxHandle, out cUID rUID, out cSectionId rPersistentKey)
         {

@@ -36,11 +36,7 @@ namespace work.bacome.imapclient
                     lMessageHandles = await lSession.UIDFetchCacheItemsAsync(lMC, pMailboxHandle, pUIDs, pItems, null, lContext).ConfigureAwait(false);
                 }
             }
-            else
-            {
-                var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                lMessageHandles = await lSession.UIDFetchCacheItemsAsync(lMC, pMailboxHandle, pUIDs, pItems, pConfiguration.Increment, lContext).ConfigureAwait(false);
-            }
+            else lMessageHandles = await lSession.UIDFetchCacheItemsAsync(pConfiguration.MC, pMailboxHandle, pUIDs, pItems, pConfiguration.Increment, lContext).ConfigureAwait(false);
 
             return lMessageHandles.Select(lMessageHandle => new cIMAPMessage(this, lMessageHandle));
         }
@@ -59,11 +55,7 @@ namespace work.bacome.imapclient
                     lMessageHandles = await ZGetMessagesAsync(lMC, pMailboxHandle, pFilter, pSort, pItems, null, lContext).ConfigureAwait(false);
                 }
             }
-            else
-            {
-                var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                lMessageHandles = await ZGetMessagesAsync(lMC, pMailboxHandle, pFilter, pSort, pItems, pConfiguration, lContext).ConfigureAwait(false);
-            }
+            else lMessageHandles = await ZGetMessagesAsync(pConfiguration.MC, pMailboxHandle, pFilter, pSort, pItems, pConfiguration, lContext).ConfigureAwait(false);
 
             return lMessageHandles.Select(lMessageHandle => new cIMAPMessage(this, lMessageHandle));
         }
