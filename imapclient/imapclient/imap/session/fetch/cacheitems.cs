@@ -23,15 +23,8 @@ namespace work.bacome.imapclient
 
                 mMailboxCache.CheckInSelectedMailbox(pMessageHandles); // to be repeated inside the select lock
 
-                ;?; // note: if the uidvalidity is zero and qresync is on then there is an issue
-                ;?;  // this should be rejected at select and uidvalidity change
-
-                cMessageCacheItems lItems;
-                if ((EnabledExtensions & fEnableableExtensions.qresync) != 0 && (pItems.Attributes & fMessageCacheAttributes.uid) == 0) lItems = new cMessageCacheItems(pItems.Attributes | fMessageCacheAttributes.uid, pItems.Names);
-                else lItems = pItems;
-
                 // split the handles into groups based on what attributes need to be retrieved, for each group do the retrieval
-                foreach (var lGroup in ZFetchCacheItemsGroups(pMessageHandles, lItems)) await ZFetchCacheItemsAsync(pMC, lGroup, pIncrement, lContext).ConfigureAwait(false);
+                foreach (var lGroup in ZFetchCacheItemsGroups(pMessageHandles, pItems)) await ZFetchCacheItemsAsync(pMC, lGroup, pIncrement, lContext).ConfigureAwait(false);
             }
 
             private async Task ZFetchCacheItemsAsync(cMethodControl pMC, cFetchCacheItemsGroup pGroup, Action<int> pIncrement, cTrace.cContext pParentContext)
@@ -83,7 +76,7 @@ namespace work.bacome.imapclient
                             if (lMessageHandle.Expunged) lExpungedCount++;
                             else
                             {
-                                if (lMessageHandle.UID == null)
+                                if (lMessageHandle.MessageUID == null)
                                 {
                                     lMessageHandles.Add(lMessageHandle);
                                     lMSNHandleCount--;
@@ -93,7 +86,7 @@ namespace work.bacome.imapclient
                                     lMessageHandles.Add(lMessageHandle);
                                     lUIDHandleCount--;
                                 }
-                                else lUIDs.Add(lMessageHandle.UID);
+                                else lUIDs.Add(lMessageHandle.MessageUID.UID);
                             }
                         }
 
@@ -121,7 +114,7 @@ namespace work.bacome.imapclient
                 {
                     var lMessageHandle = pGroup.MessageHandles[lIndex++];
                     if (lMessageHandle.Expunged) lExpungedCount++;
-                    else lUIDs.Add(lMessageHandle.UID);
+                    else lUIDs.Add(lMessageHandle.MessageUID.UID);
                 }
 
                 if (lExpungedCount > 0) mSynchroniser.InvokeActionInt(pIncrement, lExpungedCount, lContext);
@@ -152,7 +145,7 @@ namespace work.bacome.imapclient
                         lGroups.Add(lItems, lGroup);
                     }
 
-                    if (lMessageHandle.UID == null) lGroup.MSNHandleCount++;
+                    if (lMessageHandle.MessageUID == null) lGroup.MSNHandleCount++;
 
                     lGroup.MessageHandles.Add(lMessageHandle);
                 }

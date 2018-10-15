@@ -8,6 +8,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
+        ;?; // may not be required, and if it is, there probably needs to be a uid veriosn
         internal async Task<uint> GetFetchSizeInBytesAsync(iMessageHandle pMessageHandle, cSinglePartBody pPart, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetFetchSizeInBytesAsync), pMessageHandle, pPart);

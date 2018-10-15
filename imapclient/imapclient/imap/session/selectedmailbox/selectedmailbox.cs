@@ -37,7 +37,7 @@ namespace work.bacome.imapclient
                 public bool HasPendingHighestModSeq() => mCache.HasPendingHighestModSeq();
                 public void UpdateHighestModSeq(cTrace.cContext pParentContext) => mCache.UpdateHighestModSeq(pParentContext);
 
-                public iMessageHandle GetHandle(uint pMSN) => mCache.GetHandle(pMSN); // this should only be called from a commandcompletion
+                public iMessageHandle GetHandle(uint pMSN) => mCache.GetHandle(pMSN); // this should only be called while the command that resulted in the pMSN has not completed (i.e. from the command hook)
                 public iMessageHandle GetHandle(cUID pUID) => mCache.GetHandle(pUID);
                 public uint GetMSN(iMessageHandle pMessageHandle) => mCache.GetMSN(pMessageHandle); // this should only be called when no msnunsafe commands are running
                 public cMessageHandleList SetUnseenCount(int pMessageCount, IEnumerable<uint> pMSNs, cTrace.cContext pParentContext) => mCache.SetUnseenCount(pMessageCount, pMSNs, pParentContext); // this should only be called from a commandcompletion

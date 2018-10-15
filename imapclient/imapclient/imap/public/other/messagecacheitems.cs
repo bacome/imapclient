@@ -13,8 +13,9 @@ namespace work.bacome.imapclient
         /// </summary>
         public static readonly cMessageCacheItems Empty = new cMessageCacheItems(0, cHeaderFieldNames.Empty);
 
-        public static readonly cMessageCacheItems Size = new cMessageCacheItems(fMessageCacheAttributes.size, cHeaderFieldNames.Empty);
         public static readonly cMessageCacheItems UID = new cMessageCacheItems(fMessageCacheAttributes.uid, cHeaderFieldNames.Empty);
+        public static readonly cMessageCacheItems Size = new cMessageCacheItems(fMessageCacheAttributes.size, cHeaderFieldNames.Empty);
+        public static readonly cMessageCacheItems BodyStructure = new cMessageCacheItems(fMessageCacheAttributes.bodystructure, cHeaderFieldNames.Empty);
 
         /// <summary>
         /// The IMAP message attributes to cache.

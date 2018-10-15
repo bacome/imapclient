@@ -1,7 +1,8 @@
 ﻿using System;
+using work.bacome.imapclient;
+using work.bacome.imapclient.support;
 using work.bacome.mailclient;
 using work.bacome.mailclient.support;
-using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -127,13 +128,6 @@ namespace work.bacome.imapclient
         internal cUnexpectedPersistentCacheActionException(string pClass, int pPlace = 1) : base($"{pClass}.{pPlace}") { }
         internal cUnexpectedPersistentCacheActionException(string pClass, string pMethod, int pPlace = 1) : base($"{pClass}.{pMethod}.{pPlace}") { }
         internal cUnexpectedPersistentCacheActionException(cTrace.cContext pContext, int pPlace = 1) => pContext.TraceError("{0}: {1}", nameof(cUnexpectedPersistentCacheActionException), pPlace);
-    }
-    /// <summary>
-    /// Thrown when the section cache cannot continue.
-    /// </summary>
-    public class cSectionCacheException : cMailException
-    {
-        internal cSectionCacheException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cSectionCacheException), pMessage, pInner);
     }
 
     /// <summary>
@@ -406,6 +400,12 @@ namespace work.bacome.imapclient
     public class cMessageDataClientException : cMailException
     {
         internal cMessageDataClientException() { }
+    }
+
+    public class cMessageDataStreamDecodingInconsistencyException : cMailException
+    {
+        public readonly cIMAPMessageDataStream Stream;
+        public cMessageDataStreamDecodingInconsistencyException(cIMAPMessageDataStream pStream) { Stream = pStream; }
     }
 
     /*

@@ -120,7 +120,7 @@ namespace work.bacome.mailclient
             Type = pType ?? throw new ArgumentNullException(nameof(pType));
             SubType = pSubType ?? throw new ArgumentNullException(nameof(pSubType));
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
-            if (!ZSectionIsValid())  throw new ArgumentOutOfRangeException(nameof(pSection));
+            if (!Section.CouldDescribeABodyPart)  throw new ArgumentOutOfRangeException(nameof(pSection));
             ZFinishConstruct();
         }
 
@@ -130,17 +130,8 @@ namespace work.bacome.mailclient
             if (Type == null) throw new cDeserialiseException(nameof(cBodyPart), nameof(Type), kDeserialiseExceptionMessage.IsNull);
             if (SubType == null) throw new cDeserialiseException(nameof(cBodyPart), nameof(SubType), kDeserialiseExceptionMessage.IsNull);
             if (Section == null) throw new cDeserialiseException(nameof(cBodyPart), nameof(Section), kDeserialiseExceptionMessage.IsNull);
-            if (!ZSectionIsValid()) throw new cDeserialiseException(nameof(cBodyPart), nameof(Section), kDeserialiseExceptionMessage.IsInvalid);
+            if (!Section.CouldDescribeABodyPart) throw new cDeserialiseException(nameof(cBodyPart), nameof(Section), kDeserialiseExceptionMessage.IsInvalid);
             ZFinishConstruct();
-        }
-
-        private bool ZSectionIsValid()
-        {
-            if (Section == cSection.Text) return true;
-            if (Section.Part == null) return false;
-            if (Section.Names != null) return false;
-            if (Section.TextPart == eSectionTextPart.all || Section.TextPart == eSectionTextPart.text) return true;
-            return false;
         }
 
         private void ZFinishConstruct()
@@ -181,6 +172,18 @@ namespace work.bacome.mailclient
         /// Gets any additional extension-data for the body-part. May be <see langword="null"/>.
         /// </summary>
         public abstract cBodyPartExtensionValues ExtensionValues { get; }
+
+        public virtual bool TryGetBodyPart(cSection pSection, out cBodyPart rPart)
+        {
+            if (Section == pSection)
+            {
+                rPart = this;
+                return true;
+            }
+
+            rPart = null;
+            return false;
+        }
 
         internal virtual bool LikelyIs(cBodyPart pPart)
         {
@@ -464,6 +467,14 @@ namespace work.bacome.mailclient
 
         /// <inheritdoc />
         public override cBodyPartExtensionValues ExtensionValues => ExtensionData?.ExtensionValues;
+
+        /// <inheritdoc />
+        public override bool TryGetBodyPart(cSection pSection, out cBodyPart rPart)
+        {
+            if (base.TryGetBodyPart(pSection, out rPart)) return true;
+            foreach (var lPart in Parts) if (lPart.TryGetBodyPart(pSection, out rPart)) return true;
+            return false;
+        }
 
         internal override bool LikelyIs(cBodyPart pPart)
         {
@@ -756,6 +767,13 @@ namespace work.bacome.mailclient
             else lSection = new cSection(Section.Part, eSectionTextPart.text);
 
             if (BodyStructure.Section != lSection) throw new cDeserialiseException(nameof(cMessageBodyPart), nameof(BodyStructure), kDeserialiseExceptionMessage.IsInvalid);
+        }
+
+        public override bool TryGetBodyPart(cSection pSection, out cBodyPart rPart)
+        {
+            if (base.TryGetBodyPart(pSection, out rPart)) return true;
+            if (BodyStructure.TryGetBodyPart(pSection, out rPart)) return true;
+            return false;
         }
 
         internal override bool LikelyIs(cBodyPart pPart)

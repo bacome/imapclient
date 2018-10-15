@@ -42,6 +42,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="imap\client\getbodypart.cs" />
+    <Compile Include="imap\client\getsizeinbytes.cs" />
     <Compile Include="imap\persistentcache_new\sectionwriter.cs" />
     <Compile Include="imap\client\getmessagehandle.cs" />
     <Compile Include="imap\client\getnotprefixedwith.cs" />
@@ -86,6 +88,7 @@
     <Compile Include="imap\public\persistentcache\sectionitem.cs" />
     <Compile Include="imap\session\command_hooks\commandhookbasesort.cs" />
     <Compile Include="imap\session\fetch\uidsection.cs" />
+    <Compile Include="imap\session\imap_commands\selected\fetch\commandhookuid.cs" />
     <Compile Include="imap\session\imap_commands\selected\uidsearch.cs" />
     <Compile Include="imap\session\imap_commands\selected\uidsearchextended.cs" />
     <Compile Include="imap\session\imap_commands\selected\uidsort.cs" />

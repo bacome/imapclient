@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
                     lBuilder.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
 
                     // uidvalidity must be captured before the handles are resolved
-                    lBuilder.AddUIDValidity(lSelectedMailbox.MessageCache.UIDValidity);
+                    lBuilder.AddUIDValidity(lSelectedMailbox.MessageCache.UIDValidity.UIDValidity);
 
                     // resolve the MSN
                     uint lMSN = lSelectedMailbox.GetMSN(pMessageHandle);
@@ -43,13 +43,7 @@ namespace work.bacome.imapclient
                     }
 
                     // build command
-
-                    var lRequestUIDAsWell = (EnabledExtensions & fEnableableExtensions.qresync) != 0 && pMessageHandle.UID == null;
-
-                    lBuilder.Add(kFetchCommandPartFetchSpace, new cTextCommandPart(lMSN));
-                    if (lRequestUIDAsWell) lBuilder.Add(kFetchCommandPartSpaceLParenUID);
-                    lBuilder.Add(lPart, cCommandPart.RBracket);
-                    if (lRequestUIDAsWell) lBuilder.Add(cCommandPart.RParen);
+                    lBuilder.Add(kFetchCommandPartFetchSpace, new cTextCommandPart(lMSN), kFetchCommandPartSpaceBinarySizeLBracket, lPart, cCommandPart.RBracket);
 
                     // go
 
@@ -76,7 +70,7 @@ namespace work.bacome.imapclient
                 }
             }
 
-            public async Task UIDFetchBinarySizeAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, string pPart, bool pThrowOnUnknownCTE, cTrace.cContext pParentContext)
+            public async Task<iMessageHandle> UIDFetchBinarySizeAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, string pPart, bool pThrowOnUnknownCTE, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchBinarySizeAsync), pMC, pMailboxHandle, pUID, pPart);
 
@@ -92,15 +86,19 @@ namespace work.bacome.imapclient
                 {
                     lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    mMailboxCache.CheckIsSelectedMailbox(pMailboxHandle, pUID.UIDValidity);
+                    var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pMailboxHandle, pUID.UIDValidity.UIDValidity);
 
                     lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
                     // set uidvalidity
-                    lBuilder.AddUIDValidity(pUID.UIDValidity);
+                    lBuilder.AddUIDValidity(pUID.UIDValidity.UIDValidity);
 
                     // build command
                     lBuilder.Add(kFetchCommandPartUIDFetchSpace, new cTextCommandPart(pUID.UID), kFetchCommandPartSpaceBinarySizeLBracket, lPart, cCommandPart.RBracket);
+
+                    // hook
+                    var lHook = new cCommandHookUIDFetch(lSelectedMailbox, pUID.UID);
+                    lBuilder.Add(lHook);
 
                     // go
 
@@ -109,7 +107,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eIMAPCommandResultType.ok)
                     {
                         lContext.TraceInformation("uid fetch binary.size success");
-                        return;
+                        return lHook.MessageHandle;
                     }
 
                     if (lResult.ResultType == eIMAPCommandResultType.no)
@@ -117,7 +115,7 @@ namespace work.bacome.imapclient
                         if (lResult.ResponseText.Code == eIMAPResponseTextCode.unknowncte && !pThrowOnUnknownCTE)
                         {
                             lContext.TraceInformation("uid fetch binary.size failure due to unknown-cte");
-                            return;
+                            return null;
                         }
 
                         throw new cUnsuccessfulIMAPCommandException(lResult.ResponseText, fIMAPCapabilities.binary, lContext);

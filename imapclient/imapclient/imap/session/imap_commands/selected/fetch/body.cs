@@ -36,7 +36,7 @@ namespace work.bacome.imapclient
                     lBuilder.Add(await mMSNUnsafeBlock.GetTokenAsync(lMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
 
                     // uidvalidity must be set before the handle is resolved
-                    lBuilder.AddUIDValidity(lSelectedMailbox.MessageCache.UIDValidity);
+                    lBuilder.AddUIDValidity(lSelectedMailbox.MessageCache.UIDValidity.UIDValidity);
 
                     // resolve the MSN
                     uint lMSN = lSelectedMailbox.GetMSN(pMessageHandle);
@@ -49,18 +49,12 @@ namespace work.bacome.imapclient
 
                     // build command
 
-                    var lRequestUIDAsWell = (EnabledExtensions & fEnableableExtensions.qresync) != 0 && pMessageHandle.UID == null;
-
                     lBuilder.Add(kFetchCommandPartFetchSpace, new cTextCommandPart(lMSN));
-
-                    if (lRequestUIDAsWell) lBuilder.Add(kFetchCommandPartSpaceLParenUID);
 
                     if (pBinary) lBuilder.Add(kFetchCommandPartSpaceBinaryPeekLBracket);
                     else lBuilder.Add(kFetchCommandPartSpaceBodyPeekLBracket);
 
                     lBuilder.Add(pSection, pOrigin, pLength);
-
-                    if (lRequestUIDAsWell) lBuilder.Add(cCommandPart.RParen);
 
                     // hook
                     var lHook = new cCommandHookFetchBodyMSN(pBinary, pSection, pOrigin, lMSN);
