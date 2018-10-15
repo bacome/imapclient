@@ -8,9 +8,9 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal async Task<uint> GetSizeInBytesAsync(cMethodControl pMC, iMessageHandle pMessageHandle, cTrace.cContext pParentContext)
+        internal async Task<uint> GetMessageSizeInBytesAsync(cMethodControl pMC, iMessageHandle pMessageHandle, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetSizeInBytesAsync), pMC, pMessageHandle);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetMessageSizeInBytesAsync), pMC, pMessageHandle);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -32,9 +32,9 @@ namespace work.bacome.imapclient
             return pMessageHandle.Size.Value;
         }
 
-        internal async Task<uint> GetSizeInBytesAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cMessageUID pMessageUID, cTrace.cContext pParentContext)
+        internal async Task<uint> GetMessageSizeInBytesAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cMessageUID pMessageUID, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetSizeInBytesAsync), pMC, pMailboxHandle, pMessageUID);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetMessageSizeInBytesAsync), pMC, pMailboxHandle, pMessageUID);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 

@@ -15,7 +15,7 @@ namespace work.bacome.imapclient
         public readonly cIMAPClient Client;
         public readonly iMailboxHandle MailboxHandle;
         public readonly cSection Section;
-        public readonly eDecodingRequired Decoding;
+        public readonly bool Decoded;
 
         private readonly cSectionHandle mSectionHandle;
         private readonly cSectionId mSectionId;
@@ -45,8 +45,7 @@ namespace work.bacome.imapclient
             MailboxHandle = null;
             Section = pPart.Section;
 
-            if (pDecoded) Decoding = pPart.DecodingRequired;
-            else Decoding = eDecodingRequired.none;
+            Decoded = pDecoded;
 
             mSectionHandle = new cSectionHandle(pMessageHandle, pPart.Section, pDecoded);
             mSectionId = null;
@@ -65,7 +64,7 @@ namespace work.bacome.imapclient
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
 
             MailboxHandle = null;
-            Decoding = eDecodingRequired.none;
+            Decoded = false;
 
             mSectionHandle = new cSectionHandle(pMessageHandle, pSection, false);
             mSectionId = null;
@@ -75,7 +74,7 @@ namespace work.bacome.imapclient
             mReadTimeout = Client.Timeout;
         }
 
-        internal cIMAPMessageDataStream(cIMAPClient pClient, iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding)
+        internal cIMAPMessageDataStream(cIMAPClient pClient, iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, bool pDecoded)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
 
@@ -84,13 +83,13 @@ namespace work.bacome.imapclient
 
             if (pUID == null) throw new ArgumentNullException(nameof(pUID));
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
-            if (pSection.Part == null && pDecoding != eDecodingRequired.none) throw new ArgumentOutOfRangeException(nameof(pDecoding));
-            if (pDecoding != eDecodingRequired.none && !pSection.CouldDescribeABodyPart) throw new ArgumentOutOfRangeException(nameof(pDecoding));
+            if (pSection.Part == null && pDecoded) throw new ArgumentOutOfRangeException(nameof(pDecoded));
+            if (pDecoded && !pSection.CouldDescribeABodyPart) throw new ArgumentOutOfRangeException(nameof(pDecoded));
 
-            Decoding = pDecoding;
+            Decoded = pDecoded;
 
             mSectionHandle = null;
-            mSectionId = new cSectionId(new cMessageUID(pMailboxHandle.MailboxId, pUID, Client.UTF8Enabled), pSection, pDecoding != eDecodingRequired.none);
+            mSectionId = new cSectionId(new cMessageUID(pMailboxHandle.MailboxId, pUID, Client.UTF8Enabled), pSection, pDecoded);
 
             mPart = null;
 
@@ -130,12 +129,12 @@ namespace work.bacome.imapclient
             return ZGetLengthAsync(lMC, lContext);
         }
 
-        private async Task ZSetPartIfPossible(cMethodControl pMC, cTrace.cContext pParentContext)
+        private async Task<bool> ZTrySetPart(cMethodControl pMC, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ZSetPartIfPossible), pMC);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ZTrySetPart), pMC);
 
-            if (mPart != null) return;
-            if (Section.Part == null || !Section.CouldDescribeABodyPart) return;
+            if (mPart != null) return true;
+            if (Section.Part == null || !Section.CouldDescribeABodyPart) return false;
 
             cBodyPart lPart;
 
@@ -146,13 +145,12 @@ namespace work.bacome.imapclient
 
             if (lSinglePartBody == null)
             {
-                if (Decoding != eDecodingRequired.none) throw new cMessageDataStreamDecodingInconsistencyException(this);
+                if (Decoded) throw new cMessageDataStreamDecodingInconsistencyException(this);
+                return false;
             }
-            else
-            {
-                if (Decoding != eDecodingRequired.none && Decoding != lSinglePartBody.DecodingRequired) throw new cMessageDataStreamDecodingInconsistencyException(this); ;
-                mPart = lSinglePartBody;
-            }
+
+            mPart = lSinglePartBody;
+            return true;
         }
 
         private async Task<long> ZGetLengthAsync(cMethodControl pMC, cTrace.cContext pParentContext)
@@ -161,38 +159,49 @@ namespace work.bacome.imapclient
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
 
+            ;?; // if the length has been calculated, use that
+
             if (mMessageDataReader != null) return await mMessageDataReader.GetLengthAsync(pMC, lContext).ConfigureAwait(false);
+
             if (ZTryGetIdealSectionReader(lContext)) return await mMessageDataReader.GetLengthAsync(pMC, lContext).ConfigureAwait(false);
 
-            if (Section == cSection.All && Client.SizesAreReliable) 
+            if (Section == cSection.All) 
             {
-                if (mSectionHandle == null) return await Client.GetSizeInBytesAsync(pMC, MailboxHandle, mSectionId.MessageUID, lContext).ConfigureAwait(false);
-                else return await Client.GetSizeInBytesAsync(pMC, mSectionHandle.MessageHandle, lContext).ConfigureAwait(false);
+                if (Client.MessageSizesAreReliable)
+                {
+                    if (mSectionHandle == null) return await Client.GetMessageSizeInBytesAsync(pMC, MailboxHandle, mSectionId.MessageUID, lContext).ConfigureAwait(false);
+                    else return await Client.GetMessageSizeInBytesAsync(pMC, mSectionHandle.MessageHandle, lContext).ConfigureAwait(false);
+                }
+                else return await LGetLengthFromSectionReaderWriterAsync();
             }
 
-            if (mPart == null) await ZSetPartIfPossible(pMC, lContext).ConfigureAwait(false);
+            if (mPart == null && !(await ZTrySetPart(pMC, lContext).ConfigureAwait(false))) return await LGetLengthFromSectionReaderWriterAsync();
 
-            if (mPart == null)
+            if (Decoded)
+            {
+                uint? lDecodedSizeInBytes;
+
+                if (mSectionHandle == null) lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(pMC, MailboxHandle, mSectionId.MessageUID, mPart, lContext).ConfigureAwait(false);
+                else lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(pMC, mSectionHandle.MessageHandle, mPart, lContext).ConfigureAwait(false);
+
+                if (lDecodedSizeInBytes != null) return lDecodedSizeInBytes.Value;
+
+                return await LGetLengthFromSectionReaderWriterAsync();
+            }
+
+            if (mPart is cMessageBodyPart)
+            {
+                if (Client.MessageSizesAreReliable) return mPart.SizeInBytes;
+                return await LGetLengthFromSectionReaderWriterAsync();
+            }
+
+            return mPart.SizeInBytes;
+
+            async Task<long> LGetLengthFromSectionReaderWriterAsync()
             {
                 ZGetSectionReaderWriter(lContext);
                 return await mMessageDataReader.GetLengthAsync(pMC, lContext).ConfigureAwait(false);
             }
-
-            if (mPart is cMessageBodyPart && !Client.SizesAreReliable)
-            {
-                ZGetSectionReaderWriter(lContext);
-                return await mMessageDataReader.GetLengthAsync(pMC, lContext).ConfigureAwait(false);
-            }
-
-            uint? lDecodedSizeInBytes;
-
-            if (mSectionHandle == null) lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(pMC, MailboxHandle, mSectionId.MessageUID, mPart, lContext).ConfigureAwait(false);
-            else lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(pMC, mSectionHandle.MessageHandle, mPart, lContext).ConfigureAwait(false);
-
-            if (lDecodedSizeInBytes != null) return lDecodedSizeInBytes.Value;
-
-            ZGetSectionReaderWriter(lContext);
-            return await mMessageDataReader.GetLengthAsync(pMC, lContext).ConfigureAwait(false);
         }
 
         public override long Position

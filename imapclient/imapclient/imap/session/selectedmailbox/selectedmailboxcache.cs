@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using work.bacome.imapclient.support;
@@ -24,7 +25,7 @@ namespace work.bacome.imapclient
 
                 private int mCacheSequence = 0;
                 private readonly List<cItem> mItems;
-                private readonly Dictionary<cUID, iMessageHandle> mUIDIndex = new Dictionary<cUID, iMessageHandle>();
+                private readonly ConcurrentDictionary<cUID, iMessageHandle> mUIDIndex = new ConcurrentDictionary<cUID, iMessageHandle>();
 
                 private int mRecentCount;
 
@@ -278,10 +279,10 @@ namespace work.bacome.imapclient
                     return lMessageHandles;
                 }
 
-                public cUIDList GetMessageUIDsWithDeletedFlag(cTrace.cContext pParentContext)
+                public List<cMessageUID> GetMessageUIDsWithDeletedFlag(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(GetMessageUIDsWithDeletedFlag));
-                    return new cUIDList(from lItem in mItems where lItem.UID != null && lItem.Flags != null && lItem.Flags.Contains(kMessageFlag.Deleted) select lItem.UID);
+                    return new List<cMessageUID>(from lItem in mItems where lItem.MessageUID != null && lItem.Flags != null && lItem.Flags.Contains(kMessageFlag.Deleted) select lItem.MessageUID);
                 }
 
                 private void ZExists(int pMessageCount, cTrace.cContext pParentContext)
@@ -330,9 +331,11 @@ namespace work.bacome.imapclient
 
                     if (pMSN > mUIDNextMessageCount)
                     {
-                        if (lExpungedItem.UID == null) mUIDNextUnknownCount--;
+                        if (lExpungedItem.MessageUID == null) mUIDNextUnknownCount--;
                     }
                     else mUIDNextMessageCount--;
+
+                    if (lExpungedItem.MessageUID != null) mUIDIndex.TryRemove(lExpungedItem.MessageUID.UID, out _);
 
                     mPersistentCache.MessageExpunged(lExpungedItem, lContext);
 
@@ -352,12 +355,12 @@ namespace work.bacome.imapclient
 
                     if (lUIDWasSet)
                     {
-                        mUIDIndex.Add(lFetchedItem.UID, lFetchedItem);
+                        mUIDIndex[lFetchedItem.MessageUID.UID] = lFetchedItem;
 
                         if (pFetch.MSN > mUIDNextMessageCount)
                         {
                             mUIDNextUnknownCount--;
-                            if (lFetchedItem.UID.UID + 1 > mUIDNext) mUIDNext = lFetchedItem.UID.UID + 1;
+                            if (lFetchedItem.MessageUID.UID.UID + 1 > mUIDNext) mUIDNext = lFetchedItem.MessageUID.UID.UID + 1;
                             lSetMailboxStatus = true;
                         }
                     }

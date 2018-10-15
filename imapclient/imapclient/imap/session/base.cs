@@ -37,7 +37,7 @@ namespace work.bacome.imapclient
             private cURL _HomeServerReferral = null;
             private cAccountId _ConnectedAccountId = null;
             private fMessageDataFormat _SupportedFormats = fMessageDataFormat.eightbit;
-            private bool _SizesAreReliable = true;
+            private bool _MessageSizesAreReliable = true;
 
             // set once enabled
             private fMailboxCacheDataItems mStatusAttributes = 0;
@@ -96,7 +96,7 @@ namespace work.bacome.imapclient
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eIMAPConnectionState.authenticated) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotAuthenticated);
 
-                _SizesAreReliable = ((_Capabilities.ServerCapabilities & (fIMAPCapabilities.utf8accept | fIMAPCapabilities.utf8only)) == 0) || UTF8Enabled;
+                _MessageSizesAreReliable = ((_Capabilities.ServerCapabilities & (fIMAPCapabilities.utf8accept | fIMAPCapabilities.utf8only)) == 0) || UTF8Enabled;
 
                 if (UTF8Enabled)
                 {
@@ -224,7 +224,7 @@ namespace work.bacome.imapclient
                 return false;
             }
 
-            public bool SizesAreReliable => _SizesAreReliable;
+            public bool MessageSizesAreReliable => _MessageSizesAreReliable;
 
             public cAccountId ConnectedAccountId => _ConnectedAccountId;
 

@@ -43,7 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="imap\client\getbodypart.cs" />
-    <Compile Include="imap\client\getsizeinbytes.cs" />
+    <Compile Include="imap\client\getmessagesizeinbytes.cs" />
     <Compile Include="imap\persistentcache_new\sectionwriter.cs" />
     <Compile Include="imap\client\getmessagehandle.cs" />
     <Compile Include="imap\client\getnotprefixedwith.cs" />

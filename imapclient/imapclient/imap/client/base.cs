@@ -547,19 +547,19 @@ namespace work.bacome.imapclient
         public cURL HomeServerReferral => mSession?.HomeServerReferral;
 
         /// <summary>
-        /// Gets whether the sizes reported by IMAP are reliable.
+        /// Gets whether the message sizes reported by IMAP are reliable.
         /// </summary>
         /// <remarks>
         /// The sizes may not be reliable if the server supports UTF8 and it is not enabled (see RFC 6858 section 3).
         /// Set during <see cref="Connect"/>.
         /// </remarks>
-        public bool SizesAreReliable
+        public bool MessageSizesAreReliable
         {
             get
             {
                 var lSession = mSession;
                 if (lSession == null) return true;
-                return lSession.SizesAreReliable;
+                return lSession.MessageSizesAreReliable;
             }
         }
 
