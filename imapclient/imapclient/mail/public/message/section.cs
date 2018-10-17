@@ -136,18 +136,10 @@ namespace work.bacome.mailclient
             }
         }
 
-        public bool CouldDescribeABodyPart
-        {
-            get
-            {
-                if (Part == null) return TextPart == eSectionTextPart.text;
-                if (Names != null) return false;
-                if (TextPart == eSectionTextPart.all || TextPart == eSectionTextPart.text) return true;
-                return false;
-            }
-        }
+        internal bool CouldDescribeABodyPart => (Part != null && TextPart == eSectionTextPart.all) || TextPart == eSectionTextPart.text;
+        internal bool CouldDescribeASinglePartBody => Part != null && TextPart == eSectionTextPart.all;
 
-    internal string GetSubPartPrefix()
+        internal string GetSubPartPrefix()
         {
             if (Part == null) return string.Empty;
             return Part + ".";

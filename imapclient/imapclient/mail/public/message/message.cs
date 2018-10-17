@@ -106,7 +106,7 @@ namespace work.bacome.mailclient
         public abstract cStrings References { get; }
         public abstract eImportance? Importance { get; }
 
-        internal void CheckPart(cBodyPart pPart)
+        internal void CheckPart(cSinglePartBody pPart)
         {
             if (pPart == null) throw new ArgumentNullException(nameof(pPart));
             var lBodyStructure = BodyStructure;

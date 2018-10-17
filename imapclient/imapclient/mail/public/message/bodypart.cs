@@ -173,17 +173,9 @@ namespace work.bacome.mailclient
         /// </summary>
         public abstract cBodyPartExtensionValues ExtensionValues { get; }
 
-        public virtual bool TryGetBodyPart(cSection pSection, out cBodyPart rPart)
-        {
-            if (Section == pSection)
-            {
-                rPart = this;
-                return true;
-            }
+        internal abstract bool TryGetSinglePartBody(cSection pSection, out cSinglePartBody rSinglePartBody);
 
-            rPart = null;
-            return false;
-        }
+        internal virtual bool CouldBeTheBodyStructureOf(cSection pMessageSection) => false;
 
         internal virtual bool LikelyIs(cBodyPart pPart)
         {
@@ -468,12 +460,19 @@ namespace work.bacome.mailclient
         /// <inheritdoc />
         public override cBodyPartExtensionValues ExtensionValues => ExtensionData?.ExtensionValues;
 
-        /// <inheritdoc />
-        public override bool TryGetBodyPart(cSection pSection, out cBodyPart rPart)
+        internal override bool TryGetSinglePartBody(cSection pSection, out cSinglePartBody rSinglePartBody)
         {
-            if (base.TryGetBodyPart(pSection, out rPart)) return true;
-            foreach (var lPart in Parts) if (lPart.TryGetBodyPart(pSection, out rPart)) return true;
+            if (pSection == null) throw new ArgumentNullException(nameof(pSection));
+            foreach (var lPart in Parts) if (lPart.TryGetSinglePartBody(pSection, out rSinglePartBody)) return true;
+            rSinglePartBody = null;
             return false;
+        }
+
+        internal override bool CouldBeTheBodyStructureOf(cSection pMessageSection)
+        {
+            if (pMessageSection == null) return Section == cSection.Text;
+            if (!pMessageSection.CouldDescribeASinglePartBody) throw new ArgumentOutOfRangeException(nameof(pMessageSection));
+            return Section.Part == pMessageSection.Part && Section == cSection.Text;
         }
 
         internal override bool LikelyIs(cBodyPart pPart)
@@ -635,6 +634,7 @@ namespace work.bacome.mailclient
 
         internal cSinglePartBody(string pType, string pSubType, cSection pSection, cBodyStructureParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, bool p8bitImpliesUTF8Headers, uint pSizeInBytes, cSinglePartExtensionData pExtensionData) : base(pType, pSubType, pSection)
         {
+            if (!pSection.CouldDescribeASinglePartBody) throw new ArgumentOutOfRangeException(nameof(pSection));
             Parameters = pParameters;
             ContentId = pContentId;
             Description = pDescription;
@@ -648,6 +648,7 @@ namespace work.bacome.mailclient
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
+            if (!Section.CouldDescribeASinglePartBody) throw new cDeserialiseException(nameof(cSinglePartBody), nameof(Section), kDeserialiseExceptionMessage.IsInvalid);
             if (ContentTransferEncoding == null) throw new cDeserialiseException(nameof(cSinglePartBody), nameof(ContentTransferEncoding), kDeserialiseExceptionMessage.IsNull);
             if (m8bitImpliesUTF8Headers && (TypeCode != eBodyPartTypeCode.message) || !SubType.Equals(kMimeSubType.RFC822, StringComparison.InvariantCultureIgnoreCase)) throw new cDeserialiseException(nameof(cSinglePartBody), nameof(m8bitImpliesUTF8Headers), kDeserialiseExceptionMessage.IsInconsistent);
             ZFinishConstruct();
@@ -715,6 +716,27 @@ namespace work.bacome.mailclient
         /// <inheritdoc />
         public override cBodyPartExtensionValues ExtensionValues => ExtensionData?.ExtensionValues;
 
+        internal override bool TryGetSinglePartBody(cSection pSection, out cSinglePartBody rSinglePartBody)
+        {
+            if (pSection == null) throw new ArgumentNullException(nameof(pSection));
+
+            if (Section == pSection)
+            {
+                rSinglePartBody = this;
+                return true;
+            }
+
+            rSinglePartBody = null;
+            return false;
+        }
+
+        internal override bool CouldBeTheBodyStructureOf(cSection pMessageSection)
+        {
+            if (pMessageSection == null) return Section.Part == "1";
+            if (!pMessageSection.CouldDescribeASinglePartBody) throw new ArgumentOutOfRangeException(nameof(pMessageSection));
+            return Section.Part == pMessageSection.Part + ".1";
+        }
+
         internal override bool LikelyIs(cBodyPart pPart)
         {
             if (!base.LikelyIs(pPart)) return false;
@@ -752,6 +774,7 @@ namespace work.bacome.mailclient
         {
             Envelope = pEnvelope ?? throw new ArgumentNullException(nameof(pEnvelope));
             BodyStructure = pBodyStructure ?? throw new ArgumentNullException(nameof(pBodyStructure));
+            if (!BodyStructure.CouldBeTheBodyStructureOf(pSection)) throw new ArgumentOutOfRangeException(nameof(pBodyStructure));
             SizeInLines = pSizeInLines;
         }
 
@@ -760,20 +783,20 @@ namespace work.bacome.mailclient
         {
             if (Envelope == null) throw new cDeserialiseException(nameof(cMessageBodyPart), nameof(Envelope), kDeserialiseExceptionMessage.IsNull);
             if (BodyStructure == null) throw new cDeserialiseException(nameof(cMessageBodyPart), nameof(BodyStructure), kDeserialiseExceptionMessage.IsNull);
-
-            cSection lSection;
-
-            if (Section.TextPart == eSectionTextPart.text) lSection = new cSection(Section.GetSubPartPrefix() + "1", eSectionTextPart.text);
-            else lSection = new cSection(Section.Part, eSectionTextPart.text);
-
-            if (BodyStructure.Section != lSection) throw new cDeserialiseException(nameof(cMessageBodyPart), nameof(BodyStructure), kDeserialiseExceptionMessage.IsInvalid);
+            if (!BodyStructure.CouldBeTheBodyStructureOf(Section)) throw new cDeserialiseException(nameof(cMessageBodyPart), nameof(BodyStructure), kDeserialiseExceptionMessage.IsInvalid);
         }
 
-        public override bool TryGetBodyPart(cSection pSection, out cBodyPart rPart)
+        internal override bool TryGetSinglePartBody(cSection pSection, out cSinglePartBody rSinglePartBody)
         {
-            if (base.TryGetBodyPart(pSection, out rPart)) return true;
-            if (BodyStructure.TryGetBodyPart(pSection, out rPart)) return true;
-            return false;
+            if (pSection == null) throw new ArgumentNullException(nameof(pSection));
+
+            if (Section == pSection)
+            {
+                rSinglePartBody = this;
+                return true;
+            }
+
+            return BodyStructure.TryGetSinglePartBody(pSection, out rSinglePartBody);
         }
 
         internal override bool LikelyIs(cBodyPart pPart)

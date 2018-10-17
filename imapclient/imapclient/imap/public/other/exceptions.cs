@@ -402,10 +402,10 @@ namespace work.bacome.imapclient
         internal cMessageDataClientException() { }
     }
 
-    public class cMessageDataStreamDecodingInconsistencyException : cMailException
+    public class cMessageDataStreamInconsistentException : cMailException
     {
         public readonly cIMAPMessageDataStream Stream;
-        public cMessageDataStreamDecodingInconsistencyException(cIMAPMessageDataStream pStream) { Stream = pStream; }
+        public cMessageDataStreamInconsistentException(cIMAPMessageDataStream pStream) { Stream = pStream; }
     }
 
     /*

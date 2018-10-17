@@ -8,9 +8,9 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal async Task<cBodyPart> GetBodyPartAsync(cMethodControl pMC, iMessageHandle pMessageHandle, cSection pSection, cTrace.cContext pParentContext)
+        internal async Task<cSinglePartBody> GetSinglePartBodyAsync(cMethodControl pMC, iMessageHandle pMessageHandle, cSection pSection, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetBodyPartAsync), pMC, pMessageHandle, pSection);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetSinglePartBodyAsync), pMC, pMessageHandle, pSection);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -19,7 +19,7 @@ namespace work.bacome.imapclient
 
             if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
             if (pSection == null) throw new ArgumentNullException(nameof(pSection));
-            if (!pSection.CouldDescribeABodyPart) throw new ArgumentOutOfRangeException(nameof(pSection));
+            if (!pSection.CouldDescribeASinglePartBody) throw new ArgumentOutOfRangeException(nameof(pSection));
 
             if (pMessageHandle.BodyStructure == null)
             {
@@ -32,13 +32,13 @@ namespace work.bacome.imapclient
                 }
             }
 
-            if (pMessageHandle.BodyStructure.TryGetBodyPart(pSection, out var lBodyPart)) return lBodyPart;
+            if (pMessageHandle.BodyStructure.TryGetSinglePartBody(pSection, out var lSinglePartBody)) return lSinglePartBody;
             return null;
         }
 
-        internal async Task<cBodyPart> GetBodyPartAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cMessageUID pMessageUID, cSection pSection, cTrace.cContext pParentContext)
+        internal async Task<cSinglePartBody> GetSinglePartBodyAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cMessageUID pMessageUID, cSection pSection, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetBodyPartAsync), pMC, pMailboxHandle, pMessageUID, pSection);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetSinglePartBodyAsync), pMC, pMailboxHandle, pMessageUID, pSection);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -49,7 +49,7 @@ namespace work.bacome.imapclient
             if (pMessageUID == null) throw new ArgumentNullException(nameof(pMessageUID));
             if (pMessageUID.MailboxId != pMailboxHandle.MailboxId) throw new ArgumentOutOfRangeException(nameof(pMessageUID));
             if (pSection == null) throw new ArgumentNullException(nameof(pSection));
-            if (!pSection.CouldDescribeABodyPart) throw new ArgumentOutOfRangeException(nameof(pSection));
+            if (!pSection.CouldDescribeASinglePartBody) throw new ArgumentOutOfRangeException(nameof(pSection));
 
             cBodyPart lBodyStructure;
 
@@ -72,7 +72,7 @@ namespace work.bacome.imapclient
                 lBodyStructure = lMessageHandle.BodyStructure;
             }
 
-            if (lBodyStructure.TryGetBodyPart(pSection, out var lBodyPart)) return lBodyPart;
+            if (lBodyStructure.TryGetSinglePartBody(pSection, out var lSinglePartBody)) return lSinglePartBody;
             return null;
         }
     }

@@ -334,6 +334,8 @@ namespace work.bacome.imapclient
 
                     string lSubPartPrefix = pSection.GetSubPartPrefix();
 
+                    // multi-part
+
                     if (ZProcessBodyStructure(pCursor, new cSection(lSubPartPrefix + "1"), pExtended, out lBodyPart))
                     {
                         List<cBodyPart> lParts = new List<cBodyPart>();
@@ -364,6 +366,15 @@ namespace work.bacome.imapclient
                         rBodyPart = new cMultiPartBody(lParts, mUTF8Enabled, lSubType, pSection, lMultiPartExtensionData);
                         return true;
                     }
+
+                    // this code covers the situation where a message body (either the message itself or an embedded message) contains one and only one part
+                    //  TODO: test this [and if it is wrong change the ondeserialised on cMessageBodyPart and cSection.CouldDescribeABodyPart and ondeserialised on cHeaderCacheItem]
+
+                    cSection lSection;
+                    if (pSection.TextPart == eSectionTextPart.text) lSection = new cSection(lSubPartPrefix + "1");
+                    else lSection = pSection;
+
+                    // single part
 
                     if (!pCursor.GetString(out string lType) ||
                         !pCursor.SkipByte(cASCII.SPACE) ||
@@ -397,29 +408,16 @@ namespace work.bacome.imapclient
 
                         if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyPart = null; return false; }
 
-                        rBodyPart = new cTextBodyPart(lSubType, pSection, lParameters, lContentId, lDescription, lContentTransferEncoding, lSizeInBytes, lSizeInLines, lExtensionData);
+                        rBodyPart = new cTextBodyPart(lSubType, lSection, lParameters, lContentId, lDescription, lContentTransferEncoding, lSizeInBytes, lSizeInLines, lExtensionData);
                         return true;
                     }
 
                     if (lType.Equals(kMimeType.Message, StringComparison.InvariantCultureIgnoreCase) && lSubType.Equals(kMimeSubType.RFC822, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        cSection lSection;
-
-                        if (pSection.TextPart == eSectionTextPart.text)
-                        {
-                            // TODO: test this [and if it is wrong change the ondeserialised on cMessageBodyPart]
-
-                            // this case covers the situation where the media-type of a _message_ is message/rfc822
-                            //  (i.e. where the message body directly contains 1 and only one encapsulated message)
-
-                            lSection = new cSection(lSubPartPrefix + "1", eSectionTextPart.text);
-                        }
-                        else lSection = new cSection(pSection.Part, eSectionTextPart.text);
-
                         if (!pCursor.SkipByte(cASCII.SPACE) || 
                             !ZProcessEnvelope(pCursor, out var lEnvelope) ||
                             !pCursor.SkipByte(cASCII.SPACE) ||
-                            !ZProcessBodyStructure(pCursor, lSection, pExtended, out lBodyPart) ||
+                            !ZProcessBodyStructure(pCursor, new cSection(lSection.Part, eSectionTextPart.text), pExtended, out lBodyPart) ||
                             !pCursor.SkipByte(cASCII.SPACE) ||
                             !pCursor.GetNumber(out _, out var lSizeInLines)) { rBodyPart = null; return false; }
 
@@ -431,7 +429,7 @@ namespace work.bacome.imapclient
 
                         if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyPart = null; return false; }
 
-                        rBodyPart = new cMessageBodyPart(pSection, lParameters, lContentId, lDescription, lContentTransferEncoding, mUTF8Enabled, lSizeInBytes, lEnvelope, lBodyPart, lSizeInLines, lExtensionData);
+                        rBodyPart = new cMessageBodyPart(lSection, lParameters, lContentId, lDescription, lContentTransferEncoding, mUTF8Enabled, lSizeInBytes, lEnvelope, lBodyPart, lSizeInLines, lExtensionData);
                         return true;
                     }
 
@@ -443,7 +441,7 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyPart = null; return false; }
 
-                    rBodyPart = new cSinglePartBody(lType, lSubType, pSection, lParameters, lContentId, lDescription, lContentTransferEncoding, false, lSizeInBytes, lExtensionData);
+                    rBodyPart = new cSinglePartBody(lType, lSubType, lSection, lParameters, lContentId, lDescription, lContentTransferEncoding, false, lSizeInBytes, lExtensionData);
                     return true;
                 }
 

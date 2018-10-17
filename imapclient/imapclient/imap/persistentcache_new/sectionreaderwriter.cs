@@ -42,6 +42,8 @@ namespace work.bacome.imapclient
             mReleaser = new cReleaser(nameof(cSectionReaderWriter), mCancellationTokenSource.Token);
         }
 
+        public bool LengthIsKnown => mWritingState == eWritingState.completedok;
+
         public async Task<long> GetLengthAsync(cMethodControl pMC, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(GetLengthAsync), pMC);

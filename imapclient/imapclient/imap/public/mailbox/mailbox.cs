@@ -1313,10 +1313,10 @@ namespace work.bacome.imapclient
             => Client.AppendAsync(MailboxHandle, cMailMessageList.FromMessages(pMessages), pFlags, pReceived, pConfiguration);
             */
         
-        public Stream GetMessageDataStream(cUID pUID, cSection pSection = null, eDecodingRequired pDecoding = eDecodingRequired.none)
+        public Stream GetMessageDataStream(cUID pUID, cSection pSection = null, bool pDecoded = false)
         {
             if (IsInvalid) throw new InvalidOperationException(kInvalidOperationExceptionMessage.IsInvalid);
-            return new cIMAPMessageDataStream(Client, MailboxHandle, pUID, pSection ?? cSection.All, pDecoding);
+            return new cIMAPMessageDataStream(Client, MailboxHandle, pUID, pSection ?? cSection.All, pDecoded);
         }
 
         /// <summary>

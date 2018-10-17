@@ -123,6 +123,7 @@ namespace work.bacome.imapclient
 
             if (mBodyStructure != null)
             {
+                ;?; // 
                 if (mBodyStructure.Section != cSection.Text) throw new cDeserialiseException(nameof(cHeaderCacheItemData), nameof(mBodyStructure), kDeserialiseExceptionMessage.IsInvalid);
                 mAttributes |= fMessageCacheAttributes.bodystructure;
             }

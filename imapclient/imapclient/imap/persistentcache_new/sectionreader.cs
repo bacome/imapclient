@@ -9,6 +9,7 @@ namespace work.bacome.imapclient
 {
     internal interface iSectionReader
     {
+        bool LengthIsKnown { get; }
         Task<long> GetLengthAsync(cMethodControl pMC, cTrace.cContext pParentContext);
         long ReadPosition { get; }
         Task SetReadPositionAsync(long pReadPosition, cTrace.cContext pParentContext);
@@ -26,6 +27,8 @@ namespace work.bacome.imapclient
             mStream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!mStream.CanRead || !mStream.CanSeek || mStream.CanWrite || mStream.Position != 0) throw new ArgumentOutOfRangeException(nameof(pStream));
         }
+
+        public bool LengthIsKnown => true;
 
         public Task<long> GetLengthAsync(cMethodControl pMC, cTrace.cContext pParentContext)
         {
