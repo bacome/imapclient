@@ -10,6 +10,7 @@ namespace work.bacome.imapclient
     internal interface iSectionReader
     {
         bool LengthIsKnown { get; }
+        long Length { get; }
         Task<long> GetLengthAsync(cMethodControl pMC, cTrace.cContext pParentContext);
         long ReadPosition { get; }
         Task SetReadPositionAsync(long pReadPosition, cTrace.cContext pParentContext);
@@ -29,6 +30,8 @@ namespace work.bacome.imapclient
         }
 
         public bool LengthIsKnown => true;
+
+        public long Length => mStream.Length;
 
         public Task<long> GetLengthAsync(cMethodControl pMC, cTrace.cContext pParentContext)
         {

@@ -452,7 +452,7 @@ namespace work.bacome.imapclient
         {
             CheckPart(pPart);
 
-            using (var lDataStream = new cIMAPMessageDataStream(Client, MessageHandle, pPart, true))
+            using (var lDataStream = new cIMAPMessageDataStream(Client, MessageHandle, pPart, pPart.DecodingRequired != eDecodingRequired.none))
             using (var lMemoryStream = new MemoryStream())
             {
                 lDataStream.CopyTo(lMemoryStream);
@@ -465,7 +465,7 @@ namespace work.bacome.imapclient
         {
             CheckPart(pPart);
 
-            using (var lDataStream = new cIMAPMessageDataStream(Client, MessageHandle, pPart, true))
+            using (var lDataStream = new cIMAPMessageDataStream(Client, MessageHandle, pPart, pPart.DecodingRequired != eDecodingRequired.none))
             using (var lMemoryStream = new MemoryStream())
             {
                 await lDataStream.CopyToAsync(lMemoryStream).ConfigureAwait(false);
@@ -498,6 +498,7 @@ namespace work.bacome.imapclient
 
         public override Stream GetMessageDataStream(cSinglePartBody pPart, bool pDecoded = true)
         {
+            ;?; // decoded can't default to true
             CheckPart(pPart);
             return new cIMAPMessageDataStream(Client, MessageHandle, pPart, pDecoded);
         }
@@ -508,6 +509,7 @@ namespace work.bacome.imapclient
 
         public cIMAPMessageDataStream GetIMAPMessageDataStream(cSinglePartBody pPart, bool pDecoded = true)
         {
+            ;?; // decoded can't default to true
             CheckPart(pPart);
             return new cIMAPMessageDataStream(Client, MessageHandle, pPart, pDecoded);
         }

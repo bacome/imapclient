@@ -19,10 +19,9 @@ namespace work.bacome.imapclient
 
             if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
             if (pPart == null) throw new ArgumentNullException(nameof(pPart));
+            if (pPart.DecodingRequired == eDecodingRequired.none) throw new ArgumentOutOfRangeException(nameof(pPart));
 
-            if (pPart.DecodingRequired == eDecodingRequired.none) return pPart.SizeInBytes;
             if (!lSession.Capabilities.Binary) return null;
-            if (pPart.Section.TextPart != eSectionTextPart.all) return null;
 
             uint lSizeInBytes;
 
@@ -49,9 +48,9 @@ namespace work.bacome.imapclient
             if (pMessageUID == null) throw new ArgumentNullException(nameof(pMessageUID));
             if (pMessageUID.MailboxId != pMailboxHandle.MailboxId) throw new ArgumentOutOfRangeException(nameof(pMessageUID));
             if (pPart == null) throw new ArgumentNullException(nameof(pPart));
-            if (pPart.DecodingRequired == eDecodingRequired.none) return pPart.SizeInBytes;
+            if (pPart.DecodingRequired == eDecodingRequired.none) throw new ArgumentOutOfRangeException(nameof(pPart));
+
             if (!lSession.Capabilities.Binary) return null;
-            if (pPart.Section.TextPart != eSectionTextPart.all) return null;
 
             uint lSizeInBytes;
 

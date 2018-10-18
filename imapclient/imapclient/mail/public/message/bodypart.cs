@@ -173,9 +173,11 @@ namespace work.bacome.mailclient
         /// </summary>
         public abstract cBodyPartExtensionValues ExtensionValues { get; }
 
-        internal abstract bool TryGetSinglePartBody(cSection pSection, out cSinglePartBody rSinglePartBody);
+        public abstract bool IsABodyStructure { get; }
 
-        internal virtual bool CouldBeTheBodyStructureOf(cSection pMessageSection) => false;
+        internal abstract bool CouldBeTheBodyStructureOf(cSection pMessageSection);
+
+        internal abstract bool TryGetSinglePartBody(cSection pSection, out cSinglePartBody rSinglePartBody);
 
         internal virtual bool LikelyIs(cBodyPart pPart)
         {
@@ -183,11 +185,7 @@ namespace work.bacome.mailclient
             return Type == pPart.Type && SubType == pPart.SubType && Section == pPart.Section && Format == pPart.Format;
         }
 
-        internal virtual bool LikelyContains(cBodyPart pPart)
-        {
-            if (pPart == null) throw new ArgumentNullException(nameof(pPart));
-            return false;
-        }
+        internal abstract bool LikelyContains(cBodyPart pPart);
 
         /// <inheritdoc />
         public override string ToString() => $"{nameof(cBodyPart)}({Type},{SubType},{Section},{mTypeCode})";
@@ -460,6 +458,16 @@ namespace work.bacome.mailclient
         /// <inheritdoc />
         public override cBodyPartExtensionValues ExtensionValues => ExtensionData?.ExtensionValues;
 
+        /// <inheritdoc />
+        public override bool IsABodyStructure => Section == cSection.Text;
+
+        internal override bool CouldBeTheBodyStructureOf(cSection pMessageSection)
+        {
+            if (pMessageSection == null) throw new ArgumentNullException(nameof(pMessageSection));
+            if (!pMessageSection.CouldDescribeASinglePartBody) throw new ArgumentOutOfRangeException(nameof(pMessageSection));
+            return Section.Part == pMessageSection.Part && Section == cSection.Text;
+        }
+
         internal override bool TryGetSinglePartBody(cSection pSection, out cSinglePartBody rSinglePartBody)
         {
             if (pSection == null) throw new ArgumentNullException(nameof(pSection));
@@ -468,19 +476,12 @@ namespace work.bacome.mailclient
             return false;
         }
 
-        internal override bool CouldBeTheBodyStructureOf(cSection pMessageSection)
-        {
-            if (pMessageSection == null) return Section == cSection.Text;
-            if (!pMessageSection.CouldDescribeASinglePartBody) throw new ArgumentOutOfRangeException(nameof(pMessageSection));
-            return Section.Part == pMessageSection.Part && Section == cSection.Text;
-        }
-
         internal override bool LikelyIs(cBodyPart pPart)
         {
-            if (!base.LikelyIs(pPart)) return false;
+            if (pPart == null) throw new ArgumentNullException(nameof(pPart));
             var lPart = pPart as cMultiPartBody;
             if (lPart == null) return false;
-            if (Parts.Count != lPart.Parts.Count || mUTF8Enabled != lPart.mUTF8Enabled) return false;
+            if (!base.LikelyIs(pPart) || Parts.Count != lPart.Parts.Count || mUTF8Enabled != lPart.mUTF8Enabled) return false;
             for (int i = 0; i < Parts.Count; i++) if (!Parts[i].LikelyIs(lPart.Parts[i])) return false;
             return true;
         }
@@ -716,6 +717,15 @@ namespace work.bacome.mailclient
         /// <inheritdoc />
         public override cBodyPartExtensionValues ExtensionValues => ExtensionData?.ExtensionValues;
 
+        public override bool IsABodyStructure => Section.Part == "1";
+
+        internal override bool CouldBeTheBodyStructureOf(cSection pMessageSection)
+        {
+            if (pMessageSection == null) throw new ArgumentNullException(nameof(pMessageSection));
+            if (!pMessageSection.CouldDescribeASinglePartBody) throw new ArgumentOutOfRangeException(nameof(pMessageSection));
+            return Section.Part == pMessageSection.Part + ".1";
+        }
+
         internal override bool TryGetSinglePartBody(cSection pSection, out cSinglePartBody rSinglePartBody)
         {
             if (pSection == null) throw new ArgumentNullException(nameof(pSection));
@@ -730,19 +740,18 @@ namespace work.bacome.mailclient
             return false;
         }
 
-        internal override bool CouldBeTheBodyStructureOf(cSection pMessageSection)
-        {
-            if (pMessageSection == null) return Section.Part == "1";
-            if (!pMessageSection.CouldDescribeASinglePartBody) throw new ArgumentOutOfRangeException(nameof(pMessageSection));
-            return Section.Part == pMessageSection.Part + ".1";
-        }
-
         internal override bool LikelyIs(cBodyPart pPart)
         {
-            if (!base.LikelyIs(pPart)) return false;
+            if (pPart == null) throw new ArgumentNullException(nameof(pPart));
             var lPart = pPart as cSinglePartBody;
             if (lPart == null) return false;
-            return ContentTransferEncoding == lPart.ContentTransferEncoding && SizeInBytes == lPart.SizeInBytes;
+            return base.LikelyIs(pPart) && ContentTransferEncoding == lPart.ContentTransferEncoding && SizeInBytes == lPart.SizeInBytes;
+        }
+
+        internal override bool LikelyContains(cBodyPart pPart)
+        {
+            if (pPart == null) throw new ArgumentNullException(nameof(pPart));
+            return false;
         }
 
         /// <inheritdoc />
@@ -801,10 +810,10 @@ namespace work.bacome.mailclient
 
         internal override bool LikelyIs(cBodyPart pPart)
         {
-            if (!base.LikelyIs(pPart)) return false;
+            if (pPart == null) throw new ArgumentNullException(nameof(pPart));
             var lPart = pPart as cMessageBodyPart;
             if (lPart == null) return false;
-            return SizeInLines == lPart.SizeInLines && BodyStructure.LikelyIs(lPart.BodyStructure);
+            return base.LikelyIs(pPart) && SizeInLines == lPart.SizeInLines && BodyStructure.LikelyIs(lPart.BodyStructure);
         }
 
         internal override bool LikelyContains(cBodyPart pPart) 
@@ -865,10 +874,10 @@ namespace work.bacome.mailclient
 
         internal override bool LikelyIs(cBodyPart pPart)
         {
-            if (!base.LikelyIs(pPart)) return false;
+            if (pPart == null) throw new ArgumentNullException(nameof(pPart));
             var lPart = pPart as cTextBodyPart;
             if (lPart == null) return false;
-            return SizeInLines == lPart.SizeInLines;
+            return base.LikelyIs(pPart) && SizeInLines == lPart.SizeInLines;
         }
 
         /// <inheritdoc />

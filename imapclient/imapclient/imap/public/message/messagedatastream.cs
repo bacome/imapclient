@@ -14,13 +14,15 @@ namespace work.bacome.imapclient
 
         public readonly cIMAPClient Client;
         public readonly iMailboxHandle MailboxHandle;
+        public readonly cUID UID;
         public readonly cSection Section;
-        public readonly bool Decoded;
+        public readonly bool DecodedIfRequired;
 
-        private readonly cSectionHandle mSectionHandle;
-        private readonly cSectionId mSectionId;
-
-        private cSinglePartBody mSinglePartBody;
+        private cSinglePartBody mPart;
+        private bool mToTrySetPart;
+        private bool? mDecoded;
+        private cSectionHandle mSectionHandle;
+        private cSectionId mSectionId;
 
         private int mReadTimeout;
 
@@ -33,7 +35,7 @@ namespace work.bacome.imapclient
         private CancellationTokenSource mBackgroundCancellationTokenSource = null;
         private Task mBackgroundTask = null;   
         
-        internal cIMAPMessageDataStream(cIMAPClient pClient, iMessageHandle pMessageHandle, cSinglePartBody pPart, bool pDecoded)
+        internal cIMAPMessageDataStream(cIMAPClient pClient, iMessageHandle pMessageHandle, cSinglePartBody pPart, bool pDecodedIfRequired)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
 
@@ -41,14 +43,15 @@ namespace work.bacome.imapclient
             if (pMessageHandle.MessageCache.IsInvalid) throw new ArgumentOutOfRangeException(nameof(pMessageHandle));
             if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
 
-            mSinglePartBody = pPart ?? throw new ArgumentNullException(nameof(pPart));
+            mPart = pPart ?? throw new ArgumentNullException(nameof(pPart));
 
             MailboxHandle = null;
+            UID = null;
             Section = pPart.Section;
-
-            Decoded = pDecoded;
-
-            mSectionHandle = new cSectionHandle(pMessageHandle, pPart.Section, pDecoded);
+            DecodedIfRequired = pDecodedIfRequired;
+            mToTrySetPart = false;
+            mDecoded = pDecodedIfRequired && pPart.DecodingRequired != eDecodingRequired.none;
+            mSectionHandle = new cSectionHandle(pMessageHandle, pPart.Section, mDecoded.Value);
             mSectionId = null;
 
             mReadTimeout = Client.Timeout;
@@ -65,34 +68,45 @@ namespace work.bacome.imapclient
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
 
             MailboxHandle = null;
-            Decoded = false;
+            UID = null;
+            DecodedIfRequired = false;
 
+            mPart = null;
+            mToTrySetPart = pSection.CouldDescribeASinglePartBody;
+            mDecoded = false;
             mSectionHandle = new cSectionHandle(pMessageHandle, pSection, false);
             mSectionId = null;
-
-            mSinglePartBody = null;
 
             mReadTimeout = Client.Timeout;
         }
 
-        internal cIMAPMessageDataStream(cIMAPClient pClient, iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, bool pDecoded)
+        internal cIMAPMessageDataStream(cIMAPClient pClient, iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, bool pDecodedIfRequired)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
 
             MailboxHandle = pMailboxHandle ?? throw new ArgumentNullException(nameof(pMailboxHandle));
             if (!ReferenceEquals(pClient.MailboxCache, pMailboxHandle.MailboxCache)) throw new ArgumentOutOfRangeException(nameof(pMailboxHandle));
 
-            if (pUID == null) throw new ArgumentNullException(nameof(pUID));
+            UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
-            if (pSection.Part == null && pDecoded) throw new ArgumentOutOfRangeException(nameof(pDecoded));
-            if (pDecoded && !pSection.CouldDescribeASinglePartBody) throw new ArgumentOutOfRangeException(nameof(pDecoded));
 
-            Decoded = pDecoded;
+            DecodedIfRequired = pDecodedIfRequired;
+
+            mPart = null;
+            mToTrySetPart = pSection.CouldDescribeASinglePartBody;
+
+            if (pDecodedIfRequired && pSection.CouldDescribeASinglePartBody)
+            {
+                mDecoded = null;
+                mSectionId = null;
+            }
+            else
+            {
+                mDecoded = false;
+                mSectionId = new cSectionId(new cMessageUID(pMailboxHandle.MailboxId, pUID, Client.UTF8Enabled), pSection, false);
+            }
 
             mSectionHandle = null;
-            mSectionId = new cSectionId(new cMessageUID(pMailboxHandle.MailboxId, pUID, Client.UTF8Enabled), pSection, pDecoded);
-
-            mSinglePartBody = null;
 
             mReadTimeout = Client.Timeout;
         }
@@ -109,39 +123,43 @@ namespace work.bacome.imapclient
         {
             get
             {
+                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
                 if (mLength >= 0) return mLength;
                 var lContext = Client.RootContext.NewGetProp(nameof(cIMAPMessageDataStream), nameof(Length));
                 var lTask = ZGetLengthAsync(cMethodControl.None, lContext);
                 Client.Wait(lTask, lContext);
-                return lTask.Result;
+                mLength = lTask.Result;
+                return mLength;
             }
         }
 
-        public Task<long> GetLengthAsync()
+        public async Task<long> GetLengthAsync()
         {
-            if (mLength >= 0) return Task.FromResult(mLength);
-            var lContext = Client.RootContext.NewGetProp(nameof(cIMAPMessageDataStream), nameof(GetLengthAsync));
+            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
+            if (mLength >= 0) return mLength;
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(GetLengthAsync));
             var lMC = new cMethodControl(mReadTimeout);
-            return ZGetLengthAsync(lMC, lContext);
+            mLength = await ZGetLengthAsync(lMC, lContext).ConfigureAwait(false);
+            return mLength;
         }
 
-        public Task<long> GetLengthAsync(CancellationToken pCancellationToken)
+        public async Task<long> GetLengthAsync(CancellationToken pCancellationToken)
         {
-            if (mLength >= 0) return Task.FromResult(mLength);
-            var lContext = Client.RootContext.NewGetProp(nameof(cIMAPMessageDataStream), nameof(GetLengthAsync));
+            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
+            if (mLength >= 0) return mLength;
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(GetLengthAsync));
             var lMC = new cMethodControl(mReadTimeout, pCancellationToken);
-            return ZGetLengthAsync(lMC, lContext);
+            mLength = await ZGetLengthAsync(lMC, lContext).ConfigureAwait(false);
+            return mLength;
         }
 
         private async Task<long> ZGetLengthAsync(cMethodControl pMC, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(GetLengthAsync), pMC);
 
-            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
-
             if (mMessageDataReader != null) return await mMessageDataReader.GetLengthAsync(pMC, lContext).ConfigureAwait(false);
 
-            if (ZTryGetIdealSectionReader(lContext)) return await mMessageDataReader.GetLengthAsync(pMC, lContext).ConfigureAwait(false);
+            if (ZTryGetIdealSectionReader(lContext)) return mSectionReader.Length;
 
             if (Section == cSection.All) 
             {
@@ -153,23 +171,25 @@ namespace work.bacome.imapclient
                 else return await LGetLengthFromSectionReaderWriterAsync();
             }
 
-            if (mSinglePartBody == null && !(await ZTrySetSinglePartBody(pMC, lContext).ConfigureAwait(false))) return await LGetLengthFromSectionReaderWriterAsync();
+            if (mToTrySetPart) await ZTrySetPart(pMC, lContext).ConfigureAwait(false);
 
-            if (Decoded)
+            if (mPart == null) return await LGetLengthFromSectionReaderWriterAsync();
+
+            if (mDecoded == true)
             {
                 uint? lDecodedSizeInBytes;
 
-                if (mSectionHandle == null) lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(pMC, MailboxHandle, mSectionId.MessageUID, mSinglePartBody, lContext).ConfigureAwait(false);
-                else lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(pMC, mSectionHandle.MessageHandle, mSinglePartBody, lContext).ConfigureAwait(false);
+                if (mSectionHandle == null) lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(pMC, MailboxHandle, mSectionId.MessageUID, mPart, lContext).ConfigureAwait(false);
+                else lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(pMC, mSectionHandle.MessageHandle, mPart, lContext).ConfigureAwait(false);
 
                 if (lDecodedSizeInBytes == null) return await LGetLengthFromSectionReaderWriterAsync();
 
                 return lDecodedSizeInBytes.Value;                
             }
 
-            if (mSinglePartBody is cMessageBodyPart && !Client.MessageSizesAreReliable) return await LGetLengthFromSectionReaderWriterAsync();
+            if (mPart is cMessageBodyPart && !Client.MessageSizesAreReliable) return await LGetLengthFromSectionReaderWriterAsync();
 
-            return mSinglePartBody.SizeInBytes;
+            return mPart.SizeInBytes;
 
             async Task<long> LGetLengthFromSectionReaderWriterAsync()
             {
@@ -300,46 +320,33 @@ namespace work.bacome.imapclient
 
         public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
 
-
-        ;?;
-
         public cScale GetScale()
         {
             var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(GetScale));
-
-
-
-
-
-
-            var lTask = GetProgressLengthAsync(cMethodControl.None, lContext);
+            var lTask = ZGetScaleAsync(cMethodControl.None, lContext);
             Client.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        /*
-        public Task<long?> GetProgressLengthAsync()
+        public Task<cScale> GetScaleAsync()
         {
-            var lContext = Client.RootContext.NewGetProp(nameof(cIMAPMessageDataStream), nameof(GetProgressLengthAsync));
+            var lContext = Client.RootContext.NewMethodV(nameof(cIMAPMessageDataStream), nameof(GetScaleAsync), 1);
             var lMC = new cMethodControl(mReadTimeout);
-            return GetProgressLengthAsync(lMC, lContext);
+            return ZGetScaleAsync(lMC, lContext);
         }
 
-        public Task<long?> GetProgressLengthAsync(CancellationToken pCancellationToken)
+        public Task<cScale> GetScaleAsync(CancellationToken pCancellationToken)
         {
-            var lContext = Client.RootContext.NewGetProp(nameof(cIMAPMessageDataStream), nameof(GetProgressLengthAsync));
+            var lContext = Client.RootContext.NewMethodV(nameof(cIMAPMessageDataStream), nameof(GetScaleAsync), 2);
             var lMC = new cMethodControl(mReadTimeout, pCancellationToken);
-            return GetProgressLengthAsync(lMC, lContext);
+            return ZGetScaleAsync(lMC, lContext);
         }
 
-        internal async Task<long?> GetProgressLengthAsync(cMethodControl pMC, cTrace.cContext pParentContext)
+        internal Task<cScale> GetScaleAsync(cMethodControl pMC, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(GetProgressLengthAsync), pMC);
-            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
-            if (mProgressLength != null) return mProgressLength;
-            await ZSetProgressLengthAsync(pMC, lContext).ConfigureAwait(false);
-            return mProgressLength;
-        } */
+            var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(GetScaleAsync), pMC);
+            return ZGetScaleAsync(pMC, lContext);
+        }
 
         private async Task<cScale> ZGetScaleAsync(cMethodControl pMC, cTrace.cContext pParentContext)
         {
@@ -348,8 +355,8 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
 
             if (mMessageDataReader == null) ZTryGetIdealSectionReader(lContext);
-            
-            if (mMessageDataReader != null && mMessageDataReader.LengthIsKnown) return new cScale(cScale.eType.exact, await mMessageDataReader.GetLengthAsync(pMC, lContext).ConfigureAwait(false));
+
+            if (mMessageDataReader != null && mMessageDataReader.LengthIsKnown) return new cScale(cScale.eType.exact, mMessageDataReader.Length);
 
             if (Section == cSection.All)
             {
@@ -359,76 +366,74 @@ namespace work.bacome.imapclient
                 else lMessageSizeInBytes = await Client.GetMessageSizeInBytesAsync(pMC, mSectionHandle.MessageHandle, lContext).ConfigureAwait(false);
 
                 if (Client.MessageSizesAreReliable) return new cScale(cScale.eType.exact, lMessageSizeInBytes);
-                else return new cScale(cScale.eType.estimate, lMessageSizeInBytes);
+                return new cScale(cScale.eType.estimate, lMessageSizeInBytes);
             }
 
-            if (mSinglePartBody == null && !(await ZTrySetSinglePartBody(pMC, lContext).ConfigureAwait(false))) return null;
+            if (mToTrySetPart) await ZTrySetPart(pMC, lContext).ConfigureAwait(false);
 
-            if (Decoded)
+            if (mPart == null) return null;
+
+            if (mDecoded == true)
             {
                 uint? lDecodedSizeInBytes;
 
-                if (mSectionHandle == null) lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(pMC, MailboxHandle, mSectionId.MessageUID, mSinglePartBody, lContext).ConfigureAwait(false);
-                else lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(pMC, mSectionHandle.MessageHandle, mSinglePartBody, lContext).ConfigureAwait(false);
+                if (mSectionHandle == null) lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(pMC, MailboxHandle, mSectionId.MessageUID, mPart, lContext).ConfigureAwait(false);
+                else lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(pMC, mSectionHandle.MessageHandle, mPart, lContext).ConfigureAwait(false);
 
-                if (lDecodedSizeInBytes == null) return null;
+                if (lDecodedSizeInBytes != null) return new cScale(cScale.eType.exact, lDecodedSizeInBytes.Value);
 
-                return new cScale(cScale.eType.exact, lDecodedSizeInBytes.Value);
+                return new cScale(cScale.eType.encoded, mPart.SizeInBytes);
             }
 
-            if (mSinglePartBody is cMessageBodyPart && !Client.MessageSizesAreReliable) return new cScale(cScale.eType.estimate, mSinglePartBody.SizeInBytes);
-
-            return new cScale(cScale.eType.exact, mSinglePartBody.SizeInBytes);
+            if (mPart is cMessageBodyPart && !Client.MessageSizesAreReliable) return new cScale(cScale.eType.estimate, mPart.SizeInBytes);
+            return new cScale(cScale.eType.exact, mPart.SizeInBytes);
         }
 
-        public long GetProgressPosition()
+        public long GetPositionOnScale(cScale pScale)
         {
-            var lContext = Client.RootContext.NewGetProp(nameof(cIMAPMessageDataStream), nameof(GetProgressPosition));
+            var lContext = Client.RootContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(GetPositionOnScale), pScale);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPMessageDataStream));
-            ;?; // messagedatareader
-            if (mSectionReader == null || mSectionReader.ReadPosition == 0) return 0;
 
-            if (mProgressLengthIsFetchSizeInBytes)
+            if (pScale == null) throw new ArgumentNullException(nameof(pScale));
+
+            if (mMessageDataReader == null) return 0;
+
+            var lReadPosition = mMessageDataReader.ReadPosition;
+
+            if (lReadPosition == 0) return 0;
+
+            if (mMessageDataReader.LengthIsKnown)
             {
-                if (mCacheItemReaderWriter == null)
-                {
-                    ;?; // put the others here
-                    if (mCacheItemReader == null) throw new cInternalErrorException(lContext);
-                    return mProgressLength.Value * mCacheItemReader.ReadPosition / mCacheItemReader.Length;
-                }
-                else return mCacheItemReaderWriter.FetchedBytesReadPosition;
+                if (lReadPosition == mMessageDataReader.Length) return pScale.Scale;
+                return lReadPosition * pScale.Scale / mMessageDataReader.Length;
             }
-            else return mSectionReader.ReadPosition;
+
+            if (mSectionReaderWriter.IsDecoding && pScale.Type == cScale.eType.encoded) return Math.Min(mSectionReaderWriter.ReadPositionInInputBytes, pScale.Scale);
+
+            return Math.Min(lReadPosition, pScale.Scale);
         }
 
-
-
-
-
-
-
-
-
-
-        private async Task<bool> ZTrySetSinglePartBody(cMethodControl pMC, cTrace.cContext pParentContext)
+        private async Task ZTrySetPart(cMethodControl pMC, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ZTrySetSinglePartBody), pMC);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ZTrySetPart), pMC);
 
-            if (mSinglePartBody != null) throw new InvalidOperationException();
+            if (mPart != null || !mToTrySetPart) throw new InvalidOperationException();
 
-            if (Section.Part == null || !Section.CouldDescribeASinglePartBody) return false;
-
-            if (mSectionHandle == null) mSinglePartBody = await Client.GetSinglePartBodyAsync(pMC, MailboxHandle, mSectionId.MessageUID, Section, lContext).ConfigureAwait(false);
-            else mSinglePartBody = await Client.GetSinglePartBodyAsync(pMC, MailboxHandle, mSectionId.MessageUID, Section, lContext).ConfigureAwait(false);
-
-            if (mSinglePartBody == null)
+            if (mSectionHandle == null)
             {
-                if (Decoded) throw new cMessageDataStreamInconsistentException(this);
-                return false;
-            }
+                mPart = await Client.GetSinglePartBodyAsync(pMC, MailboxHandle, UID, Section, lContext).ConfigureAwait(false);
 
-            return true;
+                if (DecodedIfRequired)
+                {
+                    if (mPart == null) mDecoded = false;
+                    else mDecoded = mPart.DecodingRequired != eDecodingRequired.none;
+                    mSectionId = new cSectionId(new cMessageUID(MailboxHandle.MailboxId, UID, Client.UTF8Enabled), Section, mDecoded.Value);
+                }
+            }
+            else mPart = await Client.GetSinglePartBodyAsync(pMC, mSectionHandle.MessageHandle, Section, lContext).ConfigureAwait(false);
+
+            mToTrySetPart = false;
         }
 
         private void ZGetMessageDataReader(cTrace.cContext pParentContext)
@@ -629,6 +634,8 @@ namespace work.bacome.imapclient
                 Type = pType;
                 Scale = pScale;
             }
+
+            public override string ToString() => $"{nameof(cScale)}({Type},{Scale})";
         }
     }
 }

@@ -36,9 +36,9 @@ namespace work.bacome.imapclient
             return null;
         }
 
-        internal async Task<cSinglePartBody> GetSinglePartBodyAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cMessageUID pMessageUID, cSection pSection, cTrace.cContext pParentContext)
+        internal async Task<cSinglePartBody> GetSinglePartBodyAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetSinglePartBodyAsync), pMC, pMailboxHandle, pMessageUID, pSection);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(GetSinglePartBodyAsync), pMC, pMailboxHandle, pUID, pSection);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -46,17 +46,16 @@ namespace work.bacome.imapclient
             if (lSession == null || lSession.ConnectionState != eIMAPConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
             if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
-            if (pMessageUID == null) throw new ArgumentNullException(nameof(pMessageUID));
-            if (pMessageUID.MailboxId != pMailboxHandle.MailboxId) throw new ArgumentOutOfRangeException(nameof(pMessageUID));
+            if (pUID == null) throw new ArgumentNullException(nameof(pUID));
             if (pSection == null) throw new ArgumentNullException(nameof(pSection));
             if (!pSection.CouldDescribeASinglePartBody) throw new ArgumentOutOfRangeException(nameof(pSection));
 
             cBodyPart lBodyStructure;
 
-            if (lSession.PersistentCache.TryGetHeaderCacheItem(pMessageUID, out var lHeaderCacheItem, lContext) && lHeaderCacheItem.BodyStructure != null) lBodyStructure = lHeaderCacheItem.BodyStructure;
+            if (lSession.PersistentCache.TryGetHeaderCacheItem(new cMessageUID(pMailboxHandle.MailboxId, pUID, lSession.UTF8Enabled), out var lHeaderCacheItem, lContext) && lHeaderCacheItem.BodyStructure != null) lBodyStructure = lHeaderCacheItem.BodyStructure;
             else
             {
-                var lMessageHandles = await lSession.UIDFetchCacheItemsAsync(pMC, pMailboxHandle, cUIDList.FromUID(pMessageUID.UID), cMessageCacheItems.BodyStructure, null, lContext).ConfigureAwait(false);
+                var lMessageHandles = await lSession.UIDFetchCacheItemsAsync(pMC, pMailboxHandle, cUIDList.FromUID(pUID), cMessageCacheItems.BodyStructure, null, lContext).ConfigureAwait(false);
 
                 if (lMessageHandles.Count == 0) return null;
                 if (lMessageHandles.Count != 1) throw new cInternalErrorException(lContext);

@@ -26,13 +26,13 @@ namespace work.bacome.imapclient
         // write
         private eWritingState mWritingState = eWritingState.notstarted;
         private cDecoder mDecoder = null;
-        private int mBufferedEncodedByteCount = 0;
+        private int mBufferedInputByteCount = 0;
         private long mWritePosition = 0;
         private Exception mWriteException = null;
-        private long mEncodedBytesWrittenToStream = 0;
+        private long mInputBytesWrittenToStream = 0;
 
         // read/write
-        private long mReadPositionInEncodedBytes = 0;
+        private long mReadPositionInInputBytes = 0;
 
         internal cSectionReaderWriter(Stream pStream, iSectionAdder pAdder)
         {
@@ -43,6 +43,15 @@ namespace work.bacome.imapclient
         }
 
         public bool LengthIsKnown => mWritingState == eWritingState.completedok;
+
+        public long Length
+        {
+            get
+            {
+                if (mWritingState != eWritingState.completedok) throw new InvalidOperationException();
+                return mStream.Length;
+            }
+        }
 
         public async Task<long> GetLengthAsync(cMethodControl pMC, cTrace.cContext pParentContext)
         {
@@ -83,7 +92,7 @@ namespace work.bacome.imapclient
             if (pReadPosition == 0)
             {
                 mReadPosition = 0;
-                ZSetReadPositionInEncodedBytes();
+                ZSetReadPositionInInputBytes();
                 return;
             }
 
@@ -96,7 +105,7 @@ namespace work.bacome.imapclient
                     mReadPosition = pReadPosition;
 
                     await mSemaphore.WaitAsync().ConfigureAwait(false);
-                    ZSetReadPositionInEncodedBytes();
+                    ZSetReadPositionInInputBytes();
                     mSemaphore.Release();
 
                     return;
@@ -106,7 +115,7 @@ namespace work.bacome.imapclient
                 {
                     if (pReadPosition > mStream.Length) throw new ArgumentOutOfRangeException(nameof(pReadPosition));
                     mReadPosition = pReadPosition;
-                    ZSetReadPositionInEncodedBytes();
+                    ZSetReadPositionInInputBytes();
                     return;
                 }
 
@@ -116,7 +125,7 @@ namespace work.bacome.imapclient
 
         public bool WritingHasCompletedOK => (mWritingState == eWritingState.completedok);
 
-        public long ReadPositionInEncodedBytes => mReadPositionInEncodedBytes;
+        public long ReadPositionInInputBytes => mReadPositionInInputBytes;
 
         public async Task<int> ReadAsync(byte[] pBuffer, int pOffset, int pCount, int pTimeout, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
@@ -144,7 +153,7 @@ namespace work.bacome.imapclient
                 mStream.Position = mReadPosition;
                 var lBytesRead = await mStream.ReadAsync(pBuffer, pOffset, pCount, lMC.CancellationToken).ConfigureAwait(false);
                 mReadPosition = mStream.Position;
-                ZSetReadPositionInEncodedBytes();
+                ZSetReadPositionInInputBytes();
 
                 return lBytesRead;
             }
@@ -171,17 +180,17 @@ namespace work.bacome.imapclient
                 mStream.Position = mReadPosition;
                 var lResult = mStream.ReadByte();
                 mReadPosition = mStream.Position;
-                ZSetReadPositionInEncodedBytes();
+                ZSetReadPositionInInputBytes();
 
                 return lResult;
             }
             finally { mSemaphore.Release(); }
         }
 
-        private void ZSetReadPositionInEncodedBytes()
+        private void ZSetReadPositionInInputBytes()
         {
-            if (mReadPosition == 0) mReadPositionInEncodedBytes = 0;
-            else mReadPositionInEncodedBytes = mEncodedBytesWrittenToStream - mStream.Length + mReadPosition;
+            if (mReadPosition == 0) mReadPositionInInputBytes = 0;
+            else mReadPositionInInputBytes = mInputBytesWrittenToStream - mStream.Length + mReadPosition;
         }
 
         private async Task ZWaitForDataToReadAsync(cMethodControl pMC, cTrace.cContext pParentContext)
@@ -221,6 +230,8 @@ namespace work.bacome.imapclient
             else throw new cContentTransferDecodingNotSupportedException(pDecoding);
         }
 
+        public bool IsDecoding => mDecoder != null;
+
         public void WriteBegin(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(WriteBegin));
@@ -230,35 +241,35 @@ namespace work.bacome.imapclient
             mWritingState = eWritingState.inprogress;
         }
 
-        public async Task WriteAsync(IList<byte> pEncodedBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        public async Task WriteAsync(IList<byte> pBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(WriteAsync), pOffset);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cSectionReaderWriter));
             if (mWritingState != eWritingState.inprogress) throw new InvalidOperationException();
 
-            if (pEncodedBytes == null) throw new ArgumentNullException(nameof(pEncodedBytes));
-            if (pOffset > pEncodedBytes.Count) throw new ArgumentOutOfRangeException(nameof(pOffset));
-            if (pOffset == pEncodedBytes.Count) return;
+            if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
+            if (pOffset > pBytes.Count) throw new ArgumentOutOfRangeException(nameof(pOffset));
+            if (pOffset == pBytes.Count) return;
 
-            byte[] lDecodedBytes;
-            int lEncodedBytesInDecodedBytes;
+            byte[] lBytes;
+            int lInputBytesInBytes;
 
             if (mDecoder == null)
             {
-                lDecodedBytes = new byte[pEncodedBytes.Count - pOffset];
-                for (int i = 0; i < lDecodedBytes.Length; i++) lDecodedBytes[i] = pEncodedBytes[pOffset + i];
-                lEncodedBytesInDecodedBytes = lDecodedBytes.Length;
+                lBytes = new byte[pBytes.Count - pOffset];
+                for (int i = 0; i < lBytes.Length; i++) lBytes[i] = pBytes[pOffset + i];
+                lInputBytesInBytes = lBytes.Length;
             }
             else
             {
-                var lCount = pEncodedBytes.Count - pOffset;
+                var lCount = pBytes.Count - pOffset;
 
-                lDecodedBytes = mDecoder.Decode(pEncodedBytes, pOffset, lCount);
+                lBytes = mDecoder.Transform(pBytes, pOffset, lCount);
 
-                int lBufferedEncodedByteCount = mDecoder.GetBufferedInputByteCount();
-                lEncodedBytesInDecodedBytes = lCount - lBufferedEncodedByteCount + mBufferedEncodedByteCount;
-                mBufferedEncodedByteCount = lBufferedEncodedByteCount;
+                int lBufferedInputByteCount = mDecoder.BufferedInputByteCount;
+                lInputBytesInBytes = lCount - lBufferedInputByteCount + mBufferedInputByteCount;
+                mBufferedInputByteCount = lBufferedInputByteCount;
             }
 
             await mSemaphore.WaitAsync(pCancellationToken).ConfigureAwait(false);
@@ -267,14 +278,14 @@ namespace work.bacome.imapclient
             {
                 lContext.TraceVerbose("writing");
 
-                if (lDecodedBytes.Length > 0)
+                if (lBytes.Length > 0)
                 {
                     mStream.Position = mWritePosition;
-                    await mStream.WriteAsync(lDecodedBytes, 0, lDecodedBytes.Length, pCancellationToken).ConfigureAwait(false);
+                    await mStream.WriteAsync(lBytes, 0, lBytes.Length, pCancellationToken).ConfigureAwait(false);
                     mWritePosition = mStream.Position;
                 }
 
-                mEncodedBytesWrittenToStream += lEncodedBytesInDecodedBytes;
+                mInputBytesWrittenToStream += lInputBytesInBytes;
             }
             finally { mSemaphore.Release(); }
 
