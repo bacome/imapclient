@@ -14,8 +14,8 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kStatusSpace = new cBytes("STATUS ");
                 private static readonly cBytes kMessagesSpace = new cBytes("MESSAGES ");
                 private static readonly cBytes kRecentSpace = new cBytes("RECENT ");
-                private static readonly cBytes kUIDNextSpace = new cBytes("UIDNEXT ");
                 private static readonly cBytes kUIDValiditySpace = new cBytes("UIDVALIDITY ");
+                private static readonly cBytes kUIDNextSpace = new cBytes("UIDNEXT ");
                 private static readonly cBytes kUnseenSpace = new cBytes("UNSEEN ");
                 private static readonly cBytes kHighestModSeqSpace = new cBytes("HIGHESTMODSEQ ");
 
@@ -116,8 +116,8 @@ namespace work.bacome.imapclient
 
                     uint? lMessages = null;
                     uint? lRecent = null;
-                    uint? lUIDNext = null;
                     uint? lUIDValidity = null;
+                    uint? lUIDNextComponent = null;
                     uint? lUnseen = null;
                     ulong? lHighestModSeq = null;
 
@@ -133,11 +133,11 @@ namespace work.bacome.imapclient
 
                             if (lResult == eProcessStatusAttributeResult.notprocessed)
                             {
-                                lResult = ZProcessDataStatusAttribute(pCursor, kUIDNextSpace, ref lUIDNext, lContext);
+                                lResult = ZProcessDataStatusAttribute(pCursor, kUIDValiditySpace, ref lUIDValidity, lContext);
 
                                 if (lResult == eProcessStatusAttributeResult.notprocessed)
                                 {
-                                    lResult = ZProcessDataStatusAttribute(pCursor, kUIDValiditySpace, ref lUIDValidity, lContext);
+                                    lResult = ZProcessDataStatusAttribute(pCursor, kUIDNextSpace, ref lUIDNextComponent, lContext);
 
                                     if (lResult == eProcessStatusAttributeResult.notprocessed)
                                     {
@@ -161,7 +161,7 @@ namespace work.bacome.imapclient
                         if (!pCursor.SkipByte(cASCII.SPACE))
                         {
                             if (!mCapabilities.CondStore) lHighestModSeq = 0;
-                            rStatus = new cStatus(mSequence++, lMessages, lRecent, lUIDNext, lUIDValidity, lUnseen, lHighestModSeq);
+                            rStatus = new cStatus(mSequence++, lMessages, lRecent, lUIDValidity, lUIDNextComponent, lUnseen, lHighestModSeq);
                             return true;
                         }
                     }

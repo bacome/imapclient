@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal Task FetchSectionAsync(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, iFetchSectionTarget pTarget, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        internal Task FetchSectionAsync(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, cSectionReaderWriter pSectionReaderWriter, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(FetchSectionAsync), pMessageHandle, pSection, pDecoding);
 
@@ -20,9 +20,9 @@ namespace work.bacome.imapclient
 
             if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
             if (pSection == null) throw new ArgumentNullException(nameof(pSection));
-            if (pTarget == null) throw new ArgumentNullException(nameof(pTarget));
+            if (pSectionReaderWriter == null) throw new ArgumentNullException(nameof(pSectionReaderWriter));
 
-            return lSession.FetchSectionAsync(pMessageHandle, pSection, pDecoding, pTarget, pCancellationToken, lContext);
+            return lSession.FetchSectionAsync(pMessageHandle, pSection, pDecoding, pSectionReaderWriter, pCancellationToken, lContext);
         }
     }
 }

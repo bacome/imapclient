@@ -24,26 +24,28 @@ namespace work.bacome.imapclient.support
         int RecentCount { get; }
 
         /// <summary>
-        /// Gets the predicted next UID for the mailbox. May be zero.
+        /// Gets the UIDValidity of the mailbox. May be zero.
         /// </summary>
         /// <remarks>
-        /// Zero indicates that the value is not known.
+        /// Zero indicates that the server does not support unique identifiers.
+        /// </remarks>
+        uint UIDValidity { get; }
+
+        bool UIDNotSticky { get; }
+
+        /// <summary>
+        /// Gets the predicted next UID for the mailbox. May be null.
+        /// </summary>
+        /// <remarks>
+        /// Null indicates that the server does not support unique identifiers or that the value is not known.
         /// The value may not be up-to-date.
         /// </remarks>
-        uint UIDNext { get; }
+        cUID UIDNext { get; }
 
         /// <summary>
         /// Indicates how out-of-date the <see cref="UIDNext"/> is.
         /// </summary>
         int UIDNextUnknownCount { get; }
-
-        /// <summary>
-        /// Gets the UIDValidity of the mailbox. May be <see cref="sUIDValidity.None"/>.
-        /// </summary>
-        /// <remarks>
-        /// <see cref="sUIDValidity.None"/> indicates that the server does not support unique identifiers.
-        /// </remarks>
-        sUIDValidity UIDValidity { get; }
 
         /// <summary>
         /// Gets the number of unseen messages in the mailbox.

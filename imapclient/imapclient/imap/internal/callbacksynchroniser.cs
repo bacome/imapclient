@@ -51,9 +51,9 @@ namespace work.bacome.imapclient
 
                 if ((pProperties & fMailboxProperties.messagecount) != 0) YInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.MessageCount)));
                 if ((pProperties & fMailboxProperties.recentcount) != 0) YInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.RecentCount)));
+                if ((pProperties & fMailboxProperties.uidvalidity) != 0) YInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.UIDValidity)));
                 if ((pProperties & fMailboxProperties.uidnext) != 0) YInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.UIDNext)));
                 if ((pProperties & fMailboxProperties.uidnextunknowncount) != 0) YInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.UIDNextUnknownCount)));
-                if ((pProperties & fMailboxProperties.uidvalidity) != 0) YInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.UIDValidity)));
                 if ((pProperties & fMailboxProperties.unseencount) != 0) YInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.UnseenCount)));
                 if ((pProperties & fMailboxProperties.unseenunknowncount) != 0) YInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.UnseenUnknownCount)));
                 if ((pProperties & fMailboxProperties.highestmodseq) != 0) YInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.HighestModSeq)));
@@ -61,7 +61,7 @@ namespace work.bacome.imapclient
                 if ((pProperties & fMailboxProperties.hasbeenselected) != 0) YInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.HasBeenSelected)));
                 if ((pProperties & fMailboxProperties.hasbeenselectedforupdate) != 0) YInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.HasBeenSelectedForUpdate)));
                 if ((pProperties & fMailboxProperties.hasbeenselectedreadonly) != 0) YInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.HasBeenSelectedReadOnly)));
-                if ((pProperties & fMailboxProperties.uidsaresticky) != 0) YInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.UIDsAreSticky)));
+                if ((pProperties & fMailboxProperties.uidnotsticky) != 0) YInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.UIDNotSticky)));
                 if ((pProperties & fMailboxProperties.messageflags) != 0) YInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.MessageFlags)));
                 if ((pProperties & fMailboxProperties.forupdatepermanentflags) != 0) YInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.ForUpdatePermanentFlags)));
                 if ((pProperties & fMailboxProperties.readonlypermanentflags) != 0) YInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.ReadOnlyPermanentFlags)));

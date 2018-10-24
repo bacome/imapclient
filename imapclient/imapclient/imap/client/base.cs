@@ -92,7 +92,7 @@ namespace work.bacome.imapclient
         private fIMAPCapabilities mIgnoreCapabilities = 0;
         private cIMAPAuthentication mAuthentication = null;
         private bool mMailboxReferrals = false;
-        private fMailboxCacheDataItems mMailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.uidnext | fMailboxCacheDataItems.uidvalidity | fMailboxCacheDataItems.unseencount;
+        private fMailboxCacheDataItems mMailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.uidvalidity | fMailboxCacheDataItems.uidnextcomponent | fMailboxCacheDataItems.unseencount;
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
         private cPersistentCache _PersistentCache = null;
         private cBatchSizerConfiguration mFetchCacheItemsConfiguration = new cBatchSizerConfiguration(1, 1000, 10000, 1);
@@ -326,7 +326,7 @@ namespace work.bacome.imapclient
         /// Gets and sets the set of optionally requested mailbox data items.
         /// </summary>
         /// <remarks>
-        /// The default set is <see cref="fMailboxCacheDataItems.messagecount"/>, <see cref="fMailboxCacheDataItems.uidnext"/>, <see cref="fMailboxCacheDataItems.uidvalidity"/> and <see cref="fMailboxCacheDataItems.unseencount"/>.
+        /// The default set is <see cref="fMailboxCacheDataItems.messagecount"/>, <see cref="fMailboxCacheDataItems.uidvalidity"/>, <see cref="fMailboxCacheDataItems.uidnextcomponent"/> and <see cref="fMailboxCacheDataItems.unseencount"/>.
         /// May only be set while <see cref="IsUnconnected"/>.
         /// <note type="note" >
         /// The mailbox data items that are actually requested depends on the <see cref="fMailboxCacheDataSets"/> value used at the time of the request.

@@ -5,13 +5,15 @@ namespace work.bacome.imapclient
     public class cMailboxUID : IEquatable<cMailboxUID>
     {
         public readonly cMailboxId MailboxId;
-        public readonly sUIDValidity UIDValidity;
+        public readonly uint UIDValidity;
+        public readonly bool UIDNotSticky;
 
-        public cMailboxUID(cMailboxId pMailboxId, sUIDValidity pUIDValidity)
+        public cMailboxUID(cMailboxId pMailboxId, uint pUIDValidity, bool pUIDNotSticky)
         {
             MailboxId = pMailboxId ?? throw new ArgumentNullException(nameof(pMailboxId));
-            if (pUIDValidity.IsNone) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
+            if (pUIDValidity == 0) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
             UIDValidity = pUIDValidity;
+            UIDNotSticky = pUIDNotSticky;
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
@@ -29,13 +31,14 @@ namespace work.bacome.imapclient
 
                 lHash = lHash * 23 + MailboxId.GetHashCode();
                 lHash = lHash * 23 + UIDValidity.GetHashCode();
+                lHash = lHash * 23 + UIDNotSticky.GetHashCode();
 
                 return lHash;
             }
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cMailboxUID)}({MailboxId},{UIDValidity})";
+        public override string ToString() => $"{nameof(cMailboxUID)}({MailboxId},{UIDValidity},{UIDNotSticky})";
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cMailboxUID pA, cMailboxUID pB)
@@ -43,7 +46,7 @@ namespace work.bacome.imapclient
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
             if (ReferenceEquals(pB, null)) return false;
-            return pA.MailboxId == pB.MailboxId && pA.UIDValidity == pB.UIDValidity;
+            return pA.MailboxId == pB.MailboxId && pA.UIDValidity == pB.UIDValidity && pA.UIDNotSticky == pB.UIDNotSticky;
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>

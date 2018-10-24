@@ -487,56 +487,6 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the predicted next UID for the mailbox. May be <see langword="null"/> or zero.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// This property always has a value when the mailbox is selected, but zero indicates that the value is not known.
-        /// </para>
-        /// <para>
-        /// <see langword="null"/> indicates that either;
-        /// <list type="bullet">
-        /// <item>The mailbox is not <see cref="CanSelect"/>, or</item>
-        /// <item><see cref="fMailboxCacheDataItems.uidnext"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>), or</item>
-        /// <item>The value was not sent when requested.</item>
-        /// </list>
-        /// </para>
-        /// <para>
-        /// When the mailbox is selected the library maintains the value of this property by monitoring IMAP FETCH responses from the server,
-        /// but for the value to be up-to-date 
-        /// FETCH responses containing the UID have to be solicited for new messages  
-        /// (to get notification of new messages via <see cref="MessageDelivery"/> use <see cref="cIMAPClient.Poll"/> or allow idling using <see cref="cIMAPClient.IdleConfiguration"/>; to solicit the FETCH responses required
-        /// use <see cref="Messages(IEnumerable{iMessageHandle}, cMessageCacheItems, cFetchCacheItemConfiguration)"/> with <see cref="cMessageDeliveryEventArgs.MessageHandles"/> and <see cref="fMessageCacheAttributes.uid"/>
-        /// ).
-        /// </para>
-        /// </remarks>
-        public uint? UIDNext
-        {
-            get
-            {
-                var lContext = Client.RootContext.NewGetProp(nameof(cMailbox), nameof(UIDNext));
-                var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
-                if (ReferenceEquals(lSelectedMailboxDetails?.MailboxHandle, MailboxHandle)) return lSelectedMailboxDetails.MessageCache.UIDNext;
-                if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.uidnext) == 0 || MailboxHandle.ListFlags?.CanSelect == false) return null;
-                if (MailboxHandle.MailboxStatus == null) ZRequestMailboxData(fMailboxCacheDataSets.status, lContext);
-                return MailboxHandle.MailboxStatus?.UIDNext;
-            }
-        }
-
-        /// <summary>
-        /// Gets the count of messages added to the message cache since the mailbox was selected for which the library has not seen the value of the UID.
-        /// </summary>
-        public int UIDNextUnknownCount
-        {
-            get
-            {
-                var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
-                if (ReferenceEquals(lSelectedMailboxDetails?.MailboxHandle, MailboxHandle)) return lSelectedMailboxDetails.MessageCache.UIDNextUnknownCount;
-                return MailboxHandle.MailboxStatus?.UIDNextUnknownCount ?? 0;
-            }
-        }
-
-        /// <summary>
         /// Gets the UIDValidity of the mailbox. May be <see langword="null"/> or zero.
         /// </summary>
         /// <remarks>
@@ -564,6 +514,54 @@ namespace work.bacome.imapclient
                 if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.uidvalidity) == 0 || MailboxHandle.ListFlags?.CanSelect == false) return null;
                 if (MailboxHandle.MailboxStatus == null) ZRequestMailboxData(fMailboxCacheDataSets.status, lContext);
                 return MailboxHandle.MailboxStatus?.UIDValidity;
+            }
+        }
+
+        /// <summary>
+        /// Gets the predicted next UID for the mailbox. May be <see langword="null"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <see langword="null"/> indicates that either;
+        /// <list type="bullet">
+        /// <item>The mailbox does not support unique identifiers, or</item>
+        /// <item>The mailbox is not <see cref="CanSelect"/>, or</item>
+        /// <item><see cref="fMailboxCacheDataItems.uidnext"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>), or</item>
+        /// <item>The values were not sent when requested.</item>
+        /// </list>
+        /// </para>
+        /// <para>
+        /// When the mailbox is selected the library maintains the value of this property by monitoring IMAP FETCH responses from the server,
+        /// but for the value to be up-to-date 
+        /// FETCH responses containing the UID have to be solicited for new messages  
+        /// (to get notification of new messages via <see cref="MessageDelivery"/> use <see cref="cIMAPClient.Poll"/> or allow idling using <see cref="cIMAPClient.IdleConfiguration"/>; to solicit the FETCH responses required
+        /// use <see cref="Messages(IEnumerable{iMessageHandle}, cMessageCacheItems, cFetchCacheItemConfiguration)"/> with <see cref="cMessageDeliveryEventArgs.MessageHandles"/> and <see cref="fMessageCacheAttributes.uid"/>
+        /// ).
+        /// </para>
+        /// </remarks>
+        public cUID UIDNext
+        {
+            get
+            {
+                var lContext = Client.RootContext.NewGetProp(nameof(cMailbox), nameof(UIDNext));
+                var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
+                if (ReferenceEquals(lSelectedMailboxDetails?.MailboxHandle, MailboxHandle)) return lSelectedMailboxDetails.MessageCache.UIDNext;
+                if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.uidnext) != fMailboxCacheDataItems.uidnext || MailboxHandle.ListFlags?.CanSelect == false) return null;
+                if (MailboxHandle.MailboxStatus == null) ZRequestMailboxData(fMailboxCacheDataSets.status, lContext);
+                return MailboxHandle.MailboxStatus?.UIDNext;
+            }
+        }
+
+        /// <summary>
+        /// Gets the count of messages added to the message cache since the mailbox was selected for which the library has not seen the value of the UID.
+        /// </summary>
+        public int UIDNextUnknownCount
+        {
+            get
+            {
+                var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
+                if (ReferenceEquals(lSelectedMailboxDetails?.MailboxHandle, MailboxHandle)) return lSelectedMailboxDetails.MessageCache.UIDNextUnknownCount;
+                return MailboxHandle.MailboxStatus?.UIDNextUnknownCount ?? 0;
             }
         }
 
@@ -679,7 +677,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// <see langword="null"/> indicates that the mailbox has never been selected on the current connection.
         /// </remarks>
-        public bool? UIDsAreSticky => MailboxHandle.SelectedProperties.UIDsAreSticky;
+        public bool? UIDNotSticky => MailboxHandle.SelectedProperties.UIDNotSticky;
 
         /// <summary>
         /// Gets the message flags defined in the mailbox. May be <see langword="null"/>.
@@ -1313,10 +1311,10 @@ namespace work.bacome.imapclient
             => Client.AppendAsync(MailboxHandle, cMailMessageList.FromMessages(pMessages), pFlags, pReceived, pConfiguration);
             */
         
-        public Stream GetMessageDataStream(cUID pUID, cSection pSection = null, bool pDecoded = false)
+        public Stream GetMessageDataStream(cUID pUID, cSection pSection = null, bool pDecodedIfRequired = true)
         {
             if (IsInvalid) throw new InvalidOperationException(kInvalidOperationExceptionMessage.IsInvalid);
-            return new cIMAPMessageDataStream(Client, MailboxHandle, pUID, pSection ?? cSection.All, pDecoded);
+            return new cIMAPMessageDataStream(Client, MailboxHandle, pUID, pSection ?? cSection.All, pDecodedIfRequired);
         }
 
         /// <summary>

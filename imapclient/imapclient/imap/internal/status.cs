@@ -7,18 +7,18 @@ namespace work.bacome.imapclient
         public readonly int Sequence;
         public readonly uint? Messages;
         public readonly uint? Recent;
-        public readonly uint? UIDNext;
         public readonly uint? UIDValidity;
+        public readonly uint? UIDNextComponent;
         public readonly uint? Unseen;
         public readonly ulong? HighestModSeq;
 
-        public cStatus(int pSequence, uint? pMessages, uint? pRecent, uint? pUIDNext, uint? pUIDValidity, uint? pUnseen, ulong? pHighestModSeq)
+        public cStatus(int pSequence, uint? pMessages, uint? pRecent, uint? pUIDValidity, uint? pUIDNextComponent, uint? pUnseen, ulong? pHighestModSeq)
         {
             Sequence = pSequence;
             Messages = pMessages;
             Recent = pRecent;
-            UIDNext = pUIDNext;
             UIDValidity = pUIDValidity;
+            UIDNextComponent = pUIDNextComponent;
             Unseen = pUnseen;
             HighestModSeq = pHighestModSeq;
         }
@@ -34,13 +34,13 @@ namespace work.bacome.imapclient
                         pNew.Sequence,
                         pNew.Messages ?? pOld.Messages,
                         pNew.Recent ?? pOld.Recent,
-                        pNew.UIDNext ?? pOld.UIDNext,
                         pNew.UIDValidity ?? pOld.UIDValidity,
+                        pNew.UIDNextComponent ?? pOld.UIDNextComponent,
                         pNew.Unseen ?? pOld.Unseen,
                         pNew.HighestModSeq ?? pOld.HighestModSeq
                     );
         }
 
-        public override string ToString() => $"{nameof(cStatus)}({Sequence},{Messages},{Recent},{UIDNext},{UIDValidity},{Unseen},{HighestModSeq})";
+        public override string ToString() => $"{nameof(cStatus)}({Sequence},{Messages},{Recent},{UIDValidity},{UIDNextComponent},{Unseen},{HighestModSeq})";
     }
 }

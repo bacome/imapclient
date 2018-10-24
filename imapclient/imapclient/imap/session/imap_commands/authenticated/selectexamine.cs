@@ -42,7 +42,7 @@ namespace work.bacome.imapclient
 
                         lBuilder.Add(lMailboxCacheItem.MailboxNameCommandPart);
 
-                        var lUIDValidity = sUIDValidity.None;
+                        uint lUIDValidity = 0;
                         ulong lCachedHighestModSeq = 0;
                         HashSet<cUID> lUIDsToQResync = null; // null or empty == qresync not used
                         //
@@ -57,11 +57,10 @@ namespace work.bacome.imapclient
                         {
                             lUIDValidity = PersistentCache.GetUIDValidity(pMailboxHandle.MailboxId, lContext);
 
-                            if (!lUIDValidity.IsNone)
+                            if (lUIDValidity != 0)
                             {
-                                var lMailboxUID = new cMailboxUID(pMailboxHandle.MailboxId, lUIDValidity);
-                                lCachedHighestModSeq = PersistentCache.GetHighestModSeq(lMailboxUID, lContext);
-                                if (lCachedHighestModSeq != 0) lUIDsToQResync = PersistentCache.GetUIDs(lMailboxUID, false, lContext);
+                                lCachedHighestModSeq = PersistentCache.GetHighestModSeq(pMailboxHandle.MailboxId, lUIDValidity, lContext);
+                                if (lCachedHighestModSeq != 0) lUIDsToQResync = PersistentCache.GetUIDs(pMailboxHandle.MailboxId, lUIDValidity, false, lContext);
                             }
                         }
 
@@ -76,7 +75,7 @@ namespace work.bacome.imapclient
                         {
                             lUsingQResync = true;
                             lBuilder.Add(kSelectCommandPartQResync);
-                            lBuilder.Add(new cTextCommandPart(lUIDValidity.UIDValidity));
+                            lBuilder.Add(new cTextCommandPart(lUIDValidity));
                             lBuilder.Add(cCommandPart.Space);
                             lBuilder.Add(new cTextCommandPart(lCachedHighestModSeq));
                             lBuilder.Add(cCommandPart.Space);
@@ -84,7 +83,7 @@ namespace work.bacome.imapclient
                             lBuilder.Add(kSelectCommandPartRParenRParen);
                         }
 
-                        var lHook = new cCommandHookSelectExamine(PersistentCache, mSynchroniser, mMailboxCache, _Capabilities, lMailboxCacheItem, pForUpdate, lUsingQResync);
+                        var lHook = new cCommandHookSelectExamine(PersistentCache, mSynchroniser, UTF8Enabled, mMailboxCache, _Capabilities, lMailboxCacheItem, pForUpdate, lUsingQResync);
                         lBuilder.Add(lHook);
 
                         var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
@@ -126,6 +125,7 @@ namespace work.bacome.imapclient
 
                 private readonly cPersistentCache mPersistentCache;
                 private readonly cIMAPCallbackSynchroniser mSynchroniser;
+                private readonly bool mUTF8Enabled;
                 private readonly cMailboxCache mMailboxCache;
                 private readonly cIMAPCapabilities mCapabilities;
                 private readonly cMailboxCacheItem mMailboxCacheItem;
@@ -137,18 +137,19 @@ namespace work.bacome.imapclient
                 private int mExists = 0;
                 private int mRecent = 0;
                 private cPermanentFlags mPermanentFlags = null;
-                private uint mUIDNext = 0;
                 private uint mUIDValidity = 0;
+                private uint mUIDNextComponent = 0;
                 private ulong mHighestModSeq = 0;
                 private bool mUIDNotSticky = false;
                 private bool mAccessReadOnly = false;
 
                 private cSelectedMailboxCache mSelectedMailboxCache = null;
 
-                public cCommandHookSelectExamine(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, cMailboxCache pMailboxCache, cIMAPCapabilities pCapabilities, cMailboxCacheItem pMailboxCacheItem, bool pForUpdate, bool pUsingQResync)
+                public cCommandHookSelectExamine(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, bool pUTF8Enabled, cMailboxCache pMailboxCache, cIMAPCapabilities pCapabilities, cMailboxCacheItem pMailboxCacheItem, bool pForUpdate, bool pUsingQResync)
                 {
                     mPersistentCache = pPersistentCache ?? throw new ArgumentNullException(nameof(pPersistentCache));
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
+                    mUTF8Enabled = pUTF8Enabled;
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                     mCapabilities = pCapabilities ?? throw new ArgumentNullException(nameof(pCapabilities));
                     mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
@@ -221,16 +222,16 @@ namespace work.bacome.imapclient
                                 mPermanentFlags = lFlags.Flags;
                                 return;
 
-                            case cResponseDataUIDNext lUIDNext:
-
-                                if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.SelectResponseOrderProblem, fIMAPCapabilities.qresync, lContext);
-                                mUIDNext = lUIDNext.UIDNext;
-                                return;
-
                             case cResponseDataUIDValidity lUIDValidity:
 
                                 if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.SelectResponseOrderProblem, fIMAPCapabilities.qresync, lContext);
                                 mUIDValidity = lUIDValidity.UIDValidity;
+                                return;
+
+                            case cResponseDataUIDNext lUIDNext:
+
+                                if (mSelectedMailboxCache != null) throw new cUnexpectedIMAPServerActionException(null, kUnexpectedIMAPServerActionMessage.SelectResponseOrderProblem, fIMAPCapabilities.qresync, lContext);
+                                mUIDNextComponent = lUIDNext.UIDNext;
                                 return;
 
                             case cResponseDataHighestModSeq lHighestModSeq:
@@ -270,27 +271,18 @@ namespace work.bacome.imapclient
                 private void ZSetSelectedMailboxCache(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelectExamine), nameof(ZSetSelectedMailboxCache));
-
                     if (mSelectedMailboxCache == null) return;
-
                     mPersistentCache.CheckUIDValidity(mMailboxCacheItem.MailboxId, mUIDValidity, lContext);
-
-                    sUIDValidity lUIDValidity;
-                    if (mUIDValidity == 0) lUIDValidity = sUIDValidity.None;
-                    else lUIDValidity = new sUIDValidity(mUIDValidity, !mUIDNotSticky);
-
-                    mSelectedMailboxCache = new cSelectedMailboxCache(mPersistentCache, mSynchroniser, mMailboxCacheItem, lUIDValidity, mExists, mRecent, mUIDNext, mHighestModSeq, lContext);
+                    mSelectedMailboxCache = new cSelectedMailboxCache(mPersistentCache, mSynchroniser, mUTF8Enabled, mMailboxCacheItem, mUIDValidity, mUIDNotSticky, mExists, mRecent, mUIDNextComponent, mHighestModSeq, lContext);
                 }
 
                 public override void CommandCompleted(cIMAPCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelectExamine), nameof(CommandCompleted), pResult);
                     if (pResult.ResultType != eIMAPCommandResultType.ok) return;
-
                     ZSetSelectedMailboxCache(lContext);
-                    mSelectedMailboxCache.SetSelected(mFlags, mPermanentFlags, lContext);
-
-                    mMailboxCache.Select(mSelectedMailboxCache, lContext);
+                    mSelectedMailboxCache.SetSelected(mFlags, mForUpdate, mPermanentFlags, lContext);
+                    mMailboxCache.Select(mSelectedMailboxCache, mForUpdate, mAccessReadOnly, lContext);
                 }
             }
         }

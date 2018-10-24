@@ -452,7 +452,7 @@ namespace work.bacome.imapclient
         {
             CheckPart(pPart);
 
-            using (var lDataStream = new cIMAPMessageDataStream(Client, MessageHandle, pPart, pPart.DecodingRequired != eDecodingRequired.none))
+            using (var lDataStream = new cIMAPMessageDataStream(Client, MessageHandle, pPart, true))
             using (var lMemoryStream = new MemoryStream())
             {
                 lDataStream.CopyTo(lMemoryStream);
@@ -465,7 +465,7 @@ namespace work.bacome.imapclient
         {
             CheckPart(pPart);
 
-            using (var lDataStream = new cIMAPMessageDataStream(Client, MessageHandle, pPart, pPart.DecodingRequired != eDecodingRequired.none))
+            using (var lDataStream = new cIMAPMessageDataStream(Client, MessageHandle, pPart, true))
             using (var lMemoryStream = new MemoryStream())
             {
                 await lDataStream.CopyToAsync(lMemoryStream).ConfigureAwait(false);
@@ -496,22 +496,20 @@ namespace work.bacome.imapclient
 
         public override Stream GetMessageDataStream() => new cIMAPMessageDataStream(Client, MessageHandle, cSection.All);
 
-        public override Stream GetMessageDataStream(cSinglePartBody pPart, bool pDecoded = true)
+        public override Stream GetMessageDataStream(cSinglePartBody pPart, bool pDecodedIfRequired = true)
         {
-            ;?; // decoded can't default to true
             CheckPart(pPart);
-            return new cIMAPMessageDataStream(Client, MessageHandle, pPart, pDecoded);
+            return new cIMAPMessageDataStream(Client, MessageHandle, pPart, pDecodedIfRequired);
         }
 
         public override Stream GetMessageDataStream(cSection pSection) => new cIMAPMessageDataStream(Client, MessageHandle, pSection);
 
         public cIMAPMessageDataStream GetIMAPMessageDataStream() => new cIMAPMessageDataStream(Client, MessageHandle, cSection.All);
 
-        public cIMAPMessageDataStream GetIMAPMessageDataStream(cSinglePartBody pPart, bool pDecoded = true)
+        public cIMAPMessageDataStream GetIMAPMessageDataStream(cSinglePartBody pPart, bool pDecodedIfRequired = true)
         {
-            ;?; // decoded can't default to true
             CheckPart(pPart);
-            return new cIMAPMessageDataStream(Client, MessageHandle, pPart, pDecoded);
+            return new cIMAPMessageDataStream(Client, MessageHandle, pPart, pDecodedIfRequired);
         }
 
         public cIMAPMessageDataStream GetIMAPMessageDataStream(cSection pSection) => new cIMAPMessageDataStream(Client, MessageHandle, pSection);

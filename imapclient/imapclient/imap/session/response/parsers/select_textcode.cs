@@ -11,8 +11,8 @@ namespace work.bacome.imapclient
             private class cResponseTextCodeParserSelect : iResponseTextCodeParser
             {
                 private static readonly cBytes kPermanentFlags = new cBytes("PERMANENTFLAGS");
-                private static readonly cBytes kUIDNext = new cBytes("UIDNEXT");
                 private static readonly cBytes kUIDValidity = new cBytes("UIDVALIDITY");
+                private static readonly cBytes kUIDNext = new cBytes("UIDNEXT");
                 private static readonly cBytes kHighestModSeq = new cBytes("HIGHESTMODSEQ");
                 private static readonly cBytes kReadWrite = new cBytes("READ-WRITE");
                 private static readonly cBytes kReadOnly = new cBytes("READ-ONLY");
@@ -47,25 +47,6 @@ namespace work.bacome.imapclient
                         return false;
                     }
 
-                    if (pCode.Equals(kUIDNext))
-                    {
-                        if (pArguments != null)
-                        {
-                            cBytesCursor lCursor = new cBytesCursor(pArguments);
-
-                            if (lCursor.GetNZNumber(out _, out var lNumber) && lCursor.Position.AtEnd)
-                            {
-                                rResponseData = new cResponseDataUIDNext(lNumber);
-                                return true;
-                            }
-                        }
-
-                        lContext.TraceWarning("likely malformed uidnext");
-
-                        rResponseData = null;
-                        return false;
-                    }
-
                     if (pCode.Equals(kUIDValidity))
                     {
                         if (pArguments != null)
@@ -80,6 +61,25 @@ namespace work.bacome.imapclient
                         }
 
                         lContext.TraceWarning("likely malformed uidvalidity");
+
+                        rResponseData = null;
+                        return false;
+                    }
+
+                    if (pCode.Equals(kUIDNext))
+                    {
+                        if (pArguments != null)
+                        {
+                            cBytesCursor lCursor = new cBytesCursor(pArguments);
+
+                            if (lCursor.GetNZNumber(out _, out var lNumber) && lCursor.Position.AtEnd)
+                            {
+                                rResponseData = new cResponseDataUIDNext(lNumber);
+                                return true;
+                            }
+                        }
+
+                        lContext.TraceWarning("likely malformed uidnext");
 
                         rResponseData = null;
                         return false;

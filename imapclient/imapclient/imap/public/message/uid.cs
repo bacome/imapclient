@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     public class cUID : IEquatable<cUID>, IComparable<cUID>
     {
         /**<summary>The UIDValidity of the instance.</summary>*/
-        public readonly sUIDValidity UIDValidity;
+        public readonly uint UIDValidity;
 
         /**<summary>The UID of the instance.</summary>*/
         public readonly uint UID;
@@ -21,18 +21,18 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pUIDValidity"></param>
         /// <param name="pUID"></param>
-        public cUID(sUIDValidity pUIDValidity, uint pUID)
+        public cUID(uint pUIDValidity, uint pUID)
         {
-            if (pUIDValidity.IsNone) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
+            if (pUIDValidity == 0) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
             if (pUID == 0) throw new ArgumentOutOfRangeException(nameof(pUID));
+            UIDValidity = pUIDValidity;
             UID = pUID;
         }
 
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (UIDValidity == null) throw new cDeserialiseException(nameof(cUID), nameof(UIDValidity), kDeserialiseExceptionMessage.IsNull);
-            if (UIDValidity.IsNone) throw new cDeserialiseException(nameof(cUID), nameof(UIDValidity), kDeserialiseExceptionMessage.IsInvalid);
+            if (UIDValidity == 0) throw new cDeserialiseException(nameof(cUID), nameof(UIDValidity), kDeserialiseExceptionMessage.IsInvalid);
             if (UID == 0) throw new cDeserialiseException(nameof(cUID), nameof(UID), kDeserialiseExceptionMessage.IsInvalid);
         }
 
@@ -77,5 +77,41 @@ namespace work.bacome.imapclient
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
         public static bool operator !=(cUID pA, cUID pB) => !(pA == pB);
+
+        public static bool operator <(cUID pA, cUID pB)
+        {
+            if (ReferenceEquals(pA, pB)) return false;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+            if (pA.UIDValidity != pB.UIDValidity) throw new InvalidOperationException();
+            return pA.UID < pB.UID;
+        }
+
+        public static bool operator >(cUID pA, cUID pB)
+        {
+            if (ReferenceEquals(pA, pB)) return false;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+            if (pA.UIDValidity != pB.UIDValidity) throw new InvalidOperationException();
+            return pA.UID > pB.UID;
+        }
+
+        public static bool operator <=(cUID pA, cUID pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+            if (pA.UIDValidity != pB.UIDValidity) throw new InvalidOperationException();
+            return pA.UID <= pB.UID;
+        }
+
+        public static bool operator >=(cUID pA, cUID pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+            if (pA.UIDValidity != pB.UIDValidity) throw new InvalidOperationException();
+            return pA.UID >= pB.UID;
+        }
     }
 }

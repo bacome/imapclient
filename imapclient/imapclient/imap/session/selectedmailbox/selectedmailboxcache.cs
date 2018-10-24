@@ -19,7 +19,8 @@ namespace work.bacome.imapclient
                 private readonly cIMAPCallbackSynchroniser mSynchroniser;
                 private readonly bool mUTF8Enabled;
                 private readonly cMailboxCacheItem mMailboxCacheItem;
-                private readonly sUIDValidity mUIDValidity;
+                private readonly uint mUIDValidity;
+                private readonly bool mUIDNotSticky;
                 private readonly cMailboxUID mMailboxUID;
                 private readonly bool mNoModSeq;
 
@@ -29,7 +30,8 @@ namespace work.bacome.imapclient
 
                 private int mRecentCount;
 
-                private uint mUIDNext;
+                private uint mUIDNextComponent;
+                private cUID mUIDNext;
                 private int mUIDNextMessageCount;
                 private int mUIDNextUnknownCount;
 
@@ -44,18 +46,19 @@ namespace work.bacome.imapclient
                 private bool mCallSetHighestModSeq;
                 private bool mIsInvalid = false;
 
-                public cSelectedMailboxCache(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, bool pUTF8Enabled, cMailboxCacheItem pMailboxCacheItem, sUIDValidity pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, ulong pHighestModSeq, cTrace.cContext pParentContext)
+                public cSelectedMailboxCache(cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, bool pUTF8Enabled, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, bool pUIDNotSticky, int pMessageCount, int pRecentCount, uint pUIDNextComponent, ulong pHighestModSeq, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewObject(nameof(cSelectedMailboxCache), pMailboxCacheItem, pUIDValidity, pMessageCount, pRecentCount, pUIDNext, pHighestModSeq);
+                    var lContext = pParentContext.NewObject(nameof(cSelectedMailboxCache), pMailboxCacheItem, pUIDValidity, pUIDNotSticky, pMessageCount, pRecentCount, pUIDNextComponent, pHighestModSeq);
 
                     mPersistentCache = pPersistentCache ?? throw new ArgumentNullException(nameof(pPersistentCache));
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                     mUTF8Enabled = pUTF8Enabled;
                     mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
                     mUIDValidity = pUIDValidity;
+                    mUIDNotSticky = pUIDNotSticky;
                     
-                    if (pUIDValidity.IsNone) mMailboxUID = null;
-                    else mMailboxUID = new cMailboxUID(pMailboxCacheItem.MailboxId, pUIDValidity);
+                    if (pUIDValidity == 0) mMailboxUID = null;
+                    else mMailboxUID = new cMailboxUID(pMailboxCacheItem.MailboxId, pUIDValidity, pUIDNotSticky);
 
                     mNoModSeq = pHighestModSeq == 0;
 
@@ -64,9 +67,9 @@ namespace work.bacome.imapclient
 
                     mRecentCount = pRecentCount;
 
-                    mUIDNext = pUIDNext;
+                    mUIDNextComponent = pUIDNextComponent;
 
-                    if (mUIDNext == 0)
+                    if (mUIDNextComponent == 0)
                     {
                         mUIDNextMessageCount = 0;
                         mUIDNextUnknownCount = pMessageCount;
@@ -76,6 +79,8 @@ namespace work.bacome.imapclient
                         mUIDNextMessageCount = pMessageCount;
                         mUIDNextUnknownCount = 0;
                     }
+
+                    ZSetUIDNext();
 
                     mUnseenCount = 0;
                     mUnseenUnknownCount = pMessageCount;
@@ -100,17 +105,11 @@ namespace work.bacome.imapclient
                     mSynchroniser = pOldCache.mSynchroniser;
                     mUTF8Enabled = pOldCache.mUTF8Enabled;
                     mMailboxCacheItem = pOldCache.mMailboxCacheItem;
+                    mUIDValidity = pUIDValidity;
+                    mUIDNotSticky = pOldCache.mUIDNotSticky;
 
-                    if (pUIDValidity == 0)
-                    {
-                        mUIDValidity = sUIDValidity.None;
-                        mMailboxUID = null;
-                    }
-                    else
-                    {
-                        mUIDValidity = new sUIDValidity(pUIDValidity, pOldCache.mUIDValidity.IsSticky);
-                        mMailboxUID = new cMailboxUID(pOldCache.mMailboxUID.MailboxId, mUIDValidity);
-                    }
+                    if (pUIDValidity == 0) mMailboxUID = null;
+                    else mMailboxUID = new cMailboxUID(pOldCache.mMailboxCacheItem.MailboxId, pUIDValidity, pOldCache.mUIDNotSticky);
 
                     mNoModSeq = pOldCache.mNoModSeq;
 
@@ -121,9 +120,10 @@ namespace work.bacome.imapclient
 
                     mRecentCount = pOldCache.mRecentCount;
 
-                    mUIDNext = 0;
+                    mUIDNextComponent = 0;
                     mUIDNextMessageCount = 0;
                     mUIDNextUnknownCount = lMessageCount;
+                    ZSetUIDNext();
 
                     mUnseenCount = 0;
                     mUnseenUnknownCount = lMessageCount;
@@ -132,7 +132,7 @@ namespace work.bacome.imapclient
 
                     mSelected = true;
                     mSynchronised = true;
-                    mCallSetHighestModSeq = mUIDValidity.IsSticky && !mNoModSeq; 
+                    mCallSetHighestModSeq = !mUIDNotSticky && !mNoModSeq; 
 
                     ZSetMailboxStatus(lContext);
                 }
@@ -145,7 +145,7 @@ namespace work.bacome.imapclient
                     mSelected = true;
 
                     ZSetMailboxStatus(lContext);
-                    mMailboxCacheItem.SetSelectedProperties(pMessageFlags, pForUpdate, pPermanentFlags, mUIDValidity.IsSticky, lContext);
+                    mMailboxCacheItem.SetSelectedProperties(pMessageFlags, pForUpdate, pPermanentFlags, mUIDNotSticky, lContext);
                 }
 
                 public void SetSynchronised(cTrace.cContext pParentContext)
@@ -155,7 +155,7 @@ namespace work.bacome.imapclient
                     if (mSynchronised) throw new cInternalErrorException(lContext);
                     mSynchronised = true;
 
-                    mCallSetHighestModSeq = mUIDValidity.IsSticky && !mNoModSeq;
+                    mCallSetHighestModSeq = !mUIDNotSticky && !mNoModSeq;
 
                     if (mCallSetHighestModSeq) mPersistentCache.SetHighestModSeq(mMailboxUID, mHighestModSeq, lContext);
                 }
@@ -176,9 +176,12 @@ namespace work.bacome.imapclient
                 public iMailboxHandle MailboxHandle => mMailboxCacheItem;
                 public bool NoModSeq => mNoModSeq;
                 public int RecentCount => mRecentCount;
-                public uint UIDNext => mUIDNext;
+                public uint UIDValidity => mUIDValidity;
+                public bool UIDNotSticky => mUIDNotSticky;
+
+                public cUID UIDNext => mUIDNext;
+
                 public int UIDNextUnknownCount => mUIDNextUnknownCount;
-                public sUIDValidity UIDValidity => mUIDValidity;
                 public int UnseenCount => mUnseenCount;
                 public int UnseenUnknownCount => mUnseenUnknownCount;
                 public ulong HighestModSeq => mHighestModSeq;
@@ -360,7 +363,13 @@ namespace work.bacome.imapclient
                         if (pFetch.MSN > mUIDNextMessageCount)
                         {
                             mUIDNextUnknownCount--;
-                            if (lFetchedItem.MessageUID.UID.UID + 1 > mUIDNext) mUIDNext = lFetchedItem.MessageUID.UID.UID + 1;
+
+                            if (lFetchedItem.MessageUID.UID.UID + 1 > mUIDNextComponent)
+                            {
+                                mUIDNextComponent = lFetchedItem.MessageUID.UID.UID + 1;
+                                ZSetUIDNext();
+                            }
+
                             lSetMailboxStatus = true;
                         }
                     }
@@ -405,15 +414,22 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                private void ZUIDNext(uint pUIDNext, cTrace.cContext pParentContext)
+                private void ZUIDNext(uint pUIDNextComponent, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ZUIDNext), pUIDNext);
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ZUIDNext), pUIDNextComponent);
 
-                    mUIDNext = pUIDNext;
+                    mUIDNextComponent = pUIDNextComponent;
                     mUIDNextMessageCount = mItems.Count;
                     mUIDNextUnknownCount = 0;
+                    ZSetUIDNext();
 
                     ZSetMailboxStatus(lContext);
+                }
+
+                private void ZSetUIDNext()
+                {
+                    if (mUIDValidity == 0 || mUIDNextComponent == 0) mUIDNext = null;
+                    else mUIDNext = new cUID(mUIDValidity, mUIDNextComponent);
                 }
 
                 private void ZHighestModSeq(ulong pHighestModSeq, cTrace.cContext pParentContext)
@@ -425,7 +441,7 @@ namespace work.bacome.imapclient
                 private void ZSetMailboxStatus(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ZSetMailboxStatus));
-                    mMailboxCacheItem.SetMailboxStatus(new cMailboxStatus(mItems.Count, mRecentCount, mUIDNext, mUIDNextUnknownCount, mUIDValidity.UIDValidity, mUnseenCount, mUnseenUnknownCount, mHighestModSeq), lContext);
+                    mMailboxCacheItem.SetMailboxStatus(new cMailboxStatus(mItems.Count, mRecentCount, mUIDValidity, mUIDNextComponent, mUIDNextUnknownCount, mUnseenCount, mUnseenUnknownCount, mHighestModSeq), lContext);
                 }
 
                 public override string ToString() => $"{nameof(cSelectedMailboxCache)}({mMailboxCacheItem},{mUIDValidity})";

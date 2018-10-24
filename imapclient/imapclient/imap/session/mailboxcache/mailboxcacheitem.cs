@@ -150,7 +150,7 @@ namespace work.bacome.imapclient
                     }
                     else
                     {
-                        cMailboxStatus lMailboxStatus = new cMailboxStatus(mStatus.Messages ?? 0, mStatus.Recent ?? 0, mStatus.UIDNext ?? 0, mStatus.UIDValidity ?? 0, mStatus.Unseen ?? 0, mStatus.HighestModSeq ?? 0);
+                        cMailboxStatus lMailboxStatus = new cMailboxStatus(mStatus.Messages ?? 0, mStatus.Recent ?? 0, mStatus.UIDValidity ?? 0, mStatus.UIDNextComponent ?? 0, mStatus.Unseen ?? 0, mStatus.HighestModSeq ?? 0);
                         lDifferences = ZSetExists(true) | cMailboxStatus.Differences(mMailboxStatus, lMailboxStatus);
                         mMailboxStatus = lMailboxStatus;
 
@@ -179,11 +179,11 @@ namespace work.bacome.imapclient
 
                 public cMailboxSelectedProperties SelectedProperties => mSelectedProperties;
 
-                public void SetSelectedProperties(cFetchableFlags pMessageFlags, bool pForUpdate, cPermanentFlags pPermanentFlags, bool pUIDsAreSticky, cTrace.cContext pParentContext)
+                public void SetSelectedProperties(cFetchableFlags pMessageFlags, bool pForUpdate, cPermanentFlags pPermanentFlags, bool pUIDNotSticky, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetSelectedProperties), pMessageFlags, pForUpdate, pPermanentFlags, pUIDsAreSticky);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetSelectedProperties), pMessageFlags, pForUpdate, pPermanentFlags, pUIDNotSticky);
                     if (pMessageFlags == null) throw new ArgumentNullException(nameof(pMessageFlags));
-                    ZSetSelectedProperties(new cMailboxSelectedProperties(mSelectedProperties, pMessageFlags, pForUpdate, pPermanentFlags, pUIDsAreSticky), lContext);
+                    ZSetSelectedProperties(new cMailboxSelectedProperties(mSelectedProperties, pMessageFlags, pForUpdate, pPermanentFlags, pUIDNotSticky), lContext);
                 }
 
                 public void SetMessageFlags(cFetchableFlags pFlags, cTrace.cContext pParentContext)

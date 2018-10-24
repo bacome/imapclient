@@ -88,8 +88,8 @@ namespace work.bacome.imapclient
 
                 // status
                 private static readonly cCommandPart kCommandPartMessages = new cTextCommandPart("MESSAGES");
-                private static readonly cCommandPart kCommandPartUIDNext = new cTextCommandPart("UIDNEXT");
                 private static readonly cCommandPart kCommandPartUIDValidity = new cTextCommandPart("UIDVALIDITY");
+                private static readonly cCommandPart kCommandPartUIDNext = new cTextCommandPart("UIDNEXT");
                 private static readonly cCommandPart kCommandPartHighestModSeq = new cTextCommandPart("HIGHESTMODSEQ");
 
                 // store
@@ -151,8 +151,8 @@ namespace work.bacome.imapclient
                     mParts.BeginList(eListBracketing.bracketed);
                     if ((pAttributes & fMailboxCacheDataItems.messagecount) != 0) mParts.Add(kCommandPartMessages);
                     if ((pAttributes & fMailboxCacheDataItems.recentcount) != 0) mParts.Add(kCommandPartRecent);
-                    if ((pAttributes & fMailboxCacheDataItems.uidnext) != 0) mParts.Add(kCommandPartUIDNext);
                     if ((pAttributes & fMailboxCacheDataItems.uidvalidity) != 0) mParts.Add(kCommandPartUIDValidity);
+                    if ((pAttributes & fMailboxCacheDataItems.uidnextcomponent) != 0) mParts.Add(kCommandPartUIDNext);
                     if ((pAttributes & fMailboxCacheDataItems.unseencount) != 0) mParts.Add(kCommandPartUnseen);
                     if ((pAttributes & fMailboxCacheDataItems.highestmodseq) != 0) mParts.Add(kCommandPartHighestModSeq);
                     mParts.EndList();

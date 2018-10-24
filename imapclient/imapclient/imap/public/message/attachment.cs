@@ -30,10 +30,8 @@ namespace work.bacome.imapclient
 
         public bool IsInvalid => MessageHandle.MessageCache.IsInvalid;
 
-        ;?; // decoded can't default to true
-        public override Stream GetMessageDataStream(bool pDecoded = true) => new cIMAPMessageDataStream(Client, MessageHandle, Part, pDecoded);
-        ;?; // decoded can't default to true
-        public cIMAPMessageDataStream GetIMAPMessageDataStream(bool pDecoded = true) => new cIMAPMessageDataStream(Client, MessageHandle, Part, pDecoded);
+        public override Stream GetMessageDataStream(bool pDecodedIfRequired = true) => new cIMAPMessageDataStream(Client, MessageHandle, Part, pDecodedIfRequired);
+        public cIMAPMessageDataStream GetIMAPMessageDataStream(bool pDecodedIfRequired = true) => new cIMAPMessageDataStream(Client, MessageHandle, Part, pDecodedIfRequired);
 
         public override void SaveAs(string pPath, cSetMaximumConfiguration pConfiguration = null)
         {
@@ -68,7 +66,7 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPAttachment), nameof(ZZSaveAsAsync), pMC, pPath);
 
-            using (var lMessageDataStream = new cIMAPMessageDataStream(Client, MessageHandle, Part, Part.DecodingRequired != eDecodingRequired.none))
+            using (var lMessageDataStream = new cIMAPMessageDataStream(Client, MessageHandle, Part, true))
             {
                 long? lProgressLength;
                 if (pSetMaximum == null) lProgressLength = null;

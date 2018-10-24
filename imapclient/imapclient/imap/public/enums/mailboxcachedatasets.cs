@@ -50,8 +50,8 @@ namespace work.bacome.imapclient
     /// <list type="bullet">
     /// <item>If <see cref="cIMAPClient.MailboxCacheDataItems"/> includes <see cref="fMailboxCacheDataItems.messagecount"/>: <see cref="cMailbox.MessageCount"/></item>
     /// <item>If <see cref="cIMAPClient.MailboxCacheDataItems"/> includes <see cref="fMailboxCacheDataItems.recentcount"/>: <see cref="cMailbox.RecentCount"/></item>
-    /// <item>If <see cref="cIMAPClient.MailboxCacheDataItems"/> includes <see cref="fMailboxCacheDataItems.uidnext"/>: <see cref="cMailbox.UIDNext"/></item>
     /// <item>If <see cref="cIMAPClient.MailboxCacheDataItems"/> includes <see cref="fMailboxCacheDataItems.uidvalidity"/>: <see cref="cMailbox.UIDValidity"/></item>
+    /// <item>If <see cref="cIMAPClient.MailboxCacheDataItems"/> includes <see cref="fMailboxCacheDataItems.uidnext"/>: <see cref="cMailbox.UIDNext"/></item>
     /// <item>If <see cref="cIMAPClient.MailboxCacheDataItems"/> includes <see cref="fMailboxCacheDataItems.unseencount"/>: <see cref="cMailbox.UnseenCount"/></item>
     /// <item>If <see cref="cIMAPClient.MailboxCacheDataItems"/> includes <see cref="fMailboxCacheDataItems.highestmodseq"/>: <see cref="cMailbox.HighestModSeq"/></item>
     /// </list>

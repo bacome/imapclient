@@ -18,6 +18,8 @@ namespace work.bacome.imapclient
         public readonly cSection Section;
         public readonly bool DecodedIfRequired;
 
+        private readonly bool mUIDNotSticky;
+
         private cSinglePartBody mPart;
         private bool mToTrySetPart;
         private bool? mDecoded;
@@ -27,6 +29,7 @@ namespace work.bacome.imapclient
         private int mReadTimeout;
 
         private long mLength = -1;
+        private readonly object mMessageDataReaderLock = new object();
         private iSectionReader mMessageDataReader = null; // this will be one of the two following
         private cSectionReader mSectionReader = null;
         private cSectionReaderWriter mSectionReaderWriter = null;
@@ -49,6 +52,9 @@ namespace work.bacome.imapclient
             UID = null;
             Section = pPart.Section;
             DecodedIfRequired = pDecodedIfRequired;
+
+            mUIDNotSticky = pMessageHandle.MessageCache.UIDNotSticky;
+
             mToTrySetPart = false;
             mDecoded = pDecodedIfRequired && pPart.DecodingRequired != eDecodingRequired.none;
             mSectionHandle = new cSectionHandle(pMessageHandle, pPart.Section, mDecoded.Value);
@@ -71,6 +77,8 @@ namespace work.bacome.imapclient
             UID = null;
             DecodedIfRequired = false;
 
+            mUIDNotSticky = pMessageHandle.MessageCache.UIDNotSticky;
+
             mPart = null;
             mToTrySetPart = pSection.CouldDescribeASinglePartBody;
             mDecoded = false;
@@ -92,6 +100,8 @@ namespace work.bacome.imapclient
 
             DecodedIfRequired = pDecodedIfRequired;
 
+            mUIDNotSticky = pMailboxHandle.SelectedProperties.UIDNotSticky.Value;
+
             mPart = null;
             mToTrySetPart = pSection.CouldDescribeASinglePartBody;
 
@@ -103,7 +113,7 @@ namespace work.bacome.imapclient
             else
             {
                 mDecoded = false;
-                mSectionId = new cSectionId(new cMessageUID(pMailboxHandle.MailboxId, pUID, Client.UTF8Enabled), pSection, false);
+                mSectionId = new cSectionId(new cMessageUID(pMailboxHandle.MailboxId, pUID, mUIDNotSticky, Client.UTF8Enabled), pSection, false);
             }
 
             mSectionHandle = null;
@@ -428,7 +438,7 @@ namespace work.bacome.imapclient
                 {
                     if (mPart == null) mDecoded = false;
                     else mDecoded = mPart.DecodingRequired != eDecodingRequired.none;
-                    mSectionId = new cSectionId(new cMessageUID(MailboxHandle.MailboxId, UID, Client.UTF8Enabled), Section, mDecoded.Value);
+                    mSectionId = new cSectionId(new cMessageUID(MailboxHandle.MailboxId, UID, mUIDNotSticky, Client.UTF8Enabled), Section, mDecoded.Value);
                 }
             }
             else mPart = await Client.GetSinglePartBodyAsync(pMC, mSectionHandle.MessageHandle, Section, lContext).ConfigureAwait(false);
@@ -448,22 +458,25 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ZTryGetIdealSectionReader));
 
-            if (mMessageDataReader != null) throw new InvalidOperationException();
+            lock (mMessageDataReaderLock)
+            {
+                if (mMessageDataReader != null) throw new InvalidOperationException();
 
-            if (mSectionHandle == null)
-            {
-                if (Client.PersistentCache.TryGetSectionReader(mSectionId, out mSectionReader, lContext))
+                if (mSectionHandle == null)
                 {
-                    mMessageDataReader = mSectionReader;
-                    return true;
+                    if (Client.PersistentCache.TryGetSectionReader(mSectionId, out mSectionReader, lContext))
+                    {
+                        mMessageDataReader = mSectionReader;
+                        return true;
+                    }
                 }
-            }
-            else
-            {
-                if (Client.PersistentCache.TryGetSectionReader(mSectionHandle, out mSectionReader, lContext))
+                else
                 {
-                    mMessageDataReader = mSectionReader;
-                    return true;
+                    if (Client.PersistentCache.TryGetSectionReader(mSectionHandle, out mSectionReader, lContext))
+                    {
+                        mMessageDataReader = mSectionReader;
+                        return true;
+                    }
                 }
             }
 
@@ -474,29 +487,60 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ZGetSectionReaderWriter));
 
-            if (mMessageDataReader != null) throw new InvalidOperationException();
-
-            mBackgroundCancellationTokenSource = new CancellationTokenSource();
-
-            if (mSectionHandle == null)
+            lock (mMessageDataReader)
             {
-                mSectionReaderWriter = Client.PersistentCache.GetSectionReaderWriter(mSectionId, lContext);
-                if (mSectionId.Decoded && Client.PersistentCache.TryGetSectionReader(new cSectionId(mSectionId.MessageUID, Section, false), out mSectionReader, lContext)) mBackgroundTask = ZBackgroundDecodeAsync(lContext);
-                else mBackgroundTask = ZBackgroundFetchAsync(mSectionId, lContext);
-            }
-            else
-            {
-                mSectionReaderWriter = Client.PersistentCache.GetSectionReaderWriter(mSectionHandle, lContext);
-                if (mSectionHandle.Decoded && Client.PersistentCache.TryGetSectionReader(new cSectionHandle(mSectionHandle.MessageHandle, Section, false), out mSectionReader, lContext)) mBackgroundTask = ZBackgroundDecodeAsync(lContext);
-                else mBackgroundTask = ZBackgroundFetchAsync(mSectionHandle, lContext);
-            }
+                if (mMessageDataReader != null) throw new InvalidOperationException();
 
-            mMessageDataReader = mSectionReaderWriter;
+                mBackgroundCancellationTokenSource = new CancellationTokenSource();
+
+                if (mSectionHandle == null)
+                {
+                    mSectionReaderWriter = Client.PersistentCache.GetSectionReaderWriter(mSectionId, lContext);
+                    if (mSectionId.Decoded && Client.PersistentCache.TryGetSectionReader(new cSectionId(mSectionId.MessageUID, Section, false), out mSectionReader, lContext)) mBackgroundTask = ZBackgroundDecodeAsync(lContext);
+                    else mBackgroundTask = ZBackgroundFetchAsync(lContext);
+                }
+                else
+                {
+                    mSectionReaderWriter = Client.PersistentCache.GetSectionReaderWriter(mSectionHandle, lContext);
+                    if (mSectionHandle.Decoded && Client.PersistentCache.TryGetSectionReader(new cSectionHandle(mSectionHandle.MessageHandle, Section, false), out mSectionReader, lContext)) mBackgroundTask = ZBackgroundDecodeAsync(lContext);
+                    else mBackgroundTask = ZBackgroundFetchAsync(lContext);
+                }
+
+                mMessageDataReader = mSectionReaderWriter;
+            }
         }
 
+        private async Task ZBackgroundDecodeAsync(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ZBackgroundDecodeAsync));
 
+            CancellationToken lCancellationToken = mBackgroundCancellationTokenSource.Token;
 
+            eDecodingRequired lDecoding;
+            if (mDecoded == true) lDecoding = mPart.DecodingRequired;
+            else lDecoding = eDecodingRequired.none;
 
+            var lBuffer = new byte[cMailClient.BufferSize];
+
+            try
+            {
+                mSectionReaderWriter.WriteBegin(false, lDecoding, lContext);
+
+                while (true)
+                {
+                    var lBytesRead = await mSectionReader.ReadAsync(lBuffer, 0, lBuffer.Length, Timeout.Infinite, lCancellationToken, lContext).ConfigureAwait(false);
+                    if (lBytesRead == 0) break;
+                    await mSectionReaderWriter.WriteAsync(lBuffer, 0, lBytesRead, lCancellationToken, lContext).ConfigureAwait(false);
+                }
+
+                await mSectionReaderWriter.WritingCompletedOKAsync(lCancellationToken, lContext).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                mSectionReaderWriter.WritingFailed(e, lContext);
+                return;
+            }
+        }
 
 
 

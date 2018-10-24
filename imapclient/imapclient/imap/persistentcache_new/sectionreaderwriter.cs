@@ -8,7 +8,7 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    internal sealed class cSectionReaderWriter : iSectionReader, iSectionWriter, IDisposable
+    internal sealed class cSectionReaderWriter : iSectionReader, IDisposable
     {
         private enum eWritingState { notstarted, inprogress, completedok, failed }
 
@@ -218,57 +218,52 @@ namespace work.bacome.imapclient
             return mReleaser.GetAwaitReleaseTask(lContext);
         }
 
-        public void InstallDecoder(bool pBinary, eDecodingRequired pDecoding, cTrace.cContext pParentContext)
+        public bool IsDecoding => mDecoder != null;
+
+        public void WriteBegin(bool pBinary, eDecodingRequired pDecoding, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(InstallDecoder), pBinary, pDecoding);
+            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(WriteBegin));
+
             if (mDisposed) throw new ObjectDisposedException(nameof(cSectionReaderWriter));
             if (mWritingState != eWritingState.notstarted) throw new InvalidOperationException();
+            if (mStream.Position != 0) throw new cUnexpectedPersistentCacheActionException(lContext);
 
             if (pBinary || pDecoding == eDecodingRequired.none) mDecoder = null;
             else if (pDecoding == eDecodingRequired.base64) mDecoder = new cBase64Decoder();
             else if (pDecoding == eDecodingRequired.quotedprintable) mDecoder = new cQuotedPrintableDecoder();
             else throw new cContentTransferDecodingNotSupportedException(pDecoding);
-        }
 
-        public bool IsDecoding => mDecoder != null;
-
-        public void WriteBegin(cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(WriteBegin));
-            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionReaderWriter));
-            if (mWritingState != eWritingState.notstarted) throw new InvalidOperationException();
-            if (mStream.Position != 0) throw new cUnexpectedPersistentCacheActionException(lContext);
             mWritingState = eWritingState.inprogress;
         }
 
-        public async Task WriteAsync(IList<byte> pBytes, int pOffset, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        public async Task WriteAsync(IList<byte> pBytes, int pOffset, int pCount, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(WriteAsync), pOffset);
+            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(WriteAsync), pOffset, pCount);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cSectionReaderWriter));
             if (mWritingState != eWritingState.inprogress) throw new InvalidOperationException();
 
             if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
-            if (pOffset > pBytes.Count) throw new ArgumentOutOfRangeException(nameof(pOffset));
-            if (pOffset == pBytes.Count) return;
+            if (pOffset < 0) throw new ArgumentOutOfRangeException(nameof(pOffset));
+            if (pCount < 0) throw new ArgumentOutOfRangeException(nameof(pOffset));
+            if (pOffset + pCount > pBytes.Count) throw new ArgumentException();
+            if (pCount == 0) return;
 
             byte[] lBytes;
             int lInputBytesInBytes;
 
             if (mDecoder == null)
             {
-                lBytes = new byte[pBytes.Count - pOffset];
-                for (int i = 0; i < lBytes.Length; i++) lBytes[i] = pBytes[pOffset + i];
-                lInputBytesInBytes = lBytes.Length;
+                lBytes = new byte[pCount];
+                for (int i = 0; i < pCount; i++) lBytes[i] = pBytes[pOffset + i];
+                lInputBytesInBytes = pCount;
             }
             else
             {
-                var lCount = pBytes.Count - pOffset;
-
-                lBytes = mDecoder.Transform(pBytes, pOffset, lCount);
+                lBytes = mDecoder.Transform(pBytes, pOffset, pCount);
 
                 int lBufferedInputByteCount = mDecoder.BufferedInputByteCount;
-                lInputBytesInBytes = lCount - lBufferedInputByteCount + mBufferedInputByteCount;
+                lInputBytesInBytes = pCount - lBufferedInputByteCount + mBufferedInputByteCount;
                 mBufferedInputByteCount = lBufferedInputByteCount;
             }
 
@@ -312,6 +307,10 @@ namespace work.bacome.imapclient
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cSectionReaderWriter));
             if (mWritingState != eWritingState.inprogress) throw new InvalidOperationException();
+
+            ;?; // shouldn't this push the last bit out of the decoder?
+            ;?; // (YES)
+
 
             await mStream.FlushAsync(pCancellationToken).ConfigureAwait(false);
 

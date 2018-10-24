@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal Task UIDFetchSectionAsync(iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, iFetchSectionTarget pTarget, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        internal Task UIDFetchSectionAsync(iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, cSectionReaderWriter pSectionReaderWriter, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(UIDFetchSectionAsync), pMailboxHandle, pUID, pSection, pDecoding);
 
@@ -21,9 +21,9 @@ namespace work.bacome.imapclient
             if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
             if (pUID == null) throw new ArgumentNullException(nameof(pUID));
             if (pSection == null) throw new ArgumentNullException(nameof(pSection));
-            if (pTarget == null) throw new ArgumentNullException(nameof(pTarget));
+            if (pSectionReaderWriter == null) throw new ArgumentNullException(nameof(pSectionReaderWriter));
 
-            return lSession.UIDFetchSectionAsync(pMailboxHandle, pUID, pSection, pDecoding, pTarget, pCancellationToken, lContext);
+            return lSession.UIDFetchSectionAsync(pMailboxHandle, pUID, pSection, pDecoding, pSectionReaderWriter, pCancellationToken, lContext);
         }
     }
 }

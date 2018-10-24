@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task UIDFetchSectionAsync(iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, iFetchSectionTarget pTarget, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+            public async Task UIDFetchSectionAsync(iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, cSectionReaderWriter pSectionReaderWriter, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchSectionAsync), pMailboxHandle, pUID, pSection, pDecoding);
 
@@ -24,10 +24,11 @@ namespace work.bacome.imapclient
                 mMailboxCache.CheckIsSelectedMailbox(pMailboxHandle, pUID.UIDValidity); // to be repeated inside the select lock
 
                 if (pSection == null) throw new ArgumentNullException(nameof(pSection));
-                if (pTarget == null) throw new ArgumentNullException(nameof(pTarget));
+                if (pSectionReaderWriter == null) throw new ArgumentNullException(nameof(pSectionReaderWriter));
 
                 bool lBinary = _Capabilities.Binary && pSection.TextPart == eSectionTextPart.all && pDecoding != eDecodingRequired.none;
-                cFetchSectionTargetWriter lWriter = new cFetchSectionTargetWriter(lBinary, pDecoding, pTarget);
+
+                pSectionReaderWriter.WriteBegin(lBinary, pDecoding, lContext);
 
                 uint lOrigin = 0;
                 Stopwatch lStopwatch = new Stopwatch();
@@ -49,7 +50,7 @@ namespace work.bacome.imapclient
                     int lOffset = (int)(lOrigin - lBodyOrigin);
 
                     // write the bytes
-                    await lWriter.WriteAsync(lBody.Bytes, lOffset, pCancellationToken, lContext).ConfigureAwait(false);
+                    await pSectionReaderWriter.WriteAsync(lBody.Bytes, lOffset, , pCancellationToken, lContext).ConfigureAwait(false);
 
                     // if the body we got was the whole body, we are done
                     if (lBody.Origin == null) break;
@@ -62,7 +63,7 @@ namespace work.bacome.imapclient
                 }
 
                 // finish the write
-                await lWriter.WriteAsync(cBytes.Empty, 0, pCancellationToken, lContext).ConfigureAwait(false);
+                await pSectionReaderWriter.WritingCompletedOKAsync(pCancellationToken, lContext).ConfigureAwait(false);
             }
         }
     }

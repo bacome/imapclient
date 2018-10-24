@@ -44,14 +44,19 @@ namespace work.bacome.imapclient
         recentcount = 1 << 4,
 
         /// <summary>
-        /// The backing data for <see cref="cMailbox.UIDNext"/>.
-        /// </summary>
-        uidnext = 1 << 5,
-
-        /// <summary>
         /// The backing data for <see cref="cMailbox.UIDValidity"/>.
         /// </summary>
-        uidvalidity = 1 << 6,
+        uidvalidity = 1 << 5,
+
+        /// <summary>
+        /// One component of the backing data for <see cref="cMailbox.UIDNext"/>.
+        /// </summary>
+        uidnextcomponent =  1 << 6,
+
+        /// <summary>
+        /// The backing data for <see cref="cMailbox.UIDNext"/>.
+        /// </summary>
+        uidnext = uidvalidity | uidnextcomponent,
 
         /// <summary>
         /// The backing data for <see cref="cMailbox.UnseenCount"/>.
@@ -64,8 +69,8 @@ namespace work.bacome.imapclient
         highestmodseq = 1 << 8,
 
         /// <summary>
-        /// The backing data retrieved by the IMAP STATUS command (equivalent to: <see cref="messagecount"/>, <see cref="recentcount"/>, <see cref="uidnext"/>, <see cref="uidvalidity"/>, <see cref="unseencount"/> and <see cref="highestmodseq"/>). 
+        /// The backing data retrieved by the IMAP STATUS command (equivalent to: <see cref="messagecount"/>, <see cref="recentcount"/>, <see cref="uidvalidity"/>, <see cref="uidnextcomponent"/>, <see cref="unseencount"/> and <see cref="highestmodseq"/>). 
         /// </summary>
-        allstatus = messagecount | recentcount | uidnext | uidvalidity | unseencount | highestmodseq
+        allstatus = messagecount | recentcount | uidvalidity | uidnextcomponent | unseencount | highestmodseq
     }
 }
