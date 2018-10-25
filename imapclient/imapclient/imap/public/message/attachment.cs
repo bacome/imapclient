@@ -68,11 +68,11 @@ namespace work.bacome.imapclient
 
             using (var lMessageDataStream = new cIMAPMessageDataStream(Client, MessageHandle, Part, true))
             {
-                long? lProgressLength;
-                if (pSetMaximum == null) lProgressLength = null;
-                else lProgressLength = await lMessageDataStream.GetProgressLengthAsync(pMC, lContext).ConfigureAwait(false);
+                cIMAPMessageDataStream.cScale lScale;
+                if (pSetMaximum == null) lScale = null;
+                else lScale = await lMessageDataStream.GetScaleAsync(pMC, lContext).ConfigureAwait(false);
 
-                if (lProgressLength != null) Client.InvokeActionLong(pSetMaximum, lProgressLength.Value, lContext);
+                if (lScale != null) Client.InvokeActionLong(pSetMaximum, lScale.Value, lContext);
 
                 using (var lFileStream = new FileStream(pPath, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
@@ -85,15 +85,23 @@ namespace work.bacome.imapclient
                         lMessageDataStream.ReadTimeout = pMC.Timeout;
                         var lBytesRead = await lMessageDataStream.ReadAsync(lBuffer, 0, lBuffer.Length, pMC.CancellationToken).ConfigureAwait(false);
 
-                        // filestreams can't timeout
                         if (lBytesRead != 0) await lFileStream.WriteAsync(lBuffer, 0, lBytesRead, pMC.CancellationToken).ConfigureAwait(false);
 
                         if (pIncrement != null)
                         {
-                            long lThisProgressPosition = lMessageDataStream.GetProgressPosition();
-                            int lIncrement = (int)(lThisProgressPosition - lLastProgressPosition);
-                            if (lIncrement > 0) Client.InvokeActionInt(pIncrement, lIncrement, lContext);
-                            lLastProgressPosition = lThisProgressPosition;
+                            if (lScale == null && lBytesRead != 0) Client.InvokeActionInt(pIncrement, lBytesRead, lContext);
+                            else
+                            {
+                                var lThisProgressPosition = lMessageDataStream.GetPositionOnScale(lScale);
+
+                                int lIncrement = (int)(lThisProgressPosition - lLastProgressPosition);
+
+                                if (lIncrement > 0)
+                                {
+                                    Client.InvokeActionInt(pIncrement, lIncrement, lContext);
+                                    lLastProgressPosition = lThisProgressPosition;
+                                }
+                            }
                         }
 
                         if (lBytesRead == 0) break;

@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
                     int lOffset = (int)(lOrigin - lBodyOrigin);
 
                     // write the bytes
-                    await pSectionReaderWriter.WriteAsync(lBody.Bytes, lOffset, , pCancellationToken, lContext).ConfigureAwait(false);
+                    await pSectionReaderWriter.WriteAsync(lBody.Bytes, lOffset, lBody.Bytes.Count - lOffset, pCancellationToken, lContext).ConfigureAwait(false);
 
                     // if the body we got was the whole body, we are done
                     if (lBody.Origin == null) break;

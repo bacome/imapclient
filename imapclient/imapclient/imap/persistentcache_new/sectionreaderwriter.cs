@@ -249,6 +249,48 @@ namespace work.bacome.imapclient
             if (pOffset + pCount > pBytes.Count) throw new ArgumentException();
             if (pCount == 0) return;
 
+            await ZWriteAsync(pBytes, pOffset, pCount, pCancellationToken, lContext).ConfigureAwait(false);
+
+            // let any pending read know that there is more data to consider
+            mReleaser.ReleaseReset(lContext);
+        }
+
+        public void WritingFailed(Exception pException, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(WritingFailed));
+
+            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionReaderWriter));
+
+            mWriteException = pException;
+            mWritingState = eWritingState.failed;
+
+            // let any pending read know that there is no more data to consider
+            mReleaser.Release(lContext);
+        }
+
+        public async Task WritingCompletedOKAsync(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(WritingCompletedOKAsync));
+
+            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionReaderWriter));
+            if (mWritingState != eWritingState.inprogress) throw new InvalidOperationException();
+
+            if (mDecoder != null && mDecoder.BufferedInputByteCount != 0) await ZWriteAsync(cMailClient.ZeroLengthBuffer, 0, 0, pCancellationToken, lContext).ConfigureAwait(false);
+
+            await mStream.FlushAsync(pCancellationToken).ConfigureAwait(false);
+
+            mWritingState = eWritingState.completedok;
+
+            mAdder.Add(lContext);
+
+            // let any pending read know that there is no more data to consider
+            mReleaser.Release(lContext);
+        }
+
+        private async Task ZWriteAsync(IList<byte> pBytes, int pOffset, int pCount, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(ZWriteAsync), pOffset, pCount);
+
             byte[] lBytes;
             int lInputBytesInBytes;
 
@@ -283,43 +325,6 @@ namespace work.bacome.imapclient
                 mInputBytesWrittenToStream += lInputBytesInBytes;
             }
             finally { mSemaphore.Release(); }
-
-            // let any pending read know that there is more data to consider
-            mReleaser.ReleaseReset(lContext);
-        }
-
-        public void WritingFailed(Exception pException, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(WritingFailed));
-
-            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionReaderWriter));
-
-            mWriteException = pException;
-            mWritingState = eWritingState.failed;
-
-            // let any pending read know that there is no more data to consider
-            mReleaser.Release(lContext);
-        }
-
-        public async Task WritingCompletedOKAsync(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cSectionReaderWriter), nameof(WritingCompletedOKAsync));
-
-            if (mDisposed) throw new ObjectDisposedException(nameof(cSectionReaderWriter));
-            if (mWritingState != eWritingState.inprogress) throw new InvalidOperationException();
-
-            ;?; // shouldn't this push the last bit out of the decoder?
-            ;?; // (YES)
-
-
-            await mStream.FlushAsync(pCancellationToken).ConfigureAwait(false);
-
-            mWritingState = eWritingState.completedok;
-
-            mAdder.Add(lContext);
-
-            // let any pending read know that there is no more data to consider
-            mReleaser.Release(lContext);
         }
 
         public void Dispose()

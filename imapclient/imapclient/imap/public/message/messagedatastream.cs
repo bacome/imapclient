@@ -13,22 +13,25 @@ namespace work.bacome.imapclient
         private bool mDisposed = false;
 
         public readonly cIMAPClient Client;
+        public readonly iMessageHandle MessageHandle;
         public readonly iMailboxHandle MailboxHandle;
         public readonly cUID UID;
         public readonly cSection Section;
         public readonly bool DecodedIfRequired;
 
+        private bool? mDecoded;
+
+        private readonly cSectionHandle mSectionHandle;
         private readonly bool mUIDNotSticky;
 
         private cSinglePartBody mPart;
         private bool mToTrySetPart;
-        private bool? mDecoded;
-        private cSectionHandle mSectionHandle;
         private cSectionId mSectionId;
 
         private int mReadTimeout;
 
         private long mLength = -1;
+
         private readonly object mMessageDataReaderLock = new object();
         private iSectionReader mMessageDataReader = null; // this will be one of the two following
         private cSectionReader mSectionReader = null;
@@ -42,7 +45,7 @@ namespace work.bacome.imapclient
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
 
-            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
+            MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
             if (pMessageHandle.MessageCache.IsInvalid) throw new ArgumentOutOfRangeException(nameof(pMessageHandle));
             if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
 
@@ -53,11 +56,12 @@ namespace work.bacome.imapclient
             Section = pPart.Section;
             DecodedIfRequired = pDecodedIfRequired;
 
+            mDecoded = pDecodedIfRequired && pPart.DecodingRequired != eDecodingRequired.none;
+
+            mSectionHandle = new cSectionHandle(pMessageHandle, pPart.Section, mDecoded.Value);
             mUIDNotSticky = pMessageHandle.MessageCache.UIDNotSticky;
 
             mToTrySetPart = false;
-            mDecoded = pDecodedIfRequired && pPart.DecodingRequired != eDecodingRequired.none;
-            mSectionHandle = new cSectionHandle(pMessageHandle, pPart.Section, mDecoded.Value);
             mSectionId = null;
 
             mReadTimeout = Client.Timeout;
@@ -67,7 +71,7 @@ namespace work.bacome.imapclient
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
 
-            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
+            MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
             if (pMessageHandle.MessageCache.IsInvalid) throw new ArgumentOutOfRangeException(nameof(pMessageHandle));
             if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
 
@@ -77,12 +81,13 @@ namespace work.bacome.imapclient
             UID = null;
             DecodedIfRequired = false;
 
+            mDecoded = false;
+
+            mSectionHandle = new cSectionHandle(pMessageHandle, pSection, false);
             mUIDNotSticky = pMessageHandle.MessageCache.UIDNotSticky;
 
             mPart = null;
             mToTrySetPart = pSection.CouldDescribeASinglePartBody;
-            mDecoded = false;
-            mSectionHandle = new cSectionHandle(pMessageHandle, pSection, false);
             mSectionId = null;
 
             mReadTimeout = Client.Timeout;
@@ -98,12 +103,8 @@ namespace work.bacome.imapclient
             UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
 
+            MessageHandle = null;
             DecodedIfRequired = pDecodedIfRequired;
-
-            mUIDNotSticky = pMailboxHandle.SelectedProperties.UIDNotSticky.Value;
-
-            mPart = null;
-            mToTrySetPart = pSection.CouldDescribeASinglePartBody;
 
             if (pDecodedIfRequired && pSection.CouldDescribeASinglePartBody)
             {
@@ -117,6 +118,10 @@ namespace work.bacome.imapclient
             }
 
             mSectionHandle = null;
+            mUIDNotSticky = pMailboxHandle.SelectedProperties.UIDNotSticky.Value;
+
+            mPart = null;
+            mToTrySetPart = pSection.CouldDescribeASinglePartBody;
 
             mReadTimeout = Client.Timeout;
         }
@@ -176,7 +181,7 @@ namespace work.bacome.imapclient
                 if (Client.MessageSizesAreReliable)
                 {
                     if (mSectionHandle == null) return await Client.GetMessageSizeInBytesAsync(pMC, MailboxHandle, mSectionId.MessageUID, lContext).ConfigureAwait(false);
-                    else return await Client.GetMessageSizeInBytesAsync(pMC, mSectionHandle.MessageHandle, lContext).ConfigureAwait(false);
+                    else return await Client.GetMessageSizeInBytesAsync(pMC, MessageHandle, lContext).ConfigureAwait(false);
                 }
                 else return await LGetLengthFromSectionReaderWriterAsync();
             }
@@ -190,7 +195,7 @@ namespace work.bacome.imapclient
                 uint? lDecodedSizeInBytes;
 
                 if (mSectionHandle == null) lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(pMC, MailboxHandle, mSectionId.MessageUID, mPart, lContext).ConfigureAwait(false);
-                else lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(pMC, mSectionHandle.MessageHandle, mPart, lContext).ConfigureAwait(false);
+                else lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(pMC, MessageHandle, mPart, lContext).ConfigureAwait(false);
 
                 if (lDecodedSizeInBytes == null) return await LGetLengthFromSectionReaderWriterAsync();
 
@@ -366,17 +371,16 @@ namespace work.bacome.imapclient
 
             if (mMessageDataReader == null) ZTryGetIdealSectionReader(lContext);
 
-            if (mMessageDataReader != null && mMessageDataReader.LengthIsKnown) return new cScale(cScale.eType.exact, mMessageDataReader.Length);
+            if (mMessageDataReader != null && mMessageDataReader.LengthIsKnown) return new cScale(mMessageDataReader.Length, false);
 
             if (Section == cSection.All)
             {
                 uint lMessageSizeInBytes;
 
                 if (mSectionHandle == null) lMessageSizeInBytes = await Client.GetMessageSizeInBytesAsync(pMC, MailboxHandle, mSectionId.MessageUID, lContext).ConfigureAwait(false);
-                else lMessageSizeInBytes = await Client.GetMessageSizeInBytesAsync(pMC, mSectionHandle.MessageHandle, lContext).ConfigureAwait(false);
+                else lMessageSizeInBytes = await Client.GetMessageSizeInBytesAsync(pMC, MessageHandle, lContext).ConfigureAwait(false);
 
-                if (Client.MessageSizesAreReliable) return new cScale(cScale.eType.exact, lMessageSizeInBytes);
-                return new cScale(cScale.eType.estimate, lMessageSizeInBytes);
+                return new cScale(lMessageSizeInBytes, false);
             }
 
             if (mToTrySetPart) await ZTrySetPart(pMC, lContext).ConfigureAwait(false);
@@ -388,15 +392,14 @@ namespace work.bacome.imapclient
                 uint? lDecodedSizeInBytes;
 
                 if (mSectionHandle == null) lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(pMC, MailboxHandle, mSectionId.MessageUID, mPart, lContext).ConfigureAwait(false);
-                else lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(pMC, mSectionHandle.MessageHandle, mPart, lContext).ConfigureAwait(false);
+                else lDecodedSizeInBytes = await Client.GetDecodedSizeInBytesAsync(pMC, MessageHandle, mPart, lContext).ConfigureAwait(false);
 
-                if (lDecodedSizeInBytes != null) return new cScale(cScale.eType.exact, lDecodedSizeInBytes.Value);
+                if (lDecodedSizeInBytes != null) return new cScale(lDecodedSizeInBytes.Value, false);
 
-                return new cScale(cScale.eType.encoded, mPart.SizeInBytes);
+                return new cScale(mPart.SizeInBytes, true);
             }
 
-            if (mPart is cMessageBodyPart && !Client.MessageSizesAreReliable) return new cScale(cScale.eType.estimate, mPart.SizeInBytes);
-            return new cScale(cScale.eType.exact, mPart.SizeInBytes);
+            return new cScale(mPart.SizeInBytes, false);
         }
 
         public long GetPositionOnScale(cScale pScale)
@@ -415,13 +418,13 @@ namespace work.bacome.imapclient
 
             if (mMessageDataReader.LengthIsKnown)
             {
-                if (lReadPosition == mMessageDataReader.Length) return pScale.Scale;
-                return lReadPosition * pScale.Scale / mMessageDataReader.Length;
+                if (lReadPosition == mMessageDataReader.Length) return pScale.Value;
+                return lReadPosition * pScale.Value / mMessageDataReader.Length;
             }
 
-            if (mSectionReaderWriter.IsDecoding && pScale.Type == cScale.eType.encoded) return Math.Min(mSectionReaderWriter.ReadPositionInInputBytes, pScale.Scale);
+            if (mSectionReaderWriter.IsDecoding && pScale.ValueIsInEncodedBytes) return Math.Min(mSectionReaderWriter.ReadPositionInInputBytes, pScale.Value);
 
-            return Math.Min(lReadPosition, pScale.Scale);
+            return Math.Min(lReadPosition, pScale.Value);
         }
 
         private async Task ZTrySetPart(cMethodControl pMC, cTrace.cContext pParentContext)
@@ -441,7 +444,7 @@ namespace work.bacome.imapclient
                     mSectionId = new cSectionId(new cMessageUID(MailboxHandle.MailboxId, UID, mUIDNotSticky, Client.UTF8Enabled), Section, mDecoded.Value);
                 }
             }
-            else mPart = await Client.GetSinglePartBodyAsync(pMC, mSectionHandle.MessageHandle, Section, lContext).ConfigureAwait(false);
+            else mPart = await Client.GetSinglePartBodyAsync(pMC, MessageHandle, Section, lContext).ConfigureAwait(false);
 
             mToTrySetPart = false;
         }
@@ -491,49 +494,49 @@ namespace work.bacome.imapclient
             {
                 if (mMessageDataReader != null) throw new InvalidOperationException();
 
+                eDecodingRequired lDecoding;
+                if (mDecoded == true) lDecoding = mPart.DecodingRequired;
+                else lDecoding = eDecodingRequired.none;
+
                 mBackgroundCancellationTokenSource = new CancellationTokenSource();
+                var lCancellationToken = mBackgroundCancellationTokenSource.Token;
 
                 if (mSectionHandle == null)
                 {
                     mSectionReaderWriter = Client.PersistentCache.GetSectionReaderWriter(mSectionId, lContext);
-                    if (mSectionId.Decoded && Client.PersistentCache.TryGetSectionReader(new cSectionId(mSectionId.MessageUID, Section, false), out mSectionReader, lContext)) mBackgroundTask = ZBackgroundDecodeAsync(lContext);
-                    else mBackgroundTask = ZBackgroundFetchAsync(lContext);
+                    if (mSectionId.Decoded && Client.PersistentCache.TryGetSectionReader(new cSectionId(mSectionId.MessageUID, Section, false), out mSectionReader, lContext)) mBackgroundTask = ZBackgroundDecodeAsync(lDecoding, lCancellationToken, lContext);
+                    else mBackgroundTask = Client.UIDFetchSectionAsync(MailboxHandle, UID, Section, lDecoding, mSectionReaderWriter, lCancellationToken, lContext);
                 }
                 else
                 {
                     mSectionReaderWriter = Client.PersistentCache.GetSectionReaderWriter(mSectionHandle, lContext);
-                    if (mSectionHandle.Decoded && Client.PersistentCache.TryGetSectionReader(new cSectionHandle(mSectionHandle.MessageHandle, Section, false), out mSectionReader, lContext)) mBackgroundTask = ZBackgroundDecodeAsync(lContext);
-                    else mBackgroundTask = ZBackgroundFetchAsync(lContext);
+                    if (mSectionHandle.Decoded && Client.PersistentCache.TryGetSectionReader(new cSectionHandle(MessageHandle, Section, false), out mSectionReader, lContext)) mBackgroundTask = ZBackgroundDecodeAsync(lDecoding, lCancellationToken, lContext);
+                    else mBackgroundTask = Client.FetchSectionAsync(MessageHandle, Section, lDecoding, mSectionReaderWriter, lCancellationToken, lContext);
                 }
 
                 mMessageDataReader = mSectionReaderWriter;
             }
         }
 
-        private async Task ZBackgroundDecodeAsync(cTrace.cContext pParentContext)
+        private async Task ZBackgroundDecodeAsync(eDecodingRequired pDecoding, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ZBackgroundDecodeAsync));
+            var lContext = pParentContext.NewMethod(nameof(cIMAPMessageDataStream), nameof(ZBackgroundDecodeAsync), pDecoding);
 
-            CancellationToken lCancellationToken = mBackgroundCancellationTokenSource.Token;
-
-            eDecodingRequired lDecoding;
-            if (mDecoded == true) lDecoding = mPart.DecodingRequired;
-            else lDecoding = eDecodingRequired.none;
 
             var lBuffer = new byte[cMailClient.BufferSize];
 
             try
             {
-                mSectionReaderWriter.WriteBegin(false, lDecoding, lContext);
+                mSectionReaderWriter.WriteBegin(false, pDecoding, lContext);
 
                 while (true)
                 {
-                    var lBytesRead = await mSectionReader.ReadAsync(lBuffer, 0, lBuffer.Length, Timeout.Infinite, lCancellationToken, lContext).ConfigureAwait(false);
+                    var lBytesRead = await mSectionReader.ReadAsync(lBuffer, 0, lBuffer.Length, Timeout.Infinite, pCancellationToken, lContext).ConfigureAwait(false);
                     if (lBytesRead == 0) break;
-                    await mSectionReaderWriter.WriteAsync(lBuffer, 0, lBytesRead, lCancellationToken, lContext).ConfigureAwait(false);
+                    await mSectionReaderWriter.WriteAsync(lBuffer, 0, lBytesRead, pCancellationToken, lContext).ConfigureAwait(false);
                 }
 
-                await mSectionReaderWriter.WritingCompletedOKAsync(lCancellationToken, lContext).ConfigureAwait(false);
+                await mSectionReaderWriter.WritingCompletedOKAsync(pCancellationToken, lContext).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -541,79 +544,6 @@ namespace work.bacome.imapclient
                 return;
             }
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        private async Task ZBackgroundFetchAsync(cSectionHandle pKey, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewRootMethod(nameof(cIMAPMessageDataStream), nameof(ZBackgroundFetchAsync), pKey);
-
-            CancellationToken lCancellationToken = mBackgroundCancellationTokenSource.Token;
-
-            try
-            {
-                mCacheItemReaderWriter.WriteBegin(lContext);
-                await Client.FetchSectionAsync(MessageHandle, Section, Decoding, mCacheItemReaderWriter, lCancellationToken, lContext).ConfigureAwait(false);
-                await mCacheItemReaderWriter.WritingCompletedOKAsync(lCancellationToken, lContext).ConfigureAwait(false);
-            }
-            catch (Exception e)
-            {
-                mCacheItemReaderWriter.WritingFailed(e, lContext);
-                return;
-            }
-
-            mSectionCacheItem.Cache.AddItem(pKey, mSectionCacheItem, lContext);
-        }
-
-        private async Task ZBackgroundFetchAsync(iMailboxHandle pMailboxHandle, cUID pUID, cSectionId pKey, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewRootMethod(nameof(cIMAPMessageDataStream), nameof(ZBackgroundFetchAsync), pMailboxHandle, pUID, pKey);
-
-            CancellationToken lCancellationToken = mBackgroundCancellationTokenSource.Token;
-
-            try
-            {
-                mCacheItemReaderWriter.WriteBegin(lContext);
-                await Client.UIDFetchSectionAsync(pMailboxHandle, pUID, Section, Decoding, mCacheItemReaderWriter, lCancellationToken, lContext).ConfigureAwait(false);
-                await mCacheItemReaderWriter.WritingCompletedOKAsync(lCancellationToken, lContext).ConfigureAwait(false);
-            }
-            catch (Exception e)
-            {
-                mCacheItemReaderWriter.WritingFailed(e, lContext);
-                return;
-            }
-
-            mSectionCacheItem.Cache.AddItem(pKey, mSectionCacheItem, lContext);
-        }
-
-
-
-
-
-
 
         protected override void Dispose(bool pDisposing)
         {
@@ -658,28 +588,20 @@ namespace work.bacome.imapclient
             base.Dispose(pDisposing);
         }
 
-        public override string ToString() => $"{nameof(cIMAPMessageDataStream)}({MessageHandle},{MailboxHandle},{UID},{Section},{Decoding})";
-
+        public override string ToString() => $"{nameof(cIMAPMessageDataStream)}({MessageHandle},{MailboxHandle},{UID},{Section},{DecodedIfRequired})";
 
         public class cScale
         {
-            public enum eType
+            public readonly long Value;
+            internal readonly bool ValueIsInEncodedBytes;
+
+            internal cScale(long pValue, bool pValueIsInEncodedBytes)
             {
-                exact, // exact length
-                estimate, // a guess (unreliable message size)
-                encoded // the encoded length
+                Value = pValue;
+                ValueIsInEncodedBytes = pValueIsInEncodedBytes;
             }
 
-            public readonly eType Type;
-            public readonly long Scale;
-
-            internal cScale(eType pType, long pScale)
-            {
-                Type = pType;
-                Scale = pScale;
-            }
-
-            public override string ToString() => $"{nameof(cScale)}({Type},{Scale})";
+            public override string ToString() => $"{nameof(cScale)}({Value},{ValueIsInEncodedBytes})";
         }
     }
 }
