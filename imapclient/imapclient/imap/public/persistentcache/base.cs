@@ -194,9 +194,6 @@ namespace work.bacome.imapclient
             // overrides must take account of the fact that duplicates could be created by any rename done
         }
 
-        protected internal abstract bool TryGetHeaderCacheItem(cMessageUID pMessageUID, out iHeaderCacheItem rHeaderCacheItem, cTrace.cContext pParentContext);
-        protected internal abstract bool TryGetFlagCacheItem(cMessageUID pMessageUID, out iFlagCacheItem rFlagCacheItem, cTrace.cContext pParentContext);
-
         internal bool TryGetSectionReader(cSectionId pSectionId, out cSectionReader rSectionReader, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(TryGetSectionReader), pSectionId);
@@ -246,6 +243,9 @@ namespace work.bacome.imapclient
                 throw;
             }
         }
+
+        internal abstract iFlagCacheItem GetFlagCacheItem(cMessageUID pMessageUID, cTrace.cContext pParentContext);
+        internal abstract iHeaderCacheItem GetHeaderCacheItem(cMessageUID pMessageUID, cTrace.cContext pParentContext);
 
         internal cSectionReaderWriter GetSectionReaderWriter(cSectionId pSectionId, cTrace.cContext pParentContext)
         {

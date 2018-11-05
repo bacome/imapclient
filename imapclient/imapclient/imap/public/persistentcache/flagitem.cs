@@ -3,9 +3,14 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    public interface iFlagCacheItem
+    public interface iFlagDataItem
     {
         cModSeqFlags ModSeqFlags { get; }
-        void Update(cModSeqFlags pModSeqFlags, cTrace.cContext pParentContext); // should not update if the modseq isn't greater (unless the modseq is zero, in which case it should)
+    }
+
+    public interface iFlagCacheItem : iFlagDataItem
+    {
+        fMessageCacheAttributes Attributes { get; }
+        void Update(iFlagDataItem pFlagDataItem, cTrace.cContext pParentContext);
     }
 }

@@ -89,7 +89,10 @@ namespace work.bacome.imapclient
 
                         if (pIncrement != null)
                         {
-                            if (lScale == null && lBytesRead != 0) Client.InvokeActionInt(pIncrement, lBytesRead, lContext);
+                            if (lScale == null)
+                            {
+                                if (lBytesRead != 0) Client.InvokeActionInt(pIncrement, lBytesRead, lContext);
+                            }
                             else
                             {
                                 var lThisProgressPosition = lMessageDataStream.GetPositionOnScale(lScale);

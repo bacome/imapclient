@@ -184,10 +184,10 @@ namespace work.bacome.imapclient
                             lMSN,
                             lUID,
                             lModSeqFlags,
-                            lBody,
                             lEnvelope, lReceived, lSize, lBodyStructure, lHeaderFields, lBinarySizes,
-                            lRFC822, lRFC822Header, lRFC822Text,
-                            lBodies);
+                            lBodies,
+                            lBody,
+                            lRFC822, lRFC822Header, lRFC822Text);
 
                     return true;
                 }

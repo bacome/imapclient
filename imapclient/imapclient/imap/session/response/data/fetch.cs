@@ -11,12 +11,12 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private class cResponseDataFetch : cResponseData, iHeaderDataItem
+            private class cResponseDataFetch : cResponseData, iFlagDataItem, iHeaderDataItem
             {
                 public readonly uint MSN;
                 public readonly uint? UID;
-                public readonly cModSeqFlags ModSeqFlags;
-                public readonly cBodyPart Body;
+
+                private readonly cModSeqFlags mModSeqFlags;
 
                 private readonly cEnvelope mEnvelope;
                 private readonly cTimestamp mReceived;
@@ -25,25 +25,27 @@ namespace work.bacome.imapclient
                 private readonly cHeaderFields mHeaderFields;
                 private readonly cBinarySizes mBinarySizes;
 
+                public readonly ReadOnlyCollection<cBody> Bodies;
+
+                public readonly cBodyPart Body;
+
                 public readonly cBytes RFC822; // un-parsed
                 public readonly cBytes RFC822Header; // un-parsed
                 public readonly cBytes RFC822Text; // un-parsed
-
-                public readonly ReadOnlyCollection<cBody> Bodies;
 
                 public cResponseDataFetch(
                     uint pMSN,
                     uint? pUID,
                     cModSeqFlags pModSeqFlags,
-                    cBodyPart pBody,
                     cEnvelope pEnvelope, cTimestamp pReceived, uint? pSize, cBodyPart pBodyStructure, cHeaderFields pHeaderFields, cBinarySizes pBinarySizes,
-                    cBytes pRFC822, cBytes pRFC822Header, cBytes pRFC822Text,
-                    IList<cBody> pBodies)
+                    IList<cBody> pBodies,
+                    cBodyPart pBody,
+                    cBytes pRFC822, cBytes pRFC822Header, cBytes pRFC822Text)
                 {
                     MSN = pMSN;
                     UID = pUID;
-                    ModSeqFlags = pModSeqFlags;
-                    Body = pBody;
+
+                    mModSeqFlags = pModSeqFlags;
 
                     mEnvelope = pEnvelope;
                     mReceived = pReceived;
@@ -52,12 +54,16 @@ namespace work.bacome.imapclient
                     mHeaderFields = pHeaderFields;
                     mBinarySizes = pBinarySizes;
 
+                    Bodies = new ReadOnlyCollection<cBody>(pBodies);
+
+                    Body = pBody;
+
                     RFC822 = pRFC822;
                     RFC822Header = pRFC822Header;
                     RFC822Text = pRFC822Text;
-
-                    Bodies = new ReadOnlyCollection<cBody>(pBodies);
                 }
+
+                public cModSeqFlags ModSeqFlags => mModSeqFlags;
 
                 public cEnvelope Envelope => mEnvelope;
                 public cTimestamp Received => mReceived;
@@ -72,8 +78,8 @@ namespace work.bacome.imapclient
 
                     lBuilder.Append(MSN);
                     lBuilder.Append(UID);
-                    lBuilder.Append(ModSeqFlags);
-                    lBuilder.Append(Body);
+
+                    lBuilder.Append(mModSeqFlags);
 
                     lBuilder.Append(mEnvelope);
                     lBuilder.Append(mReceived);
@@ -82,13 +88,15 @@ namespace work.bacome.imapclient
                     lBuilder.Append(mHeaderFields);
                     lBuilder.Append(mBinarySizes);
 
-                    lBuilder.Append(RFC822);
-                    lBuilder.Append(RFC822Header);
-                    lBuilder.Append(RFC822Text);
-
                     cListBuilder lBodies = new cListBuilder(nameof(Bodies));
                     foreach (var lBody in Bodies) lBodies.Append(lBody);
                     lBuilder.Append(lBodies);
+
+                    lBuilder.Append(Body);
+
+                    lBuilder.Append(RFC822);
+                    lBuilder.Append(RFC822Header);
+                    lBuilder.Append(RFC822Text);
 
                     return lBuilder.ToString();
                 }

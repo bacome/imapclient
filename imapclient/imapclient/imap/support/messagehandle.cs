@@ -21,50 +21,6 @@ namespace work.bacome.imapclient.support
         fMessageCacheAttributes Attributes { get; }
 
         /// <summary>
-        /// Gets the MessageUID of the message, may be <see langword="null"/>.
-        /// </summary>
-        /// <remarks>
-        /// <see langword="null"/> indicates that either the data isn't cached or that the mailbox does not support unique identifiers.
-        /// </remarks>
-        cMessageUID MessageUID { get; }
-
-        /// <summary>
-        /// Gets the RFC 7162 mod-sequence data and the IMAP FLAGS data, <see langword="null"/> if this data isn't cached.
-        /// </summary>
-        cModSeqFlags ModSeqFlags { get; }
-
-        /// <summary>
-        /// Gets the IMAP BODY data, <see langword="null"/> if this data isn't cached.
-        /// </summary>
-        /// <remarks>
-        /// The BODY data is the same as the BODYSTRUCTURE data but is missing the 'extension data'.
-        /// In particular the following elements (and the properties that derive from them) will be <see langword="null"/>;
-        /// <list type="bullet">
-        /// <item><see cref="cMultiPartBody.ExtensionData"/></item>
-        /// <item><see cref="cSinglePartBody.ExtensionData"/></item>
-        /// </list>
-        /// </remarks>
-        cBodyPart Body { get; }
-
-        /**<summary>Gets the IMAP ENVELOPE data, <see langword="null"/> if this data isn't cached.</summary>*/
-        cEnvelope Envelope { get; }
-
-        /**<summary>Gets the IMAP INTERNALDATE, <see langword="null"/> if this data isn't cached.</summary>*/
-        cTimestamp Received { get; }
-
-        /**<summary>Gets the IMAP RFC822.SIZE data, <see langword="null"/> if this data isn't cached.</summary>*/
-        uint? Size { get; }
-
-        /**<summary>Gets the IMAP BODYSTRUCTURE data, <see langword="null"/> if this data isn't cached.</summary>*/
-        cBodyPart BodyStructure { get; }
-
-        /**<summary>Gets the set of header fields that are currently cached for the message, will be <see langword="null"/> if none have been cached.</summary>*/
-        cHeaderFields HeaderFields { get; }
-
-        /**<summary>Gets the binary body-part sizes that are currently cached for the message, will be <see langword="null"/> if none have been cached.</summary>*/
-        cBinarySizes BinarySizes { get; }
-
-        /// <summary>
         /// Determines whether all the specified items are cached for the message.
         /// </summary>
         /// <param name="pItems"></param>
@@ -84,5 +40,36 @@ namespace work.bacome.imapclient.support
         /// <param name="pItems"></param>
         /// <returns></returns>
         cMessageCacheItems Missing(cMessageCacheItems pItems);
+
+        /// <summary>
+        /// Gets the MessageUID of the message, may be <see langword="null"/>.
+        /// </summary>
+        /// <remarks>
+        /// <see langword="null"/> indicates that either the data isn't cached or that the mailbox does not support unique identifiers.
+        /// </remarks>
+        cMessageUID MessageUID { get; }
+
+        /// <summary>
+        /// Gets the RFC 7162 mod-sequence data and the IMAP FLAGS data, <see langword="null"/> if this data isn't cached.
+        /// </summary>
+        cModSeqFlags ModSeqFlags { get; }
+
+        /**<summary>Gets the IMAP ENVELOPE data, <see langword="null"/> if this data isn't cached.</summary>*/
+        cEnvelope Envelope { get; }
+
+        /**<summary>Gets the IMAP INTERNALDATE, <see langword="null"/> if this data isn't cached.</summary>*/
+        cTimestamp Received { get; }
+
+        /**<summary>Gets the IMAP RFC822.SIZE data, <see langword="null"/> if this data isn't cached.</summary>*/
+        uint? Size { get; }
+
+        /**<summary>Gets the IMAP BODYSTRUCTURE data, <see langword="null"/> if this data isn't cached.</summary>*/
+        cBodyPart BodyStructure { get; }
+
+        /**<summary>Gets the set of header fields that are currently cached for the message, will be <see langword="null"/> if none have been cached.</summary>*/
+        cHeaderFields HeaderFields { get; }
+
+        /**<summary>Gets the binary body-part sizes that are currently cached for the message, will be <see langword="null"/> if none have been cached.</summary>*/
+        cBinarySizes BinarySizes { get; }
     }
 }

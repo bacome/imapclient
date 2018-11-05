@@ -284,6 +284,8 @@ namespace work.bacome.imapclient
 
                 public List<cMessageUID> GetMessageUIDsWithDeletedFlag(cTrace.cContext pParentContext)
                 {
+                    ;?; // hmmm ... the problem here is, probably what is important is what ones I"VE been told about
+                    // and at the moment I don't have a way of knowing as I will pick up the flag changes told to other clients sharing the cache
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(GetMessageUIDsWithDeletedFlag));
                     return new List<cMessageUID>(from lItem in mItems where lItem.MessageUID != null && lItem.Flags != null && lItem.Flags.Contains(kMessageFlag.Deleted) select lItem.MessageUID);
                 }
@@ -443,6 +445,8 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ZSetMailboxStatus));
                     mMailboxCacheItem.SetMailboxStatus(new cMailboxStatus(mItems.Count, mRecentCount, mUIDValidity, mUIDNextComponent, mUIDNextUnknownCount, mUnseenCount, mUnseenUnknownCount, mHighestModSeq), lContext);
                 }
+
+                private void ZNoModSeqFlagUpdate(cTrace.cContext pParentContext) => mPersistentCache.NoModSeqFlagUpdate(mMailboxUID, pParentContext);
 
                 public override string ToString() => $"{nameof(cSelectedMailboxCache)}({mMailboxCacheItem},{mUIDValidity})";
             }

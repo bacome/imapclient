@@ -7,6 +7,7 @@ namespace work.bacome.imapclient
 {
     internal class cNoUIDHeaderCacheItem : iHeaderCacheItem
     {
+        private fMessageCacheAttributes mAttributes = 0;
         private cEnvelope mEnvelope = null;
         private cTimestamp mReceived = null;
         private uint? mSize = null;
@@ -14,6 +15,7 @@ namespace work.bacome.imapclient
         private cHeaderFields mHeaderFields = null;
         private cBinarySizes mBinarySizes = null;
 
+        public fMessageCacheAttributes Attributes => mAttributes;
         public cEnvelope Envelope => mEnvelope;
         public cTimestamp Received => mReceived;
         public uint? Size => mSize;
@@ -25,10 +27,30 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cNoUIDHeaderCacheItem), nameof(Update), pHeaderDataItem);
 
-            if (mEnvelope == null) mEnvelope = pHeaderDataItem.Envelope;
-            if (mReceived == null) mReceived = pHeaderDataItem.Received;
-            if (mSize == null) mSize = pHeaderDataItem.Size;
-            if (mBodyStructure == null) mBodyStructure = pHeaderDataItem.BodyStructure;
+            if (mEnvelope == null && pHeaderDataItem.Envelope != null)
+            {
+                mAttributes |= fMessageCacheAttributes.envelope;
+                mEnvelope = pHeaderDataItem.Envelope;
+            }
+
+            if (mReceived == null && pHeaderDataItem.Received != null)
+            {
+                mAttributes |= fMessageCacheAttributes.received;
+                mReceived = pHeaderDataItem.Received;
+            }
+            
+            if (mSize == null && pHeaderDataItem.Size != null)
+            {
+                mAttributes |= fMessageCacheAttributes.size;
+                mSize = pHeaderDataItem.Size;
+            }
+
+            if (mBodyStructure == null && pHeaderDataItem.BodyStructure != null)
+            {
+                mAttributes |= fMessageCacheAttributes.bodystructure;
+                mBodyStructure = pHeaderDataItem.BodyStructure;
+            }
+
             mHeaderFields += pHeaderDataItem.HeaderFields;
             mBinarySizes += pHeaderDataItem.BinarySizes;
         }

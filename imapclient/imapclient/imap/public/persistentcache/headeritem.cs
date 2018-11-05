@@ -17,6 +17,7 @@ namespace work.bacome.imapclient
 
     public interface iHeaderCacheItem : iHeaderDataItem
     {
+        fMessageCacheAttributes Attributes { get; }
         void Update(iHeaderDataItem pHeaderDataItem, cTrace.cContext pParentContext); // updates this instance from the supplied instance
     }
 }
