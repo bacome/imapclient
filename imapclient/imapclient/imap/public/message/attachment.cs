@@ -33,19 +33,19 @@ namespace work.bacome.imapclient
         public override Stream GetMessageDataStream(bool pDecodedIfRequired = true) => new cIMAPMessageDataStream(Client, MessageHandle, Part, pDecodedIfRequired);
         public cIMAPMessageDataStream GetIMAPMessageDataStream(bool pDecodedIfRequired = true) => new cIMAPMessageDataStream(Client, MessageHandle, Part, pDecodedIfRequired);
 
-        public override void SaveAs(string pPath, cSetMaximumConfiguration pConfiguration = null)
+        public override void SaveAs(string pPath, cMethodConfiguration pConfiguration = null)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cIMAPAttachment), nameof(SaveAs), pPath, pConfiguration);
             Client.Wait(ZSaveAsAsync(pPath, pConfiguration, lContext), lContext);
         }
 
-        public override Task SaveAsAsync(string pPath, cSetMaximumConfiguration pConfiguration = null)
+        public override Task SaveAsAsync(string pPath, cMethodConfiguration pConfiguration = null)
         {
             var lContext = Client.RootContext.NewMethod(nameof(cIMAPAttachment), nameof(SaveAsAsync), pPath, pConfiguration);
             return ZSaveAsAsync(pPath, pConfiguration, lContext);
         }
 
-        private Task ZSaveAsAsync(string pPath, cSetMaximumConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private Task ZSaveAsAsync(string pPath, cMethodConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPAttachment), nameof(ZSaveAsAsync), pPath, pConfiguration);
 
@@ -59,7 +59,7 @@ namespace work.bacome.imapclient
                     return ZZSaveAsAsync(lMC, pPath, null, null, lContext);
                 }
             }
-            else return ZZSaveAsAsync(pConfiguration.MC, pPath, pConfiguration.SetMaximum, pConfiguration.Increment, lContext);
+            else return ZZSaveAsAsync(pConfiguration.MC, pPath, pConfiguration.SetMaximum1, pConfiguration.Increment1, lContext);
         }
 
         private async Task ZZSaveAsAsync(cMethodControl pMC, string pPath, Action<long> pSetMaximum, Action<int> pIncrement, cTrace.cContext pParentContext)
@@ -75,6 +75,7 @@ namespace work.bacome.imapclient
                 if (lScale != null) Client.InvokeActionLong(pSetMaximum, lScale.Value, lContext);
 
                 using (var lFileStream = new FileStream(pPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                using (var lIncrementer = Client.GetNewIncrementer(pIncrement, lContext))
                 {
                     var lBuffer = new byte[cMailClient.BufferSize];
 
@@ -89,10 +90,7 @@ namespace work.bacome.imapclient
 
                         if (pIncrement != null)
                         {
-                            if (lScale == null)
-                            {
-                                if (lBytesRead != 0) Client.InvokeActionInt(pIncrement, lBytesRead, lContext);
-                            }
+                            if (lScale == null) lIncrementer.Increment(lBytesRead);
                             else
                             {
                                 var lThisProgressPosition = lMessageDataStream.GetPositionOnScale(lScale);
@@ -101,7 +99,7 @@ namespace work.bacome.imapclient
 
                                 if (lIncrement > 0)
                                 {
-                                    Client.InvokeActionInt(pIncrement, lIncrement, lContext);
+                                    lIncrementer.Increment(lIncrement);
                                     lLastProgressPosition = lThisProgressPosition;
                                 }
                             }

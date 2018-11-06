@@ -131,7 +131,7 @@ namespace work.bacome.imapclient
                 mSynchroniser.InvokePropertyChanged(nameof(Inbox), lContext);
             }
 
-            mSession = new cSession(PersistentCache, mIMAPSynchroniser, NetworkWriteConfiguration, mIgnoreCapabilities, mMailboxCacheDataItems, mSynchroniseCacheConfiguration, mFetchCacheItemsConfiguration, mFetchBodyConfiguration, mDefaultAppendFlags, mAppendBatchConfiguration, mIdleConfiguration, mEncoding, mMaxItemsInSequenceSet, lContext);
+            mSession = new cSession(PersistentCache, mIMAPSynchroniser, IncrementInvokeMillisecondsDelay, NetworkWriteConfiguration, mIgnoreCapabilities, mMailboxCacheDataItems, mFetchBodyConfiguration, mDefaultAppendFlags, mAppendBatchConfiguration, mIdleConfiguration, mEncoding, mMaxItemsInSequenceSet, lContext);
             var lSession = mSession;
 
             if (lSessionReplaced)
@@ -148,6 +148,9 @@ namespace work.bacome.imapclient
                 mSynchroniser.InvokePropertyChanged(nameof(SelectedMailbox), lContext);
                 mSynchroniser.InvokePropertyChanged(nameof(SelectedMailboxDetails), lContext);
             }
+
+            mSynchroniseCacheSizer = new cBatchSizer(mSynchroniseCacheConfiguration);
+            mFetchCacheItemsSizer = new cBatchSizer(mFetchCacheItemsConfiguration);
 
             List<cSASLAuthentication> lFailedSASLAuthentications = new List<cSASLAuthentication>();
             FailedSASLAuthentications = lFailedSASLAuthentications.AsReadOnly();

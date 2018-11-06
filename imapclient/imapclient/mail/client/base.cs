@@ -48,11 +48,12 @@ namespace work.bacome.mailclient
 
         // property backing storage
         private int mTimeout = -1;
+        private int mIncrementInvokeMillisecondsDelay = 100;
         private cServiceId mServiceId = null;
         private cBatchSizerConfiguration mNetworkWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private ReadOnlyCollection<cSASLAuthentication> mFailedSASLAuthentications = null;
 
-        internal cMailClient(string pInstanceName, cCallbackSynchroniser pSynchroniser)
+        protected cMailClient(string pInstanceName, cCallbackSynchroniser pSynchroniser)
         {
             InstanceName = pInstanceName ?? throw new ArgumentNullException(nameof(pInstanceName));
             mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
@@ -189,6 +190,25 @@ namespace work.bacome.mailclient
         }
 
         /// <summary>
+        /// Gets and sets the preferred frequency of invokes of progress-increment callbacks from the instance.
+        /// </summary>
+        /// <remarks>
+        /// May only be set while <see cref="IsUnconnected"/>.
+        /// </remarks>
+        /// <seealso cref="cMethodConfiguration"/>
+        public int IncrementInvokeMillisecondsDelay
+        {
+            get => mIncrementInvokeMillisecondsDelay;
+
+            set
+            {
+                if (value < -1) throw new ArgumentOutOfRangeException();
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
+                mIncrementInvokeMillisecondsDelay = value;
+            }
+        }
+
+        /// <summary>
         /// Gets and sets the service to connect to. 
         /// </summary>
         /// <remarks>
@@ -251,17 +271,22 @@ namespace work.bacome.mailclient
 
         internal void Wait(Task pAsyncTask, cTrace.cContext pParentContext) => mSynchroniser.Wait(pAsyncTask, pParentContext);
 
+
+
+        /*
         internal void InvokeActionInt(Action<int> pAction, int pInt, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cMailClient), nameof(InvokeActionInt), pInt);
             mSynchroniser.InvokeActionInt(pAction, pInt, lContext);
-        }
+        } */
 
         internal void InvokeActionLong(Action<long> pAction, long pLong, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cMailClient), nameof(InvokeActionLong), pLong);
             mSynchroniser.InvokeActionLong(pAction, pLong, lContext);
-        } 
+        }
+
+        internal iIncrementer GetNewIncrementer(Action<int> pIncrement, cTrace.cContext pContextForInvoke) => new cIncrementer(mSynchroniser, pIncrement, mIncrementInvokeMillisecondsDelay, pContextForInvoke);
 
         public void Dispose()
         {

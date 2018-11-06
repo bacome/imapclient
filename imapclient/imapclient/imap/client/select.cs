@@ -16,9 +16,9 @@ namespace work.bacome.imapclient
         ;?; //  set max used for manualy sync/ separate increment
         ;?; 
 
-        internal async Task SelectAsync(iMailboxHandle pMailboxHandle, bool pForUpdate, cTrace.cContext pParentContext)
+        internal async Task SelectAsync(iMailboxHandle pMailboxHandle, bool pForUpdate, cMethodConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(SelectAsync), pMailboxHandle, pForUpdate);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(SelectAsync), pMailboxHandle, pForUpdate, pConfiguration);
 
             if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -27,9 +27,22 @@ namespace work.bacome.imapclient
 
             if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
 
-            using (var lToken = CancellationManager.GetToken(lContext))
+            if (pConfiguration == null)
             {
-                var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
+                using (var lToken = CancellationManager.GetToken(lContext))
+                {
+                    var lMC = new cMethodControl(Timeout, lToken.CancellationToken);
+                    await ZSelectAsync(lMC, pMailboxHandle, pForUpdate, null, null, null, lContext).ConfigureAwait(false);
+                }
+            }
+            else await ZSelectAsync(pConfiguration.MC, pMailboxHandle, pForUpdate, pConfiguration.Increment1, pConfiguration.SetMaximum2, pConfiguration.Increment2, lContext).ConfigureAwait(false);
+        }
+
+        private async Task ZSelectAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, bool pForUpdate, Action<int> pQResyncIncrement, Action<long> pManualResyncSetMaximum, Action<int> pManualResyncIncrement, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSelectAsync), pMC, pMailboxHandle, pForUpdate);
+
+            ;?; // the resync code goes here, not in selectexamine
 
 
 
@@ -46,8 +59,7 @@ namespace work.bacome.imapclient
 
 
 
-
-
+                ;?; // pass config incremnt1
                 var lResult = await lSession.SelectExamineAsync(lMC, pMailboxHandle, pForUpdate, lContext).ConfigureAwait(false);
 
                 // here: get the uidvalidity of the selected mailbox
@@ -129,5 +141,4 @@ namespace work.bacome.imapclient
                 lResult.SetCallSetHighestModSeq(lContext);
             }
         }
-    }
 }

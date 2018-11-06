@@ -107,12 +107,14 @@ namespace work.bacome.imapclient
         private cSession mSession = null;
         private cNamespaces mNamespaces = null; // if namespace is not supported by the server then this is used
         private cMailbox mInbox = null;
+        private cBatchSizer mSynchroniseCacheSizer = null;
+        private cBatchSizer mFetchCacheItemsSizer = null;
 
         /// <summary>
         /// Initialises a new instance.
         /// </summary>
         /// <param name="pInstanceName">The instance name to use for the instance's <see cref="cTrace"/> root-context.</param>
-        public cIMAPClient(string pInstanceName = "work.bacome.cIMAPClient", int pActionInvokeDelayMilliseconds = 100) : base(pInstanceName, new cIMAPCallbackSynchroniser(pActionInvokeDelayMilliseconds))
+        public cIMAPClient(string pInstanceName = "work.bacome.cIMAPClient") : base(pInstanceName, new cIMAPCallbackSynchroniser())
         {
             var lContext = RootContext.NewObject(nameof(cIMAPClient), pInstanceName);
             mIMAPSynchroniser = (cIMAPCallbackSynchroniser)mSynchroniser;

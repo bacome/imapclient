@@ -50,7 +50,6 @@
     <Compile Include="imap\persistentcache_new\nouidflagitem.cs" />
     <Compile Include="imap\persistentcache_new\nouidheaderitem.cs" />
     <Compile Include="imap\persistentcache_new\sectionadder.cs" />
-    <Compile Include="imap\public\configuration\incrementsetmaximumconfiguration.cs" />
     <Compile Include="imap\public\persistentcache\flagitem.cs" />
     <Compile Include="imap\public\persistentcache\headeritem.cs" />
     <Compile Include="imap\persistentcache_new\sectionreader.cs" />
@@ -99,6 +98,7 @@
     <Compile Include="imap\support\mailboxcache.cs" />
     <Compile Include="mail\convertmailmessage\base.cs" />
     <Compile Include="imap\client\getdecodedsizeinbytes.cs" />
+    <Compile Include="mail\internal\async\incrementer.cs" />
     <Compile Include="mail\internal\bytescursor\rfc822\getphrase.cs" />
     <Compile Include="mail\convertmailmessage\attachmentdetail.cs" />
     <Compile Include="mail\internal\encoding\base64decoder.cs" />
@@ -112,9 +112,7 @@
     <Compile Include="mail\internal\encoding\tests.cs" />
     <Compile Include="mail\internal\encoding\transformer.cs" />
     <Compile Include="mail\internal\message\message.cs" />
-    <Compile Include="mail\internal\other\incrementer.cs" />
     <Compile Include="mail\internal\other\parsing.cs" />
-    <Compile Include="mail\public\configuration\setmaximumconfiguration.cs" />
     <Compile Include="mail\public\message\datetime.cs" />
     <Compile Include="mail\public\other\encoding.cs" />
     <Compile Include="mail\support\transformingstream.cs" />
@@ -125,7 +123,6 @@
     <Compile Include="imap\public\mailbox\appenddata.cs" />
     <Compile Include="mail\public\mime\headerfieldfactory.cs" />
     <Compile Include="mail\public\mime\msgidgenerator.cs" />
-    <Compile Include="imap\public\configuration\appendconfiguration.cs" />
     <Compile Include="imap\public\feedback\appendfeedback.cs" />
     <Compile Include="imap\public\mailbox\checkformessagesflag.cs" />
     <Compile Include="mail\client\base.cs" />
@@ -170,7 +167,7 @@
     <Compile Include="mail\public\message\headerfields.cs" />
     <Compile Include="mail\public\enums\importance.cs" />
     <Compile Include="imap\public\feedback\copyfeedback.cs" />
-    <Compile Include="mail\public\configuration\incrementconfiguration.cs" />
+    <Compile Include="mail\public\configuration\methodconfiguration.cs" />
     <Compile Include="imap\client\fetchcacheitems.cs" />
     <Compile Include="imap\client\fetchsection.cs" />
     <Compile Include="imap\client\requestmailboxdata.cs" />
@@ -300,7 +297,7 @@
     <Compile Include="imap\public\other\exceptions.cs" />
     <Compile Include="mail\public\configuration\batchsizerconfiguration.cs" />
     <Compile Include="imap\public\connection\id.cs" />
-    <Compile Include="imap\public\configuration\idleconfiguration.cs" />
+    <Compile Include="imap\public\other\idleconfiguration.cs" />
     <Compile Include="imap\public\other\responsetext.cs" />
     <Compile Include="mail\public\other\url.cs" />
     <Compile Include="mail\public\sasl\anonymous.cs" />

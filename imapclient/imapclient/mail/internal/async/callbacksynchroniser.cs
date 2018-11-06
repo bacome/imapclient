@@ -12,7 +12,7 @@ namespace work.bacome.mailclient
 {
     public abstract partial class cMailClient
     {
-        protected internal class cCallbackSynchroniser : IDisposable
+        protected class cCallbackSynchroniser : IDisposable
         {
             public event PropertyChangedEventHandler PropertyChanged;
             public event EventHandler<cNetworkReceiveEventArgs> NetworkReceive;
@@ -20,8 +20,6 @@ namespace work.bacome.mailclient
             public event EventHandler<cCallbackExceptionEventArgs> CallbackException;
 
             private bool mDisposed = false;
-
-            private readonly int mActionInvokeDelayMilliseconds;
 
             private readonly ConcurrentQueue<sInvoke> mInvokes = new ConcurrentQueue<sInvoke>();
 
@@ -34,10 +32,8 @@ namespace work.bacome.mailclient
 
             private volatile bool mOutstandingPost = false;
 
-            public cCallbackSynchroniser(int pActionInvokeDelayMilliseconds)
+            public cCallbackSynchroniser()
             {
-                if (pActionInvokeDelayMilliseconds < -1) throw new ArgumentOutOfRangeException(nameof(pActionInvokeDelayMilliseconds));
-                mActionInvokeDelayMilliseconds = pActionInvokeDelayMilliseconds;
                 mForegroundReleaser = new cReleaser("callbacksynchroniser_foreground", mCancellationTokenSource.Token);
                 mBackgroundReleaser = new cReleaser("callbacksynchroniser_background", mCancellationTokenSource.Token);
             }
@@ -165,7 +161,8 @@ namespace work.bacome.mailclient
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
-            private void ZInvokeActionInt(Action<int> pAction, int pInt, cTrace.cContext pParentContext)
+            ;?; // TODO: rename this back to not 'x'
+            public void InvokeActionIntx(Action<int> pAction, int pInt, cTrace.cContext pParentContext)
             {
                 if (pAction == null) return;
                 var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeActionInt), pInt);
@@ -173,8 +170,6 @@ namespace work.bacome.mailclient
                 YInvokeAndForget(new cActionIntEventArgs(pAction, pInt), lContext);
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
-
-            public cIncrementInvoker GetNewIncrementInvoker(Action<int> pIncrement, cTrace.cContext pContextForInvoke) => new cIncrementInvoker(this, pIncrement, pContextForInvoke);
 
             public bool IsDisposed => mDisposed;
 
@@ -342,103 +337,6 @@ namespace work.bacome.mailclient
                                     },
                                 null);
                         }
-                    }
-                }
-            }
-
-            public sealed class cIncrementInvoker : IDisposable
-            {
-                private bool mDisposed = false;
-
-                private readonly object mLock = new object();
-                private readonly CancellationTokenSource mCancellationTokenSource = new CancellationTokenSource();
-
-                private readonly cCallbackSynchroniser mSynchroniser;
-                private readonly Action<int> mIncrement;
-                private readonly cTrace.cContext mContextForInvoke;
-
-                private long mValue = 0;
-                private Task mBackgroundTask = null;
-
-                public cIncrementInvoker(cCallbackSynchroniser pSynchroniser, Action<int> pIncrement, cTrace.cContext pContextForInvoke)
-                {
-                    mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
-                    mIncrement = pIncrement ?? throw new ArgumentNullException(nameof(pIncrement));
-                    mContextForInvoke = pContextForInvoke ?? throw new ArgumentNullException(nameof(pContextForInvoke));
-                }
-
-                public void Increment(int pValue)
-                {
-                    if (mDisposed) throw new ObjectDisposedException(nameof(cIncrementInvoker));
-
-                    if (pValue < 0) throw new ArgumentOutOfRangeException(nameof(pValue));
-                    if (pValue == 0) return;
-
-                    long lValue;
-
-                    lock (mLock)
-                    {
-                        lValue = mValue;
-                        mValue += pValue;
-                    }
-
-                    if (lValue == 0)
-                    {
-                        if (mBackgroundTask != null)
-                        {
-                            mBackgroundTask.Wait();
-                            mBackgroundTask.Dispose();
-                        }
-
-                        mBackgroundTask = ZBackgroundTask();
-                    }
-                }
-
-                private async Task ZBackgroundTask()
-                {
-                    try { await Task.Delay(mSynchroniser.mActionInvokeDelayMilliseconds, mCancellationTokenSource.Token).ConfigureAwait(false); }
-                    catch { }
-
-                    long lValue;
-
-                    lock (mLock)
-                    {
-                        lValue = mValue;
-                        mValue = 0;
-                    }
-
-                    while (true)
-                    {
-                        if (lValue > int.MaxValue)
-                        {
-                            mSynchroniser.ZInvokeActionInt(mIncrement, int.MaxValue, mContextForInvoke);
-                            lValue -= int.MaxValue;
-                        }
-                        else
-                        {
-                            mSynchroniser.ZInvokeActionInt(mIncrement, (int)lValue, mContextForInvoke);
-                            return;
-                        }
-                    }
-                }
-
-                public void Dispose()
-                {
-                    if (mCancellationTokenSource != null && !mCancellationTokenSource.IsCancellationRequested) mCancellationTokenSource.Cancel();
-
-                    if (mBackgroundTask != null)
-                    {
-                        try { mBackgroundTask.Wait(); }
-                        catch { }
-
-                        try { mBackgroundTask.Dispose(); }
-                        catch { }
-                    }
-
-                    if (mCancellationTokenSource != null)
-                    {
-                        try { mCancellationTokenSource.Dispose(); }
-                        catch { }
                     }
                 }
             }

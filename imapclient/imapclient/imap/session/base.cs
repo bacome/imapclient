@@ -18,10 +18,9 @@ namespace work.bacome.imapclient
             public readonly cPersistentCache PersistentCache;
 
             private readonly cIMAPCallbackSynchroniser mSynchroniser;
+            private readonly int mIncrementInvokeMillisecondsDelay;
             private readonly fIMAPCapabilities mIgnoreCapabilities;
             private readonly fMailboxCacheDataItems mMailboxCacheDataItems;
-            private readonly cBatchSizer mSynchroniseCacheSizer;
-            private readonly cBatchSizer mFetchCacheItemsSizer;
             private readonly cBatchSizer mFetchBodySizer;
             private readonly cStorableFlags mAppendDefaultFlags;
             private readonly cBatchSizer mAppendBatchSizer;
@@ -54,9 +53,10 @@ namespace work.bacome.imapclient
 
             public cSession(
                 cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, 
+                int pIncrementInvokeMillisecondsDelay,
                 cBatchSizerConfiguration pNetworkWriteConfiguration,
                 fIMAPCapabilities pIgnoreCapabilities, fMailboxCacheDataItems pMailboxCacheDataItems,
-                cBatchSizerConfiguration pSynchroniseCacheConfiguration, cBatchSizerConfiguration pFetchCacheItemsConfiguration, cBatchSizerConfiguration pFetchBodyConfiguration,
+                cBatchSizerConfiguration pFetchBodyConfiguration,
                 cStorableFlags pAppendDefaultFlags, cBatchSizerConfiguration pAppendBatchConfiguration, 
                 cIdleConfiguration pIdleConfiguration, 
                 Encoding pEncoding,
@@ -66,18 +66,21 @@ namespace work.bacome.imapclient
                 var lContext = 
                     pParentContext.NewObject(
                         nameof(cSession),
+                        pPersistentCache,
+                        pIncrementInvokeMillisecondsDelay,
                         pNetworkWriteConfiguration, 
                         pIgnoreCapabilities, pMailboxCacheDataItems,
-                        pSynchroniseCacheConfiguration, pFetchCacheItemsConfiguration, pFetchBodyConfiguration,
+                        pFetchBodyConfiguration,
                         pAppendDefaultFlags, pAppendBatchConfiguration,
-                        pIdleConfiguration);
+                        pIdleConfiguration,
+                        pMaxItemsInSequenceSet);
 
                 PersistentCache = pPersistentCache ?? throw new ArgumentNullException(nameof(pPersistentCache));
                 mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
+                if (pIncrementInvokeMillisecondsDelay < -1) throw new ArgumentOutOfRangeException(nameof(pIncrementInvokeMillisecondsDelay));
+                mIncrementInvokeMillisecondsDelay = pIncrementInvokeMillisecondsDelay;
                 mIgnoreCapabilities = pIgnoreCapabilities;
                 mMailboxCacheDataItems = pMailboxCacheDataItems;
-                mSynchroniseCacheSizer = new cBatchSizer(pSynchroniseCacheConfiguration);
-                mFetchCacheItemsSizer = new cBatchSizer(pFetchCacheItemsConfiguration);
                 mFetchBodySizer = new cBatchSizer(pFetchBodyConfiguration);
                 mAppendDefaultFlags = pAppendDefaultFlags;
                 mAppendBatchSizer = new cBatchSizer(pAppendBatchConfiguration);
