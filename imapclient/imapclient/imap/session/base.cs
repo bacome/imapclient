@@ -20,6 +20,7 @@ namespace work.bacome.imapclient
             private readonly cIMAPCallbackSynchroniser mSynchroniser;
             private readonly fIMAPCapabilities mIgnoreCapabilities;
             private readonly fMailboxCacheDataItems mMailboxCacheDataItems;
+            private readonly cBatchSizer mSynchroniseCacheSizer;
             private readonly cBatchSizer mFetchCacheItemsSizer;
             private readonly cBatchSizer mFetchBodySizer;
             private readonly cStorableFlags mAppendDefaultFlags;
@@ -55,7 +56,7 @@ namespace work.bacome.imapclient
                 cPersistentCache pPersistentCache, cIMAPCallbackSynchroniser pSynchroniser, 
                 cBatchSizerConfiguration pNetworkWriteConfiguration,
                 fIMAPCapabilities pIgnoreCapabilities, fMailboxCacheDataItems pMailboxCacheDataItems,
-                cBatchSizerConfiguration pFetchCacheItemsConfiguration, cBatchSizerConfiguration pFetchBodyConfiguration,
+                cBatchSizerConfiguration pSynchroniseCacheConfiguration, cBatchSizerConfiguration pFetchCacheItemsConfiguration, cBatchSizerConfiguration pFetchBodyConfiguration,
                 cStorableFlags pAppendDefaultFlags, cBatchSizerConfiguration pAppendBatchConfiguration, 
                 cIdleConfiguration pIdleConfiguration, 
                 Encoding pEncoding,
@@ -67,7 +68,7 @@ namespace work.bacome.imapclient
                         nameof(cSession),
                         pNetworkWriteConfiguration, 
                         pIgnoreCapabilities, pMailboxCacheDataItems,
-                        pFetchCacheItemsConfiguration, pFetchBodyConfiguration,
+                        pSynchroniseCacheConfiguration, pFetchCacheItemsConfiguration, pFetchBodyConfiguration,
                         pAppendDefaultFlags, pAppendBatchConfiguration,
                         pIdleConfiguration);
 
@@ -75,6 +76,7 @@ namespace work.bacome.imapclient
                 mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                 mIgnoreCapabilities = pIgnoreCapabilities;
                 mMailboxCacheDataItems = pMailboxCacheDataItems;
+                mSynchroniseCacheSizer = new cBatchSizer(pSynchroniseCacheConfiguration);
                 mFetchCacheItemsSizer = new cBatchSizer(pFetchCacheItemsConfiguration);
                 mFetchBodySizer = new cBatchSizer(pFetchBodyConfiguration);
                 mAppendDefaultFlags = pAppendDefaultFlags;

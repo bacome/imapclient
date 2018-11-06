@@ -14,6 +14,7 @@ namespace work.bacome.imapclient
         public static readonly cMessageCacheItems Empty = new cMessageCacheItems(0, cHeaderFieldNames.Empty);
 
         public static readonly cMessageCacheItems UID = new cMessageCacheItems(fMessageCacheAttributes.uid, cHeaderFieldNames.Empty);
+        public static readonly cMessageCacheItems ModSeqFlags = new cMessageCacheItems(fMessageCacheAttributes.modseqflags, cHeaderFieldNames.Empty);
         public static readonly cMessageCacheItems Size = new cMessageCacheItems(fMessageCacheAttributes.size, cHeaderFieldNames.Empty);
         public static readonly cMessageCacheItems BodyStructure = new cMessageCacheItems(fMessageCacheAttributes.bodystructure, cHeaderFieldNames.Empty);
 

@@ -408,6 +408,8 @@ namespace work.bacome.imapclient
                         }
                     }
 
+                    ;?; // this also has to use the last told value, not the cached value
+
                     if (mSelected) 
                     {
                         if (lFetchedItem.ModSeqFlags != null && lFetchedItem.ModSeqFlags.ModSeq > mPendingHighestModSeq) mPendingHighestModSeq = lFetchedItem.ModSeqFlags.ModSeq.Value;

@@ -50,6 +50,7 @@
     <Compile Include="imap\persistentcache_new\nouidflagitem.cs" />
     <Compile Include="imap\persistentcache_new\nouidheaderitem.cs" />
     <Compile Include="imap\persistentcache_new\sectionadder.cs" />
+    <Compile Include="imap\public\configuration\incrementsetmaximumconfiguration.cs" />
     <Compile Include="imap\public\persistentcache\flagitem.cs" />
     <Compile Include="imap\public\persistentcache\headeritem.cs" />
     <Compile Include="imap\persistentcache_new\sectionreader.cs" />

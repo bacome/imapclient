@@ -71,7 +71,7 @@ namespace work.bacome.imapclient
                 private static readonly cCommandPart kCommandPartEnvelope = new cTextCommandPart("ENVELOPE");
                 private static readonly cCommandPart kCommandPartInternalDate = new cTextCommandPart("INTERNALDATE");
                 private static readonly cCommandPart kCommandPartrfc822size = new cTextCommandPart("RFC822.SIZE");
-                private static readonly cCommandPart kCommandPartBody = new cTextCommandPart("BODY");
+                //private static readonly cCommandPart kCommandPartBody = new cTextCommandPart("BODY");
                 private static readonly cCommandPart kCommandPartBodyStructure = new cTextCommandPart("BODYSTRUCTURE");
                 private static readonly cCommandPart kCommandPartUID = new cTextCommandPart("UID");
                 private static readonly cCommandPart kCommandPartModSeq = new cTextCommandPart("MODSEQ");
@@ -121,7 +121,9 @@ namespace work.bacome.imapclient
 
                     mParts.BeginList(eListBracketing.ifmorethanone);
 
-                    if ((pItems.Attributes & fMessageCacheAttributes.flags) != 0)
+                    if ((pItems.Attributes & fMessageCacheAttributes.uid) != 0) mParts.Add(kCommandPartUID);
+
+                    if ((pItems.Attributes & fMessageCacheAttributes.modseqflags) != 0)
                     {
                         mParts.Add(kCommandPartFlags);
                         if (!pNoModSeq) mParts.Add(kCommandPartModSeq);
@@ -130,9 +132,7 @@ namespace work.bacome.imapclient
                     if ((pItems.Attributes & fMessageCacheAttributes.envelope) != 0) mParts.Add(kCommandPartEnvelope);
                     if ((pItems.Attributes & fMessageCacheAttributes.received) != 0) mParts.Add(kCommandPartInternalDate);
                     if ((pItems.Attributes & fMessageCacheAttributes.size) != 0) mParts.Add(kCommandPartrfc822size);
-                    if ((pItems.Attributes & fMessageCacheAttributes.body) != 0) mParts.Add(kCommandPartBody);
                     if ((pItems.Attributes & fMessageCacheAttributes.bodystructure) != 0) mParts.Add(kCommandPartBodyStructure);
-                    if ((pItems.Attributes & fMessageCacheAttributes.uid) != 0) mParts.Add(kCommandPartUID);
 
                     if (pItems.Names.Count > 0)
                     {

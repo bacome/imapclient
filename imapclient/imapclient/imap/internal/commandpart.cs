@@ -197,14 +197,14 @@ namespace work.bacome.imapclient
 
         public cTextCommandPart(uint pNumber) : base(false, false)
         {
-            var lBytes = cTools.UIntToBytesReverse(pNumber);
+            var lBytes = cMailTools.UIntToBytesReverse(pNumber);
             lBytes.Reverse();
             Bytes = new cBytes(lBytes);
         }
 
         public cTextCommandPart(ulong pNumber) : base(false, false)
         {
-            var lBytes = cTools.ULongToBytesReverse(pNumber);
+            var lBytes = cMailTools.ULongToBytesReverse(pNumber);
             lBytes.Reverse();
             Bytes = new cBytes(lBytes);
         }
@@ -229,7 +229,7 @@ namespace work.bacome.imapclient
 
                 if (lItem is cSequenceSetNumber lNumber)
                 {
-                    lTemp = cTools.UIntToBytesReverse(lNumber.Number);
+                    lTemp = cMailTools.UIntToBytesReverse(lNumber.Number);
                     lTemp.Reverse();
                     lBytes.AddRange(lTemp);
                     continue;
@@ -245,7 +245,7 @@ namespace work.bacome.imapclient
 
                 if (!(lRange.From is cSequenceSetNumber lFrom)) throw new ArgumentException("invalid form 2", nameof(pSequenceSet));
 
-                lTemp = cTools.UIntToBytesReverse(lFrom.Number);
+                lTemp = cMailTools.UIntToBytesReverse(lFrom.Number);
                 lTemp.Reverse();
                 lBytes.AddRange(lTemp);
 
@@ -259,7 +259,7 @@ namespace work.bacome.imapclient
 
                 if (!(lRange.To is cSequenceSetNumber lTo)) throw new ArgumentException("invalid form 3", nameof(pSequenceSet));
 
-                lTemp = cTools.UIntToBytesReverse(lTo.Number);
+                lTemp = cMailTools.UIntToBytesReverse(lTo.Number);
                 lTemp.Reverse();
                 lBytes.AddRange(lTemp);
             }

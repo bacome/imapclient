@@ -95,6 +95,7 @@ namespace work.bacome.imapclient
         private fMailboxCacheDataItems mMailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.uidvalidity | fMailboxCacheDataItems.uidnextcomponent | fMailboxCacheDataItems.unseencount;
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
         private cPersistentCache _PersistentCache = null;
+        private cBatchSizerConfiguration mSynchroniseCacheConfiguration = new cBatchSizerConfiguration(1, 1000, 10000, 1);
         private cBatchSizerConfiguration mFetchCacheItemsConfiguration = new cBatchSizerConfiguration(1, 1000, 10000, 1);
         private cBatchSizerConfiguration mFetchBodyConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cBatchSizerConfiguration mAppendBatchConfiguration = new cBatchSizerConfiguration(1000, int.MaxValue, 10000, 1000);
@@ -111,7 +112,7 @@ namespace work.bacome.imapclient
         /// Initialises a new instance.
         /// </summary>
         /// <param name="pInstanceName">The instance name to use for the instance's <see cref="cTrace"/> root-context.</param>
-        public cIMAPClient(string pInstanceName = "work.bacome.cIMAPClient") : base(pInstanceName, new cIMAPCallbackSynchroniser())
+        public cIMAPClient(string pInstanceName = "work.bacome.cIMAPClient", int pActionInvokeDelayMilliseconds = 100) : base(pInstanceName, new cIMAPCallbackSynchroniser(pActionInvokeDelayMilliseconds))
         {
             var lContext = RootContext.NewObject(nameof(cIMAPClient), pInstanceName);
             mIMAPSynchroniser = (cIMAPCallbackSynchroniser)mSynchroniser;
@@ -379,6 +380,26 @@ namespace work.bacome.imapclient
                 if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 _PersistentCache = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets and sets the synchronise-cache batch-size configuration. You might want to limit this to increase the speed with which you can cancel a select.
+        /// </summary>
+        /// <remarks>
+        /// Limits the number of messages per batch when requesting flags from the server to synchronise the persistent cache at select time. Measured in number of messages.
+        /// May only be set while <see cref="IsUnconnected"/>.
+        /// The default value is min=1 message, max=1000 messages, maxtime=10s, initial=1 message.
+        /// </remarks>
+        public cBatchSizerConfiguration SynchroniseCacheConfiguration
+        {
+            get => mSynchroniseCacheConfiguration;
+
+            set
+            {
+                if (IsDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
+                mSynchroniseCacheConfiguration = value ?? throw new ArgumentNullException();
             }
         }
 

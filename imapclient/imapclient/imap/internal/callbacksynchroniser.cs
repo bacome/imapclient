@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
             public event EventHandler<cMailboxMessageDeliveryEventArgs> MailboxMessageDelivery;
             public event EventHandler<cMessagePropertyChangedEventArgs> MessagePropertyChanged;
 
-            public cIMAPCallbackSynchroniser() : base() { }
+            public cIMAPCallbackSynchroniser(int pActionInvokeDelayMilliseconds) : base(pActionInvokeDelayMilliseconds) { }
 
             public void InvokeResponseText(eIMAPResponseTextContext pTextContext, cIMAPResponseText pResponseText, cTrace.cContext pParentContext)
             {

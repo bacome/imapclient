@@ -24,12 +24,12 @@ namespace work.bacome.imapclient
                 mMailboxCache.CheckInSelectedMailbox(pMessageHandles); // to be repeated inside the select lock
 
                 // split the handles into groups based on what attributes need to be retrieved, for each group do the retrieval
-                foreach (var lGroup in ZFetchCacheItemsGroups(pMessageHandles, pItems)) await ZFetchCacheItemsAsync(pMC, lGroup, pIncrement, lContext).ConfigureAwait(false);
+                foreach (var lGroup in ZFetchCacheItemsGroups(pMessageHandles, pItems)) await ZFetchCacheItemsAsync(pMC, lGroup, 0, false, pIncrement, lContext).ConfigureAwait(false);
             }
 
-            private async Task ZFetchCacheItemsAsync(cMethodControl pMC, cFetchCacheItemsGroup pGroup, Action<int> pIncrement, cTrace.cContext pParentContext)
+            private async Task ZFetchCacheItemsAsync(cMethodControl pMC, cFetchCacheItemsGroup pGroup, ulong pChangedSince, bool pVanished, Action<int> pIncrement, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchCacheItemsAsync), pMC, pGroup);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchCacheItemsAsync), pMC, pGroup, pChangedSince, pVanished);
 
                 if (pGroup.Items.IsEmpty)
                 {
@@ -46,6 +46,9 @@ namespace work.bacome.imapclient
                 {
                     // this is where we use straight fetch (not UID fetch)
                     //////////////////////////////////////////////////////
+
+                    // changedsince and vanished are only supported by the library on UID FETCH
+                    if (pChangedSince != 0 || pVanished) throw new cInternalErrorException(lContext);
 
                     // sort the handles so we might get good sequence sets
                     pGroup.MessageHandles.SortByCacheSequence();
@@ -123,7 +126,7 @@ namespace work.bacome.imapclient
 
                 // uid fetch the remainder
                 var lMailboxHandle = pGroup.MessageHandles[0].MessageCache.MailboxHandle;
-                await ZUIDFetchCacheItemsAsync(pMC, lMailboxHandle, lUIDs, pGroup.Items, pIncrement, lContext).ConfigureAwait(false);
+                await ZUIDFetchCacheItemsAsync(pMC, lMailboxHandle, lUIDs, pGroup.Items, pChangedSince, pVanished, pIncrement, lContext).ConfigureAwait(false);
             }
 
             private IEnumerable<cFetchCacheItemsGroup> ZFetchCacheItemsGroups(cMessageHandleList pMessageHandles, cMessageCacheItems pItems)

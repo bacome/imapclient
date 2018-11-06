@@ -11,9 +11,9 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task<cMessageHandleList> UIDFetchCacheItemsAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUIDList pUIDs, cMessageCacheItems pItems, Action<int> pIncrement, cTrace.cContext pParentContext)
+            public async Task<cMessageHandleList> UIDFetchCacheItemsAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cBatchSizer pBatchSizer, cUIDList pUIDs, cMessageCacheItems pItems, ulong pChangedSince, bool pVanished, Action<int> pIncrement, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchCacheItemsAsync), pMC, pMailboxHandle, pUIDs, pItems);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchCacheItemsAsync), pMC, pMailboxHandle, pUIDs, pItems, pChangedSince, pVanished);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eIMAPConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
@@ -24,6 +24,9 @@ namespace work.bacome.imapclient
 
                 if (pUIDs.Count == 0) throw new ArgumentOutOfRangeException(nameof(pUIDs));
                 if (pItems.IsEmpty) throw new ArgumentOutOfRangeException(nameof(pItems));
+
+                if (pChangedSince != 0 && (EnabledExtensions & fEnableableExtensions.qresync) == 0) throw new ArgumentOutOfRangeException(nameof(pChangedSince));
+                if (pVanished && pChangedSince == 0) throw new ArgumentOutOfRangeException(nameof(pVanished));
 
                 uint lUIDValidity = pUIDs[0].UIDValidity;
 
@@ -56,15 +59,15 @@ namespace work.bacome.imapclient
                 if (lMessageHandles.Count > 0)
                 {
                     // split the handles into groups based on what attributes need to be retrieved, for each group do the retrieval
-                    foreach (var lGroup in ZFetchCacheItemsGroups(lMessageHandles, pItems)) await ZFetchCacheItemsAsync(pMC, lGroup, pIncrement, lContext).ConfigureAwait(false);
+                    foreach (var lGroup in ZFetchCacheItemsGroups(lMessageHandles, pItems)) await ZFetchCacheItemsAsync(pMC, lGroup, pChangedSince, pVanished, pIncrement, lContext).ConfigureAwait(false);
                 }
 
                 // for the messages only identified by UID or where I have to get all the items
-                ////////////////////////////////////////////////////////////////////////////////////
+                ///////////////////////////////////////////////////////////////////////////////
 
                 if (lUIDs.Count > 0)
                 {
-                    await ZUIDFetchCacheItemsAsync(pMC, pMailboxHandle, lUIDs, pItems, pIncrement, lContext).ConfigureAwait(false);
+                    await ZUIDFetchCacheItemsAsync(pMC, pMailboxHandle, pBatchSizer, lUIDs, pItems, pChangedSince, pVanished, pIncrement, lContext).ConfigureAwait(false);
 
                     // resolve uids -> handles whilst blocking select exclusive access
                     //
@@ -83,9 +86,9 @@ namespace work.bacome.imapclient
                 return lMessageHandles;
             }
 
-            private async Task ZUIDFetchCacheItemsAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUIDList pUIDs, cMessageCacheItems pItems, Action<int> pIncrement, cTrace.cContext pParentContext)
+            private async Task ZUIDFetchCacheItemsAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cBatchSizer pBatchSizer, cUIDList pUIDs, cMessageCacheItems pItems, ulong pChangedSince, bool pVanished, Action<int> pIncrement, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchCacheItemsAsync), pMC, pMailboxHandle, pUIDs, pItems);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchCacheItemsAsync), pMC, pMailboxHandle, pUIDs, pItems, pChangedSince, pVanished);
 
                 // get the UIDValidity
                 uint lUIDValidity = pUIDs[0].UIDValidity;
@@ -96,25 +99,28 @@ namespace work.bacome.imapclient
                 int lIndex = 0;
                 Stopwatch lStopwatch = new Stopwatch();
 
-                while (lIndex < pUIDs.Count)
+                using (var lInvoker = mSynchroniser.GetNewIncrementInvoker(pIncrement, lContext))
                 {
-                    // the number of messages to fetch this time
-                    int lFetchCount = mFetchCacheItemsSizer.Current;
+                    while (lIndex < pUIDs.Count)
+                    {
+                        // the number of messages to fetch this time
+                        int lFetchCount = pBatchSizer.Current;
 
-                    // get the UIDs to fetch this time
-                    cUIntList lUIDs = new cUIntList();
-                    while (lIndex < pUIDs.Count && lUIDs.Count < lFetchCount) lUIDs.Add(pUIDs[lIndex++].UID);
+                        // get the UIDs to fetch this time
+                        cUIntList lUIDs = new cUIntList();
+                        while (lIndex < pUIDs.Count && lUIDs.Count < lFetchCount) lUIDs.Add(pUIDs[lIndex++].UID);
 
-                    // fetch
-                    lStopwatch.Restart();
-                    await ZUIDFetchCacheItemsAsync(pMC, pMailboxHandle, lUIDValidity, lUIDs, pItems, lContext).ConfigureAwait(false);
-                    lStopwatch.Stop();
+                        // fetch
+                        lStopwatch.Restart();
+                        await ZUIDFetchCacheItemsAsync(pMC, pMailboxHandle, lUIDValidity, lUIDs, pItems, pChangedSince, pVanished, lContext).ConfigureAwait(false);
+                        lStopwatch.Stop();
 
-                    // store the time taken so the next fetch is a better size
-                    mFetchCacheItemsSizer.AddSample(lUIDs.Count, lStopwatch.ElapsedMilliseconds);
+                        // store the time taken so the next fetch is a better size
+                        pBatchSizer.AddSample(lUIDs.Count, lStopwatch.ElapsedMilliseconds);
 
-                    // update progress
-                    mSynchroniser.InvokeActionInt(pIncrement, lUIDs.Count, lContext);
+                        // update progress
+                        lInvoker.Increment(lUIDs.Count);
+                    }
                 }
             }
         }
