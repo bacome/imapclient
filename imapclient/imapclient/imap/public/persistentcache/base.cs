@@ -68,7 +68,8 @@ namespace work.bacome.imapclient
             var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(GetUIDs), pMailboxId, pUIDValidity, pForCachedFlagsOnly);
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
             var lUIDs = YGetUIDs(pMailboxId, pUIDValidity, pForCachedFlagsOnly, lContext);
-            foreach (var lUID in lUIDs) if (lUID == null || lUID.UIDValidity != pUIDValidity) throw new cUnexpectedPersistentCacheActionException(lContext);
+            if (lUIDs == null) throw new cUnexpectedPersistentCacheActionException(lContext, 1);
+            foreach (var lUID in lUIDs) if (lUID == null || lUID.UIDValidity != pUIDValidity) throw new cUnexpectedPersistentCacheActionException(lContext, 2);
             return lUIDs;
         }
 

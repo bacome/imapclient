@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private partial class cSelectedMailboxCache : iMessageCache
+            private partial class cSelectedMailboxCache : iMessageCache, iSelectedMailboxCache
             {
                 private readonly cPersistentCache mPersistentCache;
                 private readonly cIMAPCallbackSynchroniser mSynchroniser;
@@ -284,8 +284,6 @@ namespace work.bacome.imapclient
 
                 public List<cMessageUID> GetMessageUIDsWithDeletedFlag(cTrace.cContext pParentContext)
                 {
-                    ;?; // hmmm ... the problem here is, probably what is important is what ones I"VE been told about
-                    // and at the moment I don't have a way of knowing as I will pick up the flag changes told to other clients sharing the cache
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(GetMessageUIDsWithDeletedFlag));
                     return new List<cMessageUID>(from lItem in mItems where lItem.MessageUID != null && lItem.Flags != null && lItem.Flags.Contains(kMessageFlag.Deleted) select lItem.MessageUID);
                 }

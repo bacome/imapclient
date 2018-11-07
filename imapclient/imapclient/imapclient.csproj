@@ -47,13 +47,14 @@
     <Compile Include="imap\client\getmessagehandle.cs" />
     <Compile Include="imap\client\getnotprefixedwith.cs" />
     <Compile Include="imap\client\getuids.cs" />
+    <Compile Include="imap\internal\qresyncparameters.cs" />
+    <Compile Include="imap\internal\selectedmailboxcache.cs" />
     <Compile Include="imap\persistentcache_new\nouidflagitem.cs" />
     <Compile Include="imap\persistentcache_new\nouidheaderitem.cs" />
     <Compile Include="imap\persistentcache_new\sectionadder.cs" />
     <Compile Include="imap\public\persistentcache\flagitem.cs" />
     <Compile Include="imap\public\persistentcache\headeritem.cs" />
     <Compile Include="imap\persistentcache_new\sectionreader.cs" />
-    <Compile Include="imap\internal\selectresult.cs" />
     <Compile Include="imap\internal\tools.cs" />
     <Compile Include="imap\internal\validation.cs" />
     <Compile Include="imap\public\mailbox\mailboxuid.cs" />

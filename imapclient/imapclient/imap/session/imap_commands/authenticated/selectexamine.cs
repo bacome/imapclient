@@ -18,13 +18,14 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kSelectCommandPartQResync = new cTextCommandPart(" (QRESYNC (");
             private static readonly cCommandPart kSelectCommandPartRParenRParen = new cTextCommandPart("))");
 
-            public async Task<cSelectResult> SelectExamineAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, bool pForUpdate, cTrace.cContext pParentContext)
+            public async Task<iSelectedMailboxCache> SelectExamineAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, bool pForUpdate, cQResyncParameters pQResyncParameters, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SelectAsync), pMC, pMailboxHandle, pForUpdate);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SelectAsync), pMC, pMailboxHandle, pForUpdate, pQResyncParameters);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eIMAPConnectionState.notselected && _ConnectionState != eIMAPConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
                 if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
+                if (pQResyncParameters != null && (EnabledExtensions & fEnableableExtensions.qresync) == 0) throw new ArgumentOutOfRangeException(nameof(pQResyncParameters));
 
                 var lMailboxCacheItem = mMailboxCache.CheckHandle(pMailboxHandle);
 
@@ -42,48 +43,22 @@ namespace work.bacome.imapclient
 
                         lBuilder.Add(lMailboxCacheItem.MailboxNameCommandPart);
 
-                        uint lUIDValidity = 0;
-                        ulong lCachedHighestModSeq = 0;
-                        HashSet<cUID> lUIDsToQResync = null; // null or empty == qresync not used
-                        //
-                        // the danger is that someone else adds things to the cache after I qresync
-                        //  that means that for those items added I could be out of sync after selecting (because I didn't ask for those items to be synched)
-                        //
-                        // => after the select and before enabling setting the highestmodseq I should check the cache again for UIDs
-                        //  if there are new ones I should manually sync flags for those ones 
-                        //  [after selecting I don't need to worry about someone else adding things, as the server is obliged to keep me up to date after I select]
-
-                        if ((EnabledExtensions & fEnableableExtensions.qresync) != 0)
+                        if (pQResyncParameters == null)
                         {
-                            lUIDValidity = PersistentCache.GetUIDValidity(pMailboxHandle.MailboxId, lContext);
-
-                            if (lUIDValidity != 0)
-                            {
-                                lCachedHighestModSeq = PersistentCache.GetHighestModSeq(pMailboxHandle.MailboxId, lUIDValidity, lContext);
-                                if (lCachedHighestModSeq != 0) lUIDsToQResync = PersistentCache.GetUIDs(pMailboxHandle.MailboxId, lUIDValidity, false, lContext);
-                            }
-                        }
-
-                        bool lUsingQResync;
-
-                        if (lUIDsToQResync == null || lUIDsToQResync.Count == 0)
-                        {
-                            lUsingQResync = false;
                             if (_Capabilities.CondStore) lBuilder.Add(kSelectCommandPartCondStore);
                         }
                         else
                         {
-                            lUsingQResync = true;
                             lBuilder.Add(kSelectCommandPartQResync);
-                            lBuilder.Add(new cTextCommandPart(lUIDValidity));
+                            lBuilder.Add(new cTextCommandPart(pQResyncParameters.CachedUIDValidity));
                             lBuilder.Add(cCommandPart.Space);
-                            lBuilder.Add(new cTextCommandPart(lCachedHighestModSeq));
+                            lBuilder.Add(new cTextCommandPart(pQResyncParameters.CachedHighestModSeq));
                             lBuilder.Add(cCommandPart.Space);
-                            lBuilder.Add(new cTextCommandPart(cSequenceSet.FromUInts(from lUID in lUIDsToQResync select lUID.UID, mMaxItemsInSequenceSet)));
+                            lBuilder.Add(new cTextCommandPart(pQResyncParameters.CachedUIDs));
                             lBuilder.Add(kSelectCommandPartRParenRParen);
                         }
 
-                        var lHook = new cCommandHookSelectExamine(PersistentCache, mSynchroniser, UTF8Enabled, mMailboxCache, _Capabilities, lMailboxCacheItem, pForUpdate, lUsingQResync);
+                        var lHook = new cCommandHookSelectExamine(PersistentCache, mSynchroniser, UTF8Enabled, mMailboxCache, _Capabilities, lMailboxCacheItem, pForUpdate, pQResyncParameters != null);
                         lBuilder.Add(lHook);
 
                         var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
@@ -91,14 +66,7 @@ namespace work.bacome.imapclient
                         if (lResult.ResultType == eIMAPCommandResultType.ok)
                         {
                             lContext.TraceInformation("select success");
-
-                            if (lHook.UIDValidity != lUIDValidity || lHook.UIDNotSticky || lHook.HighestModSeq < lCachedHighestModSeq)
-                            {
-                                lCachedHighestModSeq = 0;
-                                lUIDsToQResync = null;
-                            }
-
-                            return new cSelectResult(lHook.UIDValidity, lHook.UIDNotSticky, lCachedHighestModSeq, lUIDsToQResync, lHook.SetCallSetHighestModSeq);
+                            return lHook.SelectedMailboxCache;
                         }
 
                         fIMAPCapabilities lTryIgnoring;
