@@ -63,17 +63,17 @@ namespace work.bacome.imapclient
         public abstract uint GetUIDValidity(cMailboxId pMailboxId, cTrace.cContext pParentContext);
         public abstract ulong GetHighestModSeq(cMailboxId pMailboxId, uint pUIDValidity, cTrace.cContext pParentContext);
 
-        public HashSet<cUID> GetUIDs(cMailboxId pMailboxId, uint pUIDValidity, bool pForCachedFlagsOnly, cTrace.cContext pParentContext)
+        public HashSet<cUID> GetUIDs(cMailboxId pMailboxId, uint pUIDValidity, bool pOnlyUIDsWithModSeqFlags, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(GetUIDs), pMailboxId, pUIDValidity, pForCachedFlagsOnly);
+            var lContext = pParentContext.NewMethod(nameof(cPersistentCache), nameof(GetUIDs), pMailboxId, pUIDValidity, pOnlyUIDsWithModSeqFlags);
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
-            var lUIDs = YGetUIDs(pMailboxId, pUIDValidity, pForCachedFlagsOnly, lContext);
+            var lUIDs = YGetUIDs(pMailboxId, pUIDValidity, pOnlyUIDsWithModSeqFlags, lContext);
             if (lUIDs == null) throw new cUnexpectedPersistentCacheActionException(lContext, 1);
             foreach (var lUID in lUIDs) if (lUID == null || lUID.UIDValidity != pUIDValidity) throw new cUnexpectedPersistentCacheActionException(lContext, 2);
             return lUIDs;
         }
 
-        protected abstract HashSet<cUID> YGetUIDs(cMailboxId pMailboxId, uint pUIDValidity, bool pCachedFlagsOnly, cTrace.cContext pParentContext);
+        protected abstract HashSet<cUID> YGetUIDs(cMailboxId pMailboxId, uint pUIDValidity, bool pOnlyUIDsWithModSeqFlags, cTrace.cContext pParentContext);
 
         internal void MessageCacheInvalidated(iMessageCache pMessageCache, cTrace.cContext pParentContext)
         {

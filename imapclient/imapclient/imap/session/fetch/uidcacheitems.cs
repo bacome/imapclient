@@ -26,8 +26,8 @@ namespace work.bacome.imapclient
                 if (pUIDs.Count == 0) throw new ArgumentOutOfRangeException(nameof(pUIDs));
                 if (pItems.IsEmpty) throw new ArgumentOutOfRangeException(nameof(pItems));
 
-                if (pChangedSince != 0 && (EnabledExtensions & fEnableableExtensions.qresync) == 0) throw new ArgumentOutOfRangeException(nameof(pChangedSince));
-                if (pVanished && pChangedSince == 0) throw new ArgumentOutOfRangeException(nameof(pVanished));
+                if (pChangedSince != 0 && !_Capabilities.CondStore) throw new ArgumentOutOfRangeException(nameof(pChangedSince));
+                if (pVanished) if ((EnabledExtensions & fEnableableExtensions.qresync) == 0 || pChangedSince == 0) throw new ArgumentOutOfRangeException(nameof(pChangedSince));
 
                 uint lUIDValidity = pUIDs[0].UIDValidity;
 
