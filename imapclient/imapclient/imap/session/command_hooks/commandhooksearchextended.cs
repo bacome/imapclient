@@ -52,7 +52,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSearchExtended), nameof(CommandCompleted), pResult);
                     if (pResult.ResultType != eIMAPCommandResultType.ok || mSequenceSets == null) return;
-                    if (!cUIntList.TryConstruct(mSequenceSets, mSelectedMailbox.MessageCache.Count, !mSort, out var lMSNs)) return;
+                    if (!cUIntList.TryConstruct(mSequenceSets, (uint)mSelectedMailbox.MessageCache.Count, !mSort, out var lMSNs)) return;
                     // NOTE: the collection must be rendered, IEnumerable is not safe as evaluation of it can be delayed
                     MessageHandles = new cMessageHandleList(lMSNs.Select(lMSN => mSelectedMailbox.GetHandle(lMSN)));
                 }
@@ -75,7 +75,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookUIDSearchExtended), nameof(CommandCompleted), pResult);
                     if (pResult.ResultType != eIMAPCommandResultType.ok || mSequenceSets == null) return;
-                    if (!cUIntList.TryConstruct(mSequenceSets, -1, !mSort, out var lUIDs)) return;
+                    if (!cUIntList.TryConstruct(mSequenceSets, 0, !mSort, out var lUIDs)) return;
                     UIDs = lUIDs.Select(lUID => new cUID(mUIDValidity, lUID));
                 }
             }

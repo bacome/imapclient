@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
 
-        internal static bool TryConstruct(cSequenceSet pSequenceSet, int pAsterisk, bool pDistinct, out cUIntList rResult)
+        internal static bool TryConstruct(cSequenceSet pSequenceSet, uint pAsterisk, bool pDistinct, out cUIntList rResult)
         {
             if (pSequenceSet == null) throw new ArgumentNullException(nameof(pSequenceSet));
             if (!ZExpand(pSequenceSet, pAsterisk, out rResult)) return false;
@@ -25,7 +25,7 @@ namespace work.bacome.imapclient
             return true;
         }
 
-        internal static bool TryConstruct(cSequenceSets pSequenceSets, int pAsterisk, bool pDistinct, out cUIntList rResult)
+        internal static bool TryConstruct(cSequenceSets pSequenceSets, uint pAsterisk, bool pDistinct, out cUIntList rResult)
         {
             if (pSequenceSets == null) throw new ArgumentNullException(nameof(pSequenceSets));
 
@@ -42,7 +42,7 @@ namespace work.bacome.imapclient
             return true;
         }
 
-        private static bool ZExpand(cSequenceSet pSequenceSet, int pAsterisk, out cUIntList rResult)
+        private static bool ZExpand(cSequenceSet pSequenceSet, uint pAsterisk, out cUIntList rResult)
         {
             if (pSequenceSet == null) { rResult = null; return false; }
 
@@ -53,7 +53,7 @@ namespace work.bacome.imapclient
                 if (lItem == cSequenceSetItem.Asterisk)
                 {
                     if (pAsterisk < 1) return false;
-                    rResult.Add((uint)pAsterisk);
+                    rResult.Add(pAsterisk);
                     continue;
                 }
 
@@ -68,7 +68,7 @@ namespace work.bacome.imapclient
                 if (lRange.From == cSequenceSetItem.Asterisk)
                 {
                     if (pAsterisk < 1) return false;
-                    rResult.Add((uint)pAsterisk);
+                    rResult.Add(pAsterisk);
                     continue;
                 }
 
@@ -79,7 +79,7 @@ namespace work.bacome.imapclient
                 if (lRange.To == cSequenceSetItem.Asterisk)
                 {
                     if (pAsterisk < 1) return false;
-                    lTo = (uint)pAsterisk;
+                    lTo = pAsterisk;
                 }
                 else
                 {

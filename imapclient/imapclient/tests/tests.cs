@@ -36,7 +36,8 @@ namespace work.bacome.imapclient
             cHeaderFieldBytes._Tests(lContext);
             //cHeaderFieldValuePart._Tests(lContext);
             cAccountId._Tests();
-            cValidation._Tests();
+            cMailValidation._Tests();
+            cSequenceSet._Tests();
         }
 
         private partial class cSession

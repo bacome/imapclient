@@ -30,12 +30,12 @@ namespace work.bacome.imapclient
 
                             if (lCursor.GetNZNumber(out _, out var lDestinationUIDValidity) &&
                                 lCursor.SkipByte(cASCII.SPACE) &&
-                                lCursor.GetSequenceSet(out var lSourceUIDSet) &&
+                                lCursor.GetSequenceSet(false, out var lSourceUIDSet) &&
                                 lCursor.SkipByte(cASCII.SPACE) &&
-                                lCursor.GetSequenceSet(out var lCreatedUIDSet) &&
+                                lCursor.GetSequenceSet(false, out var lCreatedUIDSet) &&
                                 lCursor.Position.AtEnd &&
-                                cUIntList.TryConstruct(lSourceUIDSet, -1, false, out var lSourceUIDs) &&
-                                cUIntList.TryConstruct(lCreatedUIDSet, -1, false, out var lCreatedUIDs) &&
+                                cUIntList.TryConstruct(lSourceUIDSet, 0, false, out var lSourceUIDs) &&
+                                cUIntList.TryConstruct(lCreatedUIDSet, 0, false, out var lCreatedUIDs) &&
                                 lSourceUIDs.Count == lCreatedUIDs.Count)
                             {
                                 Feedback = new cCopyFeedback(mSourceUIDValidity, lSourceUIDs, lDestinationUIDValidity, lCreatedUIDs);

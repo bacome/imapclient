@@ -184,7 +184,7 @@ namespace work.bacome.mailclient
 
                     default:
 
-                        throw new cInternalErrorException(nameof(cValidation), nameof(ZIsValidRFC5322Phrase));
+                        throw new cInternalErrorException(nameof(cMailValidation), nameof(ZIsValidRFC5322Phrase));
                 }
             }
 
@@ -209,7 +209,7 @@ namespace work.bacome.mailclient
 
                     default:
 
-                        throw new cInternalErrorException(nameof(cValidation), nameof(ZIsValidRFC5322Comment));
+                        throw new cInternalErrorException(nameof(cMailValidation), nameof(ZIsValidRFC5322Comment));
                 }
             }
 
@@ -218,93 +218,93 @@ namespace work.bacome.mailclient
 
         internal static void _Tests()
         {
-            if (!IsDotAtomText("fred.angus.mike")) throw new cTestsException($"{nameof(cValidation)}.IsDotAtom.1");
-            if (!IsDotAtomText("fred")) throw new cTestsException($"{nameof(cValidation)}.IsDotAtom.2");
-            if (IsDotAtomText("fred..angus.mike")) throw new cTestsException($"{nameof(cValidation)}.IsDotAtom.3");
-            if (IsDotAtomText("")) throw new cTestsException($"{nameof(cValidation)}.IsDotAtom.4");
-            if (IsDotAtomText("fred,angus.mike")) throw new cTestsException($"{nameof(cValidation)}.IsDotAtom.5");
+            if (!IsDotAtomText("fred.angus.mike")) throw new cTestsException($"{nameof(cMailValidation)}.IsDotAtom.1");
+            if (!IsDotAtomText("fred")) throw new cTestsException($"{nameof(cMailValidation)}.IsDotAtom.2");
+            if (IsDotAtomText("fred..angus.mike")) throw new cTestsException($"{nameof(cMailValidation)}.IsDotAtom.3");
+            if (IsDotAtomText("")) throw new cTestsException($"{nameof(cMailValidation)}.IsDotAtom.4");
+            if (IsDotAtomText("fred,angus.mike")) throw new cTestsException($"{nameof(cMailValidation)}.IsDotAtom.5");
 
-            if (!IsDomainLiteral("[192.168.1.1]")) throw new cTestsException($"{nameof(cValidation)}.IsDomainLiteral.1");
-            if (!IsDomainLiteral("[ 192 . \t 168 . 1 . 1 ]")) throw new cTestsException($"{nameof(cValidation)}.IsDomainLiteral.2");
-            if (!IsDomainLiteral("[]")) throw new cTestsException($"{nameof(cValidation)}.IsDomainLiteral.3");
-            if (IsDomainLiteral("[")) throw new cTestsException($"{nameof(cValidation)}.IsDomainLiteral.4");
-            if (IsDomainLiteral("[[]")) throw new cTestsException($"{nameof(cValidation)}.IsDomainLiteral.5");
-            if (IsDomainLiteral("[192.168.1.1] ")) throw new cTestsException($"{nameof(cValidation)}.IsDomainLiteral.6");
+            if (!IsDomainLiteral("[192.168.1.1]")) throw new cTestsException($"{nameof(cMailValidation)}.IsDomainLiteral.1");
+            if (!IsDomainLiteral("[ 192 . \t 168 . 1 . 1 ]")) throw new cTestsException($"{nameof(cMailValidation)}.IsDomainLiteral.2");
+            if (!IsDomainLiteral("[]")) throw new cTestsException($"{nameof(cMailValidation)}.IsDomainLiteral.3");
+            if (IsDomainLiteral("[")) throw new cTestsException($"{nameof(cMailValidation)}.IsDomainLiteral.4");
+            if (IsDomainLiteral("[[]")) throw new cTestsException($"{nameof(cMailValidation)}.IsDomainLiteral.5");
+            if (IsDomainLiteral("[192.168.1.1] ")) throw new cTestsException($"{nameof(cMailValidation)}.IsDomainLiteral.6");
 
-            if (!IsNoFoldLiteral("[192.168.1.1]")) throw new cTestsException($"{nameof(cValidation)}.IsNoFoldLiteral.1");
-            if (IsNoFoldLiteral("[ 192 . \t 168 . 1 . 1 ]")) throw new cTestsException($"{nameof(cValidation)}.IsNoFoldLiteral.2");
-            if (!IsNoFoldLiteral("[]")) throw new cTestsException($"{nameof(cValidation)}.IsNoFoldLiteral.3");
-            if (IsNoFoldLiteral("[")) throw new cTestsException($"{nameof(cValidation)}.IsNoFoldLiteral.4");
-            if (IsNoFoldLiteral("[[]")) throw new cTestsException($"{nameof(cValidation)}.IsNoFoldLiteral.5");
-            if (IsNoFoldLiteral("[192.168.1.1] ")) throw new cTestsException($"{nameof(cValidation)}.IsNoFoldLiteral.6");
+            if (!IsNoFoldLiteral("[192.168.1.1]")) throw new cTestsException($"{nameof(cMailValidation)}.IsNoFoldLiteral.1");
+            if (IsNoFoldLiteral("[ 192 . \t 168 . 1 . 1 ]")) throw new cTestsException($"{nameof(cMailValidation)}.IsNoFoldLiteral.2");
+            if (!IsNoFoldLiteral("[]")) throw new cTestsException($"{nameof(cMailValidation)}.IsNoFoldLiteral.3");
+            if (IsNoFoldLiteral("[")) throw new cTestsException($"{nameof(cMailValidation)}.IsNoFoldLiteral.4");
+            if (IsNoFoldLiteral("[[]")) throw new cTestsException($"{nameof(cMailValidation)}.IsNoFoldLiteral.5");
+            if (IsNoFoldLiteral("[192.168.1.1] ")) throw new cTestsException($"{nameof(cMailValidation)}.IsNoFoldLiteral.6");
 
             string lString;
 
-            if (!TryParseLocalPart(" fred   .   angus .   simon ", out lString) || lString != "fred.angus.simon") throw new cTestsException($"{nameof(cValidation)}.TryParseLocalPart.1");
-            if (!TryParseLocalPart(" \"fred\"   .   angus .   simon ", out lString) || lString != "fred.angus.simon") throw new cTestsException($"{nameof(cValidation)}.TryParseLocalPart.2");
-            if (TryParseLocalPart(" fred   .  .  angus .   simon ", out lString)) throw new cTestsException($"{nameof(cValidation)}.TryParseLocalPart.3");
-            if (!TryParseLocalPart(" \"fred..angus\" .   simon ", out lString) || lString != "fred..angus.simon") throw new cTestsException($"{nameof(cValidation)}.TryParseLocalPart.4");
-            if (!TryParseLocalPart(" \"fred.\\.angus\" .   simon ", out lString) || lString != "fred..angus.simon") throw new cTestsException($"{nameof(cValidation)}.TryParseLocalPart.5");
-            if (TryParseLocalPart(" \"fred.\\\angus\" .   simon ", out lString)) throw new cTestsException($"{nameof(cValidation)}.TryParseLocalPart.6");
-            if (!TryParseLocalPart("fred.angus.simon", out lString) || lString != "fred.angus.simon") throw new cTestsException($"{nameof(cValidation)}.TryParseLocalPart.7");
-            if (!TryParseLocalPart("\"fred.angus.simon\"", out lString) || lString != "fred.angus.simon") throw new cTestsException($"{nameof(cValidation)}.TryParseLocalPart.8");
-            if (!TryParseLocalPart("\"fred angus simon\"", out lString) || lString != "fred angus simon") throw new cTestsException($"{nameof(cValidation)}.TryParseLocalPart.9");
-            if (TryParseLocalPart("\"fred angus simon\"  .  ", out lString)) throw new cTestsException($"{nameof(cValidation)}.TryParseLocalPart.10");
+            if (!TryParseLocalPart(" fred   .   angus .   simon ", out lString) || lString != "fred.angus.simon") throw new cTestsException($"{nameof(cMailValidation)}.TryParseLocalPart.1");
+            if (!TryParseLocalPart(" \"fred\"   .   angus .   simon ", out lString) || lString != "fred.angus.simon") throw new cTestsException($"{nameof(cMailValidation)}.TryParseLocalPart.2");
+            if (TryParseLocalPart(" fred   .  .  angus .   simon ", out lString)) throw new cTestsException($"{nameof(cMailValidation)}.TryParseLocalPart.3");
+            if (!TryParseLocalPart(" \"fred..angus\" .   simon ", out lString) || lString != "fred..angus.simon") throw new cTestsException($"{nameof(cMailValidation)}.TryParseLocalPart.4");
+            if (!TryParseLocalPart(" \"fred.\\.angus\" .   simon ", out lString) || lString != "fred..angus.simon") throw new cTestsException($"{nameof(cMailValidation)}.TryParseLocalPart.5");
+            if (TryParseLocalPart(" \"fred.\\\angus\" .   simon ", out lString)) throw new cTestsException($"{nameof(cMailValidation)}.TryParseLocalPart.6");
+            if (!TryParseLocalPart("fred.angus.simon", out lString) || lString != "fred.angus.simon") throw new cTestsException($"{nameof(cMailValidation)}.TryParseLocalPart.7");
+            if (!TryParseLocalPart("\"fred.angus.simon\"", out lString) || lString != "fred.angus.simon") throw new cTestsException($"{nameof(cMailValidation)}.TryParseLocalPart.8");
+            if (!TryParseLocalPart("\"fred angus simon\"", out lString) || lString != "fred angus simon") throw new cTestsException($"{nameof(cMailValidation)}.TryParseLocalPart.9");
+            if (TryParseLocalPart("\"fred angus simon\"  .  ", out lString)) throw new cTestsException($"{nameof(cMailValidation)}.TryParseLocalPart.10");
 
-            if (!TryParseDomain(" fred   .   angus .   simon ", out lString) || lString != "fred.angus.simon") throw new cTestsException($"{nameof(cValidation)}.TryParseDomain.1");
-            if (TryParseDomain(" \"fred\"   .   angus .   simon ", out lString) ) throw new cTestsException($"{nameof(cValidation)}.TryParseDomain.2");
-            if (TryParseDomain(" fred   .  .  angus .   simon ", out lString)) throw new cTestsException($"{nameof(cValidation)}.TryParseDomain.3");
-            if (!TryParseDomain("fred.angus.simon", out lString) || lString != "fred.angus.simon") throw new cTestsException($"{nameof(cValidation)}.TryParseDomain.4");
-            if (!TryParseDomain(" [] ", out lString) || lString != "[]") throw new cTestsException($"{nameof(cValidation)}.TryParseDomain.5");
-            if (!TryParseDomain(" [ 192   . 168   . 1 \t   . 1 ] ", out lString) || lString != "[ 192   . 168   . 1 \t   . 1 ]") throw new cTestsException($"{nameof(cValidation)}.TryParseDomain.6");
-            if (!TryParseDomain("[192.168.1.1]", out lString) || lString != "[192.168.1.1]") throw new cTestsException($"{nameof(cValidation)}.TryParseDomain.7");
-            if (!TryParseDomain("[192.168\\.1.1]", out lString) || lString != "[192.168.1.1]") throw new cTestsException($"{nameof(cValidation)}.TryParseDomain.8");
-            if (TryParseDomain("[192.168\\\a1.1]", out lString)) throw new cTestsException($"{nameof(cValidation)}.TryParseDomain.9");
-            if (TryParseDomain("[192.168.1.1]a", out lString)) throw new cTestsException($"{nameof(cValidation)}.TryParseDomain.10");
+            if (!TryParseDomain(" fred   .   angus .   simon ", out lString) || lString != "fred.angus.simon") throw new cTestsException($"{nameof(cMailValidation)}.TryParseDomain.1");
+            if (TryParseDomain(" \"fred\"   .   angus .   simon ", out lString) ) throw new cTestsException($"{nameof(cMailValidation)}.TryParseDomain.2");
+            if (TryParseDomain(" fred   .  .  angus .   simon ", out lString)) throw new cTestsException($"{nameof(cMailValidation)}.TryParseDomain.3");
+            if (!TryParseDomain("fred.angus.simon", out lString) || lString != "fred.angus.simon") throw new cTestsException($"{nameof(cMailValidation)}.TryParseDomain.4");
+            if (!TryParseDomain(" [] ", out lString) || lString != "[]") throw new cTestsException($"{nameof(cMailValidation)}.TryParseDomain.5");
+            if (!TryParseDomain(" [ 192   . 168   . 1 \t   . 1 ] ", out lString) || lString != "[ 192   . 168   . 1 \t   . 1 ]") throw new cTestsException($"{nameof(cMailValidation)}.TryParseDomain.6");
+            if (!TryParseDomain("[192.168.1.1]", out lString) || lString != "[192.168.1.1]") throw new cTestsException($"{nameof(cMailValidation)}.TryParseDomain.7");
+            if (!TryParseDomain("[192.168\\.1.1]", out lString) || lString != "[192.168.1.1]") throw new cTestsException($"{nameof(cMailValidation)}.TryParseDomain.8");
+            if (TryParseDomain("[192.168\\\a1.1]", out lString)) throw new cTestsException($"{nameof(cMailValidation)}.TryParseDomain.9");
+            if (TryParseDomain("[192.168.1.1]a", out lString)) throw new cTestsException($"{nameof(cMailValidation)}.TryParseDomain.10");
 
-            if (!TryParseMsgId("<fred.angus.miles@simon.john.lemar>", out lString) || lString != "<fred.angus.miles@simon.john.lemar>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.1");
-            if (!TryParseMsgId("  \t   <   \"fred\"    .  \t angus  \".miles\"  \r\n @ simon    .   john   \r\n .  lemar > \t     ", out lString) || lString != "<fred.angus.miles@simon.john.lemar>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.2");
-            if (!TryParseMsgId("  \t   <   \"fred\"    .  \t angus  \".miles\"  \r\n @ [simon.john.lemar] > \t     ", out lString) || lString != "<fred.angus.miles@[simon.john.lemar]>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.3");
-            if (TryParseMsgId("  \t   <   \"fred\"    .  \t angus  \".miles\"  \r\n @ [simon.john.lemar ] > \t     ", out lString)) throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.3.1");
-            if (!TryParseMsgId("<this@one>", out lString) || lString != "<this@one>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.4");
-            if (TryParseMsgId("<this@one><this@one>", out lString)) throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.5");
-            if (!TryParseMsgId("<\"this\"@one>", out lString) || lString != "<this@one>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.6");
-            if (TryParseMsgId("<\"th is\"@one>", out lString)) throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.7");
-            if (!TryParseMsgId("<this@[on\\a]>", out lString) || lString != "<this@[ona]>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.8");
-            if (TryParseMsgId("<this@[on\\\a]>", out lString)) throw new cTestsException($"{nameof(cValidation)}.TryParseMsgId.9");
+            if (!TryParseMsgId("<fred.angus.miles@simon.john.lemar>", out lString) || lString != "<fred.angus.miles@simon.john.lemar>") throw new cTestsException($"{nameof(cMailValidation)}.TryParseMsgId.1");
+            if (!TryParseMsgId("  \t   <   \"fred\"    .  \t angus  \".miles\"  \r\n @ simon    .   john   \r\n .  lemar > \t     ", out lString) || lString != "<fred.angus.miles@simon.john.lemar>") throw new cTestsException($"{nameof(cMailValidation)}.TryParseMsgId.2");
+            if (!TryParseMsgId("  \t   <   \"fred\"    .  \t angus  \".miles\"  \r\n @ [simon.john.lemar] > \t     ", out lString) || lString != "<fred.angus.miles@[simon.john.lemar]>") throw new cTestsException($"{nameof(cMailValidation)}.TryParseMsgId.3");
+            if (TryParseMsgId("  \t   <   \"fred\"    .  \t angus  \".miles\"  \r\n @ [simon.john.lemar ] > \t     ", out lString)) throw new cTestsException($"{nameof(cMailValidation)}.TryParseMsgId.3.1");
+            if (!TryParseMsgId("<this@one>", out lString) || lString != "<this@one>") throw new cTestsException($"{nameof(cMailValidation)}.TryParseMsgId.4");
+            if (TryParseMsgId("<this@one><this@one>", out lString)) throw new cTestsException($"{nameof(cMailValidation)}.TryParseMsgId.5");
+            if (!TryParseMsgId("<\"this\"@one>", out lString) || lString != "<this@one>") throw new cTestsException($"{nameof(cMailValidation)}.TryParseMsgId.6");
+            if (TryParseMsgId("<\"th is\"@one>", out lString)) throw new cTestsException($"{nameof(cMailValidation)}.TryParseMsgId.7");
+            if (!TryParseMsgId("<this@[on\\a]>", out lString) || lString != "<this@[ona]>") throw new cTestsException($"{nameof(cMailValidation)}.TryParseMsgId.8");
+            if (TryParseMsgId("<this@[on\\\a]>", out lString)) throw new cTestsException($"{nameof(cMailValidation)}.TryParseMsgId.9");
 
             cStrings lStrings;
-            if (!TryParseMsgIds("<this@one><this@one>", out lStrings) || lStrings.Count != 2 || lStrings[0] != "<this@one>" || lStrings[1] != "<this@one>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgIds.1");
-            if (!TryParseMsgIds(" <  \r\n this @ one > \r\n <  \t this @  \t\t one > ", out lStrings) || lStrings.Count != 2 || lStrings[0] != "<this@one>" || lStrings[1] != "<this@one>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgIds.2");
-            if (TryParseMsgIds("<this@one><this@one", out lStrings)) throw new cTestsException($"{nameof(cValidation)}.TryParseMsgIds.3");
-            if (TryParseMsgIds("", out lStrings)) throw new cTestsException($"{nameof(cValidation)}.TryParseMsgIds.4");
-            if (TryParseMsgIds("       ", out lStrings)) throw new cTestsException($"{nameof(cValidation)}.TryParseMsgIds.5");
-            if (!TryParseMsgIds("<this@one><\"this\"@one>", out lStrings) || lStrings.Count != 2 || lStrings[0] != "<this@one>" || lStrings[1] != "<this@one>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgIds.6");
-            if (TryParseMsgIds("<this@one><\"this \"@one>", out lStrings)) throw new cTestsException($"{nameof(cValidation)}.TryParseMsgIds.7");
-            if (!TryParseMsgIds("<this@one><this@[one]>", out lStrings) || lStrings.Count != 2 || lStrings[0] != "<this@one>" || lStrings[1] != "<this@[one]>") throw new cTestsException($"{nameof(cValidation)}.TryParseMsgIds.8");
-            if (!TryParseMsgIds("<this@one><this@[one ]>", out lStrings)) throw new cTestsException($"{nameof(cValidation)}.TryParseMsgIds.9");
+            if (!TryParseMsgIds("<this@one><this@one>", out lStrings) || lStrings.Count != 2 || lStrings[0] != "<this@one>" || lStrings[1] != "<this@one>") throw new cTestsException($"{nameof(cMailValidation)}.TryParseMsgIds.1");
+            if (!TryParseMsgIds(" <  \r\n this @ one > \r\n <  \t this @  \t\t one > ", out lStrings) || lStrings.Count != 2 || lStrings[0] != "<this@one>" || lStrings[1] != "<this@one>") throw new cTestsException($"{nameof(cMailValidation)}.TryParseMsgIds.2");
+            if (TryParseMsgIds("<this@one><this@one", out lStrings)) throw new cTestsException($"{nameof(cMailValidation)}.TryParseMsgIds.3");
+            if (TryParseMsgIds("", out lStrings)) throw new cTestsException($"{nameof(cMailValidation)}.TryParseMsgIds.4");
+            if (TryParseMsgIds("       ", out lStrings)) throw new cTestsException($"{nameof(cMailValidation)}.TryParseMsgIds.5");
+            if (!TryParseMsgIds("<this@one><\"this\"@one>", out lStrings) || lStrings.Count != 2 || lStrings[0] != "<this@one>" || lStrings[1] != "<this@one>") throw new cTestsException($"{nameof(cMailValidation)}.TryParseMsgIds.6");
+            if (TryParseMsgIds("<this@one><\"this \"@one>", out lStrings)) throw new cTestsException($"{nameof(cMailValidation)}.TryParseMsgIds.7");
+            if (!TryParseMsgIds("<this@one><this@[one]>", out lStrings) || lStrings.Count != 2 || lStrings[0] != "<this@one>" || lStrings[1] != "<this@[one]>") throw new cTestsException($"{nameof(cMailValidation)}.TryParseMsgIds.8");
+            if (!TryParseMsgIds("<this@one><this@[one ]>", out lStrings)) throw new cTestsException($"{nameof(cMailValidation)}.TryParseMsgIds.9");
 
             cHeaderFieldPhraseValue lPhrase;
-            if (TryParsePhrase("", out lPhrase)) throw new cTestsException($"{ nameof(cValidation)}.TryParsePhrase.1");
-            if (TryParsePhrase("     \t      ()    \t   (   \t stuff  \t  (more    \t stuff  ))    ", out lPhrase)) throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.1");
-            if (!TryParsePhrase("    \t      ()  x \t   (   \t stuff  \t  (more    \t stuff  ))    ", out lPhrase) || ZTestPhraseToString(lPhrase) != "x") throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.2");
-            if (!TryParsePhrase("    \t      ()  x \t   (   \t stuff  \t  (more    \t stuff  ))  \"xxx\"   (extra \"comment\")  ", out lPhrase) || ZTestPhraseToString(lPhrase) != "x xxx") throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.3");
-            if (!TryParsePhrase("    \t      ()  x \t   (   \t stuff  \t  (more    \t stuff  ))  \"x x\"   (extra \"comment\")  ", out lPhrase) || ZTestPhraseToString(lPhrase) != "x\"x x\"") throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.4");
-            if (!TryParsePhrase("   Arthur     C.    Clarke  (Author)  ", out lPhrase) || ZTestPhraseToString(lPhrase) != "Arthur C. Clarke") throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.5");
-            if (TryParsePhrase("   .Arthur     C.    Clarke(, Author)  ", out lPhrase)) throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.6");
-            if (TryParsePhrase("    Arthur     C.    Clarke,  Author   ", out lPhrase)) throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.7");
-            if (!TryParsePhrase("   Arthur     C.  \"Clarke,\"Author   ", out lPhrase) || ZTestPhraseToString(lPhrase) != "Arthur C. Clarke, Author") throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.8");
-            if (!TryParsePhrase("   A.         C.    Clarke   \t\t\t   ", out lPhrase) || ZTestPhraseToString(lPhrase) != "A. C. Clarke") throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.9");
-            if (!TryParsePhrase("  \"A.\"    \"C.\"  Clarke   \t\r\n   ", out lPhrase) || ZTestPhraseToString(lPhrase) != "A. C. Clarke") throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.10");
-            if (!TryParsePhrase("   A.         C.    Clarke   \"\"     ", out lPhrase) || ZTestPhraseToString(lPhrase) != "A. C. Clarke\"\"") throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.11");
-            if (TryParsePhrase(" \"\arthur\"   C.  \"Clarke,\"Author   ", out lPhrase)) throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.12");
-            if (!TryParsePhrase("\" Arthur\"   C.    Clarke (\author)  ", out lPhrase) || ZTestPhraseToString(lPhrase) != "\" Arthur\"C. Clarke") throw new cTestsException($"{nameof(cValidation)}.TryParsePhrase.13");
+            if (TryParsePhrase("", out lPhrase)) throw new cTestsException($"{ nameof(cMailValidation)}.TryParsePhrase.1");
+            if (TryParsePhrase("     \t      ()    \t   (   \t stuff  \t  (more    \t stuff  ))    ", out lPhrase)) throw new cTestsException($"{nameof(cMailValidation)}.TryParsePhrase.1");
+            if (!TryParsePhrase("    \t      ()  x \t   (   \t stuff  \t  (more    \t stuff  ))    ", out lPhrase) || ZTestPhraseToString(lPhrase) != "x") throw new cTestsException($"{nameof(cMailValidation)}.TryParsePhrase.2");
+            if (!TryParsePhrase("    \t      ()  x \t   (   \t stuff  \t  (more    \t stuff  ))  \"xxx\"   (extra \"comment\")  ", out lPhrase) || ZTestPhraseToString(lPhrase) != "x xxx") throw new cTestsException($"{nameof(cMailValidation)}.TryParsePhrase.3");
+            if (!TryParsePhrase("    \t      ()  x \t   (   \t stuff  \t  (more    \t stuff  ))  \"x x\"   (extra \"comment\")  ", out lPhrase) || ZTestPhraseToString(lPhrase) != "x\"x x\"") throw new cTestsException($"{nameof(cMailValidation)}.TryParsePhrase.4");
+            if (!TryParsePhrase("   Arthur     C.    Clarke  (Author)  ", out lPhrase) || ZTestPhraseToString(lPhrase) != "Arthur C. Clarke") throw new cTestsException($"{nameof(cMailValidation)}.TryParsePhrase.5");
+            if (TryParsePhrase("   .Arthur     C.    Clarke(, Author)  ", out lPhrase)) throw new cTestsException($"{nameof(cMailValidation)}.TryParsePhrase.6");
+            if (TryParsePhrase("    Arthur     C.    Clarke,  Author   ", out lPhrase)) throw new cTestsException($"{nameof(cMailValidation)}.TryParsePhrase.7");
+            if (!TryParsePhrase("   Arthur     C.  \"Clarke,\"Author   ", out lPhrase) || ZTestPhraseToString(lPhrase) != "Arthur C. Clarke, Author") throw new cTestsException($"{nameof(cMailValidation)}.TryParsePhrase.8");
+            if (!TryParsePhrase("   A.         C.    Clarke   \t\t\t   ", out lPhrase) || ZTestPhraseToString(lPhrase) != "A. C. Clarke") throw new cTestsException($"{nameof(cMailValidation)}.TryParsePhrase.9");
+            if (!TryParsePhrase("  \"A.\"    \"C.\"  Clarke   \t\r\n   ", out lPhrase) || ZTestPhraseToString(lPhrase) != "A. C. Clarke") throw new cTestsException($"{nameof(cMailValidation)}.TryParsePhrase.10");
+            if (!TryParsePhrase("   A.         C.    Clarke   \"\"     ", out lPhrase) || ZTestPhraseToString(lPhrase) != "A. C. Clarke\"\"") throw new cTestsException($"{nameof(cMailValidation)}.TryParsePhrase.11");
+            if (TryParsePhrase(" \"\arthur\"   C.  \"Clarke,\"Author   ", out lPhrase)) throw new cTestsException($"{nameof(cMailValidation)}.TryParsePhrase.12");
+            if (!TryParsePhrase("\" Arthur\"   C.    Clarke (\author)  ", out lPhrase) || ZTestPhraseToString(lPhrase) != "\" Arthur\"C. Clarke") throw new cTestsException($"{nameof(cMailValidation)}.TryParsePhrase.13");
 
             // phrases
             List<cHeaderFieldPhraseValue> lPhrases;
-            if (TryParsePhrases("", out lPhrases)) throw new cTestsException($"{ nameof(cValidation)}.TryParsePhrases.1");
-            if (TryParsePhrases("  ,   (),       (comment) ,    (  \t \r\n longer  comment   ) ,    ", out lPhrases)) throw new cTestsException($"{ nameof(cValidation)}.TryParsePhrases.2");
-            if (!TryParsePhrases(" ,   (),   x   (comment) ,    (  \t \r\n longer  comment   ) ,    ", out lPhrases) || lPhrases.Count != 1 || ZTestPhraseToString(lPhrases[0]) != "x") throw new cTestsException($"{ nameof(cValidation)}.TryParsePhrases.3");
+            if (TryParsePhrases("", out lPhrases)) throw new cTestsException($"{ nameof(cMailValidation)}.TryParsePhrases.1");
+            if (TryParsePhrases("  ,   (),       (comment) ,    (  \t \r\n longer  comment   ) ,    ", out lPhrases)) throw new cTestsException($"{ nameof(cMailValidation)}.TryParsePhrases.2");
+            if (!TryParsePhrases(" ,   (),   x   (comment) ,    (  \t \r\n longer  comment   ) ,    ", out lPhrases) || lPhrases.Count != 1 || ZTestPhraseToString(lPhrases[0]) != "x") throw new cTestsException($"{ nameof(cMailValidation)}.TryParsePhrases.3");
         }
 
         private static string ZTestPhraseToString(cHeaderFieldPhraseValue pPhrase)
@@ -334,7 +334,7 @@ namespace work.bacome.mailclient
 
                     default:
 
-                        throw new cInternalErrorException(nameof(cValidation), nameof(ZTestPhraseToString));
+                        throw new cInternalErrorException(nameof(cMailValidation), nameof(ZTestPhraseToString));
                 }
             }
 
@@ -363,7 +363,7 @@ namespace work.bacome.mailclient
 
                     default:
 
-                        throw new cInternalErrorException(nameof(cValidation), nameof(ZTestCommentToString));
+                        throw new cInternalErrorException(nameof(cMailValidation), nameof(ZTestCommentToString));
                 }
             }
 

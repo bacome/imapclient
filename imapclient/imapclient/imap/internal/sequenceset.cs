@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using work.bacome.mailclient;
 
@@ -29,6 +30,13 @@ namespace work.bacome.imapclient
         public cSequenceSet(uint pNumber) : base(ZFromNumber(pNumber)) { }
 
         public cSequenceSet(uint pFrom, uint pTo) : base(ZFromRange(pFrom, pTo)) { } 
+
+        public bool Includes(uint pNumber, uint pAsterisk)
+        {
+            if (pNumber == 0) throw new ArgumentOutOfRangeException(nameof(pNumber));
+            foreach (var lItem in this) if (lItem.CompareTo(pNumber, pAsterisk) == 0) return true;
+            return false;
+        }
 
         public override string ToString()
         {
@@ -80,6 +88,7 @@ namespace work.bacome.imapclient
             {
                 if (lFirst)
                 {
+                    if (lUInt == 0) throw new ArgumentOutOfRangeException(nameof(pUInts));
                     lFrom = lUInt;
                     lTo = lUInt;
                     lFirst = false;
@@ -138,6 +147,7 @@ namespace work.bacome.imapclient
             {
                 if (lFirst)
                 {
+                    if (lUInt == 0) throw new ArgumentOutOfRangeException(nameof(pUInts));
                     lFrom = lUInt;
                     lTo = lUInt;
                     lFirst = false;
@@ -445,15 +455,91 @@ namespace work.bacome.imapclient
             public bool IsSingle => To == From;
             public bool IsZero => From == 0;
         }
+
+        [Conditional("DEBUG")]
+        internal static void _Tests()
+        {
+            // parsing and construction tests
+            _Tests_1("*", "cSequenceSet(cAsterisk())", null, new cUIntList(new uint[] { 15 }), "cSequenceSet(cSequenceSetNumber(15))");
+            _Tests_1("0", null, "0", null, null);
+            _Tests_1("2,4:7,9,12:*", "cSequenceSet(cSequenceSetNumber(2),cSequenceSetRange(cSequenceSetNumber(4),cSequenceSetNumber(7)),cSequenceSetNumber(9),cSequenceSetRange(cSequenceSetNumber(12),cAsterisk()))", null, new cUIntList(new uint[] { 2, 4, 5, 6, 7, 9, 12, 13, 14, 15 }), "cSequenceSet(cSequenceSetNumber(2),cSequenceSetRange(cSequenceSetNumber(4),cSequenceSetNumber(7)),cSequenceSetNumber(9),cSequenceSetRange(cSequenceSetNumber(12),cSequenceSetNumber(15)))");
+            _Tests_1("*:4,7:5", "cSequenceSet(cSequenceSetRange(cSequenceSetNumber(4),cAsterisk()),cSequenceSetRange(cSequenceSetNumber(5),cSequenceSetNumber(7)))", null, new cUIntList(new uint[] { 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }), "cSequenceSet(cSequenceSetRange(cSequenceSetNumber(4),cSequenceSetNumber(15)))");
+
+            // coalesce and include tests
+            _Tests_2(new uint[] { 1, 2, 3, 4, 5 }, 5, "cSequenceSet(cSequenceSetRange(cSequenceSetNumber(1),cSequenceSetNumber(5)))", new uint[] { 1, 2, 3, 4, 5 }, new uint[] { 0, 6, 7 });
+            _Tests_2(new uint[] { 1, 2, 3, 4, 5, 6 }, 5, "cSequenceSet(cSequenceSetRange(cSequenceSetNumber(1),cSequenceSetNumber(6)))", new uint[] { 1, 2, 3, 4, 5, 6 }, new uint[] { 0, 7, 8 });
+            _Tests_2(new uint[] { 1, 2, 3, 4, 5, 7, 8, 9, 14 }, 5, "cSequenceSet(cSequenceSetRange(cSequenceSetNumber(1),cSequenceSetNumber(5)),cSequenceSetRange(cSequenceSetNumber(7),cSequenceSetNumber(9)),cSequenceSetNumber(14))", new uint[] { 1, 2, 3, 4, 5, 7, 8, 9, 14 }, new uint[] { 0, 6, 10, 11, 12, 13, 15, 16 });
+            _Tests_2(new uint[] { 1, 2, 3, 4, 5, 7, 8, 9, 14, 15 }, 5, "cSequenceSet(cSequenceSetRange(cSequenceSetNumber(1),cSequenceSetNumber(9)),cSequenceSetRange(cSequenceSetNumber(14),cSequenceSetNumber(15)))", new uint[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 14, 15 }, new uint[] { 0, 10, 11, 12, 13, 16, 17 });
+            _Tests_2(new uint[] { 1, 2, 3, 4, 5, 12, 13, 14, 16, 17 }, 5, "cSequenceSet(cSequenceSetRange(cSequenceSetNumber(1),cSequenceSetNumber(5)),cSequenceSetRange(cSequenceSetNumber(12),cSequenceSetNumber(17)))", new uint[] { 1, 2, 3, 4, 5, 12, 13, 14, 15, 16, 17 }, new uint[] { 0, 6, 7, 8, 9, 10, 11, 18, 19 });
+
+            // includes tests with *
+            cSequenceSet lAsterisk = new cSequenceSet(new cSequenceSetItem[] { cSequenceSetItem.Asterisk });
+            _Tests_3(lAsterisk, 5, new uint[] { 5 }, new uint[] { 3, 4, 6, 7 });
+
+            cSequenceSet lTwoRanges = new cSequenceSet(new cSequenceSetItem[] { new cSequenceSetRange(5, 10), new cSequenceSetRange(new cSequenceSetNumber(25), cSequenceSetItem.Asterisk) });
+            _Tests_3(lTwoRanges, 30, new uint[] { 5, 6, 7, 8, 9, 10, 25, 26, 27, 28, 29, 30 }, new uint[] { 3, 4, 11, 12, 23, 24, 31, 32 });
+            _Tests_3(lTwoRanges, 20, new uint[] { 5, 6, 7, 8, 9, 10, 20, 21, 22, 23, 24, 25 }, new uint[] { 3, 4, 11, 12, 18, 19, 26, 27 });
+        }
+
+        private static void _Tests_1(string pCursor, string pExpSeqSet, string pExpRemainder, cUIntList pExpList, string pExpSeqSet2)
+        {
+            var lCursor = new cBytesCursor(pCursor);
+
+            if (lCursor.GetSequenceSet(true, out var lSequenceSet))
+            {
+                string lSeqSet = lSequenceSet.ToString();
+                if (lSeqSet != pExpSeqSet) throw new cTestsException($"failed to get expected sequence set from {pCursor}: got '{lSeqSet}' vs expected '{pExpSeqSet}'");
+
+                if (!cUIntList.TryConstruct(lSequenceSet, 15, true, out var lTemp)) throw new cTestsException($"failed to get an uintlist from {lSequenceSet}");
+                if (pExpList.Count != lTemp.Count) throw new cTestsException($"failed to get expected uintlist from {lSequenceSet}");
+                var lList = new cUIntList(lTemp.OrderBy(i => i));
+                for (int i = 0; i < pExpList.Count; i++) if (pExpList[i] != lList[i]) throw new cTestsException($"failed to get expected uintlist from {lSequenceSet}");
+
+                string lSeqSet2 = cSequenceSet.FromUInts(lList).ToString();
+                if (lSeqSet2 != pExpSeqSet2) throw new cTestsException($"failed to get expected sequence set from {lList}: got '{lSeqSet2}' vs expected '{pExpSeqSet2}'");
+            }
+            else if (pExpSeqSet != null) throw new cTestsException($"failed to get a sequence set from {pCursor}");
+
+
+            if (lCursor.Position.AtEnd)
+            {
+                if (pExpRemainder == null) return;
+                throw new cTestsException($"expected a remainder from {pCursor}");
+            }
+
+            string lRemainder = lCursor.GetRestAsString();
+            if (lRemainder != pExpRemainder) throw new cTestsException($"failed to get expected remainder set from {pCursor}: '{lRemainder}' vs '{pExpRemainder}'");
+        }
+
+        private static void _Tests_2(IEnumerable<uint> pUInts, int pMaxNumberCount, string pExpSeqSet, IEnumerable<uint> pIncludes, IEnumerable<uint> pExcludes)
+        {
+            var lSeqSet = FromUInts(pUInts, pMaxNumberCount);
+            if (lSeqSet.ToString() != pExpSeqSet) throw new cTestsException($"failed to get expected sequence set from {new cUIntList(pUInts)}: got '{lSeqSet}' vs expected '{pExpSeqSet}'");
+            _Tests_3(lSeqSet, 100, pIncludes, pExcludes);
+        }
+
+        private static void _Tests_3(cSequenceSet pSeqSet, uint pAsterisk, IEnumerable<uint> pIncludes, IEnumerable<uint> pExcludes)
+        {
+            foreach (var lUInt in pIncludes) if (!pSeqSet.Includes(lUInt, pAsterisk)) throw new cTestsException($"sequence set {pSeqSet} doesn't include {lUInt}");
+            foreach (var lUInt in pExcludes) if (pSeqSet.Includes(lUInt, pAsterisk)) throw new cTestsException($"sequence set {pSeqSet} doesn't exclude {lUInt}");
+        }
     }
 
     internal abstract class cSequenceSetItem
     {
         public static readonly cSequenceSetRangePart Asterisk = new cAsterisk();
 
+        public abstract int CompareTo(uint pNumber, uint pAsterisk);
+
         private class cAsterisk : cSequenceSetRangePart
         {
             public cAsterisk() { }
+
+            public override int CompareTo(uint pNumber, uint pAsterisk)
+            {
+                if (pAsterisk == 0) throw new ArgumentOutOfRangeException(nameof(pAsterisk));
+                return pAsterisk.CompareTo(pNumber);
+            }
 
             public override int CompareTo(cSequenceSetRangePart pOther)
             {
@@ -481,6 +567,8 @@ namespace work.bacome.imapclient
             Number = pNumber;
         }
 
+        public override int CompareTo(uint pNumber, uint pAsterisk) => Number.CompareTo(pNumber);
+
         public override int CompareTo(cSequenceSetRangePart pOther)
         {
             if (pOther == Asterisk) return -1;
@@ -506,9 +594,50 @@ namespace work.bacome.imapclient
 
         public cSequenceSetRange(uint pFrom, uint pTo)
         {
+            if (pFrom == 0) throw new ArgumentOutOfRangeException(nameof(pFrom));
             if (pTo <= pFrom) throw new ArgumentOutOfRangeException(nameof(pTo));
             From = new cSequenceSetNumber(pFrom);
             To = new cSequenceSetNumber(pTo);
+        }
+
+        public override int CompareTo(uint pNumber, uint pAsterisk)
+        {
+            uint lFrom;
+
+            if (From is cSequenceSetNumber lSSNFrom) lFrom = lSSNFrom.Number;
+            else
+            {
+                if (pAsterisk == 0) throw new ArgumentOutOfRangeException(nameof(pAsterisk));
+                lFrom = pAsterisk;
+            }
+
+            uint lTo;
+
+            if (To is cSequenceSetNumber lSSNTo) lTo = lSSNTo.Number;
+            else
+            {
+                if (pAsterisk == 0) throw new ArgumentOutOfRangeException(nameof(pAsterisk));
+                lTo = pAsterisk;
+            }
+
+            if (lFrom > lTo)
+            {
+                var lTemp = lFrom;
+                lFrom = lTo;
+                lTo = lTemp;
+            }
+
+            int lResult;
+
+            lResult = lFrom.CompareTo(pNumber);
+
+            if (lResult == 1)
+            {
+                if (lTo.CompareTo(pNumber) == 1) return 1;
+                else return 0;
+            }
+
+            return lResult;
         }
 
         public override string ToString() => $"{nameof(cSequenceSetRange)}({From},{To})";

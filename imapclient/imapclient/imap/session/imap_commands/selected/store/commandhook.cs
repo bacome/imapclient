@@ -55,7 +55,7 @@ namespace work.bacome.imapclient
                             {
                                 cBytesCursor lCursor = new cBytesCursor(pArguments);
 
-                                if (lCursor.GetSequenceSet(out var lSequenceSet) && lCursor.Position.AtEnd && cUIntList.TryConstruct(lSequenceSet, mSelectedMailbox.MessageCache.Count, true, out var lUInts))
+                                if (lCursor.GetSequenceSet(false, out var lSequenceSet) && lCursor.Position.AtEnd && cUIntList.TryConstruct(lSequenceSet, 0, true, out var lUInts))
                                 {
                                     foreach (var lUInt in lUInts)
                                     {
