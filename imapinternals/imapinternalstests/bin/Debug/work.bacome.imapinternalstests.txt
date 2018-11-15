@@ -1,0 +1,7 @@
+work.bacome.imapinternalstests Critical: 1 : test
+work.bacome.imapinternalstests Critical: 1 : test
+work.bacome.imapinternalstests Verbose: 1 : test
+work.bacome.imapinternalstests Critical: 1 : test
+work.bacome.imapinternalstests Verbose: 1 : test
+work.bacome.imapinternalstests Critical: 1 : test
+work.bacome.imapinternalstests Verbose: 1 : test

@@ -5,72 +5,6 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
 {
-    /// <summary>
-    /// The <see langword="abstract"/> base class for all of the library's custom exceptions.
-    /// </summary>
-    public abstract class cMailException : Exception
-    {
-        internal cMailException() { }
-        internal cMailException(string pMessage) : base(pMessage) { }
-        internal cMailException(string pMessage, Exception pInner) : base(pMessage, pInner) { }
-    }
-
-    /// <summary>
-    /// Thrown when something happens that shouldn't.
-    /// </summary>
-    public class cInternalErrorException : cMailException
-    {
-        internal cInternalErrorException(string pClass, int pPlace = 1) : base($"{pClass}.{pPlace}") { }
-        internal cInternalErrorException(string pClass, string pMethod, int pPlace = 1) : base($"{pClass}.{pMethod}.{pPlace}") { }
-        internal cInternalErrorException(cTrace.cContext pContext, int pPlace = 1) => pContext.TraceError("{0}: {1}", nameof(cInternalErrorException), pPlace);
-    }
-
-    /// <summary>
-    /// Thrown when the installed SASL security layer fails to encode or decode.
-    /// </summary>
-    public class cSASLSecurityException : cMailException
-    {
-        internal cSASLSecurityException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cSASLSecurityException), pMessage);
-        internal cSASLSecurityException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cSASLSecurityException), pMessage, pInner);
-    }
-
-    /// <summary>
-    /// Thrown when the internal network stream has been closed.
-    /// </summary>
-    public class cStreamClosedException : cMailException
-    {
-        internal cStreamClosedException() { }
-        internal cStreamClosedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cStreamClosedException));
-        internal cStreamClosedException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cStreamClosedException), pMessage);
-        internal cStreamClosedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cStreamClosedException), pMessage, pInner);
-    }
-
-    /// <summary>
-    /// Thrown to indicate that connect failure is due to a lack of usable authentication mechanisms.
-    /// </summary>
-    public class cAuthenticationMechanismsException : cMailException
-    {
-        /// <summary>
-        /// Indicates whether the problem might be fixed by using TLS.
-        /// </summary>
-        public readonly bool TLSIssue;
-
-        internal cAuthenticationMechanismsException(bool pTLSIssue, cTrace.cContext pContext)
-        {
-            TLSIssue = pTLSIssue;
-            pContext.TraceError("{0}: {1}", nameof(cAuthenticationMechanismsException), pTLSIssue);
-        }
-
-        /// <inheritdoc/>
-        public override string ToString()
-        {
-            var lBuilder = new cListBuilder(nameof(cAuthenticationMechanismsException));
-            lBuilder.Append(TLSIssue);
-            lBuilder.Append(base.ToString());
-            return lBuilder.ToString();
-        }
-    }
-
     public class cAddressFormException : cMailException
     {
         /// <summary>
@@ -116,6 +50,9 @@ namespace work.bacome.mailclient
     /// </remarks>
     /// */
 
+    /// <summary>
+    /// Thrown to 
+    /// </summary>
     public class cMailMessageFormException : cMailException
     {
         public readonly MailMessage MailMessage;
@@ -140,31 +77,7 @@ namespace work.bacome.mailclient
         }
     }
 
-    public class cCommandResultUnknownException : cMailException
-    {
-        internal cCommandResultUnknownException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cCommandResultUnknownException), pMessage, pInner);
-    }
-
-    public class cStreamRanOutOfDataException : cMailException
-    {
-        internal cStreamRanOutOfDataException() { }
-    }
-
-    public class cStreamPositionException : cMailException
-    {
-        internal cStreamPositionException() { }
-    }
-
-    public class cDeserialiseException : cMailException
-    {
-        public cDeserialiseException(string pClass, string pProperty, string pMessage, int pPlace = 1) : base($"{pClass}.{pProperty}: {pMessage} ({pPlace})") { }
-    }
-
-    public class cDecodingException : cMailException
-    {
-        public cDecodingException(string pMessage) : base(pMessage) { }
-    }
-
+    /*
     internal class cTestsException : Exception
     {
         internal cTestsException() { }
@@ -172,5 +85,5 @@ namespace work.bacome.mailclient
         internal cTestsException(string pMessage, Exception pInner) : base(pMessage, pInner) { }
         internal cTestsException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError(pMessage);
         internal cTestsException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}\n{1}", pMessage, pInner);
-    }
+    } */
 }

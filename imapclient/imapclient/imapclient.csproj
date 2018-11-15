@@ -55,7 +55,6 @@
     <Compile Include="imap\public\persistentcache\flagitem.cs" />
     <Compile Include="imap\public\persistentcache\headeritem.cs" />
     <Compile Include="imap\persistentcache_new\sectionreader.cs" />
-    <Compile Include="imap\internal\tools.cs" />
     <Compile Include="imap\internal\validation.cs" />
     <Compile Include="imap\public\mailbox\mailboxuid.cs" />
     <Compile Include="imap\public\other\modseqflags.cs" />
@@ -102,21 +101,12 @@
     <Compile Include="mail\internal\async\incrementer.cs" />
     <Compile Include="mail\internal\bytescursor\rfc822\getphrase.cs" />
     <Compile Include="mail\convertmailmessage\attachmentdetail.cs" />
-    <Compile Include="mail\internal\encoding\base64decoder.cs" />
-    <Compile Include="mail\internal\encoding\base64encoder.cs" />
-    <Compile Include="mail\internal\encoding\decoder.cs" />
-    <Compile Include="mail\internal\encoding\encoder.cs" />
     <Compile Include="mail\internal\encoding\encodingrequired.cs" />
     <Compile Include="mail\internal\encoding\headerfieldbytes.cs" />
-    <Compile Include="mail\internal\encoding\quotedprintabledecoder.cs" />
-    <Compile Include="mail\internal\encoding\quotedprintableencoder.cs" />
-    <Compile Include="mail\internal\encoding\tests.cs" />
-    <Compile Include="mail\internal\encoding\transformer.cs" />
     <Compile Include="mail\internal\message\message.cs" />
     <Compile Include="mail\internal\other\parsing.cs" />
-    <Compile Include="mail\public\message\datetime.cs" />
+    <Compile Include="mail\public\message\timestamp.cs" />
     <Compile Include="mail\public\other\encoding.cs" />
-    <Compile Include="mail\support\transformingstream.cs" />
     <Compile Include="mail\public\message\attachment.cs" />
     <Compile Include="mail\public\message\message.cs" />
     <Compile Include="mail\public\other\convertmailmessagedisposables.cs" />
@@ -127,15 +117,11 @@
     <Compile Include="imap\public\feedback\appendfeedback.cs" />
     <Compile Include="imap\public\mailbox\checkformessagesflag.cs" />
     <Compile Include="mail\client\base.cs" />
-    <Compile Include="mail\internal\constants\ascii.cs" />
     <Compile Include="mail\internal\async\callbacksynchroniser.cs" />
-    <Compile Include="mail\internal\constants\char.cs" />
-    <Compile Include="mail\internal\constants\rfcmonth.cs" />
-    <Compile Include="mail\internal\constants\stringconstants.cs" />
     <Compile Include="mail\public\mime\messagedatapart.cs" />
     <Compile Include="mail\public\mime\messagedataformat.cs" />
     <Compile Include="mail\public\mime\headerfieldvalue.cs" />
-    <Compile Include="mail\internal\other\validation.cs" />
+    <Compile Include="mail\internal\other\mailvalidation.cs" />
     <Compile Include="mail\public\other\exceptions.cs" />
     <Compile Include="mail\public\mime\messagedata.cs" />
     <Compile Include="imap\session\append\append.cs" />
@@ -316,20 +302,10 @@
     <Compile Include="mail\internal\bytescursor\other\processencodedword.cs" />
     <Compile Include="mail\internal\bytescursor\rfc822\base.cs" />
     <Compile Include="mail\internal\bytescursor\rfc822\getdatetime.cs" />
-    <Compile Include="mail\support\bytes.cs" />
-    <Compile Include="mail\support\response.cs" />
-    <Compile Include="mail\internal\other\byteslist.cs" />
-    <Compile Include="imap\internal\uintlist.cs" />
-    <Compile Include="mail\internal\encoding\base64.cs" />
-    <Compile Include="mail\internal\encoding\modifiedutf7.cs" />
-    <Compile Include="mail\support\charset.cs" />
     <Compile Include="mail\internal\other\uriparts.cs" />
     <Compile Include="mail\internal\other\urlparts.cs" />
-    <Compile Include="mail\internal\other\listbuilder.cs" />
-    <Compile Include="mail\internal\other\tools.cs" />
     <Compile Include="imap\internal\commandpart.cs" />
     <Compile Include="imap\internal\extendedvalue.cs" />
-    <Compile Include="imap\internal\sequenceset.cs" />
     <Compile Include="mail\public\other\uri.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="imap\session\command\commandhook.cs" />
@@ -393,8 +369,20 @@
     <Compile Include="mail\internal\async\methodcontrol.cs" />
     <Compile Include="mail\internal\async\releaser.cs" />
     <Compile Include="mail\internal\async\awaiter.cs" />
-    <Compile Include="mail\support\trace.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\imaplib\imaplib\imaplib.csproj">
+      <Project>{67778f45-ff9e-4f5f-9bb2-38abd9c7a740}</Project>
+      <Name>imaplib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\imapinternals\imapinternals.csproj">
+      <Project>{f3935c0a-df07-4882-92c4-a29c12fb4f11}</Project>
+      <Name>imapinternals</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\imaptools\imaptools.csproj">
+      <Project>{3dbbe1e5-fc24-4a45-b11e-64193f584959}</Project>
+      <Name>imaptools</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

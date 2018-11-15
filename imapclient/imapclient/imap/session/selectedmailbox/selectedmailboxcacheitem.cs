@@ -21,6 +21,10 @@ namespace work.bacome.imapclient
                     private bool mExpunged = false;
                     private cMessageUID mMessageUID = null;
                     private cModSeqFlags mLastModSeqFlags = null;
+
+                    ;?; // these can be defaulted ONLY if qresync is off (otherwise we require a UID to store details
+                    ;?; //  (the reason being that the vanished response can't identify things to delete other than by UID
+                    ;?; //   (which means if we don't have the UID we have to just choose one of the cached entries in the range identified by the uid
                     private iFlagCacheItem mFlagCacheItem = new cNoUIDFlagCacheItem();
                     private iHeaderCacheItem mHeaderCacheItem = new cNoUIDHeaderCacheItem();
 

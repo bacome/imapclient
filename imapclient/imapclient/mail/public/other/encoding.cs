@@ -5,8 +5,6 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
 {
-    public enum eQuotedPrintableEncodingType { Binary, CRLFTerminatedLines, LFTerminatedLines }
-    public enum eQuotedPrintableEncodingRule { Minimal, EBCDIC }
 
     public class cBase64DecodingStream : cTransformingStream
     {

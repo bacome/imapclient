@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
             else await ZSelectAsync(pConfiguration.MC, pMailboxHandle, pForUpdate, pConfiguration.Increment1, pConfiguration.SetMaximum2, pConfiguration.Increment2, lContext).ConfigureAwait(false);
         }
 
-        private async Task ZSelectAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, bool pForUpdate, Action<int> pQResyncIncrement, Action<long> pResyncSetMaximum, Action<int> pResyncIncrement, cTrace.cContext pParentContext)
+        private async Task ZSelectAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, bool pForUpdate, Action<long> pQResyncSetMaximum, Action<int> pQResyncIncrement, Action<long> pSynchroniseSetMaximum, Action<int> pSynchroniseIncrement, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSelectAsync), pMC, pMailboxHandle, pForUpdate);
 
@@ -51,7 +51,13 @@ namespace work.bacome.imapclient
                     if (lHighestModSeq != 0)
                     {
                         var lUIDs = PersistentCache.GetUIDs(pMailboxHandle.MailboxId, lUIDValidity, false, lContext);
-                        if (lUIDs.Count != 0) lQResyncParameters = new cQResyncParameters(lUIDValidity, lHighestModSeq, cSequenceSet.FromUInts(from lUID in lUIDs select lUID.UID, mMaxItemsInSequenceSet), pQResyncIncrement);
+
+                        if (lUIDs.Count != 0)
+                        {
+                            x=cSequenceSet.FromUInts(from lUID in lUIDs select lUID.UID, mMaxItemsInSequenceSet);
+                            mSynchroniser.InvokeActionLong(pQResyncSetMaximum, cSASLXOAuth2.includedcount, lContext);
+                            lQResyncParameters = new cQResyncParameters(lUIDValidity, lHighestModSeq, cSequenceSet.FromUInts(from lUID in lUIDs select lUID.UID, mMaxItemsInSequenceSet), pQResyncIncrement);
+                        }
                     }
                 }
             }

@@ -33,6 +33,10 @@ namespace work.bacome.imapclient
 
                 mMailboxCache.CheckIsSelectedMailbox(pMailboxHandle, lUIDValidity); // to be repeated inside the select lock
 
+
+                ;?; // if qresync is on, must add uid
+
+
                 // split the list into those messages I have handles for and those I dont
                 /////////////////////////////////////////////////////////////////////////
 

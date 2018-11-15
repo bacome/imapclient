@@ -1,0 +1,850 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>work.bacome.imapclient</name>
+    </assembly>
+    <members>
+        <member name="T:work.bacome.imapclient.cMailException">
+            <summary>
+            The <see langword="abstract"/> base class for all of the library's custom exceptions.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cMailException.#ctor">
+            <summary>
+            Initialises a new instance.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cMailException.#ctor(System.String)">
+            <summary>
+            Initialises a new instance.
+            </summary>
+            <param name="pMessage"></param>
+        </member>
+        <member name="M:work.bacome.imapclient.cMailException.#ctor(System.String,System.Exception)">
+            <summary>
+            Initialises a new instance.
+            </summary>
+            <param name="pMessage"></param>
+            <param name="pInner"></param>
+        </member>
+        <member name="T:work.bacome.imapclient.cInternalErrorException">
+            <summary>
+            Thrown when something happens that shouldn't.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cInternalErrorException.#ctor(System.String,System.Int32)">
+            <summary>
+            Initialises a new instance.
+            </summary>
+            <param name="pClass"></param>
+            <param name="pPlace"></param>
+        </member>
+        <member name="M:work.bacome.imapclient.cInternalErrorException.#ctor(System.String,System.String,System.Int32)">
+            <summary>
+            Initialises a new instance.
+            </summary>
+            <param name="pClass"></param>
+            <param name="pMethod"></param>
+            <param name="pPlace"></param>
+        </member>
+        <member name="M:work.bacome.imapclient.cInternalErrorException.#ctor(work.bacome.imapsupport.cTrace.cContext,System.Int32)">
+            <summary>
+            Initialises a new instance.
+            </summary>
+            <param name="pContext"></param>
+            <param name="pPlace"></param>
+        </member>
+        <member name="T:work.bacome.imapclient.cSASLSecurityException">
+            <summary>
+            Thrown when the installed SASL security layer fails to encode or decode.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cSASLSecurityException.#ctor(System.String,work.bacome.imapsupport.cTrace.cContext)">
+            <summary>
+            Initialises a new instance.
+            </summary>
+            <param name="pMessage"></param>
+            <param name="pContext"></param>
+        </member>
+        <member name="M:work.bacome.imapclient.cSASLSecurityException.#ctor(System.String,System.Exception,work.bacome.imapsupport.cTrace.cContext)">
+            <summary>
+            Initialises a new instance.
+            </summary>
+            <param name="pMessage"></param>
+            <param name="pInner"></param>
+            <param name="pContext"></param>
+        </member>
+        <member name="T:work.bacome.imapclient.cStreamClosedException">
+            <summary>
+            Thrown when the internal network stream has been closed.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cStreamClosedException.#ctor">
+            <summary>
+            Initialises a new instance.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cStreamClosedException.#ctor(work.bacome.imapsupport.cTrace.cContext)">
+            <summary>
+            Initialises a new instance.
+            </summary>
+            <param name="pContext"></param>
+        </member>
+        <member name="M:work.bacome.imapclient.cStreamClosedException.#ctor(System.String,work.bacome.imapsupport.cTrace.cContext)">
+            <summary>
+            Initialises a new instance.
+            </summary>
+            <param name="pMessage"></param>
+            <param name="pContext"></param>
+        </member>
+        <member name="M:work.bacome.imapclient.cStreamClosedException.#ctor(System.String,System.Exception,work.bacome.imapsupport.cTrace.cContext)">
+            <summary>
+            Initialises a new instance.
+            </summary>
+            <param name="pMessage"></param>
+            <param name="pInner"></param>
+            <param name="pContext"></param>
+        </member>
+        <member name="T:work.bacome.imapclient.cAuthenticationMechanismsException">
+            <summary>
+            Thrown to indicate that connect failure is due to a lack of usable authentication mechanisms.
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cAuthenticationMechanismsException.TLSIssue">
+            <summary>
+            Indicates whether the problem might be fixed by using TLS.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cAuthenticationMechanismsException.#ctor(System.Boolean,work.bacome.imapsupport.cTrace.cContext)">
+            <summary>
+            Initialises a new instance.
+            </summary>
+            <param name="pTLSIssue"></param>
+            <param name="pContext"></param>
+        </member>
+        <member name="M:work.bacome.imapclient.cAuthenticationMechanismsException.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="T:work.bacome.imapclient.cCommandResultUnknownException">
+            <summary>
+            Thrown to indicate that the result of a command sent to the server was not received.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cCommandResultUnknownException.#ctor(System.String,System.Exception,work.bacome.imapsupport.cTrace.cContext)">
+            <summary>
+            Initialises a new instance.
+            </summary>
+            <param name="pMessage"></param>
+            <param name="pInner"></param>
+            <param name="pContext"></param>
+        </member>
+        <member name="T:work.bacome.imapclient.cStreamRanOutOfDataException">
+            <summary>
+            Thrown to indicate that a stream of data was shorter than specified.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cStreamRanOutOfDataException.#ctor">
+            <summary>
+            Initialises a new instance.
+            </summary>
+        </member>
+        <member name="T:work.bacome.imapclient.cDeserialiseException">
+            <summary>
+            Thrown to indicate that a deserialised object was discovered to be in an inconsistent state.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cDeserialiseException.#ctor(System.String,System.String,System.String,System.Int32)">
+            <summary>
+            Initialises a new instance.
+            </summary>
+            <param name="pClass"></param>
+            <param name="pProperty"></param>
+            <param name="pMessage"></param>
+            <param name="pPlace"></param>
+        </member>
+        <member name="T:work.bacome.imapclient.cDecodingException">
+            <summary>
+            Thrown to indicate that decoding of data failed.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cDecodingException.#ctor(System.String)">
+            <summary>
+            Initialises a new instance.
+            </summary>
+            <param name="pMessage"></param>
+        </member>
+        <member name="T:work.bacome.imapsupport.cBytes">
+            <summary>
+            An immutable collection of bytes.
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cBytes.Empty">
+            <summary>
+            An empty collection of bytes.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapsupport.cBytes.#ctor(System.Collections.Generic.IEnumerable{System.Byte})">
+            <summary>
+            Initialises a new instance with the specified bytes.
+            </summary>
+            <param name="pBytes"></param>
+        </member>
+        <member name="M:work.bacome.imapsupport.cBytes.#ctor(System.String)">
+            <summary>
+            Initialises a new instance with the specified string.
+            </summary>
+            <remarks>
+            The characters in the string must all be less than '\u0100'.
+            </remarks>
+            <param name="pString"></param>
+        </member>
+        <member name="M:work.bacome.imapsupport.cBytes.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="T:work.bacome.imapsupport.cCharset">
+            <summary>
+            Represents a set of characters that are valid in a parsing context. Intended for internal use.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapsupport.cCharset.Contains(System.Byte)">
+            <summary>
+            Determines whether the specified byte is contained in the set of characters.
+            </summary>
+            <param name="pByte"></param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapsupport.cCharset.Contains(System.Char)">
+            <summary>
+            Determines whether the specified char is contained in the set of characters.
+            </summary>
+            <param name="pChar"></param>
+            <returns></returns>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.Alpha">
+            <summary>Represents the characters A-Z and a-z.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.Digit">
+            <summary>Represents the characters 0-9.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.AlphaNumeric">
+            <summary>Represents the characters A-Z, 0-9 and a-z.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.Scheme">
+            <summary>Represents the characters used in RFC 3986 'scheme'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.UserInfo">
+            <summary>Represents the characters used in RFC 3986 'userinfo'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.Atom">
+            <summary>Represents the characters used in RFC 3501 'atom'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.AString">
+            <summary>Represents the characters used in RFC 3501 'astring'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.TextNotRBRACKET">
+            <summary>Represents the characters used in RFC 3501 response text.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.ListMailbox">
+            <summary>Represents the characters used in RFC 3501 'list-mailbox'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.AChar">
+            <summary>Represents the characters used in RFC 5092 'achar'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.BChar">
+            <summary>Represents the characters used in RFC 5092 'bchar'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.PathSegment">
+            <summary>Represents the characters used in RFC 3986 'segment'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.PathSegmentNoColon">
+            <summary>Represents the characters used in RFC 3986 'segment-nz-nc'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.Path">
+            <summary>Represents the characters used in various RFC 3986 path components (= PathSegment + '/').</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.AfterPath">
+            <summary>Represents the characters used in RFC 3986 'query' and 'fragment'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.RegName">
+            <summary>Represents the characters used in RFC 3986 'reg-name'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.IPLiteral">
+            <summary>Represents the characters used in RFC 3986 'IP-literal'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.UAuthMechanism">
+            <summary>Represents the characters used in RFC 5092 'uauth-mechanism'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.Hexidecimal">
+            <summary>Represents the characters A-F, 0-9 and a-f.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.CharsetName">
+            <summary>Represents the characters used in RFC 2978 'mime-charset-chars'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.CharsetNameDash">
+            <summary>Represents the characters used in RFC 2231 'charset'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.All">
+            <summary>Represents a character set that contains all characters.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.Base64">
+            <summary>Represents the characters A-Z, 0-9, a-z, +, /, and =.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.QEncoding">
+            <summary>Represents the characters used in RFC 2047 Quoted-Printable.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.ObsCText">
+            <summary>Represents the characters used in RFC 6532 'obs-ctext'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.AText">
+            <summary>Represents the characters used in RFC 6532 'atext'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.DotAText">
+            <summary>Represents the characters used in RFC 6532 'atext' plus ".".</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.QText">
+            <summary>Represents the characters used in RFC 6532 'qtext'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.ObsQText">
+            <summary>Represents the characters used in RFC 6532 'dtext'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.DText">
+            <summary>Represents the characters used in RFC 6532 'dtext'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.WSPDText">
+            <summary>Represents the characters used in RFC 5234 WSP and RFC 6532 'dtext'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.ObsDText">
+            <summary>Represents the characters used in RFC 6532 'obs-dtext'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.FText">
+            <summary>Represents the characters used in RFC 5322 'ftext'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.WSPVChar">
+            <summary>Represents the characters used in RFC 5234 WSP and RFC 6532 'VCHAR'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.VSChar">
+            <summary>Represents the characters used in RFC 6749 'VSCHAR'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.RFC2045Token">
+            <summary>Represents the characters used in RFC 2045 'token'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.RFC2047Token">
+            <summary>Represents the characters used in RFC 2047 'token'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.AttributeChar">
+            <summary>Represents the characters used in RFC 2231 'attribute-char'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.Specials">
+            <summary>Represents the characters used in RFC 5322 'specials'.</summary>
+        </member>
+        <member name="F:work.bacome.imapsupport.cCharset.WSP">
+            <summary>Represents the characters used in RFC 5234 'WSP'.</summary>
+        </member>
+        <member name="T:work.bacome.imapsupport.cResponseLine">
+            <summary>
+            Represents a line of a server response.
+            </summary>
+            <seealso cref="T:work.bacome.imapsupport.cResponse"/>
+        </member>
+        <member name="F:work.bacome.imapsupport.cResponseLine.Literal">
+            <summary>
+            Indicates if the bytes were sent as a literal.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapsupport.cResponseLine.#ctor(System.Boolean,System.Collections.Generic.IList{System.Byte})">
+            <summary>
+            Initialises a new instance with the specified data.
+            </summary>
+            <param name="pLiteral"></param>
+            <param name="pBytes"></param>
+        </member>
+        <member name="M:work.bacome.imapsupport.cResponseLine.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="M:work.bacome.imapsupport.cResponseLine.ToString(System.Int32)">
+            <summary>
+            Returns a string containing at most the specified number of bytes from the server response.
+            </summary>
+            <param name="pMaxLength"></param>
+            <returns></returns>
+        </member>
+        <member name="T:work.bacome.imapsupport.cResponse">
+            <summary>
+            Represents a server response.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapsupport.cResponse.#ctor(System.Collections.Generic.IList{work.bacome.imapsupport.cResponseLine})">
+            <summary>
+            Initialises a new instance with the specified data.
+            </summary>
+            <param name="pLines"></param>
+        </member>
+        <member name="M:work.bacome.imapsupport.cResponse.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="T:work.bacome.imapsupport.cTrace">
+            <summary>
+            Provides services for writing trace events with indenting and nested context information.
+            </summary>
+            <remarks>
+            <para>
+            Instances of this class wrap a <see cref="T:System.Diagnostics.TraceSource"/> and trace messages are written using its services.
+            </para>
+            <note type="note">
+            The services provided by this class do not support the dynamic addition of trace listeners to the wrapped <see cref="T:System.Diagnostics.TraceSource"/>.
+            The trace messages that will be written by an instance are determined at the time of construction (by inspecting the state of the <see cref="T:System.Diagnostics.TraceSource"/>).
+            </note>
+            <para>
+            Trace messages are always written in a context.
+            Context starts at an independent root-context.
+            Sub-contexts can be established within root-contexts and within other sub-contexts.
+            If a new sub-context is created for each call then call stack information can be built and included in the trace.
+            </para>
+            <para>
+            Context creation itself can result in a trace message (the context-create trace message).
+            Context-create trace messages can be written immediately (as the contexts are created),
+            or they can be written only if, and only when, a non-context-create trace message is written in the context (or a sub-context of the context).
+            This delayed context-create writing can minimise unnecessary and unhelpful tracing, whilst retaining the 
+            benefits of tracing the full context when something interesting happens.
+            </para>
+            <note type="note" >
+            If the writing of context-create trace messages is delayed then the generation of the trace message text is also delayed.
+            If there are mutable objects to be included in the trace message text, this can lead to misleading context-create trace messages.
+            </note>
+            <para>
+            Tracing can be disabled, either for an instance as a whole or for parts of the context tree.
+            When tracing is disabled contexts are not created and trace messages are not written, so most of the tracing overhead is eliminated.
+            Tracing is disabled under the following circumstances;
+            <list type="bullet">
+            <item>The assembly is compiled without the "TRACE" conditional attribute.</item>
+            <item>There aren't any listeners attached to the wrapped <see cref="T:System.Diagnostics.TraceSource"/> when the instance is constructed.</item>
+            <item>The wrapped <see cref="T:System.Diagnostics.TraceSource"/> isn't configured to emit <see cref="F:System.Diagnostics.TraceEventType.Critical"/> messages when the instance is constructed.</item>
+            <item>The <see cref="F:work.bacome.imapsupport.cTrace.cContext.None"/> context is used as a root-context.</item>
+            </list>
+            </para>
+            <para>Root-contexts have a name and a number. The name is programmer assigned, the number is assigned by the class and is unique within the program.</para>
+            <para>Trace messages are written in a tab delimited form, the tab delimited columns contain;
+            <list type="number">
+            <item>The <see cref="T:System.Diagnostics.TraceSource"/> defined data.</item>
+            <item>The date and time that the message was written.</item>
+            <item>The name and number of the root-context associated with the trace message.</item>
+            <item>The thread number on which the trace message was written.</item>
+            <item>The space indented (by a number of spaces equal to the context-depth) trace message.</item>
+            </list>
+            </para>
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.#ctor(System.String)">
+            <summary>
+            Initialises a new instance with the specified trace source name.
+            </summary>
+            <param name="pTraceSourceName">The <see cref="T:System.Diagnostics.TraceSource"/> name to use.</param>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.#ctor(System.Diagnostics.TraceSource)">
+            <summary>
+            Initialises a new instance with the specified trace source.
+            </summary>
+            <param name="pTraceSource"></param>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.NewRoot(System.String,System.Boolean)">
+            <summary>
+            Returns a new independent root-context.
+            </summary>
+            <param name="pInstanceName">The name to give the context.</param>
+            <param name="pContextTraceDelay"></param>
+            <returns></returns>
+        </member>
+        <member name="T:work.bacome.imapsupport.cTrace.cContext">
+            <summary>
+            Represents a tracing context.
+            </summary>
+            <remarks>
+            Instances will be either a root-context or a sub-context.
+            </remarks>
+            <seealso cref="T:work.bacome.imapsupport.cTrace"/>
+        </member>
+        <member name="F:work.bacome.imapsupport.cTrace.cContext.None">
+            <summary>A tracing context that does not create contexts or emit messages. Can be used to suppress tracing.</summary>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewRoot(System.String,System.Boolean)">
+            <summary>
+            Returns a new root-context tied (in name only) to the root-context of this instance.
+            </summary>
+            <param name="pInstanceName">A string to use when creating the name of the new context.</param>
+            <param name="pContextTraceDelay"></param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewRootObjectV(System.Boolean,System.String,System.Int32,System.Object[])">
+            <summary>
+            Returns a new root-context with a context-create trace message in 'object constructor' format.
+            </summary>
+            <param name="pContextTraceDelay"></param>
+            <param name="pClass">The name of the class.</param>
+            <param name="pVersion">The version of the constructor.</param>
+            <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
+            <returns></returns>
+            <remarks>For use when creating a new root-context in a constructor.</remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewRootMethodV(System.Boolean,System.String,System.String,System.Int32,System.Object[])">
+            <summary>
+            Returns a new root-context with a context-create trace message in 'method' format.
+            </summary>
+            <param name="pContextTraceDelay"></param>
+            <param name="pClass">The name of the class.</param>
+            <param name="pMethod">The name of the method.</param>
+            <param name="pVersion">The version of the method.</param>
+            <param name="pArgs">The parameters to the method that should be in the trace message.</param>
+            <returns></returns>
+            <remarks>
+            For use when creating a new root-context in a method.
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewGeneric(System.Boolean,System.String,System.Object[])">
+            <summary>
+            Returns a new sub-context with a free format context-create trace message.
+            </summary>
+            <param name="pContextTraceDelay"></param>
+            <param name="pMessage">The context-create trace message in <see cref="M:System.String.Format(System.String,System.Object[])"/> format.</param>
+            <param name="pArgs">The objects to place in the context-create trace message text.</param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewObjectV(System.Boolean,System.String,System.Int32,System.Object[])">
+            <summary>
+            Returns a new sub-context with a context-create trace message in 'object constructor' format.
+            </summary>
+            <param name="pContextTraceDelay"></param>
+            <param name="pClass">The name of the class.</param>
+            <param name="pVersion">The version of the constructor.</param>
+            <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
+            <returns></returns>
+            <remarks>For use when creating a context for a constructor.</remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewSetProp(System.Boolean,System.String,System.String,System.Object)">
+            <summary>
+            Returns a new sub-context with a context-create trace message in 'property setter' format.
+            </summary>
+            <param name="pContextTraceDelay"></param>
+            <param name="pClass">The name of the class.</param>
+            <param name="pProperty">The name of the property.</param>
+            <param name="pValue">The value being set.</param>
+            <returns></returns>
+            <remarks>For use when creating a context for a property setter.</remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewGetProp(System.Boolean,System.String,System.String)">
+            <summary>
+            Returns a new sub-context with a context-create trace message in 'property getter' format.
+            </summary>
+            <param name="pContextTraceDelay"></param>
+            <param name="pClass">The name of the class.</param>
+            <param name="pProperty">The name of the property.</param>
+            <returns></returns>
+            <remarks>For use when creating a context for a property getter.</remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewMethodV(System.Boolean,System.String,System.String,System.Int32,System.Object[])">
+            <summary>
+            Returns a new sub-context with a context-create trace message in 'method' format.
+            </summary>
+            <param name="pContextTraceDelay"></param>
+            <param name="pClass">The name of the class.</param>
+            <param name="pMethod">The name of the method.</param>
+            <param name="pVersion">The version of the method.</param>
+            <param name="pArgs">The parameters to the method that should be in the trace message.</param>
+            <returns></returns>
+            <remarks>
+            For use when creating a context for a method.
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewRootObjectV(System.String,System.Int32,System.Object[])">
+            <summary>
+            Returns a new root-context with a context-create trace message in 'object constructor' format.
+            </summary>
+            <param name="pClass">The name of the class.</param>
+            <param name="pVersion">The version of the constructor.</param>
+            <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
+            <returns></returns>
+            <remarks>
+            For use when creating a new root-context in a constructor.
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewRootObject(System.Boolean,System.String,System.Object[])">
+            <summary>
+            Returns a new root-context with a context-create trace message in 'object constructor' format.
+            </summary>
+            <param name="pContextTraceDelay"></param>
+            <param name="pClass">The name of the class.</param>
+            <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
+            <returns></returns>
+            <remarks>
+            For use when creating a new root-context in a constructor.
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewRootObject(System.String,System.Object[])">
+            <summary>
+            Returns a new root-context with a context-create trace message in 'object constructor' format.
+            </summary>
+            <param name="pClass">The name of the class.</param>
+            <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
+            <returns></returns>
+            <remarks>
+            For use when creating a new root-context in a constructor.
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewRootMethodV(System.String,System.String,System.Int32,System.Object[])">
+            <summary>
+            Returns a new root-context with a context-create trace message in 'method' format.
+            </summary>
+            <param name="pClass">The name of the class.</param>
+            <param name="pMethod">The name of the method.</param>
+            <param name="pVersion">The version of the method.</param>
+            <param name="pArgs">The parameters to the method that should be in the trace message.</param>
+            <returns></returns>
+            <remarks>
+            For use when creating a new root-context in a method.
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewRootMethod(System.Boolean,System.String,System.String,System.Object[])">
+            <summary>
+            Returns a new root-context with a context-create trace message in 'method' format.
+            </summary>
+            <param name="pContextTraceDelay"></param>
+            <param name="pClass">The name of the class.</param>
+            <param name="pMethod">The name of the method.</param>
+            <param name="pArgs">The parameters to the method that should be in the trace message.</param>
+            <returns></returns>
+            <remarks>
+            For use when creating a new root-context in a method.
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewRootMethod(System.String,System.String,System.Object[])">
+            <summary>
+            Returns a new root-context with a context-create trace message in 'method' format.
+            </summary>
+            <param name="pClass">The name of the class.</param>
+            <param name="pMethod">The name of the method.</param>
+            <param name="pArgs">The parameters to the method that should be in the trace message.</param>
+            <returns></returns>
+            <remarks>
+            For use when creating a new root-context in a method.
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewGeneric(System.String,System.Object[])">
+            <summary>
+            Returns a new sub-context with a free format context-create trace message.
+            </summary>
+            <param name="pMessage">The trace message in <see cref="M:System.String.Format(System.String,System.Object[])"/> format.</param>
+            <param name="pArgs">The objects to place in the context-create trace message text.</param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewObjectV(System.String,System.Int32,System.Object[])">
+            <summary>
+            Returns a new sub-context with a context-create trace message in 'object constructor' format.
+            </summary>
+            <param name="pClass">The name of the class.</param>
+            <param name="pVersion">The version of the constructor.</param>
+            <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
+            <returns></returns>
+            <remarks>
+            For use when creating a context for a constructor.
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewObject(System.Boolean,System.String,System.Object[])">
+            <summary>
+            Returns a new sub-context with a context-create trace message in 'object constructor' format.
+            </summary>
+            <param name="pContextTraceDelay"></param>
+            <param name="pClass">The name of the class.</param>
+            <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
+            <returns></returns>
+            <remarks>
+            For use when creating a context for a constructor.
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewObject(System.String,System.Object[])">
+            <summary>
+            Returns a new sub-context with a context-create trace message in 'object constructor' format.
+            </summary>
+            <param name="pClass">The name of the class.</param>
+            <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
+            <returns></returns>
+            <remarks>
+            For use when creating a context for a constructor.
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewSetProp(System.String,System.String,System.Object)">
+            <summary>
+            Returns a new sub-context with a context-create trace message in 'property setter' format.
+            </summary>
+            <param name="pClass">The name of the class.</param>
+            <param name="pProperty">The name of the property.</param>
+            <param name="pValue">The value being set.</param>
+            <returns></returns>
+            <remarks>
+            For use when creating a context for a property setter.
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewGetProp(System.String,System.String)">
+            <summary>
+            Returns a new sub-context with a context-create trace message in 'property getter' format.
+            </summary>
+            <param name="pClass">The name of the class.</param>
+            <param name="pProperty">The name of the property.</param>
+            <returns></returns>
+            <remarks>
+            For use when creating a context for a property getter.
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewMethodV(System.String,System.String,System.Int32,System.Object[])">
+            <summary>
+            Returns a new sub-context with a context-create trace message in 'method' format.
+            </summary>
+            <param name="pClass">The name of the class.</param>
+            <param name="pMethod">The name of the method.</param>
+            <param name="pVersion">The version of the method.</param>
+            <param name="pArgs">The parameters to the method that should be in the trace message.</param>
+            <returns></returns>
+            <remarks>
+            For use when creating a context for a method.
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewMethod(System.Boolean,System.String,System.String,System.Object[])">
+            <summary>
+            Returns a new sub-context with a context-create trace message in 'method' format.
+            </summary>
+            <param name="pContextTraceDelay"></param>
+            <param name="pClass">The name of the class.</param>
+            <param name="pMethod">The name of the method.</param>
+            <param name="pArgs">The parameters to the method that should be in the trace message.</param>
+            <returns></returns>
+            <remarks>
+            For use when creating a context for a method.
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.NewMethod(System.String,System.String,System.Object[])">
+            <summary>
+            Returns a new sub-context with a context-create trace message in 'method' format.
+            </summary>
+            <param name="pClass">The name of the class.</param>
+            <param name="pMethod">The name of the method.</param>
+            <param name="pArgs">The parameters to the method that should be in the trace message.</param>
+            <returns></returns>
+            <remarks>
+            For use when creating a context for a method.
+            </remarks>
+        </member>
+        <member name="P:work.bacome.imapsupport.cTrace.cContext.ContextTraceDelay">
+            <summary>Indicates whether the writing of context-create trace messages is being delayed for the context and its sub-contexts.</summary>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.YTraceContext">
+            <summary></summary>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.TraceEvent(System.Diagnostics.TraceEventType,System.String,System.Object[])">
+            <summary>
+            Writes a trace message.
+            </summary>
+            <param name="pTraceEventType"></param>
+            <param name="pMessage">The trace message in <see cref="M:System.String.Format(System.String,System.Object[])"/> format.</param>
+            <param name="pArgs">The objects to place in the trace message text.</param>
+        </member>
+        <member name="P:work.bacome.imapsupport.cTrace.cContext.EmitsVerbose">
+            <summary>Indicates whether the underlying <see cref="T:System.Diagnostics.TraceSource"/> emits verbose trace messages. This value is determined at the time the containing <see cref="T:work.bacome.imapsupport.cTrace"/> is constructed.</summary>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.TraceCritical(System.String,System.Object[])">
+            <summary>
+            Writes a critcal trace message.
+            </summary>
+            <param name="pMessage">The trace message in <see cref="M:System.String.Format(System.String,System.Object[])"/> format.</param>
+            <param name="pArgs">The objects to place in the trace message text.</param>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.TraceError(System.String,System.Object[])">
+            <summary>
+            Writes an error trace message.
+            </summary>
+            <param name="pMessage">The trace message in <see cref="M:System.String.Format(System.String,System.Object[])"/> format.</param>
+            <param name="pArgs">The objects to place in the trace message text.</param>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.TraceWarning(System.String,System.Object[])">
+            <summary>
+            Writes a warning trace message.
+            </summary>
+            <param name="pMessage">The trace message in <see cref="M:System.String.Format(System.String,System.Object[])"/> format.</param>
+            <param name="pArgs">The objects to place in the trace message text.</param>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.TraceInformation(System.String,System.Object[])">
+            <summary>
+            Writes an informational trace message.
+            </summary>
+            <param name="pMessage">The trace message in <see cref="M:System.String.Format(System.String,System.Object[])"/> format.</param>
+            <param name="pArgs">The objects to place in the trace message text.</param>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.TraceVerbose(System.String,System.Object[])">
+            <summary>
+            Writes a verbose trace message.
+            </summary>
+            <param name="pMessage">The trace message in <see cref="M:System.String.Format(System.String,System.Object[])"/> format.</param>
+            <param name="pArgs">The objects to place in the trace message text.</param>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.TraceException(System.Diagnostics.TraceEventType,System.String,System.Exception)">
+            <summary>
+            Writes a trace message reporting an exception.
+            </summary>
+            <param name="pTraceEventType"></param>
+            <param name="pMessage"></param>
+            <param name="e"></param>
+            <returns>Always returns <see langword="false"/>.</returns>
+            <remarks>
+            Designed for use in a conditional catch clause to trace the exception as it 'flies by': e.g.
+            <code>catch (Exception e) when (lContext.TraceException(e)) { }</code>.
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.TraceException(System.Exception)">
+            <param name="e"></param>
+            <inheritdoc cref="M:work.bacome.imapsupport.cTrace.cContext.TraceException(System.Diagnostics.TraceEventType,System.String,System.Exception)" select="summary|returns|remarks"/>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.TraceException(System.String,System.Exception)">
+            <param name="pMessage"></param>
+            <param name="e"></param>
+            <inheritdoc cref="M:work.bacome.imapsupport.cTrace.cContext.TraceException(System.Diagnostics.TraceEventType,System.String,System.Exception)" select="summary|returns|remarks"/>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.TraceException(System.Diagnostics.TraceEventType,System.Exception)">
+            <param name="pTraceEventType"></param>
+            <param name="e"></param>
+            <inheritdoc cref="M:work.bacome.imapsupport.cTrace.cContext.TraceException(System.Diagnostics.TraceEventType,System.String,System.Exception)" select="summary|returns|remarks"/>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.cRoot.NewRoot(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.cRoot.NewRootObjectV(System.Boolean,System.String,System.Int32,System.Object[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.cRoot.NewRootMethodV(System.Boolean,System.String,System.String,System.Int32,System.Object[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.cRoot.NewGeneric(System.Boolean,System.String,System.Object[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.cRoot.NewObjectV(System.Boolean,System.String,System.Int32,System.Object[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.cRoot.NewSetProp(System.Boolean,System.String,System.String,System.Object)">
+            <inheritdoc/>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.cRoot.NewGetProp(System.Boolean,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.cRoot.NewMethodV(System.Boolean,System.String,System.String,System.Int32,System.Object[])">
+            <inheritdoc/>
+        </member>
+        <member name="P:work.bacome.imapsupport.cTrace.cContext.cRoot.ContextTraceDelay">
+            <inheritdoc/>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.cRoot.YTraceContext">
+            <summary></summary>
+        </member>
+        <member name="M:work.bacome.imapsupport.cTrace.cContext.cRoot.TraceEvent(System.Diagnostics.TraceEventType,System.String,System.Object[])">
+            <inheritdoc/>
+        </member>
+        <member name="P:work.bacome.imapsupport.cTrace.cContext.cRoot.EmitsVerbose">
+            <inheritdoc/>
+        </member>
+    </members>
+</doc>

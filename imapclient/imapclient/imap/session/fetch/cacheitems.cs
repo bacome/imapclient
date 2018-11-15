@@ -24,6 +24,8 @@ namespace work.bacome.imapclient
 
                 mMailboxCache.CheckInSelectedMailbox(pMessageHandles); // to be repeated inside the select lock
 
+                ;?; // if qresync is on, must add uid
+
                 using (var lIncrementer = new cIncrementer(mSynchroniser, pIncrement, mIncrementInvokeMillisecondsDelay, lContext))
                 {
                     // split the handles into groups based on what attributes need to be retrieved, for each group do the retrieval
