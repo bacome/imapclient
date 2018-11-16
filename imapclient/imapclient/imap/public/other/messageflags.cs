@@ -9,62 +9,6 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.imapclient
 {
-    /// <summary>
-    /// Contains named message-flag contants.
-    /// </summary>
-    public static class kMessageFlag
-    {
-        /**<summary>\*</summary>*/
-        public const string CreateNewIsPossible = @"\*";
-        /**<summary>\Recent</summary>*/
-        public const string Recent = @"\Recent";
-
-        /**<summary>\Answered</summary>*/
-        public const string Answered = @"\Answered";
-        /**<summary>\Flagged</summary>*/
-        public const string Flagged = @"\Flagged";
-        /**<summary>\Deleted</summary>*/
-        public const string Deleted = @"\Deleted";
-        /**<summary>\Seen</summary>*/
-        public const string Seen = @"\Seen";
-        /**<summary>\Draft</summary>*/
-        public const string Draft = @"\Draft";
-
-        // rfc 5788/ 5550
-        /**<summary>$Forwarded</summary>*/
-        public const string Forwarded = "$Forwarded";
-        /**<summary>$SubmitPending</summary>*/
-        public const string SubmitPending = "$SubmitPending";
-        /**<summary>$Submitted</summary>*/
-        public const string Submitted = "$Submitted";
-
-        // rfc 3503/ 5550
-        // see comments elsewhere as to why this is commented out
-        //public const string MDNSent = "$MDNSent";
-
-        /* according to Mark Crispin (2000-06-09 17:46:16) flags are case-insensitive, so at this stage this is out
-            Dovecot (at the least) treats them as case-insensitive, so if it were added back I'd have the issue of how to make it configurable
-
-        public static readonly StringComparer Comparer = StringComparer.InvariantCultureIgnoreCase;
-
-        private class cComparer : StringComparer
-        {
-            // add more to this list as they become known
-            private static readonly string[] kCaseInsensitiveKeywords = new string[] { kMessageFlagName.MDNSent };
-
-            public cComparer() { }
-
-            public override int Compare(string pA, string pB) => ZConditionalToUpperInvariant(pA).CompareTo(ZConditionalToUpperInvariant(pB));
-            public override int GetHashCode(string pFlag) => ZConditionalToUpperInvariant(pFlag).GetHashCode();
-            public override bool Equals(string pA, string pB) => ZConditionalToUpperInvariant(pA).Equals(ZConditionalToUpperInvariant(pB));
-
-            private string ZConditionalToUpperInvariant(string pString)
-            {
-                if (pString != null && pString.Length != 0 && (pString[0] == '\\' || kCaseInsensitiveKeywords.Contains(pString, StringComparer.InvariantCultureIgnoreCase))) return pString.ToUpperInvariant();
-                return pString;
-            }
-        } */
-    }
 
     /// <summary>
     /// Represents an immutable message-flag collection.

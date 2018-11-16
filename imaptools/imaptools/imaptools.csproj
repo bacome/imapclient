@@ -7,7 +7,7 @@
     <ProjectGuid>{BD62E7D7-6153-4EC3-9F4D-5105C5D707E5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>work.bacome.imapinternals</RootNamespace>
+    <RootNamespace>work.bacome.imapclient</RootNamespace>
     <AssemblyName>work.bacome.imaptools</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="apidocumentation.cs" />
     <Compile Include="ascii.cs" />
     <Compile Include="char.cs" />
     <Compile Include="const.cs" />

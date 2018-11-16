@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using work.bacome.imapinternals;
+using work.bacome.imapclient;
 
 namespace work.bacome.imapinternalstests
 {

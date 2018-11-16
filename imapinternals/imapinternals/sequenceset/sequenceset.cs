@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
 
-namespace work.bacome.imapinternals
+namespace work.bacome.imapclient
 {
     public partial class cSequenceSet : ReadOnlyCollection<cSequenceSetItem>
     {

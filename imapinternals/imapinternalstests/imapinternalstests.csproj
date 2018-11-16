@@ -49,14 +49,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="base64.cs" />
+    <Compile Include="bytescursor.cs" />
+    <Compile Include="bytescursoruri.cs" />
     <Compile Include="encoding.cs" />
     <Compile Include="modifiedutf7.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="quotedprintabledecoder.cs" />
     <Compile Include="sequenceset.cs" />
+    <Compile Include="trace.cs" />
     <Compile Include="uintlist.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

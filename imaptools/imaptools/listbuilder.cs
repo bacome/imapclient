@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace work.bacome.imapinternals
+namespace work.bacome.imapclient
 {
     public class cListBuilder
     {

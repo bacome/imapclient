@@ -2,25 +2,23 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace work.bacome.imapinternals
+namespace work.bacome.imapclient
 {
     public partial class cSequenceSet
     {
         private struct sMergeMetric : IComparable<sMergeMetric>
         {
             public readonly long AdditionalValues;
-            public readonly bool IsRangeRange;
             public readonly int GuaranteedSaving;
             public readonly int PotentialSaving;
 
-            public sMergeMetric(long pAdditionalValues, bool pIsRangeRange, int pGuaranteedSaving, int pPotentialSaving)
+            public sMergeMetric(long pAdditionalValues, int pGuaranteedSaving, int pPotentialSaving)
             {
                 if (pAdditionalValues < 1 || pAdditionalValues > uint.MaxValue - 2) throw new ArgumentOutOfRangeException(nameof(pAdditionalValues));
                 if (pGuaranteedSaving < 0) throw new ArgumentOutOfRangeException(nameof(pGuaranteedSaving));
                 if (pPotentialSaving < pGuaranteedSaving) throw new ArgumentOutOfRangeException(nameof(pPotentialSaving));
 
                 AdditionalValues = pAdditionalValues;
-                IsRangeRange = pIsRangeRange;
                 GuaranteedSaving = pGuaranteedSaving;
                 PotentialSaving = pPotentialSaving;
             }
@@ -30,10 +28,10 @@ namespace work.bacome.imapinternals
             {
                 int lCompareTo;
                 if ((lCompareTo = AdditionalValues.CompareTo(pOther.AdditionalValues)) != 0) return lCompareTo; // adding less additional uints is better
-                return pOther.IsRangeRange.CompareTo(IsRangeRange); // rangerange = true is better than rangerange = false
+                return pOther.GuaranteedSaving.CompareTo(GuaranteedSaving); // saving more is better
             }
 
-            public override string ToString() => $"{nameof(sMergeMetric)}({AdditionalValues},{IsRangeRange},{GuaranteedSaving},{PotentialSaving})";
+            public override string ToString() => $"{nameof(sMergeMetric)}({AdditionalValues},{GuaranteedSaving},{PotentialSaving})";
         }
 
         private struct sExtent
@@ -78,23 +76,23 @@ namespace work.bacome.imapinternals
                     {
                         // range followed by range
                         lGuaranteedSaving = FromASCIILength + pPrevious.ToASCIILength + 2; // one comma and one of the colons
-                        return new sMergeMetric(lAdditionalValues, true, lGuaranteedSaving, lGuaranteedSaving);
+                        return new sMergeMetric(lAdditionalValues, lGuaranteedSaving, lGuaranteedSaving);
                     }
 
                     // range followed by single
                     lGuaranteedSaving = pPrevious.ToASCIILength + 1; // the comma
-                    return new sMergeMetric(lAdditionalValues, false, lGuaranteedSaving, lGuaranteedSaving + FromASCIILength);
+                    return new sMergeMetric(lAdditionalValues, lGuaranteedSaving, lGuaranteedSaving + FromASCIILength);
                 }
 
                 if (IsRange)
                 {
                     // single followed by range
                     lGuaranteedSaving = FromASCIILength + 1; // the comma
-                    return new sMergeMetric(lAdditionalValues, false, lGuaranteedSaving, lGuaranteedSaving + pPrevious.ToASCIILength); 
+                    return new sMergeMetric(lAdditionalValues, lGuaranteedSaving, lGuaranteedSaving + pPrevious.ToASCIILength); 
                 }
 
                 // single followed by single
-                return new sMergeMetric(lAdditionalValues, false, 0, FromASCIILength);
+                return new sMergeMetric(lAdditionalValues, 0, FromASCIILength);
             }
 
             public sMergeMetric GetMergeMetric(sExtent pPreviousSingle, sExtent pSingleBeforeThat)
@@ -105,7 +103,7 @@ namespace work.bacome.imapinternals
 
                 int lGuaranteedSaving = pPreviousSingle.FromASCIILength + 1; // 2 commas saved, but one colon added
 
-                return new sMergeMetric(From - pSingleBeforeThat.To - 2, false, lGuaranteedSaving, lGuaranteedSaving + FromASCIILength); 
+                return new sMergeMetric(From - pSingleBeforeThat.To - 2, lGuaranteedSaving, lGuaranteedSaving + FromASCIILength); 
             }
 
             public sExtent GetMergedExtent(sExtent pPrevious) => new sExtent(pPrevious.From, pPrevious.FromASCIILength, To, ToASCIILength);
@@ -195,34 +193,46 @@ namespace work.bacome.imapinternals
             //      no merge between the singles would be considered as adding less than 6 values when in fact merging them only adds 3 values each once the initial merge is done ]
 
             // the objective is to choose merges that minimise the number of additional VALUES included whilst getting to under the length limit 
-            // a further objective is to minimise the time that the merging takes and this is where some complexity comes from
+            // a further objective is to minimise the time that the merging takes
 
-            // each INITIAL merge has a CLASS - the class is the combination of the number of VALUES added, and whether it could be involved in a cascde or not (merges marked above with a ! could be involved in a cascade)
+            // there is no easy way to choose the optimal merges, so everything that follows is a hack and will lead to a sub-optimal choice of merges
+            //   an example of a sub-optimal merge is from the initial set 15:21,25:31,35:40,45,50,55,60,65,70,1000000000,1000000003,1000000006
+            //    if the length required is 67 then the sequence           15:21,25:40,45,50,55,60,65,70,1000000000,1000000003,1000000006       seems best as it adds only 3 values,
+            //    however if the length required is 61 then the sequence   15:21,25:31,35:40,45,50,55,60,65,70,1000000000:1000000006            seems best as it adds only 4 values
+            //    (however the algorithm below will choose                 15:40,45,50,55,60,65,70,1000000000,1000000003,1000000006             which adds 6 values)
+            //  it is easy to see from this example that choosing the set of individual merges is important in getting an optimal merge set, and that each (reasonable) possible set needs to be considered 
+            //  that is not what is done, nor is it even approximated
 
-            // CLASSES that add less VALUES are considered better, and within this range-range merges are considered better than other merges
+            // I assign each INITIAL merge a CLASS - the class is the combination of the number of VALUES added and the amount saved
 
-            // each INITIAL merge has a POTENTIAL length saving (this is the saving that _might_ exist if the result of the merge is involved in a CASCADE)
-            //  consider the following INITIAL merges ..
-            //   range1 followed by range2                       : potential saving is actual saving
-            //   range followed by single                        : potential saving of length(range.to)+1(the comma)+length(single) 
-            //   single followed by a range                      : potential saving of length(range.from)+1(the comma)+length(single)
-            //   single1 followed by single2                     : potential saving of length(single2) [single2 could be longer than single1]
-            //   single1 followed by single2 followed by single3 : potential saving of length(single2)+1(2 commas saved, one : added)+length(single3) [ditto]
+            // CLASSES that add less VALUES are considered better, and within this, merges that save more are considered better
 
-            // merging is done in a number of passes
+            // merging is done in a number of passes, each pass starting with the extents as modified by previous passes
             //  in each pass
             //   the CLASSes of merges to do are chosen
             //   then merges of those classes are done, stopping merging if the length limit is achieved
             //   if after doing all the chosen merges the length limit wasn't achieved, another pass is done
 
-            // choosing the CLASSes of merge to do in each pass is the trick, choose to do too many, and more VALUEs than required will be added to acheive the length required
+            // choosing the CLASSes of merge to do in each pass is important, 
+            //  choose to do too many, and more VALUEs than required will be added to acheive the length required
+            //  choose to do too few and the number of iterations will be high 
+
+            // to minimise the number of passes an additional concept is added 
+
+            // each INITIAL merge has a POTENTIAL length saving (this is the saving that _might_ exist if the result of the merge is involved in a CASCADE)
+            //  consider the following INITIAL merges ..
+            //   range1 followed by range2                       : potential saving is actual saving
+            //   range followed by single                        : potential saving is actual saving+length(single) 
+            //   single followed by a range                      : potential saving is actual saving+length(single)
+            //   single1 followed by single2                     : potential saving of length(single2) [single2 could be longer than single1]
+            //   single1 followed by single2 followed by single3 : potential saving is actual saving+length(single3) [ditto]
 
             while (true)
             {
                 // analyse
                 //////////
 
-                // generate metrics
+                // generate metrics for each initial merge
 
                 var lMergeMetrics = new List<sMergeMetric>();
 
@@ -240,32 +250,42 @@ namespace work.bacome.imapinternals
                     }
                 }
 
-                // sort metrics
+                // sort the metrics by class
 
                 lMergeMetrics.Sort();
 
-                // choose class
+                // choose the worst class of merge that we want to attempt on this pass
 
-                sMergeMetric lDoMerge = lMergeMetrics[0];
-                int lGuaranteedSavings = 0;
+                sMergeMetric lWorstClassToDo = new sMergeMetric(); // assigned to shut the compiler up
+                bool lWorstClassToDoHasGuaranteedSavings = false;
+                sMergeMetric lLastClass = lMergeMetrics[0];
+                bool lGuaranteedSavings = false;
                 int lPotentialSavings = 0;
 
                 foreach (var lMergeMetric in lMergeMetrics)
                 {
-                    if (lMergeMetric.CompareTo(lDoMerge) == 1)
+                    if (lMergeMetric.CompareTo(lLastClass) == 1)
                     {
-                        if (lGuaranteedSavings > 0 && lPotentialSavings > lSavingsRequired) break;
-                        lDoMerge = lMergeMetric;
+                        // if I already have a class with guaranteed savings and the potential savings including the last class are more than required
+                        //  then don't take the risk of doing merges of the last class as this may add more values than required
+                        if (lWorstClassToDoHasGuaranteedSavings && lPotentialSavings > lSavingsRequired) break;
+
+                        // I will do merges of at least the last class
+                        lWorstClassToDo = lLastClass;
+                        lWorstClassToDoHasGuaranteedSavings = lGuaranteedSavings;
+
+                        // detect change of class
+                        lLastClass = lMergeMetric;
                     }
 
-                    lGuaranteedSavings += lMergeMetric.GuaranteedSaving;
+                    if (lMergeMetric.GuaranteedSaving > 0) lGuaranteedSavings = true;
                     lPotentialSavings += lMergeMetric.PotentialSaving;
                 }
 
+                if (!lWorstClassToDoHasGuaranteedSavings) lWorstClassToDo = lLastClass;
+
                 // merge
                 ////////
-
-                // merge in reverse order (because the number lengths are higher for the later entries)
 
                 var lToMergeExtents = new Stack<sExtent>(lExtents);
                 var lProcessedExtents = new Stack<sExtent>(lExtents.Count);
@@ -277,7 +297,7 @@ namespace work.bacome.imapinternals
 
                     var lMergeMetric = lExtent.GetMergeMetric(lPreviousExtent);
 
-                    if (lMergeMetric.GuaranteedSaving > 0 && lMergeMetric.CompareTo(lDoMerge) <= 0)
+                    if (lMergeMetric.GuaranteedSaving > 0 && lMergeMetric.CompareTo(lWorstClassToDo) <= 0)
                     {
                         lToMergeExtents.Push(lExtent.GetMergedExtent(lPreviousExtent));
                         lSavingsRequired -= lMergeMetric.GuaranteedSaving;
@@ -286,13 +306,13 @@ namespace work.bacome.imapinternals
                         continue;
                     }
 
-                    if (lExtent.IsSingle && lPreviousExtent.IsSingle && lToMergeExtents.Count > 1 && lToMergeExtents.Peek().IsSingle)
+                    if (lExtent.IsSingle && lPreviousExtent.IsSingle && lToMergeExtents.Count > 0 && lToMergeExtents.Peek().IsSingle)
                     {
                         var lPreviousPreviousExtent = lToMergeExtents.Pop();
 
                         lMergeMetric = lExtent.GetMergeMetric(lPreviousExtent, lPreviousPreviousExtent);
 
-                        if (lMergeMetric.GuaranteedSaving > 0 && lMergeMetric.CompareTo(lDoMerge) <= 0)
+                        if (lMergeMetric.GuaranteedSaving > 0 && lMergeMetric.CompareTo(lWorstClassToDo) <= 0)
                         {
                             lToMergeExtents.Push(lExtent.GetMergedExtent(lPreviousPreviousExtent));
                             lSavingsRequired -= lMergeMetric.GuaranteedSaving;

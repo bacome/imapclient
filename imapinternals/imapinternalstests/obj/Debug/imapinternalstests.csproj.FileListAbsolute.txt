@@ -10,10 +10,11 @@ C:\Users\barry\Documents\GitHub\imapclient\imapinternals\imapinternalstests\bin\
 C:\Users\barry\Documents\GitHub\imapclient\imapinternals\imapinternalstests\bin\Debug\work.bacome.imapinternalstests.pdb
 C:\Users\barry\Documents\GitHub\imapclient\imapinternals\imapinternalstests\bin\Debug\work.bacome.imapinternals.dll
 C:\Users\barry\Documents\GitHub\imapclient\imapinternals\imapinternalstests\bin\Debug\work.bacome.imaptools.dll
-C:\Users\barry\Documents\GitHub\imapclient\imapinternals\imapinternalstests\bin\Debug\work.bacome.imapclient.dll
 C:\Users\barry\Documents\GitHub\imapclient\imapinternals\imapinternalstests\bin\Debug\work.bacome.imaptools.pdb
 C:\Users\barry\Documents\GitHub\imapclient\imapinternals\imapinternalstests\bin\Debug\work.bacome.imapinternals.pdb
-C:\Users\barry\Documents\GitHub\imapclient\imapinternals\imapinternalstests\bin\Debug\work.bacome.imapclient.pdb
-C:\Users\barry\Documents\GitHub\imapclient\imapinternals\imapinternalstests\bin\Debug\work.bacome.imapclient.xml
 C:\Users\barry\Documents\GitHub\imapclient\imapinternals\imapinternalstests\obj\Debug\work.bacome.imapinternalstests.dll
 C:\Users\barry\Documents\GitHub\imapclient\imapinternals\imapinternalstests\obj\Debug\work.bacome.imapinternalstests.pdb
+C:\Users\barry\Documents\GitHub\imapclient\imapinternals\imapinternalstests\bin\Debug\work.bacome.imapinternalstests.dll.config
+C:\Users\barry\Documents\GitHub\imapclient\imapinternals\imapinternalstests\bin\Debug\work.bacome.imaplib.dll
+C:\Users\barry\Documents\GitHub\imapclient\imapinternals\imapinternalstests\bin\Debug\work.bacome.imaplib.pdb
+C:\Users\barry\Documents\GitHub\imapclient\imapinternals\imapinternalstests\bin\Debug\work.bacome.imaplib.xml

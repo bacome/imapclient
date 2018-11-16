@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using work.bacome.imapinternals;
+using work.bacome.imapclient;
 
 namespace work.bacome.imapsupport
 {
@@ -36,7 +36,7 @@ namespace work.bacome.imapsupport
             var lBytes = new List<byte>(pString.Length);
 
             foreach (char lChar in pString)
-                if (lChar > cChar.FF) throw new ArgumentOutOfRangeException(nameof(pString));
+                if (lChar > kChar.FF) throw new ArgumentOutOfRangeException(nameof(pString));
                 else lBytes.Add((byte)lChar);
 
             return lBytes;

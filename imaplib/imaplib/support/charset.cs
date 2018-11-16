@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Text;
 using System.Collections.Generic;
-using work.bacome.imapinternals;
+using work.bacome.imapclient;
+
 
 namespace work.bacome.imapsupport
 {
@@ -108,11 +110,36 @@ namespace work.bacome.imapsupport
         /// <returns></returns>
         public abstract bool Contains(char pChar);
 
-
+        /// <summary>
+        /// Determines whether all the specified chars are contained in the set of characters.
+        /// </summary>
+        /// <param name="pChars"></param>
+        /// <returns></returns>
         public bool ContainsAll(IEnumerable<char> pChars)
         {
             foreach (char lChar in pChars) if (!Contains(lChar)) return false;
             return true;
+        }
+
+        public string CleanString(string pString, char pReplacementChar)
+        {
+            foreach (char lChar in pString)
+            {
+                if (!Contains(lChar))
+                {
+                    StringBuilder lBuilder = new StringBuilder(pString);
+                    CleanBuilder(lBuilder, pReplacementChar);
+                    return lBuilder.ToString();
+                }
+            }
+
+            return pString;
+        }
+
+        public void CleanBuilder(StringBuilder pBuilder, char pReplacementChar)
+        {
+            for (int i = 0; i < pBuilder.Length; i++)
+                if (!Contains(pBuilder[i])) pBuilder[i] = pReplacementChar;
         }
 
         // implementations
@@ -574,7 +601,7 @@ namespace work.bacome.imapsupport
 
             public override bool Contains(char pChar)
             {
-                if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
+                if (pChar > kChar.DEL) return true; // allows utf16 to pass through (unvalidated)
                 if (ZIsOneOf(pChar, kcCTextDisallowed)) return false;
                 return true;
             }
@@ -593,7 +620,7 @@ namespace work.bacome.imapsupport
 
             public override bool Contains(char pChar)
             {
-                if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
+                if (pChar > kChar.DEL) return true; // allows utf16 to pass through (unvalidated)
                 if (ZIsAlpha(pChar)) return true;
                 if (ZIsDigit(pChar)) return true;
                 if (ZIsOneOf(pChar, kcATextSome)) return true;
@@ -615,7 +642,7 @@ namespace work.bacome.imapsupport
 
             public override bool Contains(char pChar)
             {
-                if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
+                if (pChar > kChar.DEL) return true; // allows utf16 to pass through (unvalidated)
                 if (ZIsAlpha(pChar)) return true;
                 if (ZIsDigit(pChar)) return true;
                 if (ZIsOneOf(pChar, kcATextSome)) return true;
@@ -635,8 +662,8 @@ namespace work.bacome.imapsupport
 
             public override bool Contains(char pChar)
             {
-                if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
-                if (pChar <= ' ' || pChar == '"' || pChar == '\\' || pChar == cChar.DEL) return false;
+                if (pChar > kChar.DEL) return true; // allows utf16 to pass through (unvalidated)
+                if (pChar <= ' ' || pChar == '"' || pChar == '\\' || pChar == kChar.DEL) return false;
                 return true;
             }
         }
@@ -655,7 +682,7 @@ namespace work.bacome.imapsupport
 
             public override bool Contains(char pChar)
             {
-                if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
+                if (pChar > kChar.DEL) return true; // allows utf16 to pass through (unvalidated)
                 if (ZIsOneOf(pChar, kcQTextDisallowed)) return false;
                 return true;
             }
@@ -672,8 +699,8 @@ namespace work.bacome.imapsupport
 
             public override bool Contains(char pChar)
             {
-                if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
-                if (pChar <= ' ' || pChar == '[' || pChar == '\\' || pChar == ']' || pChar == cChar.DEL) return false;
+                if (pChar > kChar.DEL) return true; // allows utf16 to pass through (unvalidated)
+                if (pChar <= ' ' || pChar == '[' || pChar == '\\' || pChar == ']' || pChar == kChar.DEL) return false;
                 return true;
             }
         }
@@ -690,8 +717,8 @@ namespace work.bacome.imapsupport
 
             public override bool Contains(char pChar)
             {
-                if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
-                if (pChar <= ' ' || pChar == '[' || pChar == '\\' || pChar == ']' || pChar == cChar.DEL) return false;
+                if (pChar > kChar.DEL) return true; // allows utf16 to pass through (unvalidated)
+                if (pChar <= ' ' || pChar == '[' || pChar == '\\' || pChar == ']' || pChar == kChar.DEL) return false;
                 return true;
             }
         }
@@ -710,7 +737,7 @@ namespace work.bacome.imapsupport
 
             public override bool Contains(char pChar)
             {
-                if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
+                if (pChar > kChar.DEL) return true; // allows utf16 to pass through (unvalidated)
                 if (ZIsOneOf(pChar, kcDTextDisallowed)) return false;
                 return true;
             }
@@ -719,7 +746,7 @@ namespace work.bacome.imapsupport
         private class cFText : cCharset
         {
             public override bool Contains(byte pByte) => pByte > cASCII.SPACE && pByte != cASCII.COLON && pByte < cASCII.DEL;
-            public override bool Contains(char pChar) => pChar > ' ' && pChar != ':' && pChar < cChar.DEL;
+            public override bool Contains(char pChar) => pChar > ' ' && pChar != ':' && pChar < kChar.DEL;
         }
 
         private class cWSPVChar : cCharset
@@ -735,10 +762,10 @@ namespace work.bacome.imapsupport
 
             public override bool Contains(char pChar)
             {
-                if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
+                if (pChar > kChar.DEL) return true; // allows utf16 to pass through (unvalidated)
                 if (pChar == '\t') return true;
                 if (pChar < ' ') return false;
-                if (pChar < cChar.DEL) return true;
+                if (pChar < kChar.DEL) return true;
                 return false;
             }
         }
@@ -746,7 +773,7 @@ namespace work.bacome.imapsupport
         private class cVSChar : cCharset
         {
             public override bool Contains(byte pByte) => pByte >= cASCII.SPACE && pByte < cASCII.DEL;
-            public override bool Contains(char pChar) => pChar >= ' ' && pChar < cChar.DEL;
+            public override bool Contains(char pChar) => pChar >= ' ' && pChar < kChar.DEL;
         }
 
         private class cRFC2045Token : cCharset
@@ -762,7 +789,7 @@ namespace work.bacome.imapsupport
             public override bool Contains(char pChar)
             {
                 if (pChar <= ' ') return false;
-                if (pChar >= cChar.DEL) return false;
+                if (pChar >= kChar.DEL) return false;
                 if (ZIsOneOf(pChar, kcTSpecials)) return false;
                 return true;
             }
@@ -784,7 +811,7 @@ namespace work.bacome.imapsupport
             public override bool Contains(char pChar)
             {
                 if (pChar <= ' ') return false;
-                if (pChar >= cChar.DEL) return false;
+                if (pChar >= kChar.DEL) return false;
                 if (ZIsOneOf(pChar, kcESpecials)) return false;
                 return true;
             }
@@ -807,7 +834,7 @@ namespace work.bacome.imapsupport
             public override bool Contains(char pChar)
             {
                 if (pChar <= ' ') return false;
-                if (pChar >= cChar.DEL) return false;
+                if (pChar >= kChar.DEL) return false;
                 if (ZIsOneOf(pChar, kcTSpecials)) return false;
                 if (ZIsOneOf(pChar, kcNotSome)) return false;
                 return true;

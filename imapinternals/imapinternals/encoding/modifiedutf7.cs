@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Text;
 using work.bacome.imapsupport;
 
-namespace work.bacome.imapinternals
+namespace work.bacome.imapclient
 {
     public static class cModifiedUTF7
     {

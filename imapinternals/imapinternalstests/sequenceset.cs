@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using work.bacome.imapinternals;
+using work.bacome.imapclient;
 using work.bacome.imapsupport;
 
 namespace work.bacome.imapinternalstests
@@ -178,8 +178,116 @@ namespace work.bacome.imapinternalstests
 
             // cascades
 
+            ZTestFromUInts(
+                40,
+                new uint[] { 5, 10, 15, 20, 25, 26, 27, 28, 29, 30, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70 },
+                "5,10,15,20,25:30,35:40,45,50,55,60,65,70"
+                );
+
+            ZTestFromUInts(
+                39,
+                new uint[] { 5, 10, 15, 20, 25, 26, 27, 28, 29, 30, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70 },
+                "5,10,15,20,25:40,45,50,55,60,65,70"
+                );
+
+            ZTestFromUInts(
+                34,
+                new uint[] { 5, 10, 15, 20, 25, 26, 27, 28, 29, 30, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70 },
+                "5,10,15,20,25:40,45,50,55,60,65,70"
+                );
+
+            ZTestFromUInts(
+                33,
+                new uint[] { 5, 10, 15, 20, 25, 26, 27, 28, 29, 30, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70 },
+                "5,10,15,20,25:45,50,55,60,65,70"
+                );
+
+            ZTestFromUInts(
+                31,
+                new uint[] { 5, 10, 15, 20, 25, 26, 27, 28, 29, 30, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70 },
+                "5,10,15,20,25:45,50,55,60,65,70"
+                );
+
+            ZTestFromUInts(
+                30,
+                new uint[] { 5, 10, 15, 20, 25, 26, 27, 28, 29, 30, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70 },
+                "5,10,15,20,25:50,55,60,65,70"
+                );
+
+            // length
+
+            ZTestFromUInts(
+                58,
+                new uint[] { 5, 10, 15, 20, 25, 26, 27, 28, 29, 30, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70, 10000, 10003, 10006 },
+                "5,10,15,20,25:30,35:40,45,50,55,60,65,70,10000,10003,10006"
+                );
+
+            ZTestFromUInts(
+                57,
+                new uint[] { 5, 10, 15, 20, 25, 26, 27, 28, 29, 30, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70, 10000, 10003, 10006 },
+                "5,10,15,20,25:30,35:40,45,50,55,60,65,70,10000:10006"
+                );
+
+            ZTestFromUInts(
+                52,
+                new uint[] { 5, 10, 15, 20, 25, 26, 27, 28, 29, 30, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70, 10000, 10003, 10006 },
+                "5,10,15,20,25:30,35:40,45,50,55,60,65,70,10000:10006"
+                );
+
+            ZTestFromUInts(
+                51,
+                new uint[] { 5, 10, 15, 20, 25, 26, 27, 28, 29, 30, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70, 10000, 10003, 10006 },
+                "5,10,15,20,25:40,45,50,55,60,65,70,10000:10006"
+                );
 
 
+            ZTestFromUInts(
+                68,
+                new uint[] { 15, 16, 17, 18, 19, 20, 21, 25, 26, 27, 28, 29, 30, 31, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70, 1000000000, 1000000003, 1000000006 },
+                "15:21,25:31,35:40,45,50,55,60,65,70,1000000000,1000000003,1000000006"
+                );
+
+            ZTestFromUInts(
+                67,
+                new uint[] { 15, 16, 17, 18, 19, 20, 21, 25, 26, 27, 28, 29, 30, 31, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70, 1000000000, 1000000003, 1000000006 },
+                "15:21,25:40,45,50,55,60,65,70,1000000000,1000000003,1000000006"
+                );
+
+            ZTestFromUInts(
+                62,
+                new uint[] { 15, 16, 17, 18, 19, 20, 21, 25, 26, 27, 28, 29, 30, 31, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70, 1000000000, 1000000003, 1000000006 },
+                "15:21,25:40,45,50,55,60,65,70,1000000000,1000000003,1000000006"
+                );
+
+            //  "15:21,25:31,35:40,45,50,55,60,65,70,1000000000:1000000006"
+
+            ZTestFromUInts(
+                61,
+                new uint[] { 15, 16, 17, 18, 19, 20, 21, 25, 26, 27, 28, 29, 30, 31, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70, 1000000000, 1000000003, 1000000006 },
+                "15:40,45,50,55,60,65,70,1000000000,1000000003,1000000006"
+                );
+
+            /*
+            ZTestFromUInts(
+                72,
+                new uint[] { 5, 10, 15, 20, 25, 26, 27, 28, 29, 30, 31, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70, 1000000000, 1000000003, 1000000006 },
+                "5,10,15,20,25:40,45,50,55,60,65,70,1000000000,1000000003,1000000006"
+                );
+
+            ZTestFromUInts(
+                67,
+                new uint[] { 5, 10, 15, 20, 25, 26, 27, 28, 29, 30, 31, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70, 1000000000, 1000000003, 1000000006 },
+                "5,10,15,20,25:40,45,50,55,60,65,70,1000000000,1000000003,1000000006"
+                );
+
+            ZTestFromUInts(
+                66,
+                new uint[] { 5, 10, 15, 20, 25, 26, 27, 28, 29, 30, 31, 35, 36, 37, 38, 39, 40, 45, 50, 55, 60, 65, 70, 1000000000, 1000000003, 1000000006 },
+                "5,10,15,20,25:31,35:40,45,50,55,60,65,70,1000000000:1000000006"
+                ); */
+
+
+            //
         }
 
         private void ZTestFromUInts(int pASCIILengthLimit, IEnumerable<uint> pUInts, string pExpectedSequenceSet)
@@ -188,21 +296,37 @@ namespace work.bacome.imapinternalstests
         }
 
         [TestMethod]
-        public void cSequenceSetFromUInts_Random_Tests()
+        public void cSequenceSetFromUInts_Visual_Tests()
         {
-            const string kTraceSourceName = "work.bacome.imapinternalstests.sequencesetfromuints";
+            var lContext = kTrace.Root.NewMethod(nameof(cSequenceSetTests), nameof(cSequenceSetFromUInts_Visual_Tests));
+            for (int i = 0; i < 100; i++) ZTestRandom(1, 99, 50, lContext);
+        }
 
-            using (var lListener = new TextWriterTraceListener(kTraceSourceName + ".txt"))
-            {
-                var lTraceSource = new TraceSource(kTraceSourceName);
-                lTraceSource.Switch = new SourceSwitch("switch", "Verbose");
-                lTraceSource.Listeners.Remove("Default");
-                lTraceSource.Listeners.Add(lListener);
-                var lTrace = new cTrace(lTraceSource);
-                var lRoot = lTrace.NewRoot(kTraceSourceName);
 
-                ;?; // random tests here for 
-            }
+        [TestMethod]
+        public void cSequenceSetFromUInts_Speed_Test()
+        {
+            var lContext = cTrace.cContext.None;
+            for (int i = 0; i < 100; i++) ZTestRandom(1000, 100000, 40000, lContext);
+        }
+
+        private void ZTestRandom(int pMinValue, int pMaxValue, uint pCount, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cSequenceSetTests), nameof(ZTestRandom), pMinValue, pMaxValue, pCount);
+
+            var lUInts = new List<uint>();
+
+            var lRandom = new Random();
+            for (int i = 0; i < pCount; i++) lUInts.Add((uint)lRandom.Next(pMinValue, pMaxValue));
+
+            var lInitial = cSequenceSet.FromUInts(int.MaxValue, lUInts).ToCompactString();
+            lContext.TraceVerbose("initial:{0}", lInitial);
+
+            var lFinal = cSequenceSet.FromUInts(Math.Min(lInitial.Length / 2, 1000), lUInts);
+
+            foreach (var lUInt in lUInts) Assert.IsTrue(lFinal.Includes(lUInt, 0));
+
+            lContext.TraceVerbose("final:{0}", lFinal.ToCompactString());
         }
     }
 }

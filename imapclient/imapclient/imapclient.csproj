@@ -96,34 +96,29 @@
     <Compile Include="imap\session\response\parsers\vanished.cs" />
     <Compile Include="imap\session\selectedmailbox\selectedmailboxcacheitem.cs" />
     <Compile Include="imap\support\mailboxcache.cs" />
-    <Compile Include="mail\convertmailmessage\base.cs" />
+    <Compile Include="shared\convertmailmessage\base.cs" />
     <Compile Include="imap\client\getdecodedsizeinbytes.cs" />
-    <Compile Include="mail\internal\async\incrementer.cs" />
-    <Compile Include="mail\internal\bytescursor\rfc822\getphrase.cs" />
-    <Compile Include="mail\convertmailmessage\attachmentdetail.cs" />
-    <Compile Include="mail\internal\encoding\encodingrequired.cs" />
-    <Compile Include="mail\internal\encoding\headerfieldbytes.cs" />
-    <Compile Include="mail\internal\message\message.cs" />
-    <Compile Include="mail\internal\other\parsing.cs" />
-    <Compile Include="mail\public\message\timestamp.cs" />
-    <Compile Include="mail\public\other\encoding.cs" />
-    <Compile Include="mail\public\message\attachment.cs" />
-    <Compile Include="mail\public\message\message.cs" />
-    <Compile Include="mail\public\other\convertmailmessagedisposables.cs" />
-    <Compile Include="mail\public\mime\mimeheaderfieldparameter.cs" />
+    <Compile Include="shared\internal\async\incrementer.cs" />
+    <Compile Include="shared\convertmailmessage\attachmentdetail.cs" />
+    <Compile Include="shared\internal\encoding\encodingrequired.cs" />
+    <Compile Include="shared\internal\encoding\headerfieldbytes.cs" />
+    <Compile Include="shared\internal\message\message.cs" />
+    <Compile Include="shared\internal\other\parsing.cs" />
+    <Compile Include="shared\public\message\attachment.cs" />
+    <Compile Include="shared\public\message\message.cs" />
+    <Compile Include="shared\public\other\convertmailmessagedisposables.cs" />
+    <Compile Include="shared\public\mime\mimeheaderfieldparameter.cs" />
     <Compile Include="imap\public\mailbox\appenddata.cs" />
-    <Compile Include="mail\public\mime\headerfieldfactory.cs" />
-    <Compile Include="mail\public\mime\msgidgenerator.cs" />
+    <Compile Include="shared\public\mime\headerfieldfactory.cs" />
     <Compile Include="imap\public\feedback\appendfeedback.cs" />
     <Compile Include="imap\public\mailbox\checkformessagesflag.cs" />
-    <Compile Include="mail\client\base.cs" />
-    <Compile Include="mail\internal\async\callbacksynchroniser.cs" />
-    <Compile Include="mail\public\mime\messagedatapart.cs" />
-    <Compile Include="mail\public\mime\messagedataformat.cs" />
-    <Compile Include="mail\public\mime\headerfieldvalue.cs" />
-    <Compile Include="mail\internal\other\mailvalidation.cs" />
-    <Compile Include="mail\public\other\exceptions.cs" />
-    <Compile Include="mail\public\mime\messagedata.cs" />
+    <Compile Include="shared\client\base.cs" />
+    <Compile Include="shared\internal\async\callbacksynchroniser.cs" />
+    <Compile Include="shared\public\mime\messagedatapart.cs" />
+    <Compile Include="shared\public\mime\messagedataformat.cs" />
+    <Compile Include="shared\internal\other\mailvalidation.cs" />
+    <Compile Include="shared\public\other\exceptions.cs" />
+    <Compile Include="shared\public\mime\messagedata.cs" />
     <Compile Include="imap\session\append\append.cs" />
     <Compile Include="imap\session\append\appenddata.cs" />
     <Compile Include="imap\session\append\appendresult.cs" />
@@ -133,8 +128,7 @@
     <Compile Include="imap\session\imap_commands\not_authenticated\authenticated.cs" />
     <Compile Include="smtp\client.cs" />
     <Compile Include="imap\internal\appenddatalist.cs" />
-    <Compile Include="mail\internal\other\mailmessagelist.cs" />
-    <Compile Include="mail\internal\other\apidocumentation.cs" />
+    <Compile Include="shared\internal\other\mailmessagelist.cs" />
     <Compile Include="imap\client\base.cs" />
     <Compile Include="imap\client\connect.cs" />
     <Compile Include="imap\client\copy.cs" />
@@ -150,11 +144,11 @@
     <Compile Include="imap\public\enums\mailboxcachedatasets.cs" />
     <Compile Include="imap\public\enums\storeoperation.cs" />
     <Compile Include="imap\public\enums\messagecacheattributes.cs" />
-    <Compile Include="mail\public\message\headerfieldnames.cs" />
-    <Compile Include="mail\public\message\headerfields.cs" />
-    <Compile Include="mail\public\enums\importance.cs" />
+    <Compile Include="shared\public\message\headerfieldnames.cs" />
+    <Compile Include="shared\public\message\headerfields.cs" />
+    <Compile Include="shared\public\enums\importance.cs" />
     <Compile Include="imap\public\feedback\copyfeedback.cs" />
-    <Compile Include="mail\public\configuration\methodconfiguration.cs" />
+    <Compile Include="shared\public\configuration\methodconfiguration.cs" />
     <Compile Include="imap\client\fetchcacheitems.cs" />
     <Compile Include="imap\client\fetchsection.cs" />
     <Compile Include="imap\client\requestmailboxdata.cs" />
@@ -168,25 +162,19 @@
     <Compile Include="imap\client\getmessages.cs" />
     <Compile Include="imap\client\select.cs" />
     <Compile Include="imap\public\other\messagehandlelist.cs" />
-    <Compile Include="mail\public\other\strings.cs" />
-    <Compile Include="mail\public\other\accountid.cs" />
+    <Compile Include="shared\public\other\accountid.cs" />
     <Compile Include="imap\public\connection\capabilities.cs" />
     <Compile Include="imap\public\connection\authenticationparameters.cs" />
     <Compile Include="imap\public\connection\login.cs" />
-    <Compile Include="mail\public\other\serverid.cs" />
-    <Compile Include="mail\public\enums\tlsrequirement.cs" />
-    <Compile Include="mail\public\enums\decodingrequired.cs" />
+    <Compile Include="shared\public\enums\tlsrequirement.cs" />
+    <Compile Include="shared\public\enums\decodingrequired.cs" />
     <Compile Include="imap\public\enums\enableableextensions.cs" />
     <Compile Include="imap\public\enums\mailboxcachedataitems.cs" />
-    <Compile Include="mail\public\eventargs\callbackexceptioneventargs.cs" />
-    <Compile Include="mail\public\eventargs\networkreceiveeventargs.cs" />
-    <Compile Include="mail\public\eventargs\networksendeventargs.cs" />
+    <Compile Include="shared\public\eventargs\callbackexceptioneventargs.cs" />
+    <Compile Include="shared\public\eventargs\networkreceiveeventargs.cs" />
+    <Compile Include="shared\public\eventargs\networksendeventargs.cs" />
     <Compile Include="imap\public\feedback\storefeedback.cs" />
-    <Compile Include="mail\public\sasl\xoauth2.cs" />
-    <Compile Include="mail\internal\bytescursor\rfc822\getdomain.cs" />
-    <Compile Include="mail\internal\bytescursor\rfc822\getlocalpart.cs" />
-    <Compile Include="mail\internal\bytescursor\rfc822\getmsgid.cs" />
-    <Compile Include="mail\internal\bytescursor\rfc822\tests.cs" />
+    <Compile Include="shared\public\sasl\xoauth2.cs" />
     <Compile Include="imap\support\listflags.cs" />
     <Compile Include="imap\public\mailbox\mailbox.cs" />
     <Compile Include="imap\public\other\mailboxcontainer.cs" />
@@ -262,57 +250,42 @@
     <Compile Include="imap\public\eventargs\mailboxpropertychangedeventargs.cs" />
     <Compile Include="imap\support\mailboxstatus.cs" />
     <Compile Include="imap\public\eventargs\messagedeliveryeventargs.cs" />
-    <Compile Include="mail\public\message\address.cs" />
+    <Compile Include="shared\public\message\address.cs" />
     <Compile Include="imap\public\message\attachment.cs" />
     <Compile Include="imap\support\binarysizes.cs" />
-    <Compile Include="mail\public\message\bodypart.cs" />
-    <Compile Include="mail\public\message\envelope.cs" />
+    <Compile Include="shared\public\message\bodypart.cs" />
+    <Compile Include="shared\public\message\envelope.cs" />
     <Compile Include="imap\public\mailbox\filter.cs" />
     <Compile Include="imap\public\message\message.cs" />
     <Compile Include="imap\public\other\messageflags.cs" />
     <Compile Include="imap\support\messagehandle.cs" />
     <Compile Include="imap\public\other\messagecacheitems.cs" />
     <Compile Include="imap\public\eventargs\messagepropertychangedeventargs.cs" />
-    <Compile Include="mail\public\message\section.cs" />
+    <Compile Include="shared\public\message\section.cs" />
     <Compile Include="imap\public\other\sort.cs" />
     <Compile Include="imap\public\message\uid.cs" />
     <Compile Include="imap\public\namespace\namespace.cs" />
     <Compile Include="imap\public\namespace\namespacename.cs" />
     <Compile Include="imap\public\namespace\namespaces.cs" />
     <Compile Include="imap\public\other\commandresult.cs" />
-    <Compile Include="mail\public\message\culturedstring.cs" />
+    <Compile Include="shared\public\message\culturedstring.cs" />
     <Compile Include="imap\public\other\exceptions.cs" />
-    <Compile Include="mail\public\configuration\batchsizerconfiguration.cs" />
+    <Compile Include="shared\public\configuration\batchsizerconfiguration.cs" />
     <Compile Include="imap\public\connection\id.cs" />
     <Compile Include="imap\public\other\idleconfiguration.cs" />
     <Compile Include="imap\public\other\responsetext.cs" />
-    <Compile Include="mail\public\other\url.cs" />
-    <Compile Include="mail\public\sasl\anonymous.cs" />
-    <Compile Include="mail\public\sasl\base.cs" />
-    <Compile Include="mail\public\sasl\plain.cs" />
-    <Compile Include="mail\internal\bytescursor\cursor\base.cs" />
-    <Compile Include="mail\internal\bytescursor\cursor\tests.cs" />
-    <Compile Include="mail\internal\bytescursor\imap\getflags.cs" />
-    <Compile Include="mail\internal\bytescursor\imap\getsequenceset.cs" />
-    <Compile Include="mail\internal\bytescursor\imap\processcapability.cs" />
-    <Compile Include="mail\internal\bytescursor\imap\processextendedvalue.cs" />
-    <Compile Include="mail\internal\bytescursor\other\getlanguagetag.cs" />
-    <Compile Include="mail\internal\bytescursor\other\geturi.cs" />
-    <Compile Include="mail\internal\bytescursor\other\geturl.cs" />
-    <Compile Include="mail\internal\bytescursor\other\processencodedword.cs" />
-    <Compile Include="mail\internal\bytescursor\rfc822\base.cs" />
-    <Compile Include="mail\internal\bytescursor\rfc822\getdatetime.cs" />
-    <Compile Include="mail\internal\other\uriparts.cs" />
-    <Compile Include="mail\internal\other\urlparts.cs" />
+    <Compile Include="shared\public\other\url.cs" />
+    <Compile Include="shared\public\sasl\anonymous.cs" />
+    <Compile Include="shared\public\sasl\base.cs" />
+    <Compile Include="shared\public\sasl\plain.cs" />
     <Compile Include="imap\internal\commandpart.cs" />
-    <Compile Include="imap\internal\extendedvalue.cs" />
-    <Compile Include="mail\public\other\uri.cs" />
+    <Compile Include="shared\public\other\uri.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="imap\session\command\commandhook.cs" />
     <Compile Include="imap\session\command_hooks\commandhookbasesearch.cs" />
     <Compile Include="imap\session\imap_commands\selected\fetch\commandhookbody.cs" />
     <Compile Include="imap\internal\namespacenames.cs" />
-    <Compile Include="mail\internal\async\cancellationmanager.cs" />
+    <Compile Include="shared\internal\async\cancellationmanager.cs" />
     <Compile Include="imap\session\command_hooks\commandhooksearchextended.cs" />
     <Compile Include="imap\session\command_pipeline\commandpipeline.cs" />
     <Compile Include="imap\session\command_pipeline\activecommands.cs" />
@@ -355,7 +328,7 @@
     <Compile Include="imap\session\fetch\uidcacheitems.cs" />
     <Compile Include="imap\session\command\commanddetailsbuilder.cs" />
     <Compile Include="imap\session\command\commandtag.cs" />
-    <Compile Include="mail\internal\other\batchsizer.cs" />
+    <Compile Include="shared\internal\other\batchsizer.cs" />
     <Compile Include="imap\session\support\processors.cs" />
     <Compile Include="imap\session\command_pipeline\responsetextprocessor.cs" />
     <Compile Include="imap\internal\status.cs" />
@@ -364,23 +337,23 @@
     <Compile Include="imap\internal\mailboxnamepattern.cs" />
     <Compile Include="imap\internal\uidlist.cs" />
     <Compile Include="tests\tests.cs" />
-    <Compile Include="mail\internal\async\countdowntimer.cs" />
-    <Compile Include="mail\internal\async\exclusiveaccess.cs" />
-    <Compile Include="mail\internal\async\methodcontrol.cs" />
-    <Compile Include="mail\internal\async\releaser.cs" />
-    <Compile Include="mail\internal\async\awaiter.cs" />
+    <Compile Include="shared\internal\async\countdowntimer.cs" />
+    <Compile Include="shared\internal\async\exclusiveaccess.cs" />
+    <Compile Include="shared\internal\async\methodcontrol.cs" />
+    <Compile Include="shared\internal\async\releaser.cs" />
+    <Compile Include="shared\internal\async\awaiter.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\imapinternals\imapinternals\imapinternals.csproj">
+      <Project>{7ceeb088-22ea-4fa6-9983-5ead662d52bb}</Project>
+      <Name>imapinternals</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\imaplib\imaplib\imaplib.csproj">
       <Project>{67778f45-ff9e-4f5f-9bb2-38abd9c7a740}</Project>
       <Name>imaplib</Name>
     </ProjectReference>
-    <ProjectReference Include="..\imapinternals\imapinternals.csproj">
-      <Project>{f3935c0a-df07-4882-92c4-a29c12fb4f11}</Project>
-      <Name>imapinternals</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\imaptools\imaptools.csproj">
-      <Project>{3dbbe1e5-fc24-4a45-b11e-64193f584959}</Project>
+    <ProjectReference Include="..\..\imaptools\imaptools\imaptools.csproj">
+      <Project>{bd62e7d7-6153-4ec3-9f4d-5105c5d707e5}</Project>
       <Name>imaptools</Name>
     </ProjectReference>
   </ItemGroup>

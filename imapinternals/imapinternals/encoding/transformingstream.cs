@@ -3,15 +3,15 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace work.bacome.imapinternals
+namespace work.bacome.imapclient
 {
     public class cTransformingStream : Stream
     {
         private readonly Stream mStream;
         private readonly iTransformer mTransformer;
-        private readonly byte[] mInputBuffer = new byte[cConst.BufferSize];
+        private readonly byte[] mInputBuffer = new byte[kConst.BufferSize];
         private bool mStreamReadToEnd = false;
-        private byte[] mPendingTransformedBytes = cConst.ZeroLengthBuffer;
+        private byte[] mPendingTransformedBytes = kConst.ZeroLengthBuffer;
         private int mPendingTransformedBytesPosition = 0;
         private long mInputBytesRead = 0;
         private readonly byte[] mReadByteBuffer = new byte[1];
@@ -56,7 +56,7 @@ namespace work.bacome.imapinternals
             while (true)
             {
                 if (ZTryReadingFromPendingTransformedBytes(pBuffer, pOffset, pCount, out var lBytesRead) || mStreamReadToEnd) return lBytesRead;
-                ZAfterReadIntoInputBuffer(mStream.Read(mInputBuffer, 0, cConst.BufferSize));
+                ZAfterReadIntoInputBuffer(mStream.Read(mInputBuffer, 0, kConst.BufferSize));
             }
         }
 
@@ -69,7 +69,7 @@ namespace work.bacome.imapinternals
             while (true)
             {
                 if (ZTryReadingFromPendingTransformedBytes(pBuffer, pOffset, pCount, out var lBytesRead) || mStreamReadToEnd) return lBytesRead;
-                ZAfterReadIntoInputBuffer(await mStream.ReadAsync(mInputBuffer, 0, cConst.BufferSize).ConfigureAwait(false));
+                ZAfterReadIntoInputBuffer(await mStream.ReadAsync(mInputBuffer, 0, kConst.BufferSize).ConfigureAwait(false));
             }
         }
 
@@ -79,7 +79,7 @@ namespace work.bacome.imapinternals
             {
                 if (ZTryReadingFromPendingTransformedBytes(mReadByteBuffer, 0, 1, out var lBytesRead)) return mReadByteBuffer[0];
                 if (mStreamReadToEnd) return -1;
-                ZAfterReadIntoInputBuffer(mStream.Read(mInputBuffer, 0, cConst.BufferSize));
+                ZAfterReadIntoInputBuffer(mStream.Read(mInputBuffer, 0, kConst.BufferSize));
             }
         }
 
@@ -90,12 +90,12 @@ namespace work.bacome.imapinternals
             if (pTransformer == null) throw new ArgumentNullException(nameof(pTransformer));
             if (pStream.CanSeek && pStream.Position != 0) pStream.Position = 0;
 
-            byte[] lInputBuffer = new byte[cConst.BufferSize];
+            byte[] lInputBuffer = new byte[kConst.BufferSize];
             long lDecodedLength = 0;
 
             while (true)
             {
-                int lBytesRead = pStream.Read(lInputBuffer, 0, cConst.BufferSize);
+                int lBytesRead = pStream.Read(lInputBuffer, 0, kConst.BufferSize);
                 lDecodedLength += pTransformer.GetTransformedLength(lInputBuffer, 0, lBytesRead);
                 if (lBytesRead == 0) return lDecodedLength;
             }
@@ -108,12 +108,12 @@ namespace work.bacome.imapinternals
             if (pTransformer == null) throw new ArgumentNullException(nameof(pTransformer));
             if (pStream.CanSeek && pStream.Position != 0) pStream.Position = 0;
 
-            byte[] lInputBuffer = new byte[cConst.BufferSize];
+            byte[] lInputBuffer = new byte[kConst.BufferSize];
             long lDecodedLength = 0;
 
             while (true)
             {
-                int lBytesRead = await pStream.ReadAsync(lInputBuffer, 0, cConst.BufferSize).ConfigureAwait(false);
+                int lBytesRead = await pStream.ReadAsync(lInputBuffer, 0, kConst.BufferSize).ConfigureAwait(false);
                 lDecodedLength += pTransformer.GetTransformedLength(lInputBuffer, 0, lBytesRead);
                 if (lBytesRead == 0) return lDecodedLength;
             }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace work.bacome.imapinternals
+namespace work.bacome.imapclient
 {
     public static class cTools
     {
@@ -199,7 +199,7 @@ namespace work.bacome.imapinternals
 
         public static bool ContainsNonASCII(IEnumerable<char> pChars)
         {
-            foreach (var lChar in pChars) if (lChar > cChar.DEL) return true;
+            foreach (var lChar in pChars) if (lChar > kChar.DEL) return true;
             return false;
         }
 

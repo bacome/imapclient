@@ -1,7 +1,7 @@
 ﻿using System;
 using work.bacome.imapsupport;
 
-namespace work.bacome.imapinternals
+namespace work.bacome.imapclient
 {
     public class cQuotedPrintableDecoder : cDecoder
     {

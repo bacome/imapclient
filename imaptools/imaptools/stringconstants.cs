@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace work.bacome.imapinternals
+namespace work.bacome.imapclient
 {
     public static class kInvalidOperationExceptionMessage
     {

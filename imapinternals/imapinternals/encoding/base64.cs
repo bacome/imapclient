@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using work.bacome.imapsupport;
 
-namespace work.bacome.imapinternals
+namespace work.bacome.imapclient
 {
     public static class cBase64
     {

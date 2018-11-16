@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Collections.ObjectModel;
 
-namespace work.bacome.imapinternals
+namespace work.bacome.imapclient
 {
     public partial class cSequenceSet
     {

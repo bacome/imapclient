@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace work.bacome.imapinternals
+namespace work.bacome.imapclient
 {
-    public static class cChar
+    public static class kChar
     {
         public const char NUL = '\0';
         public const char CtrlA = '\x01';

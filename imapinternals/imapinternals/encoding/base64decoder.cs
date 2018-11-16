@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using work.bacome.imapclient;
 
-namespace work.bacome.imapinternals
+namespace work.bacome.imapclient
 {
     public class cBase64Decoder : cDecoder
     {

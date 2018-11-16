@@ -71,27 +71,13 @@ namespace work.bacome.imapsupport
             ZCtor(pTraceSourceName);
         }
 
-        /// <summary>
-        /// Initialises a new instance with the specified trace source.
-        /// </summary>
-        /// <param name="pTraceSource"></param>
-        public cTrace(TraceSource pTraceSource)
-        {
-            if (pTraceSource == null) return;
-            ZCtor(pTraceSource);
-        }
-
         [Conditional("TRACE")]
         private void ZCtor(string pTraceSourceName)
         {
-            ZCtor(new TraceSource(pTraceSourceName));
-        }
-
-        private void ZCtor(TraceSource pTraceSource)
-        {
-            mLevel = (TraceEventType)pTraceSource.Switch.Level;
-            if (!Emits(TraceEventType.Critical) || pTraceSource.Listeners.Count == 0) return;
-            mTraceSource = pTraceSource;
+            var lTraceSource = new TraceSource(pTraceSourceName);
+            mLevel = (TraceEventType)lTraceSource.Switch.Level;
+            if (!Emits(TraceEventType.Critical) || lTraceSource.Listeners.Count == 0) return;
+            mTraceSource = lTraceSource;
 
             if (Emits(TraceEventType.Verbose))
             {

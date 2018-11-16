@@ -1,5 +1,5 @@
 C:\Users\barry\Documents\GitHub\imapclient\imaptools\imaptools\bin\Debug\work.bacome.imaptools.dll
 C:\Users\barry\Documents\GitHub\imapclient\imaptools\imaptools\bin\Debug\work.bacome.imaptools.pdb
-C:\Users\barry\Documents\GitHub\imapclient\imaptools\imaptools\obj\Debug\imaptools.csprojResolveAssemblyReference.cache
 C:\Users\barry\Documents\GitHub\imapclient\imaptools\imaptools\obj\Debug\work.bacome.imaptools.dll
 C:\Users\barry\Documents\GitHub\imapclient\imaptools\imaptools\obj\Debug\work.bacome.imaptools.pdb
+C:\Users\barry\Documents\GitHub\imapclient\imaptools\imaptools\obj\Debug\imaptools.csprojResolveAssemblyReference.cache

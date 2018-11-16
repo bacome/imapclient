@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace work.bacome.imapinternals
+namespace work.bacome.imapclient
 {
     public class cUIntList : List<uint>
     {

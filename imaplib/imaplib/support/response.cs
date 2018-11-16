@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using work.bacome.imapinternals;
+using work.bacome.imapclient;
 
 namespace work.bacome.imapsupport
 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using work.bacome.imapclient;
 using work.bacome.imapsupport;
 
-namespace work.bacome.imapinternals
+namespace work.bacome.imapclient
 {
     public enum eQuotedPrintableEncoderInputType
     {

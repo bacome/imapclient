@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace work.bacome.imapinternals
+namespace work.bacome.imapclient
 {
     public abstract class cEncoder : iTransformer
     {
@@ -12,7 +12,7 @@ namespace work.bacome.imapinternals
         public byte[] Transform(IList<byte> pInputBytes, int pOffset, int pCount)
         {
             ZEncode(pInputBytes, pOffset, pCount);
-            if (mEncodedBytes.Count == 0) return cConst.ZeroLengthBuffer;
+            if (mEncodedBytes.Count == 0) return kConst.ZeroLengthBuffer;
             var lOutput = mEncodedBytes.ToArray();
             mEncodedBytes.Clear();
             return lOutput;

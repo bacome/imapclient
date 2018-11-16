@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Net.Mail;
 using work.bacome.imapsupport;
-using work.bacome.imapinternals;
 
 namespace work.bacome.imapclient
 {
@@ -190,5 +190,39 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pMessage"></param>
         public cDecodingException(string pMessage) : base(pMessage) { }
+    }
+
+    /// <summary>
+    /// Thrown to indicate that this type of mail message is not supported by the library.
+    /// </summary>
+    public class cMailMessageFormException : cMailException
+    {
+        /// <summary>
+        /// The mail message concerned.
+        /// </summary>
+        public readonly MailMessage MailMessage;
+
+        /// <summary>
+        /// The attachment concerned. May be <see langword="null"/>.
+        /// </summary>
+        public readonly AttachmentBase Attachment;
+
+        internal cMailMessageFormException(MailMessage pMailMessage, string pMessage) : base(pMessage)
+        {
+            MailMessage = pMailMessage;
+            Attachment = null;
+        }
+
+        internal cMailMessageFormException(MailMessage pMailMessage, AttachmentBase pAttachment, string pMessage) : base(pMessage)
+        {
+            MailMessage = pMailMessage;
+            Attachment = pAttachment;
+        }
+
+        internal cMailMessageFormException(MailMessage pMailMessage, AttachmentBase pAttachment, string pMessage, Exception pInner) : base(pMessage, pInner)
+        {
+            MailMessage = pMailMessage;
+            Attachment = pAttachment;
+        }
     }
 }

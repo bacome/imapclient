@@ -303,7 +303,7 @@ namespace work.bacome.imapclient
 
             foreach (char lChar in pString)
             {
-                if (lChar == cChar.NUL || lChar > cChar.DEL) { rResult = null; return false; }
+                if (lChar == kChar.NUL || lChar > kChar.DEL) { rResult = null; return false; }
                 lBytes.Add((byte)lChar);
             }
 
@@ -441,7 +441,7 @@ namespace work.bacome.imapclient
 
             foreach (char lChar in pString)
             {
-                if (lChar == cChar.NUL || lChar == cChar.CR || lChar == cChar.LF || lChar > cChar.DEL) { rResult = null; return false; }
+                if (lChar == kChar.NUL || lChar == kChar.CR || lChar == kChar.LF || lChar > kChar.DEL) { rResult = null; return false; }
                 if (lChar == '"' || lChar == '\\') lBytes.Add(cASCII.BACKSL);
                 lBytes.Add((byte)lChar);
             }

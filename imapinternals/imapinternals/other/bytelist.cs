@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace work.bacome.imapinternals
+namespace work.bacome.imapclient
 {
     public class cByteList : List<byte>
     {

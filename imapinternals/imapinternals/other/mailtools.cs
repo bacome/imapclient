@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using work.bacome.imapsupport;
 
-namespace work.bacome.imapinternals
+namespace work.bacome.imapclient
 {
     public static class cMailTools
     {
@@ -23,7 +23,7 @@ namespace work.bacome.imapinternals
             else return "<" + cTools.Enquote(pIdLeft) + "@" + pIdRight + ">";
         }
 
-        public static string DateToRFC3501DateString(DateTime pDate) => string.Format("{0:dd}-{1}-{0:yyyy}", pDate, cRFCMonth.cName[pDate.Month]);
+        public static string DateToRFC3501DateString(DateTime pDate) => string.Format("{0:dd}-{1}-{0:yyyy}", pDate, kRFCMonth.cName[pDate.Month]);
 
         public static bool TryEncodedMailboxPathToString(IList<byte> pEncodedMailboxPath, byte? pDelimiter, bool pUTF8Enabled, out string rString)
         {
@@ -66,7 +66,7 @@ namespace work.bacome.imapinternals
             return true;
         }
 
-        public static bool IsValidDelimiter(char pDelimiter) => pDelimiter <= cChar.DEL && pDelimiter != cChar.NUL && pDelimiter != cChar.CR && pDelimiter != cChar.LF;
+        public static bool IsValidDelimiter(char pDelimiter) => pDelimiter <= kChar.DEL && pDelimiter != kChar.NUL && pDelimiter != kChar.CR && pDelimiter != kChar.LF;
         public static bool IsValidDelimiter(byte pDelimiter) => pDelimiter <= cASCII.DEL && pDelimiter != cASCII.NUL && pDelimiter != cASCII.CR && pDelimiter != cASCII.LF;
     }
 }
