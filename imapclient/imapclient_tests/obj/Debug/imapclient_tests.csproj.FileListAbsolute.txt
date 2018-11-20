@@ -1,0 +1,1 @@
+C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient_tests\obj\Debug\imapclient_tests.csprojResolveAssemblyReference.cache

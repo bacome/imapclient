@@ -1,20 +1,72 @@
 ﻿using System;
-using work.bacome.imapsupport;
+using System.Collections.Generic;
+using work.bacome.imapinternals;
 
 namespace work.bacome.imapclient
 {
+    public interface iURL
+    {
+        /** <inheritdoc cref="cURL.URL"/> **/
+        string URL { get; }
+        /** <inheritdoc cref="cURL.UserId"/> **/
+        string UserId { get; }
+        /** <inheritdoc cref="cURL.MechanismName"/> **/
+        string MechanismName { get; }
+        /** <inheritdoc cref="cURL.Port"/> **/
+        int Port { get; }
+        /** <inheritdoc cref="cURL.MailboxPath"/> **/
+        string MailboxPath { get; }
+        /** <inheritdoc cref="cURL.UIDValidity"/> **/
+        uint? UIDValidity { get; }
+        /** <inheritdoc cref="cURL.UID"/> **/
+        uint? UID { get; }
+        /** <inheritdoc cref="cURL.Section"/> **/
+        string Section { get; }
+        /** <inheritdoc cref="cURL.PartialOffset"/> **/
+        uint? PartialOffset { get; }
+        /** <inheritdoc cref="cURL.PartialLength"/> **/
+        uint? PartialLength { get; }
+        /** <inheritdoc cref="cURL.Expire"/> **/
+        cTimestamp Expire { get; }
+        /** <inheritdoc cref="cURL.Application"/> **/
+        string Application { get; }
+        /** <inheritdoc cref="cURL.AccessUserId"/> **/
+        string AccessUserId { get; }
+        /** <inheritdoc cref="cURL.TokenMechanism"/> **/
+        string TokenMechanism { get; }
+        /** <inheritdoc cref="cURL.Token"/> **/
+        string Token { get; }
+        /** <inheritdoc cref="cURL.Search"/> **/
+        string Search { get; }
+        /** <inheritdoc cref="cURL.MustUseAnonymous"/> **/
+        bool MustUseAnonymous { get; }
+        /** <inheritdoc cref="cURL.IsHomeServerReferral"/> **/
+        bool IsHomeServerReferral { get; }
+        /** <inheritdoc cref="cURL.IsMailboxReferral"/> **/
+        bool IsMailboxReferral { get; }
+        /** <inheritdoc cref="cURL.IsMailboxSearch"/> **/
+        bool IsMailboxSearch { get; }
+        /** <inheritdoc cref="cURL.IsMessageReference"/> **/
+        bool IsMessageReference { get; }
+        /** <inheritdoc cref="cURL.IsPartial"/> **/
+        bool IsPartial { get; }
+        /** <inheritdoc cref="cURL.IsAuthorisable"/> **/
+        bool IsAuthorisable { get; }
+        /** <inheritdoc cref="cURL.IsAuthorised"/> **/
+        bool IsAuthorised { get; }
+    }
+
     /// <summary>
     /// Represents a parsed IMAP URL.
     /// </summary>
     /// <remarks>
     /// See RFC 5092 and RFC 5593.
     /// </remarks>
-    public class cURL : IEquatable<cURL>
+    public class cURL : iURL, IEquatable<cURL>
     {
         // IMAP URL (rfc 5092, 5593)
 
-        /**<summary>The string that was parsed to initialise this instance.</summary>*/
-        public readonly string OriginalString;
+        private readonly string mURL;
         private readonly cURLParts mParts;
 
         /// <summary>
@@ -23,19 +75,33 @@ namespace work.bacome.imapclient
         /// <param name="pURL"></param>
         public cURL(string pURL)
         {
-            if (string.IsNullOrEmpty(pURL)) throw new ArgumentOutOfRangeException(nameof(pURL));
+            if (string.IsNullOrWhiteSpace(pURL)) throw new ArgumentOutOfRangeException(nameof(pURL));
             var lCursor = new cBytesCursor(pURL);
-            if (!cURLParts.Process(lCursor, out mParts, cTrace.cContext.None) || !lCursor.Position.AtEnd) throw new ArgumentOutOfRangeException(nameof(pURL));
+            if (!lCursor.ProcessURLParts(out mParts) || !lCursor.Position.AtEnd) throw new ArgumentOutOfRangeException(nameof(pURL));
+            mURL = pURL;
+        }
 
-            OriginalString = pURL;
+        /// <summary>
+        /// Initialises a new instance from the specified ASCII bytes. Will throw if the bytes cannot be parsed.
+        /// </summary>
+        /// <param name="pURL"></param>
+        public cURL(IList<byte> pURL)
+        {
+            if (pURL == null) throw new ArgumentNullException(nameof(pURL));
+            if (pURL.Count == 0) throw new ArgumentOutOfRangeException(nameof(pURL));
+            var lCursor = new cBytesCursor(pURL);
+            if (!lCursor.ProcessURLParts(out mParts) || !lCursor.Position.AtEnd) throw new ArgumentOutOfRangeException(nameof(pURL));
+            mURL = cTools.UTF8BytesToString(pURL);
         }
 
         private cURL(string pURL, cURLParts pParts)
         {
-            OriginalString = pURL;
-            mParts = pParts;
+            mURL = pURL ?? throw new ArgumentNullException(nameof(pURL));
+            mParts = pParts ?? throw new ArgumentNullException(nameof(pParts));
         }
 
+        /**<summary>Gets the URL as a string.</summary>*/
+        public string URL => mURL;
         /**<summary>Gets the decoded 'enc-user' part of the 'iuserinfo' part of the URL. May be <see langword="null"/>.</summary>*/
         public string UserId => mParts.UserId;
         /**<summary>Gets the decoded 'enc-auth-type' from the 'iauth' part of the URL (if iauth is ';AUTH=*' this returns <see langword="null"/>). May be <see langword="null"/>.</summary>*/
@@ -126,10 +192,8 @@ namespace work.bacome.imapclient
         public static bool TryParse(string pURL, out cURL rURL)
         {
             if (string.IsNullOrWhiteSpace(pURL)) { rURL = null; return false; }
-
             var lCursor = new cBytesCursor(pURL);
-            if (!cURLParts.Process(lCursor, out var lParts, cTrace.cContext.None) || !lCursor.Position.AtEnd) { rURL = null; return false; };
-
+            if (!lCursor.ProcessURLParts(out var lParts) || !lCursor.Position.AtEnd) { rURL = null; return false; }
             rURL = new cURL(pURL, lParts);
             return true;
         }

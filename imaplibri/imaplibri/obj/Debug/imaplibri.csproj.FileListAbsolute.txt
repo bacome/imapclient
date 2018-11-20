@@ -1,0 +1,5 @@
+C:\Users\barry\Documents\GitHub\imapclient\imaplibri\imaplibri\bin\Debug\work.bacome.imaplibri.dll
+C:\Users\barry\Documents\GitHub\imapclient\imaplibri\imaplibri\bin\Debug\work.bacome.imaplibri.pdb
+C:\Users\barry\Documents\GitHub\imapclient\imaplibri\imaplibri\obj\Debug\imaplibri.csprojResolveAssemblyReference.cache
+C:\Users\barry\Documents\GitHub\imapclient\imaplibri\imaplibri\obj\Debug\work.bacome.imaplibri.dll
+C:\Users\barry\Documents\GitHub\imapclient\imaplibri\imaplibri\obj\Debug\work.bacome.imaplibri.pdb

@@ -1,0 +1,9 @@
+C:\Users\barry\Documents\GitHub\imapclient\imaplibli\imaplibli\bin\Debug\work.bacome.imaplibli.dll
+C:\Users\barry\Documents\GitHub\imapclient\imaplibli\imaplibli\bin\Debug\work.bacome.imaplibli.pdb
+C:\Users\barry\Documents\GitHub\imapclient\imaplibli\imaplibli\bin\Debug\work.bacome.imapliblp.dll
+C:\Users\barry\Documents\GitHub\imapclient\imaplibli\imaplibli\bin\Debug\work.bacome.imaplibri.dll
+C:\Users\barry\Documents\GitHub\imapclient\imaplibli\imaplibli\bin\Debug\work.bacome.imapliblp.pdb
+C:\Users\barry\Documents\GitHub\imapclient\imaplibli\imaplibli\bin\Debug\work.bacome.imaplibri.pdb
+C:\Users\barry\Documents\GitHub\imapclient\imaplibli\imaplibli\obj\Debug\imaplibli.csprojResolveAssemblyReference.cache
+C:\Users\barry\Documents\GitHub\imapclient\imaplibli\imaplibli\obj\Debug\work.bacome.imaplibli.dll
+C:\Users\barry\Documents\GitHub\imapclient\imaplibli\imaplibli\obj\Debug\work.bacome.imaplibli.pdb

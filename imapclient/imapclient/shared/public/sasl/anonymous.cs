@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Mail;
 using System.Text;
+using work.bacome.imapinternals;
 
 namespace work.bacome.imapclient
 {

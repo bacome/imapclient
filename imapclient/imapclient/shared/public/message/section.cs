@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using work.bacome.imapinternals;
 
-namespace work.bacome.mailclient
+namespace work.bacome.imapclient
 {
     /// <summary>
     /// Represents a text part of a message body-part.

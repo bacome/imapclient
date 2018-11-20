@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using work.bacome.imapinternals;
 using work.bacome.imapsupport;
 
 namespace work.bacome.imapclient

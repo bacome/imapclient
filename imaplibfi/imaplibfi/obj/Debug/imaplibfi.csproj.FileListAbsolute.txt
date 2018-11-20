@@ -1,0 +1,13 @@
+C:\Users\barry\Documents\GitHub\imapclient\imaplibfi\imaplibfi\bin\Debug\work.bacome.imaplibfi.dll
+C:\Users\barry\Documents\GitHub\imapclient\imaplibfi\imaplibfi\bin\Debug\work.bacome.imaplibfi.pdb
+C:\Users\barry\Documents\GitHub\imapclient\imaplibfi\imaplibfi\bin\Debug\work.bacome.imaplibfp.dll
+C:\Users\barry\Documents\GitHub\imapclient\imaplibfi\imaplibfi\bin\Debug\work.bacome.imaplibli.dll
+C:\Users\barry\Documents\GitHub\imapclient\imaplibfi\imaplibfi\bin\Debug\work.bacome.imapliblp.dll
+C:\Users\barry\Documents\GitHub\imapclient\imaplibfi\imaplibfi\bin\Debug\work.bacome.imaplibri.dll
+C:\Users\barry\Documents\GitHub\imapclient\imaplibfi\imaplibfi\bin\Debug\work.bacome.imaplibfp.pdb
+C:\Users\barry\Documents\GitHub\imapclient\imaplibfi\imaplibfi\bin\Debug\work.bacome.imaplibli.pdb
+C:\Users\barry\Documents\GitHub\imapclient\imaplibfi\imaplibfi\bin\Debug\work.bacome.imapliblp.pdb
+C:\Users\barry\Documents\GitHub\imapclient\imaplibfi\imaplibfi\bin\Debug\work.bacome.imaplibri.pdb
+C:\Users\barry\Documents\GitHub\imapclient\imaplibfi\imaplibfi\obj\Debug\imaplibfi.csprojResolveAssemblyReference.cache
+C:\Users\barry\Documents\GitHub\imapclient\imaplibfi\imaplibfi\obj\Debug\work.bacome.imaplibfi.dll
+C:\Users\barry\Documents\GitHub\imapclient\imaplibfi\imaplibfi\obj\Debug\work.bacome.imaplibfi.pdb

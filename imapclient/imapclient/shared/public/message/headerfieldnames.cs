@@ -4,9 +4,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
-using work.bacome.mailclient.support;
+using work.bacome.imapinternals;
+using work.bacome.imapsupport;
 
-namespace work.bacome.mailclient
+namespace work.bacome.imapclient
 {
     /// <summary>
     /// Contains named header-field-name constants.
@@ -70,7 +71,7 @@ namespace work.bacome.mailclient
                 string lThisName = lName.ToUpperInvariant();
 
                 if (lFirst) lFirst = false;
-                else if (lThisName.CompareTo(lLastName) != 1) throw new cDeserialiseException(nameof(cHeaderFieldNames), nameof(mNames), kDeserialiseExceptionMessage.IsOutOfOrder);
+                else if (lThisName.CompareTo(lLastName) != 1) throw new cDeserialiseException(nameof(cHeaderFieldNames), nameof(mNames), kDeserialiseExceptionMessage.IncorrectSequence);
 
                 lLastName = lThisName;
             }

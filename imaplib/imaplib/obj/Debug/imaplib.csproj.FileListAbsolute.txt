@@ -1,7 +1,0 @@
-C:\Users\barry\Documents\GitHub\imapclient\imaplib\imaplib\bin\Debug\work.bacome.imaptools.dll
-C:\Users\barry\Documents\GitHub\imapclient\imaplib\imaplib\bin\Debug\work.bacome.imaptools.pdb
-C:\Users\barry\Documents\GitHub\imapclient\imaplib\imaplib\obj\Debug\imaplib.csprojResolveAssemblyReference.cache
-C:\Users\barry\Documents\GitHub\imapclient\imaplib\imaplib\bin\Debug\work.bacome.imaplib.dll
-C:\Users\barry\Documents\GitHub\imapclient\imaplib\imaplib\bin\Debug\work.bacome.imaplib.pdb
-C:\Users\barry\Documents\GitHub\imapclient\imaplib\imaplib\obj\Debug\work.bacome.imaplib.dll
-C:\Users\barry\Documents\GitHub\imapclient\imaplib\imaplib\obj\Debug\work.bacome.imaplib.pdb

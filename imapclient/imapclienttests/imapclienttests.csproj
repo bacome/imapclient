@@ -51,7 +51,8 @@
     <Compile Include="accountid.cs" />
     <Compile Include="imapcapabilities.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="uirparts.cs" />
+    <Compile Include="uri.cs" />
+    <Compile Include="url.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

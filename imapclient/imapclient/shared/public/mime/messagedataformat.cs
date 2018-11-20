@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace work.bacome.mailclient
+namespace work.bacome.imapclient
 {
     [Flags]
     public enum fMessageDataFormat

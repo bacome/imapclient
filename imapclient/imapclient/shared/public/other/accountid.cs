@@ -1,4 +1,5 @@
 ﻿using System;
+using work.bacome.imapinternals;
 
 namespace work.bacome.imapclient
 {

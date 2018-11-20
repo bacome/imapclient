@@ -107,18 +107,14 @@
     <Compile Include="shared\public\message\attachment.cs" />
     <Compile Include="shared\public\message\message.cs" />
     <Compile Include="shared\public\other\convertmailmessagedisposables.cs" />
-    <Compile Include="shared\public\mime\mimeheaderfieldparameter.cs" />
     <Compile Include="imap\public\mailbox\appenddata.cs" />
-    <Compile Include="shared\public\mime\headerfieldfactory.cs" />
     <Compile Include="imap\public\feedback\appendfeedback.cs" />
     <Compile Include="imap\public\mailbox\checkformessagesflag.cs" />
     <Compile Include="shared\client\base.cs" />
     <Compile Include="shared\internal\async\callbacksynchroniser.cs" />
-    <Compile Include="shared\public\mime\messagedatapart.cs" />
     <Compile Include="shared\public\mime\messagedataformat.cs" />
     <Compile Include="shared\internal\other\mailvalidation.cs" />
     <Compile Include="shared\public\other\exceptions.cs" />
-    <Compile Include="shared\public\mime\messagedata.cs" />
     <Compile Include="imap\session\append\append.cs" />
     <Compile Include="imap\session\append\appenddata.cs" />
     <Compile Include="imap\session\append\appendresult.cs" />
@@ -126,6 +122,8 @@
     <Compile Include="imap\session\command_pipeline\backgroundtask.cs" />
     <Compile Include="imap\session\imap_commands\authenticated\append.cs" />
     <Compile Include="imap\session\imap_commands\not_authenticated\authenticated.cs" />
+    <Compile Include="shared\public\other\uri.cs" />
+    <Compile Include="shared\public\other\url.cs" />
     <Compile Include="smtp\client.cs" />
     <Compile Include="imap\internal\appenddatalist.cs" />
     <Compile Include="shared\internal\other\mailmessagelist.cs" />
@@ -274,12 +272,10 @@
     <Compile Include="imap\public\connection\id.cs" />
     <Compile Include="imap\public\other\idleconfiguration.cs" />
     <Compile Include="imap\public\other\responsetext.cs" />
-    <Compile Include="shared\public\other\url.cs" />
     <Compile Include="shared\public\sasl\anonymous.cs" />
     <Compile Include="shared\public\sasl\base.cs" />
     <Compile Include="shared\public\sasl\plain.cs" />
     <Compile Include="imap\internal\commandpart.cs" />
-    <Compile Include="shared\public\other\uri.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="imap\session\command\commandhook.cs" />
     <Compile Include="imap\session\command_hooks\commandhookbasesearch.cs" />
@@ -344,17 +340,25 @@
     <Compile Include="shared\internal\async\awaiter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\imapinternals\imapinternals\imapinternals.csproj">
-      <Project>{7ceeb088-22ea-4fa6-9983-5ead662d52bb}</Project>
-      <Name>imapinternals</Name>
+    <ProjectReference Include="..\..\imaplibfi\imaplibfi\imaplibfi.csproj">
+      <Project>{498c6e3d-eaa7-4837-90ab-858d7dc212a1}</Project>
+      <Name>imaplibfi</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\imaplib\imaplib\imaplib.csproj">
-      <Project>{67778f45-ff9e-4f5f-9bb2-38abd9c7a740}</Project>
-      <Name>imaplib</Name>
+    <ProjectReference Include="..\..\imaplibfp\imaplibfp\imaplibfp.csproj">
+      <Project>{a80f43c0-38b7-43d7-a8d2-6a55c5e5a2be}</Project>
+      <Name>imaplibfp</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\imaptools\imaptools\imaptools.csproj">
-      <Project>{bd62e7d7-6153-4ec3-9f4d-5105c5d707e5}</Project>
-      <Name>imaptools</Name>
+    <ProjectReference Include="..\..\imaplibli\imaplibli\imaplibli.csproj">
+      <Project>{1ac32750-7c90-4404-9511-a7c0a30e93ad}</Project>
+      <Name>imaplibli</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\imapliblp\imapliblp\imapliblp.csproj">
+      <Project>{47fab2db-6e1e-4729-bda0-58b7eb359216}</Project>
+      <Name>imapliblp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\imaplibri\imaplibri\imaplibri.csproj">
+      <Project>{389012c2-42f7-4bc0-89c7-50772babb195}</Project>
+      <Name>imaplibri</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
