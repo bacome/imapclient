@@ -7,6 +7,114 @@ using work.bacome.mailclient.support;
 
 namespace work.bacome.mailclient
 {
+
+
+
+
+    public class cHeaderFieldPhraseValue : cHeaderFieldCommentTextQuotedStringPhraseValue
+    {
+        public readonly ReadOnlyCollection<cHeaderFieldCommentTextQuotedStringValue> Parts;
+
+        public cHeaderFieldPhraseValue(IEnumerable<cHeaderFieldCommentTextQuotedStringValue> pParts)
+        {
+            if (pParts == null) throw new ArgumentNullException(nameof(pParts));
+
+            var lParts = new List<cHeaderFieldCommentTextQuotedStringValue>();
+            bool lLastWasText = false;
+            bool lHasText = false;
+
+            foreach (var lPart in pParts)
+            {
+                if (lPart == null) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
+
+                if (lPart is cHeaderFieldTextValue)
+                {
+                    if (lLastWasText) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.AdjacencyProblem);
+                    lLastWasText = true;
+                    lHasText = true;
+                }
+                else lLastWasText = false;
+
+                ;?; // quotedstring is content
+
+                lParts.Add(lPart);
+            }
+
+            ;?;
+            if (!lHasText) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.HasNoContent);
+
+            Parts = lParts.AsReadOnly();
+        }
+
+        public cHeaderFieldPhraseValue(string pText)
+        {
+            ;?;
+            if (pText == null) throw new ArgumentNullException(nameof(pText));
+            var lParts = new List<cHeaderFieldCommentTextQuotedStringValue>();
+            lParts.Add(new cHeaderFieldTextValue(pText));
+            Parts = lParts.AsReadOnly();
+        }
+
+        public override string ToString()
+        {
+            cListBuilder lBuilder = new cListBuilder(nameof(cHeaderFieldPhraseValue));
+            foreach (var lPart in Parts) lBuilder.Append(lPart);
+            return lBuilder.ToString();
+        }
+    }
+
+    public class cHeaderFieldStructuredValue
+    {
+        public readonly ReadOnlyCollection<cHeaderFieldCommentTextQuotedStringPhraseValue> Parts;
+
+        public cHeaderFieldStructuredValue(IEnumerable<cHeaderFieldCommentTextQuotedStringPhraseValue> pParts)
+        {
+            if (pParts == null) throw new ArgumentNullException(nameof(pParts));
+
+            var lParts = new List<cHeaderFieldCommentTextQuotedStringPhraseValue>();
+            bool lLastWasPhrase = false;
+
+            // text next to text is ok in unstructured;
+            //  but you have to be careful that there is a special at the end/ beginning
+            //  the same on the text to phrase boundary also
+
+            foreach (var lPart in pParts)
+            {
+                if (lPart == null) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
+
+                if (lPart is cHeaderFieldPhraseValue)
+                {
+                    if (lLastWasPhrase) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.AdjacencyProblem);
+                    lLastWasPhrase = true;
+                }
+                else lLastWasPhrase = false;
+
+                lParts.Add(lPart);
+            }
+
+            Parts = lParts.AsReadOnly();
+        }
+
+        public cHeaderFieldStructuredValue(string pText)
+        {
+            ;?;
+            if (pText == null) throw new ArgumentNullException(nameof(pText));
+            var lParts = new List<cHeaderFieldCommentTextQuotedStringPhraseValue>();
+            lParts.Add(new cHeaderFieldTextValue(pText));
+            Parts = lParts.AsReadOnly();
+        }
+
+        public override string ToString()
+        {
+            cListBuilder lBuilder = new cListBuilder(nameof(cHeaderFieldStructuredValue));
+            foreach (var lPart in Parts) lBuilder.Append(lPart);
+            return lBuilder.ToString();
+        }
+    }
+
+
+
+
     public partial class cHeaderFieldFactory
     {
         //        /// When generating header fields and RFC 2047 encoded words or RFC 2231 MIME parameters are , then this encoding is used.

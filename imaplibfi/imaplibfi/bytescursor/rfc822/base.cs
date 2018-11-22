@@ -182,7 +182,7 @@ namespace work.bacome.imapinternals
 
             while (true)
             {
-                ZGetRFC822FWS(lResult);
+                GetRFC822FWS(lResult);
 
                 if (Position.AtEnd || Position.BytesLine.Literal) { Position = lBookmark; rString = null; return false; }
 
@@ -227,7 +227,7 @@ namespace work.bacome.imapinternals
             }
         }
 
-        public bool ZGetRFC822FWS(cByteList pBytes)
+        public bool GetRFC822FWS(cByteList pBytes)
         {
             bool lResult = ZGetRFC822WSP(pBytes);
 

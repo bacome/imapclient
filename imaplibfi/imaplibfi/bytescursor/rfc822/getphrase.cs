@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using work.bacome.imapclient;
-using work.bacome.imapsupport;
 
 namespace work.bacome.imapinternals
 {
@@ -10,8 +9,6 @@ namespace work.bacome.imapinternals
     {
         public bool GetRFC822Phrase(out cHeaderFieldPhraseValue rPhrase)
         {
-            const char kCleanChar = ' ';
-
             var lStrings = new List<string>();
 
             var lBookmark = Position;
@@ -52,13 +49,12 @@ namespace work.bacome.imapinternals
                 {
                     if (lBuilder.Length != 0)
                     {
-                        cCharset.WSPVChar.CleanBuilder(lBuilder, kCleanChar);
                         lParts.Add(new cHeaderFieldTextValue(lBuilder.ToString()));
                         lBuilder.Clear();
                     }
 
                     if (lString.Length == 0) lParts.Add(cHeaderFieldQuotedStringValue.Empty);
-                    else lParts.Add(new cHeaderFieldQuotedStringValue(cCharset.WSPVChar.CleanString(lString, kCleanChar)));
+                    else lParts.Add(new cHeaderFieldQuotedStringValue(lString));
                 }
                 else
                 {
@@ -67,11 +63,7 @@ namespace work.bacome.imapinternals
                 }
             }
 
-            if (lBuilder.Length != 0)
-            {
-                cCharset.WSPVChar.CleanBuilder(lBuilder, kCleanChar);
-                lParts.Add(new cHeaderFieldTextValue(lBuilder.ToString()));
-            }
+            if (lBuilder.Length != 0) lParts.Add(new cHeaderFieldTextValue(lBuilder.ToString()));
 
             rPhrase = new cHeaderFieldPhraseValue(lParts);
             return true;

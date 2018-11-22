@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using System.Collections.Generic;
 using work.bacome.imapinternals;
 
@@ -118,27 +117,6 @@ namespace work.bacome.imapsupport
         {
             foreach (char lChar in pChars) if (!Contains(lChar)) return false;
             return true;
-        }
-
-        public string CleanString(string pString, char pReplacementChar)
-        {
-            foreach (char lChar in pString)
-            {
-                if (!Contains(lChar))
-                {
-                    StringBuilder lBuilder = new StringBuilder(pString);
-                    CleanBuilder(lBuilder, pReplacementChar);
-                    return lBuilder.ToString();
-                }
-            }
-
-            return pString;
-        }
-
-        public void CleanBuilder(StringBuilder pBuilder, char pReplacementChar)
-        {
-            for (int i = 0; i < pBuilder.Length; i++)
-                if (!Contains(pBuilder[i])) pBuilder[i] = pReplacementChar;
         }
 
         // implementations
@@ -710,7 +688,7 @@ namespace work.bacome.imapsupport
             {
                 if (pByte > cASCII.DEL) return true; // allows utf8 to pass through (unvalidated)
                 if (pByte == cASCII.TAB) return true;
-                if (pByte <= cASCII.SPACE || pByte == cASCII.LBRACKET || pByte == cASCII.BACKSL || pByte == cASCII.RBRACKET || pByte == cASCII.DEL) return false;
+                if (pByte < cASCII.SPACE || pByte == cASCII.LBRACKET || pByte == cASCII.BACKSL || pByte == cASCII.RBRACKET || pByte == cASCII.DEL) return false;
                 return true;
             }
 

@@ -68,6 +68,7 @@
     <Compile Include="other\bytelist.cs" />
     <Compile Include="other\extendedvalue.cs" />
     <Compile Include="other\mailtools.cs" />
+    <Compile Include="other\mailvalidation.cs" />
     <Compile Include="other\uintlist.cs" />
     <Compile Include="other\uriparts.cs" />
     <Compile Include="other\urlparts.cs" />
@@ -78,14 +79,6 @@
     <Compile Include="sequenceset\sequenceset.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\imaplibfp\imaplibfp\imaplibfp.csproj">
-      <Project>{a80f43c0-38b7-43d7-a8d2-6a55c5e5a2be}</Project>
-      <Name>imaplibfp</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\imaplibli\imaplibli\imaplibli.csproj">
-      <Project>{1ac32750-7c90-4404-9511-a7c0a30e93ad}</Project>
-      <Name>imaplibli</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\imapliblp\imapliblp\imapliblp.csproj">
       <Project>{47fab2db-6e1e-4729-bda0-58b7eb359216}</Project>
       <Name>imapliblp</Name>

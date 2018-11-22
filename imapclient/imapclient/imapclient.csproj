@@ -113,7 +113,6 @@
     <Compile Include="shared\client\base.cs" />
     <Compile Include="shared\internal\async\callbacksynchroniser.cs" />
     <Compile Include="shared\public\mime\messagedataformat.cs" />
-    <Compile Include="shared\internal\other\mailvalidation.cs" />
     <Compile Include="shared\public\other\exceptions.cs" />
     <Compile Include="imap\session\append\append.cs" />
     <Compile Include="imap\session\append\appenddata.cs" />
@@ -122,8 +121,6 @@
     <Compile Include="imap\session\command_pipeline\backgroundtask.cs" />
     <Compile Include="imap\session\imap_commands\authenticated\append.cs" />
     <Compile Include="imap\session\imap_commands\not_authenticated\authenticated.cs" />
-    <Compile Include="shared\public\other\uri.cs" />
-    <Compile Include="shared\public\other\url.cs" />
     <Compile Include="smtp\client.cs" />
     <Compile Include="imap\internal\appenddatalist.cs" />
     <Compile Include="shared\internal\other\mailmessagelist.cs" />
@@ -142,7 +139,6 @@
     <Compile Include="imap\public\enums\mailboxcachedatasets.cs" />
     <Compile Include="imap\public\enums\storeoperation.cs" />
     <Compile Include="imap\public\enums\messagecacheattributes.cs" />
-    <Compile Include="shared\public\message\headerfieldnames.cs" />
     <Compile Include="shared\public\message\headerfields.cs" />
     <Compile Include="shared\public\enums\importance.cs" />
     <Compile Include="imap\public\feedback\copyfeedback.cs" />
@@ -248,7 +244,6 @@
     <Compile Include="imap\public\eventargs\mailboxpropertychangedeventargs.cs" />
     <Compile Include="imap\support\mailboxstatus.cs" />
     <Compile Include="imap\public\eventargs\messagedeliveryeventargs.cs" />
-    <Compile Include="shared\public\message\address.cs" />
     <Compile Include="imap\public\message\attachment.cs" />
     <Compile Include="imap\support\binarysizes.cs" />
     <Compile Include="shared\public\message\bodypart.cs" />
@@ -259,14 +254,12 @@
     <Compile Include="imap\support\messagehandle.cs" />
     <Compile Include="imap\public\other\messagecacheitems.cs" />
     <Compile Include="imap\public\eventargs\messagepropertychangedeventargs.cs" />
-    <Compile Include="shared\public\message\section.cs" />
     <Compile Include="imap\public\other\sort.cs" />
     <Compile Include="imap\public\message\uid.cs" />
     <Compile Include="imap\public\namespace\namespace.cs" />
     <Compile Include="imap\public\namespace\namespacename.cs" />
     <Compile Include="imap\public\namespace\namespaces.cs" />
     <Compile Include="imap\public\other\commandresult.cs" />
-    <Compile Include="shared\public\message\culturedstring.cs" />
     <Compile Include="imap\public\other\exceptions.cs" />
     <Compile Include="shared\public\configuration\batchsizerconfiguration.cs" />
     <Compile Include="imap\public\connection\id.cs" />
@@ -340,17 +333,13 @@
     <Compile Include="shared\internal\async\awaiter.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\imaplibcp\imaplibcp\imaplibcp.csproj">
+      <Project>{df4f5997-2910-42bf-af24-b19237f5a4d0}</Project>
+      <Name>imaplibcp</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\imaplibfi\imaplibfi\imaplibfi.csproj">
       <Project>{498c6e3d-eaa7-4837-90ab-858d7dc212a1}</Project>
       <Name>imaplibfi</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\imaplibfp\imaplibfp\imaplibfp.csproj">
-      <Project>{a80f43c0-38b7-43d7-a8d2-6a55c5e5a2be}</Project>
-      <Name>imaplibfp</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\imaplibli\imaplibli\imaplibli.csproj">
-      <Project>{1ac32750-7c90-4404-9511-a7c0a30e93ad}</Project>
-      <Name>imaplibli</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\imapliblp\imapliblp\imapliblp.csproj">
       <Project>{47fab2db-6e1e-4729-bda0-58b7eb359216}</Project>

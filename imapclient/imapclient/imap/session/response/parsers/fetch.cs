@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using work.bacome.imapclient.support;
 using work.bacome.mailclient;
-using work.bacome.mailclient.support;
+using work.bacome.imapinternals;
+using work.bacome.imapsupport;
 
 namespace work.bacome.imapclient
 {
@@ -234,7 +235,7 @@ namespace work.bacome.imapclient
                     cCulturedString lSubject;
 
                     if (lSubjectBytes == null || lSubjectBytes.Count == 0) lSubject = null;
-                    else lSubject = new cCulturedString(lSubjectBytes, false);
+                    else lSubject = new cCulturedString(lSubjectBytes);
 
                     cParsing.TryParseMsgIds(lInReplyToBytes, out var lInReplyTo);
                     cParsing.TryParseMsgId(lMessageIdBytes, out var lMessageId);
@@ -292,7 +293,7 @@ namespace work.bacome.imapclient
                                 // group start
 
                                 if (lGroupAddresses != null) lAddresses.Add(new cGroupAddress(lGroupDisplayName, lGroupAddresses)); // handle a start of group with no end of group
-                                lGroupDisplayName = new cCulturedString(lMailboxBytes, true);
+                                lGroupDisplayName = new cCulturedString(lMailboxBytes);
                                 lGroupAddresses = new List<cEmailAddress>();
                             }
                         }
@@ -301,13 +302,14 @@ namespace work.bacome.imapclient
                             // not sure how mailbox names are meant to support i18n? rfc 6530 implies UTF8 but I can't find how that affects the value reported by IMAP in mailbox
                             //  at this stage if UTF8 were to appear in the mailbox then we would just accept it
 
-                            string lMailbox = cMailTools.UTF8BytesToString(lMailboxBytes);
-                            string lHost = cMailTools.UTF8BytesToString(lHostBytes);
+                            string lMailbox = cTools.UTF8BytesToString(lMailboxBytes);
+                            string lHost = cTools.UTF8BytesToString(lHostBytes);
 
                             cCulturedString lDisplayName;
                             if (lNameBytes == null) lDisplayName = null;
-                            else lDisplayName = new cCulturedString(lNameBytes, true);
+                            else lDisplayName = new cCulturedString(lNameBytes);
 
+                            var lEmailAddress = cEmailAddress.Construct(lMailbox, lHost, lDisplayName);
                             var lEmailAddress = new cEmailAddress(lMailbox, lHost, lDisplayName);
 
                             if (lGroupAddresses != null) lGroupAddresses.Add(lEmailAddress);

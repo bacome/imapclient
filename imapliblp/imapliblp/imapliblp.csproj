@@ -20,6 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\work.bacome.imapliblp.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -41,15 +42,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="client\exceptions.cs" />
+    <Compile Include="client\headerfieldnames.cs" />
     <Compile Include="client\headerfieldvalue.cs" />
     <Compile Include="client\messageflags.cs" />
     <Compile Include="client\msgidgenerator.cs" />
     <Compile Include="client\serviceid.cs" />
     <Compile Include="client\strings.cs" />
+    <Compile Include="client\timestamp.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="support\bytes.cs" />
     <Compile Include="support\charset.cs" />
     <Compile Include="support\response.cs" />
+    <Compile Include="support\rfcmonth.cs" />
     <Compile Include="support\trace.cs" />
   </ItemGroup>
   <ItemGroup>

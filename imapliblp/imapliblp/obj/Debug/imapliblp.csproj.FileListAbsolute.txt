@@ -5,3 +5,4 @@ C:\Users\barry\Documents\GitHub\imapclient\imapliblp\imapliblp\bin\Debug\work.ba
 C:\Users\barry\Documents\GitHub\imapclient\imapliblp\imapliblp\bin\Debug\work.bacome.imaplibri.pdb
 C:\Users\barry\Documents\GitHub\imapclient\imapliblp\imapliblp\obj\Debug\work.bacome.imapliblp.dll
 C:\Users\barry\Documents\GitHub\imapclient\imapliblp\imapliblp\obj\Debug\work.bacome.imapliblp.pdb
+C:\Users\barry\Documents\GitHub\imapclient\imapliblp\imapliblp\bin\Debug\work.bacome.imapliblp.xml

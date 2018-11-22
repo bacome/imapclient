@@ -7,19 +7,11 @@ namespace work.bacome.imapinternals
 {
     public static class cMailTools
     {
-        public static bool IsDotAtomText(string pString)
-        {
-            if (pString == null) throw new ArgumentNullException(nameof(pString));
-            var lAtoms = pString.Split('.');
-            foreach (var lAtom in lAtoms) if (lAtom.Length == 0 || !cCharset.AText.ContainsAll(lAtom)) return false;
-            return true;
-        }
-
         public static string MessageId(string pIdLeft, string pIdRight)
         {
             if (pIdLeft == null) throw new ArgumentNullException(nameof(pIdLeft));
             if (pIdRight == null) throw new ArgumentNullException(nameof(pIdRight));
-            if (IsDotAtomText(pIdLeft)) return "<" + pIdLeft + "@" + pIdRight + ">";
+            if (cMailValidation.IsDotAtomText(pIdLeft)) return "<" + pIdLeft + "@" + pIdRight + ">";
             else return "<" + cTools.Enquote(pIdLeft) + "@" + pIdRight + ">";
         }
 
