@@ -3,6 +3,9 @@ using System.Net.Mail;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Thrown when an address has a format that is invalid in the context in which it needs to be used.
+    /// </summary>
     public class cAddressFormException : cMailException
     {
         /// <summary>
@@ -14,20 +17,23 @@ namespace work.bacome.imapclient
         /// The address concerned. May be <see langword="null"/>.
         /// </summary>
         public readonly cAddress Address;
-
-        internal cAddressFormException(MailAddress pMailAddress)
+        
+        /// <summary>
+        /// Initialises a new instance with the specified address.
+        /// </summary>
+        /// <param name="pMailAddress"></param>
+        public cAddressFormException(MailAddress pMailAddress)
         {
             MailAddress = pMailAddress;
         }
 
-        internal cAddressFormException(cEmailAddress pEmailAddress)
+        /// <summary>
+        /// Initialises a new instance with the specified address.
+        /// </summary>
+        /// <param name="pAddress"></param>
+        public cAddressFormException(cAddress pAddress)
         {
-            Address = pEmailAddress;
-        }
-
-        internal cAddressFormException(cGroupAddress pGroupAddress)
-        {
-            Address = pGroupAddress;
+            Address = pAddress;
         }
     }
 

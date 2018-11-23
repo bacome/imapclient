@@ -62,9 +62,8 @@ namespace work.bacome.mailclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
         public static bool operator ==(cBatchSizerConfiguration pA, cBatchSizerConfiguration pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
             return pA.Min == pB.Min && pA.Max == pB.Max && pA.MaxTime == pB.MaxTime && pA.Initial == pB.Initial;
         }
 

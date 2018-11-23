@@ -9,22 +9,20 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Represents part of an RFC 5322 header field value. The part can be one of; an RFC 5322 comment, an RFC 5322 quoted string, an RFC 5322 phrase or text.
     /// </summary>
-    /// <remarks>
-    /// This class represents a value so that appropriate quoting and encoding rules can be applied during message composition.
-    /// It is possible that some values will only be valid if used with mail clients that support certain features (notably internationalised email headers).
-    /// </remarks>
-    public abstract class cHeaderFieldCommentTextQuotedStringPhraseValue
+    public abstract class cHeaderFieldCommentTextQuotedStringPhraseValue: iCanComposeHeaderFieldValue
     {
         /// <summary>
         /// Initialises a new instance.
         /// </summary>
         protected cHeaderFieldCommentTextQuotedStringPhraseValue() { }
+
+        /// <inheritdoc cref="iCanComposeHeaderFieldValue.CanComposeHeaderFieldValue(bool)"/>
+        public abstract bool CanComposeHeaderFieldValue(bool pUTF8HeadersAllowed);
     }
 
     /// <summary>
     /// Represents part of an RFC 5322 header field value. The part can be one of; an RFC 5322 comment, an RFC 5322 quoted string or text.
     /// </summary>
-    /// <inheritdoc cref="cHeaderFieldCommentTextQuotedStringPhraseValue" select="remarks"/>
     public abstract class cHeaderFieldCommentTextQuotedStringValue : cHeaderFieldCommentTextQuotedStringPhraseValue
     {
         /// <summary>
@@ -36,7 +34,6 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Represents part of an RFC 5322 header field value. The part can be either an RFC 5322 comment or text.
     /// </summary>
-    /// <inheritdoc cref="cHeaderFieldCommentTextQuotedStringPhraseValue" select="remarks"/>
     public abstract class cHeaderFieldCommentTextValue : cHeaderFieldCommentTextQuotedStringValue
     {
         /// <summary>
@@ -48,7 +45,6 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Represents text in an RFC 5322 header field value.
     /// </summary>
-    /// <inheritdoc cref="cHeaderFieldCommentTextQuotedStringPhraseValue" select="remarks"/>
     public class cHeaderFieldTextValue : cHeaderFieldCommentTextValue
     {
         /// <summary>
@@ -66,13 +62,15 @@ namespace work.bacome.imapclient
         }
 
         /// <inheritdoc />
+        public override bool CanComposeHeaderFieldValue(bool pUTF8HeadersAllowed) => !cCharset.WSPVChar.ContainsAll(Text); // only checks for invalid characters
+
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cHeaderFieldTextValue)}({Text})";
     }
 
     /// <summary>
     /// Represents a comment in an RFC 5322 header field value.
     /// </summary>
-    /// <inheritdoc cref="cHeaderFieldCommentTextQuotedStringPhraseValue" select="remarks"/>
     public class cHeaderFieldCommentValue : cHeaderFieldCommentTextValue
     {
         /// <summary>
@@ -111,6 +109,13 @@ namespace work.bacome.imapclient
         }
 
         /// <inheritdoc />
+        public override bool CanComposeHeaderFieldValue(bool pUTF8HeadersAllowed)
+        {
+            foreach (var lPart in Parts) if (!lPart.CanComposeHeaderFieldValue(pUTF8HeadersAllowed)) return false; // only checks for invalid characters as encoded words can be used in comments
+            return true;
+        }
+
+        /// <inheritdoc />
         public override string ToString()
         {
             cListBuilder lBuilder = new cListBuilder(nameof(cHeaderFieldCommentValue));
@@ -122,7 +127,6 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Represents the text of a quoted string in an RFC 5322 header field value.
     /// </summary>
-    /// <inheritdoc cref="cHeaderFieldCommentTextQuotedStringPhraseValue" select="remarks"/>
     public class cHeaderFieldQuotedStringValue : cHeaderFieldCommentTextQuotedStringValue
     {
         /// <summary>
@@ -145,13 +149,21 @@ namespace work.bacome.imapclient
         }
 
         /// <inheritdoc />
+        public override bool CanComposeHeaderFieldValue(bool pUTF8HeadersAllowed)
+        {
+            if (!cCharset.WSPVChar.ContainsAll(Text)) return false; // check for invalid characters
+            if (pUTF8HeadersAllowed) return true;
+            if (cTools.ContainsNonASCII(Text)) return false; // encoded-words can't be used in quoted strings
+            return true;
+        }
+
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cHeaderFieldQuotedStringValue)}({Text})";
     }
 
     /// <summary>
     /// Represents a phrase in an RFC 5322 header field value.
     /// </summary>
-    /// <inheritdoc cref="cHeaderFieldCommentTextQuotedStringPhraseValue" select="remarks"/>
     public class cHeaderFieldPhraseValue : cHeaderFieldCommentTextQuotedStringPhraseValue
     {
         /// <summary>
@@ -206,6 +218,14 @@ namespace work.bacome.imapclient
         }
 
         /// <inheritdoc />
+        public override bool CanComposeHeaderFieldValue(bool pUTF8HeadersAllowed)
+        {
+            // encoded words can be used in phrase
+            foreach (var lPart in Parts) if (!lPart.CanComposeHeaderFieldValue(pUTF8HeadersAllowed)) return false;
+            return true;
+        }
+
+        /// <inheritdoc />
         public override string ToString()
         {
             cListBuilder lBuilder = new cListBuilder(nameof(cHeaderFieldPhraseValue));
@@ -217,8 +237,7 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Represents a structured RFC 5322 header field value.
     /// </summary>
-    /// <inheritdoc cref="cHeaderFieldCommentTextQuotedStringPhraseValue" select="remarks"/>
-    public class cHeaderFieldStructuredValue
+    public class cHeaderFieldStructuredValue : iCanComposeHeaderFieldValue
     {
         /// <summary>
         /// The parts of the value.
@@ -254,6 +273,19 @@ namespace work.bacome.imapclient
             var lParts = new List<cHeaderFieldCommentTextQuotedStringPhraseValue>();
             lParts.Add(new cHeaderFieldTextValue(pText));
             Parts = lParts.AsReadOnly();
+        }
+
+        /// <inheritdoc cref="iCanComposeHeaderFieldValue.CanComposeHeaderFieldValue(bool)"/>
+        public bool CanComposeHeaderFieldValue(bool pUTF8HeadersAllowed)
+        {
+            // encoded words are only allowed in phrase and comment
+            foreach (var lPart in Parts)
+            {
+                if (lPart is cHeaderFieldTextValue lText && !pUTF8HeadersAllowed && cTools.ContainsNonASCII(lText.Text)) return false;
+                if (!lPart.CanComposeHeaderFieldValue(pUTF8HeadersAllowed)) return false;
+            }
+
+            return true;
         }
 
         /// <inheritdoc />

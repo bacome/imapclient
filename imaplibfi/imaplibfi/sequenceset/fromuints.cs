@@ -26,8 +26,8 @@ namespace work.bacome.imapinternals
             // for sorting measures by class
             public int CompareTo(sMergeMetric pOther)
             {
-                int lCompareTo;
-                if ((lCompareTo = AdditionalValues.CompareTo(pOther.AdditionalValues)) != 0) return lCompareTo; // adding less additional uints is better
+                int lCompareTo = AdditionalValues.CompareTo(pOther.AdditionalValues);
+                if (lCompareTo != 0) return lCompareTo; // adding less additional uints is better
                 return pOther.GuaranteedSaving.CompareTo(GuaranteedSaving); // saving more is better
             }
 

@@ -322,9 +322,8 @@ namespace work.bacome.imapinternals
 
         public static bool operator ==(cURLParts pA, cURLParts pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
 
             return
                 pA.mParts == pB.mParts &&

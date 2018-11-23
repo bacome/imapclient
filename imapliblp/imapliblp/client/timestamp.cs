@@ -155,8 +155,8 @@ namespace work.bacome.imapclient
         public int CompareTo(cTimestamp pOther)
         {
             if (pOther == null) return 1;
-            int lCompareTo;
-            if ((lCompareTo = DateTimeOffset.CompareTo(pOther.DateTimeOffset)) != 0) return lCompareTo;
+            int lCompareTo = DateTimeOffset.CompareTo(pOther.DateTimeOffset);
+            if (lCompareTo != 0) return lCompareTo;
             return UnknownLocalOffset.CompareTo(pOther.UnknownLocalOffset);
         }
 
@@ -183,9 +183,8 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cTimestamp pA, cTimestamp pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
             return pA.DateTimeOffset == pB.DateTimeOffset && pA.UnknownLocalOffset == pB.UnknownLocalOffset;
         }
 

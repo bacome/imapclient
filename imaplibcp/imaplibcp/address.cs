@@ -13,10 +13,10 @@ namespace work.bacome.imapclient
     /// Represents an address on an email; either an individual <see cref="cEmailAddress"/> or a <see cref="cGroupAddress"/>.
     /// </summary>
     [Serializable]
-    public abstract class cAddress : IEquatable<cAddress>
+    public abstract class cAddress : iCanComposeHeaderFieldValue, IEquatable<cAddress>
     {
         /// <summary>
-        /// The display name for the address, may be <see langword="null"/>.
+        /// The display name for the address, may be <see langword="null"/> for a <see cref="cEmailAddress"/>.
         /// </summary>
         public readonly cCulturedString DisplayName;
 
@@ -25,13 +25,14 @@ namespace work.bacome.imapclient
             DisplayName = pDisplayName;
         }
 
-        ;?; // crap: now I want the on deser back
-
         /// <summary>
         /// The display text for the address. 
-        /// Will be the <see cref="DisplayName"/> except for an <see cref="cEmailAddress"/> without a display name when it will be the <see cref="cEmailAddress.DisplayAddress"/>.
+        /// Will be the <see cref="DisplayName"/> except for an <see cref="cEmailAddress"/> without a display name when it will be the <see cref="cEmailAddress.Address"/>.
         /// </summary>
         public virtual string DisplayText => DisplayName;
+
+        /// <inheritdoc cref="iCanComposeHeaderFieldValue.CanComposeHeaderFieldValue(bool)"/>
+        public abstract bool CanComposeHeaderFieldValue(bool pUTF8HeadersAllowed);
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public abstract bool Equals(cAddress pObject);
@@ -45,9 +46,8 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cAddress pA, cAddress pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
             return pA.Equals(pB);
         }
 
@@ -59,7 +59,7 @@ namespace work.bacome.imapclient
     /// An immutable collection of addresses.
     /// </summary>
     [Serializable]
-    public class cAddresses : IReadOnlyList<cAddress>, IEquatable<cAddresses>
+    public class cAddresses : iCanComposeHeaderFieldValue, IReadOnlyList<cAddress>, IEquatable<cAddresses>
     {
         [NonSerialized]
         private string mSortString;
@@ -92,7 +92,7 @@ namespace work.bacome.imapclient
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
-            if (mAddresses == null) throw new Exception($"{nameof(cAddresses)}.{nameof(mAddresses)}.null");
+            if (mAddresses == null) throw new cDeserialiseException(nameof(cAddresses), nameof(mAddresses), kDeserialiseExceptionMessage.IsNull);
             foreach (var lAddress in mAddresses) if (lAddress == null) throw new cDeserialiseException(nameof(cAddresses), nameof(mAddresses), kDeserialiseExceptionMessage.ContainsNulls);
             ZFinishConstruct();
         }
@@ -124,6 +124,13 @@ namespace work.bacome.imapclient
             }
 
             throw new cInternalErrorException(nameof(cAddresses), nameof(ZFinishConstruct));
+        }
+
+        /// <inheritdoc cref="iCanComposeHeaderFieldValue.CanComposeHeaderFieldValue(bool)"/>
+        public virtual bool CanComposeHeaderFieldValue(bool pUTF8HeadersAllowed)
+        {
+            foreach (var lAddress in mAddresses) if (!lAddress.CanComposeHeaderFieldValue(pUTF8HeadersAllowed)) return false;
+            return true;
         }
 
         /// <summary>
@@ -174,10 +181,8 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cAddresses pA, cAddresses pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
-
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
             if (pA.mAddresses.Count != pB.mAddresses.Count) return false;
             for (int i = 0; i < pA.mAddresses.Count; i++) if (!pA.mAddresses[i].Equals(pB.mAddresses[i])) return false;
             return true;
@@ -193,8 +198,6 @@ namespace work.bacome.imapclient
     [Serializable]
     public sealed class cEmailAddress : cAddress, IEquatable<cEmailAddress>, IComparable<cEmailAddress>
     {
-        private const string kInvalid = "invalid";
-
         /// <summary>
         /// The local part of the address.
         /// </summary>
@@ -216,7 +219,23 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises a new instance with the specified values.
+        /// Initialises a new instance with the specified values which do not have to be valid for use when composing an RFC 5322 header field value.
+        /// </summary>
+        /// <remarks>
+        /// Intended for internal use by the library, this constructor accepts values that have been pre-processed by IMAP.
+        /// </remarks>
+        /// <param name="pMailboxBytes"></param>
+        /// <param name="pHostBytes"></param>
+        /// <param name="pNameBytes"></param>
+        public cEmailAddress(IList<byte> pMailboxBytes, IList<byte> pHostBytes, IList<byte> pNameBytes) : base(ZDisplayName(pNameBytes))
+        {
+            LocalPart = cTools.UTF8BytesToString(pMailboxBytes);
+            Domain = cTools.UTF8BytesToString(pHostBytes);
+            ZFinishConstruct();
+        }
+
+        /// <summary>
+        /// Initialises a new instance with the specified values which must be valid for use when composing an RFC 5322 header field value.
         /// </summary>
         /// <param name="pLocalPart"></param>
         /// <param name="pDomain"></param>
@@ -233,15 +252,15 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises a new instance with the specified value.
+        /// Initialises a new instance with the specified value which must be valid for use when composing an RFC 5322 header field value.
         /// </summary>
         public cEmailAddress(MailAddress pAddress) : base(ZDisplayName(pAddress))
         {
             if (pAddress == null) throw new ArgumentNullException(nameof(pAddress));
-            if (pAddress.User == null || pAddress.Host == null) throw new cAddressFormException(pAddress);
+            if (pAddress.User == null || pAddress.Host == null) throw new ArgumentOutOfRangeException(nameof(pAddress));
 
-            if (!cMailValidation.TryParseLocalPart(pAddress.User, out LocalPart)) throw new cAddressFormException(pAddress);
-            if (!cMailValidation.TryParseDomain(pAddress.Host, out Domain)) throw new cAddressFormException(pAddress);
+            if (!cMailValidation.TryParseLocalPart(pAddress.User, out LocalPart)) throw new ArgumentOutOfRangeException(nameof(pAddress));
+            if (!cMailValidation.TryParseDomain(pAddress.Host, out Domain)) throw new ArgumentOutOfRangeException(nameof(pAddress));
 
             ZFinishConstruct();
         }
@@ -250,11 +269,7 @@ namespace work.bacome.imapclient
         private void OnDeserialised(StreamingContext pSC)
         {
             if (LocalPart == null) throw new cDeserialiseException(nameof(cEmailAddress), nameof(LocalPart), kDeserialiseExceptionMessage.IsNull);
-            if (!cMailValidation.TryParseLocalPart(LocalPart, out var lLocalPart) || lLocalPart != LocalPart) throw new cDeserialiseException(nameof(cEmailAddress), nameof(LocalPart), kDeserialiseExceptionMessage.IsInvalid);
-
             if (Domain == null) throw new cDeserialiseException(nameof(cEmailAddress), nameof(Domain), kDeserialiseExceptionMessage.IsNull);
-            if (!cMailValidation.TryParseDomain(Domain, out var lDomain) || lDomain != Domain) throw new cDeserialiseException(nameof(cEmailAddress), nameof(Domain), kDeserialiseExceptionMessage.IsInvalid);
-
             ZFinishConstruct();
         }
 
@@ -262,6 +277,12 @@ namespace work.bacome.imapclient
         {
             if (cMailValidation.IsDotAtomText(LocalPart)) mQuotedLocalPart = LocalPart;
             else mQuotedLocalPart = cTools.Enquote(LocalPart);
+        }
+
+        private static cCulturedString ZDisplayName(IList<byte> pNameBytes)
+        {
+            if (pNameBytes == null) return null;
+            return new cCulturedString(pNameBytes);
         }
 
         private static cCulturedString ZDisplayName(string pDisplayName)
@@ -274,7 +295,8 @@ namespace work.bacome.imapclient
         private static cCulturedString ZDisplayName(MailAddress pAddress)
         {
             if (pAddress == null) throw new ArgumentNullException(nameof(pAddress));
-            if (!cCharset.WSPVChar.ContainsAll(pAddress.DisplayName)) throw new cAddressFormException(pAddress);
+            if (pAddress.DisplayName == null) return null;
+            if (!cCharset.WSPVChar.ContainsAll(pAddress.DisplayName)) throw new ArgumentOutOfRangeException(nameof(pAddress));
             return new cCulturedString(pAddress.DisplayName);
         }
 
@@ -284,19 +306,24 @@ namespace work.bacome.imapclient
             get
             {
                 if (DisplayName != null) return DisplayName;
-                return DisplayAddress;
+                return Address;
             }
+        }
+
+        /** <inheritdoc/> **/
+        public override bool CanComposeHeaderFieldValue(bool pUTF8HeadersAllowed)
+        {
+            if (DisplayName != null && !DisplayName.CanComposeHeaderFieldValue(pUTF8HeadersAllowed)) return false; // display name can include encoded words, so as long as there are no illegal characters the value is fine
+            if (!cMailValidation.TryParseLocalPart(mQuotedLocalPart, out var lLocalPart)) return false;
+            if (!pUTF8HeadersAllowed && cTools.ContainsNonASCII(lLocalPart)) return false; // the local part can't include encoded words
+            if (!cMailValidation.TryParseDomain(Domain, out _)) return false; // the domain can always be punycoded, so if it is valid there is no need to check for unicode
+            return true;
         }
 
         /// <summary>
         /// Gets the address in the form localpart@domain.
         /// </summary>
         public string Address => $"{mQuotedLocalPart}@{Domain}";
-
-        /// <summary>
-        /// Gets the address in the form localpart@domain, with the domain decoded from punycode if required.
-        /// </summary>
-        public string DisplayAddress => $"{mQuotedLocalPart}@{cTools.GetDisplayHost(Domain)}";
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public bool Equals(cEmailAddress pObject) => this == pObject;
@@ -305,9 +332,13 @@ namespace work.bacome.imapclient
         public int CompareTo(cEmailAddress pOther)
         {
             if (pOther == null) return 1;
-            int lCompareTo = LocalPart.CompareTo(pOther.LocalPart);
-            if (lCompareTo == 0) return Domain.CompareTo(pOther.Domain);
-            return lCompareTo;
+            var lCompareTo = cTools.CompareToNullableFields(DisplayName, pOther.DisplayName);
+            if (lCompareTo != 0) return lCompareTo;
+            lCompareTo = DisplayName.CompareTo(pOther.DisplayName);
+            if (lCompareTo != 0) return lCompareTo;
+            lCompareTo = LocalPart.CompareTo(pOther.LocalPart);
+            if (lCompareTo != 0) return lCompareTo;
+            return Domain.CompareTo(pOther.Domain);
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
@@ -322,6 +353,7 @@ namespace work.bacome.imapclient
             unchecked
             {
                 int lHash = 17;
+                if (DisplayName != null) lHash = lHash * 23 + DisplayName.GetHashCode();
                 lHash = lHash * 23 + LocalPart.GetHashCode();
                 lHash = lHash * 23 + Domain.GetHashCode();
                 return lHash;
@@ -334,26 +366,22 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cEmailAddress pA, cEmailAddress pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
-            return pA.LocalPart == pB.LocalPart && pA.Domain == pB.Domain;
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
+            return pA.DisplayName == pB.DisplayName && pA.LocalPart == pB.LocalPart && pA.Domain == pB.Domain;
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
         public static bool operator !=(cEmailAddress pA, cEmailAddress pB) => !(pA == pB);
 
         /// <summary>
-        /// Converts a <see cref="MailAddress"/> to a <see cref="cEmailAddress"/> if possible, returning <see langword="true"/> if the conversion succeeded.
+        /// Constructs a new <see cref="cEmailAddress"/> from the specified <see cref="MailAddress"/> if possible, returning <see langword="true"/> if successful.
         /// </summary>
-        /// <param name="pAddress"></param>
+        /// <param name="pAddress">Must be valid for use when composing an RFC 5322 header field value.</param>
         /// <param name="rEmailAddress"></param>
         /// <returns></returns>
         public static bool TryConstruct(MailAddress pAddress, out cEmailAddress rEmailAddress)
         {
-            // NOTE: just because the address is valid by this routine doesn't mean it can be included in a header
-            //  if the local part is UTF8 and the client doesn't support UTF8 then the address will be unusable
-
             if (pAddress == null) throw new ArgumentNullException(nameof(pAddress));
 
             if (pAddress.User == null || pAddress.Host == null) { rEmailAddress = null; return false; }
@@ -373,33 +401,14 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises a new instance using the specified values. If the values specified are not valid a syntactically legal but invalid email address is returned.
+        /// Returns a new <see cref="MailAddress"/> initialised with values from the specified <see cref="cEmailAddress"/>.
         /// </summary>
-        /// <returns></returns>
-        public static cEmailAddress Construct(string pLocalPart, string pDomain, cCulturedString pDisplayName)
-        {
-            cCulturedString lDisplayName;
-            if (cCharset.WSPVChar.ContainsAll(pDisplayName.ToString())) lDisplayName = pDisplayName;
-            else lDisplayName = null;
-
-            if (cMailValidation.TryParseLocalPart(pLocalPart, out var lLocalPart) && cMailValidation.TryParseDomain(pDomain, out var lDomain)) return new cEmailAddress(lLocalPart, lDomain, lDisplayName);
-
-            ;?; // clean the local and domain to be wspvchar
-
-            return new cEmailAddress(kInvalid, kInvalid, new cCulturedString())
-
-        }
-
+        /// <param name="pAddress"></param>
         public static implicit operator MailAddress(cEmailAddress pAddress)
         {
             if (pAddress == null) return null;
             return new MailAddress(pAddress.Address, pAddress.DisplayName?.ToString());
         }
-    }
-
-    public class cInvalidEmailAddress : cAddress
-    {
-
     }
 
     /// <summary>
@@ -408,24 +417,39 @@ namespace work.bacome.imapclient
     [Serializable]
     public sealed class cGroupAddress : cAddress, IEquatable<cGroupAddress>
     {
-        [NonSerialized]
-        private string mDisplayName;
-
         /// <summary>
         /// The sorted collection of group members. May be empty.
         /// </summary>
         public readonly ReadOnlyCollection<cEmailAddress> EmailAddresses;
 
-        ;?; // validate displayanme
-        internal cGroupAddress(cCulturedString pDisplayName, List<cEmailAddress> pAddresses) : base(pDisplayName)
+        /// <summary>
+        /// Initialises a new instance with the specified values. Note that the content of the <paramref name="pDisplayName"/> is not checked in this constructor.
+        /// </summary>
+        /// <param name="pDisplayName"></param>
+        /// <param name="pAddresses"></param>
+        public cGroupAddress(cCulturedString pDisplayName, IEnumerable<cEmailAddress> pAddresses) : base(pDisplayName)
         {
             if (pDisplayName == null) throw new ArgumentNullException(nameof(pDisplayName));
             if (pAddresses == null) throw new ArgumentNullException(nameof(pAddresses));
-            pAddresses.Sort(); // for the hashcode and == implementations
-            mDisplayName = pDisplayName.ToString();
-            EmailAddresses = pAddresses.AsReadOnly();
+
+            var lEmailAddresses = new List<cEmailAddress>();
+
+            foreach (var lAddress in pAddresses)
+            {
+                if (lAddress == null) throw new ArgumentOutOfRangeException(nameof(pAddresses), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
+                lEmailAddresses.Add(lAddress);
+            }
+
+            lEmailAddresses.Sort(); // for the hashcode and == implementations
+
+            EmailAddresses = lEmailAddresses.AsReadOnly();
         }
 
+        /// <summary>
+        /// Initialises a new instance with the specified values.
+        /// </summary>
+        /// <param name="pDisplayName">Must be valid for use when composing an RFC 5322 header field value.</param>
+        /// <param name="pAddresses"></param>
         public cGroupAddress(string pDisplayName, IEnumerable<cEmailAddress> pAddresses) : base(ZDisplayName(pDisplayName))
         {
             if (pAddresses == null) throw new ArgumentNullException(nameof(pAddresses));
@@ -440,10 +464,14 @@ namespace work.bacome.imapclient
 
             lEmailAddresses.Sort(); // for the hashcode and == implementations
 
-            mDisplayName = pDisplayName;
             EmailAddresses = lEmailAddresses.AsReadOnly();
         }
 
+        /// <summary>
+        /// Initialises a new instance with the specified values.
+        /// </summary>
+        /// <param name="pDisplayName">Must be valid for use when composing an RFC 5322 header field value.</param>
+        /// <param name="pAddresses">Each address must be valid for use when composing an RFC 5322 header field value.</param>
         public cGroupAddress(string pDisplayName, IEnumerable<MailAddress> pAddresses) : base(ZDisplayName(pDisplayName))
         {
             if (pAddresses == null) throw new ArgumentNullException(nameof(pAddresses));
@@ -453,21 +481,28 @@ namespace work.bacome.imapclient
             foreach (var lAddress in pAddresses)
             {
                 if (lAddress == null) throw new ArgumentOutOfRangeException(nameof(pAddresses), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
-                lEmailAddresses.Add(new cEmailAddress(lAddress));
+                if (!cEmailAddress.TryConstruct(lAddress, out var lEmailAddress)) throw new ArgumentOutOfRangeException(nameof(pAddresses), new cAddressFormException(lAddress));
+                lEmailAddresses.Add(lEmailAddress);
             }
 
             lEmailAddresses.Sort(); // for the hashcode and == implementations
 
-            mDisplayName = pDisplayName;
             EmailAddresses = lEmailAddresses.AsReadOnly();
         }
 
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
+            if (DisplayName == null) throw new cDeserialiseException(nameof(cGroupAddress), nameof(DisplayName), kDeserialiseExceptionMessage.IsNull);
             if (EmailAddresses == null) throw new cDeserialiseException(nameof(cGroupAddress), nameof(EmailAddresses), kDeserialiseExceptionMessage.IsNull);
-            foreach (var lEMailAddress in EmailAddresses) if (lEMailAddress == null) throw new cDeserialiseException(nameof(cGroupAddress), nameof(EmailAddresses), kDeserialiseExceptionMessage.ContainsNulls);
-            mDisplayName = DisplayName.ToString();
+
+            cEmailAddress lLastEMailAddress = null;
+
+            foreach (var lEMailAddress in EmailAddresses)
+            {
+                if (lEMailAddress == null) throw new cDeserialiseException(nameof(cGroupAddress), nameof(EmailAddresses), kDeserialiseExceptionMessage.ContainsNulls);
+                if (lEMailAddress.CompareTo(lLastEMailAddress) == -1) throw new cDeserialiseException(nameof(cGroupAddress), nameof(EmailAddresses), kDeserialiseExceptionMessage.IncorrectSequence);
+            }
         }
 
         private static cCulturedString ZDisplayName(string pDisplayName)
@@ -475,6 +510,14 @@ namespace work.bacome.imapclient
             if (pDisplayName == null) throw new ArgumentNullException(nameof(pDisplayName));
             if (!cCharset.WSPVChar.ContainsAll(pDisplayName)) throw new ArgumentOutOfRangeException(nameof(pDisplayName));
             return new cCulturedString(pDisplayName);
+        }
+
+        /** <inheritdoc/> **/
+        public override bool CanComposeHeaderFieldValue(bool pUTF8HeadersAllowed)
+        {
+            if (!DisplayName.CanComposeHeaderFieldValue(pUTF8HeadersAllowed)) return false; // display name can include encoded words, so as long as there are no illegal characters the value is fine
+            foreach (var lEMailAddress in EmailAddresses) if (!lEMailAddress.CanComposeHeaderFieldValue(pUTF8HeadersAllowed)) return false;
+            return true;
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
@@ -492,7 +535,7 @@ namespace work.bacome.imapclient
             unchecked
             {
                 int lHash = 17;
-                lHash = lHash * 23 + mDisplayName.GetHashCode();
+                if (DisplayName != null) lHash = lHash * 23 + DisplayName.GetHashCode();
                 foreach (var lEmailAddress in EmailAddresses) lHash = lHash * 23 + lEmailAddress.GetHashCode();
                 return lHash;
             }
@@ -510,12 +553,9 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cGroupAddress pA, cGroupAddress pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
-
-            if (pA.mDisplayName != pB.mDisplayName) return false;
-
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
+            if (pA.DisplayName != pB.DisplayName) return false;
             if (pA.EmailAddresses.Count != pB.EmailAddresses.Count) return false;
             for (int i = 0; i < pA.EmailAddresses.Count; i++) if (pA.EmailAddresses[i] != pB.EmailAddresses[i]) return false;
             return true;

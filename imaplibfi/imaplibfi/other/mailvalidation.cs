@@ -57,9 +57,17 @@ namespace work.bacome.imapinternals
         public static bool TryParseLocalPart(string pString, out string rLocalPart)
         {
             if (pString == null) throw new ArgumentNullException(nameof(pString));
+
+            // try to parse it as an RFC822 format local-part
             var lCursor = new cBytesCursor(pString);
             if (!lCursor.GetRFC822LocalPart(out rLocalPart)) return false;
             if (lCursor.Position.AtEnd && cCharset.WSPVChar.ContainsAll(rLocalPart)) return true;
+
+            // try to treat it as a quoted string
+            rLocalPart = pString.Trim();
+            if (cCharset.WSPVChar.ContainsAll(rLocalPart)) return true;
+
+            // can't think of anything else to try
             rLocalPart = null;
             return false;
         }
@@ -67,9 +75,19 @@ namespace work.bacome.imapinternals
         public static bool TryParseDomain(string pString, out string rDomain)
         {
             if (pString == null) throw new ArgumentNullException(nameof(pString));
+
             var lCursor = new cBytesCursor(pString);
-            if (!lCursor.GetRFC822Domain(out rDomain)) return false;
-            if (lCursor.Position.AtEnd && (IsDotAtomText(rDomain) || IsDomainLiteral(rDomain))) return true;
+
+            if (!lCursor.GetRFC822Domain(out var lDomain) || !lCursor.Position.AtEnd) { rDomain = null; return false; }
+
+            if (IsDotAtomText(lDomain))
+            {
+                rDomain = cTools.GetDisplayHost(lDomain);
+                return true;
+            }
+
+            if (IsDomainLiteral(lDomain)) { rDomain = lDomain; return true; } 
+
             rDomain = null;
             return false;
         }

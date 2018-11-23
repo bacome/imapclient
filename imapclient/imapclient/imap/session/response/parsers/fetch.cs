@@ -302,15 +302,7 @@ namespace work.bacome.imapclient
                             // not sure how mailbox names are meant to support i18n? rfc 6530 implies UTF8 but I can't find how that affects the value reported by IMAP in mailbox
                             //  at this stage if UTF8 were to appear in the mailbox then we would just accept it
 
-                            string lMailbox = cTools.UTF8BytesToString(lMailboxBytes);
-                            string lHost = cTools.UTF8BytesToString(lHostBytes);
-
-                            cCulturedString lDisplayName;
-                            if (lNameBytes == null) lDisplayName = null;
-                            else lDisplayName = new cCulturedString(lNameBytes);
-
-                            var lEmailAddress = cEmailAddress.Construct(lMailbox, lHost, lDisplayName);
-                            var lEmailAddress = new cEmailAddress(lMailbox, lHost, lDisplayName);
+                            var lEmailAddress = new cEmailAddress(lMailboxBytes, lHostBytes, lNameBytes);
 
                             if (lGroupAddresses != null) lGroupAddresses.Add(lEmailAddress);
                             else lAddresses.Add(lEmailAddress);

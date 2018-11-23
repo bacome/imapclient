@@ -125,10 +125,8 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cMessageFlags pA, cMessageFlags pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
-
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
             if (pA.mFlags.Count != pB.mFlags.Count) return false;
             for (int i = 0; i < pA.Count; i++) if (!pA.mFlags[i].Equals(pB.mFlags[i], StringComparison.InvariantCultureIgnoreCase)) return false;
             return true;

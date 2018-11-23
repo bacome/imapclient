@@ -153,13 +153,15 @@ namespace work.bacome.imapclient
         public int CompareTo(cSection pOther)
         {
             if (pOther == null) return 1;
-
-            int lCompareTo;
-
-            if ((lCompareTo = string.Compare(Part, pOther.Part)) != 0) return lCompareTo;
-            if ((lCompareTo = TextPart.CompareTo(pOther.TextPart)) != 0) return lCompareTo;
-
-            return cHeaderFieldNames.Compare(Names, pOther.Names);
+            int lCompareTo = cTools.CompareToNullableFields(Part, pOther.Part);
+            if (lCompareTo != 0) return lCompareTo;
+            lCompareTo = Part.CompareTo(pOther.Part);
+            if (lCompareTo != 0) return lCompareTo;
+            lCompareTo = TextPart.CompareTo(pOther.TextPart);
+            if (lCompareTo != 0) return lCompareTo;
+            lCompareTo = cTools.CompareToNullableFields(Names, pOther.Names);
+            if (lCompareTo != 0) return lCompareTo;
+            return Names.CompareTo(pOther.Names);
         }
 
         /// <inheritdoc />
@@ -185,14 +187,11 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cSection pA, cSection pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
-
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
             if (pA.Part != pB.Part || pA.TextPart != pB.TextPart) return false;
-
-            if (ReferenceEquals(pA.Names, pB.Names)) return true;
-            if (pA.Names == null) return false;
+            lReferenceEquals = cTools.EqualsReferenceEquals(pA.Names, pB.Names);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
             return pA.Names.Equals(pB.Names);
         }
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using work.bacome.imapclient.support;
-using work.bacome.mailclient;
+using work.bacome.imapinternals;
 
 namespace work.bacome.imapclient
 {
@@ -155,9 +155,8 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
         public static bool operator ==(cSortItem pA, cSortItem pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
             return pA.Item == pB.Item && pA.Desc == pB.Desc;
         }
 
@@ -452,16 +451,11 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
         public static bool operator ==(cSort pA, cSort pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
-
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
             if (pA.mName != pB.mName) return false;
-
-            if (ReferenceEquals(pA.Items, pB.Items)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
-
+            lReferenceEquals = cTools.EqualsReferenceEquals(pA.Items, pB.Items);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
             if (pA.Items.Count != pB.Items.Count) return false;
             for (int i = 0; i < pA.Items.Count; i++) if (!pA.Items[i].Equals(pB.Items[i])) return false;
             return true;

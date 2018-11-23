@@ -84,9 +84,8 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
         public static bool operator ==(cIdleConfiguration pA, cIdleConfiguration pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
             return pA.StartDelay == pB.StartDelay && pA.IdleRestartInterval == pB.IdleRestartInterval && pA.PollInterval == pB.PollInterval;
         }
 

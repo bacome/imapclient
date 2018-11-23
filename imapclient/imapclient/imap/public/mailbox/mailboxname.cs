@@ -4,7 +4,8 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Runtime.Serialization;
 using work.bacome.mailclient;
-using work.bacome.mailclient.support;
+using work.bacome.imapsupport;
+using work.bacome.imapinternals;
 
 namespace work.bacome.imapclient
 {
@@ -199,21 +200,10 @@ namespace work.bacome.imapclient
         public int CompareTo(cMailboxName pOther)
         {
             if (pOther == null) return 1;
-
             var lCompareTo = mPath.CompareTo(pOther.mPath);
-
             if (lCompareTo != 0) return lCompareTo;
-
-            // should never get here
-
-            if (Delimiter == null)
-            {
-                if (pOther.Delimiter == null) return 0;
-                return -1;
-            }
-
-            if (pOther.Delimiter == null) return 1;
-
+            lCompareTo = cTools.CompareToNullableFields(Delimiter, pOther.Delimiter);
+            if (lCompareTo != 0) return lCompareTo;
             return Delimiter.Value.CompareTo(pOther.Delimiter.Value);
         }
 
@@ -238,9 +228,8 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cMailboxName pA, cMailboxName pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
             return pA.mPath == pB.mPath && pA.Delimiter == pB.Delimiter;
         }
 

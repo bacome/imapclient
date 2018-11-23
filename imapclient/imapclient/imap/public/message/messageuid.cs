@@ -45,9 +45,8 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cMessageUID pA, cMessageUID pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
             return pA.MailboxId == pB.MailboxId && pA.UID == pB.UID && pA.UIDNotSticky == pB.UIDNotSticky && pA.UTF8Enabled == pB.UTF8Enabled;
         }
 

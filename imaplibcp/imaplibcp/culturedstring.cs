@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Runtime.Serialization;
 using System.Text;
 using work.bacome.imapinternals;
+using work.bacome.imapsupport;
 
 namespace work.bacome.imapclient
 {
@@ -11,7 +12,7 @@ namespace work.bacome.imapclient
     /// Represents a string that may include language information as per RFC 2231.
     /// </summary>
     [Serializable]
-    public class cCulturedString
+    public class cCulturedString: iCanComposeHeaderFieldValue, IEquatable<cCulturedString>, IComparable<cCulturedString>
     {
         /// <summary>
         /// The parts of the string. May be <see langword="null"/>.
@@ -113,10 +114,59 @@ namespace work.bacome.imapclient
             Parts = new ReadOnlyCollection<cCulturedStringPart>(lParts);
         }
 
+        /// <inheritdoc cref="iCanComposeHeaderFieldValue.CanComposeHeaderFieldValue(bool)"/>
+        public bool CanComposeHeaderFieldValue(bool pUTF8HeadersAllowed)
+        {
+            // only checks for invalid characters
+            if (Parts is null) return true;
+            foreach (var lPart in Parts) if (!cCharset.WSPVChar.ContainsAll(lPart.String)) return false;
+            return true;
+        }
+
         [OnDeserialized]
         private void OnDeserialised(StreamingContext pSC)
         {
             if (Parts != null) foreach (var lPart in Parts) if (lPart == null) throw new cDeserialiseException(nameof(cCulturedString), nameof(Parts), kDeserialiseExceptionMessage.ContainsNulls);
+        }
+
+
+
+
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cCulturedString pObject) => this == pObject;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.CompareTo"/>
+        public int CompareTo(cCulturedString pOther)
+        {
+            if (pOther == null) return 1;
+
+            int lCompareTo = cTools.CompareToNullableFields(Parts, pOther.Parts);
+            if (lCompareTo != 0) return lCompareTo;
+
+            int lMinCount = Math.Min(Parts.Count, pOther.Parts.Count);
+
+            for (int i = 0; i < lMinCount; i++)
+            {
+                lCompareTo = Parts[i].CompareTo(pOther.Parts[i]);
+                if (lCompareTo != 0) return lCompareTo;
+            }
+
+            return Parts.Count.CompareTo(pOther.Parts.Count);
+        }
+
+        /// <inheritdoc />
+        public override bool Equals(object pObject) => this == pObject as cCulturedString;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int lHash = 17;
+                if (Parts != null) foreach (var lPart in Parts) lHash = lHash * 23 + lPart.GetHashCode();
+                return lHash;
+            }
         }
 
         /**<summary>Returns the string data sans the language information.</summary>*/
@@ -131,6 +181,22 @@ namespace work.bacome.imapclient
 
         /// <inheritdoc cref="ToString"/>
         public static implicit operator string(cCulturedString pString) => pString?.ToString();
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
+        public static bool operator ==(cCulturedString pA, cCulturedString pB)
+        {
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
+            lReferenceEquals = cTools.EqualsReferenceEquals(pA.Parts, pB.Parts);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
+            if (pA.Parts.Count != pB.Parts.Count) return false;
+            for (int i = 0; i < pA.Parts.Count; i++) if (pA.Parts[i] != pB.Parts[i]) return false;
+            return true;
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
+        public static bool operator !=(cCulturedString pA, cCulturedString pB) => !(pA == pB);
+
     }
 
     /// <summary>
@@ -138,7 +204,7 @@ namespace work.bacome.imapclient
     /// </summary>
     /// <seealso cref="cCulturedString"/>
     [Serializable]
-    public class cCulturedStringPart
+    public class cCulturedStringPart : IEquatable<cCulturedStringPart>, IComparable<cCulturedStringPart>
     {
         /// <summary>
         /// The text of the part (after RFC 2231 decoding). 
@@ -162,7 +228,47 @@ namespace work.bacome.imapclient
             if (String == null) throw new cDeserialiseException(nameof(cCulturedStringPart), nameof(String), kDeserialiseExceptionMessage.IsNull);
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cCulturedStringPart pObject) => this == pObject;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.CompareTo"/>
+        public int CompareTo(cCulturedStringPart pOther)
+        {
+            if (pOther == null) return 1;
+            int lCompareTo = String.CompareTo(pOther.String);
+            if (lCompareTo != 0) return lCompareTo;
+            lCompareTo = cTools.CompareToNullableFields(LanguageTag, pOther.LanguageTag);
+            if (lCompareTo != 0) return lCompareTo;
+            return LanguageTag.CompareTo(pOther.LanguageTag);
+        }
+
+        /// <inheritdoc />
+        public override bool Equals(object pObject) => this == pObject as cCulturedStringPart;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int lHash = 17;
+                lHash = lHash * 23 + String.GetHashCode();
+                if (LanguageTag != null) lHash = lHash * 23 + LanguageTag.GetHashCode();
+                return lHash;
+            }
+        }
+
         /// <inheritdoc/>
         public override string ToString() => $"{nameof(cCulturedStringPart)}({String},{LanguageTag})";
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
+        public static bool operator ==(cCulturedStringPart pA, cCulturedStringPart pB)
+        {
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
+            return pA.String == pB.String && pA.LanguageTag == pB.LanguageTag;
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
+        public static bool operator !=(cCulturedStringPart pA, cCulturedStringPart pB) => !(pA == pB);
     }
 }

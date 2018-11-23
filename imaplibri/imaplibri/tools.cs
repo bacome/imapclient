@@ -227,5 +227,26 @@ namespace work.bacome.imapinternals
 
             return lBuilder.ToString();
         }
+
+        public static int CompareToNullableFields(object pInstanceField, object pOtherField)
+        {
+            if (pInstanceField == null)
+            {
+                if (pOtherField == null) return 0;
+                return -1;
+            }
+
+            if (pOtherField == null) return 1;
+
+            return 0;
+        }
+
+        public static bool? EqualsReferenceEquals(object pA, object pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+            return null;
+        }
     }
 }

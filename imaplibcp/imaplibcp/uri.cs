@@ -168,13 +168,10 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
         public static bool operator ==(cURI pA, cURI pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
-
-            if (pA.mURLParts != null) return pA.mURLParts.Equals(pB.mURLParts);
-            if (pB.mURLParts != null) return false;
-
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
+            lReferenceEquals = cTools.EqualsReferenceEquals(pA.mURLParts, pB.mURLParts);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
             return pA.mParts.Equals(pB.mParts);
         }
 

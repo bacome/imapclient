@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using work.bacome.mailclient;
+using work.bacome.imapinternals;
 
 namespace work.bacome.imapclient
 {
@@ -44,8 +44,8 @@ namespace work.bacome.imapclient
         {
             if (pOther == null) return 1;
             int lCompareTo = UIDValidity.CompareTo(pOther.UIDValidity);
-            if (lCompareTo == 0) return UID.CompareTo(pOther.UID);
-            return lCompareTo;
+            if (lCompareTo != 0) return lCompareTo;
+            return UID.CompareTo(pOther.UID);
         }
 
         /// <inheritdoc/>
@@ -69,9 +69,8 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cUID pA, cUID pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
             return pA.UIDValidity == pB.UIDValidity && pA.UID == pB.UID;
         }
 
@@ -98,18 +97,16 @@ namespace work.bacome.imapclient
 
         public static bool operator <=(cUID pA, cUID pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
             if (pA.UIDValidity != pB.UIDValidity) throw new InvalidOperationException();
             return pA.UID <= pB.UID;
         }
 
         public static bool operator >=(cUID pA, cUID pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
             if (pA.UIDValidity != pB.UIDValidity) throw new InvalidOperationException();
             return pA.UID >= pB.UID;
         }

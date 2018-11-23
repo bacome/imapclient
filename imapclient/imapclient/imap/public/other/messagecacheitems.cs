@@ -1,5 +1,5 @@
 ﻿using System;
-using work.bacome.mailclient;
+using work.bacome.imapinternals;
 
 namespace work.bacome.imapclient
 {
@@ -91,9 +91,8 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cMessageCacheItems pA, cMessageCacheItems pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
             return pA.Attributes == pB.Attributes && pA.Names.Equals(pB.Names);
         }
 

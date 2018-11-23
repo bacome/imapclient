@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="client\cancompose.cs" />
     <Compile Include="client\exceptions.cs" />
     <Compile Include="client\headerfieldnames.cs" />
     <Compile Include="client\headerfieldvalue.cs" />

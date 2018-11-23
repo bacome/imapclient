@@ -113,7 +113,6 @@
     <Compile Include="shared\client\base.cs" />
     <Compile Include="shared\internal\async\callbacksynchroniser.cs" />
     <Compile Include="shared\public\mime\messagedataformat.cs" />
-    <Compile Include="shared\public\other\exceptions.cs" />
     <Compile Include="imap\session\append\append.cs" />
     <Compile Include="imap\session\append\appenddata.cs" />
     <Compile Include="imap\session\append\appendresult.cs" />

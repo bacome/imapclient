@@ -127,6 +127,7 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public bool Equals(cHeaderFieldNames pObject) => this == pObject;
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.CompareTo"/>
         public int CompareTo(cHeaderFieldNames pOther)
         {
             if (pOther == null) return 1;
@@ -162,10 +163,8 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cHeaderFieldNames pA, cHeaderFieldNames pB)
         {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
-
+            var lReferenceEquals = cTools.EqualsReferenceEquals(pA, pB);
+            if (lReferenceEquals != null) return lReferenceEquals.Value;
             if (pA.mNames.Count != pB.mNames.Count) return false;
             for (int i = 0; i < pA.Count; i++) if (!pA.mNames[i].Equals(pB.mNames[i], StringComparison.InvariantCultureIgnoreCase)) return false;
             return true;
@@ -173,13 +172,6 @@ namespace work.bacome.imapclient
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
         public static bool operator !=(cHeaderFieldNames pA, cHeaderFieldNames pB) => !(pA == pB);
-
-        public static int Compare(cHeaderFieldNames pA, cHeaderFieldNames pB)
-        {
-            if (ReferenceEquals(pA, pB)) return 0;
-            if (ReferenceEquals(pA, null)) return -1;
-            return pA.CompareTo(pB);
-        }
 
         /// <summary>
         /// Returns a new instance containing a copy of the specified list.
@@ -191,6 +183,12 @@ namespace work.bacome.imapclient
             return new cHeaderFieldNames(pNames);
         }
 
+        /// <summary>
+        /// Constructs a new <see cref="cHeaderFieldNames"/> from the specified field names if possible, returning <see langword="true"/> if successful.
+        /// </summary>
+        /// <param name="pNames"></param>
+        /// <param name="rNames"></param>
+        /// <returns></returns>
         public static bool TryConstruct(IEnumerable<string> pNames, out cHeaderFieldNames rNames)
         {
             if (!cHeaderFieldNameList.TryConstruct(pNames, out var lNames)) { rNames = null; return false; }
@@ -383,6 +381,12 @@ namespace work.bacome.imapclient
             return cCharset.FText.ContainsAll(pName);
         }
 
+        /// <summary>
+        /// Constructs a new <see cref="cHeaderFieldNameList"/> from the specified field names if possible, returning <see langword="true"/> if successful.
+        /// </summary>
+        /// <param name="pNames"></param>
+        /// <param name="rNames"></param>
+        /// <returns></returns>
         public static bool TryConstruct(IEnumerable<string> pNames, out cHeaderFieldNameList rNames)
         {
             if (pNames == null) { rNames = null; return false; }
